@@ -23,6 +23,8 @@ const W3C_TOKEN_TYPES = [
   'typography',
 ] as const;
 
+// Allow both W3C standard types and custom types for flexibility
+// Custom types generate warnings but are not errors
 type TokenType = typeof W3C_TOKEN_TYPES[number] | string;
 
 export interface TokenValidationError {
