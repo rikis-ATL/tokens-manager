@@ -2,11 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import { TokenUpdater } from '@/utils/tokenUpdater';
 
+interface RouteParams {
+  params: Promise<{
+    path: string[];
+  }>;
+}
+
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  context: RouteParams
 ) {
   try {
+    const { path: filePath } = await context.params;
     const body = await request.json();
     const { tokenPath, newValue } = body;
 
@@ -17,11 +24,11 @@ export async function PUT(
       );
     }
 
-    const filePath = params.path.join('/');
+    const filePathStr = filePath.join('/');
     const tokensDir = path.join(process.cwd(), 'tokens');
     const updater = new TokenUpdater(tokensDir);
 
-    const success = await updater.updateToken(filePath, tokenPath, newValue);
+    const success = await updater.updateToken(filePathStr, tokenPath, newValue);
 
     if (!success) {
       return NextResponse.json(

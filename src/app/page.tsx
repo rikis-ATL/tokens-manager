@@ -20,6 +20,7 @@ export default function Home() {
   const [tokenData, setTokenData] = useState<Record<string, TokenGroup[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [buildStatus, setBuildStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
 
   useEffect(() => {
     fetchTokens();
@@ -58,6 +59,33 @@ export default function Home() {
     } catch (err) {
       console.error('Error saving token:', err);
       return false;
+    }
+  };
+
+  const buildTokens = async () => {
+    setBuildStatus(null);
+    try {
+      const response = await fetch('/api/build', {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.details || 'Failed to build tokens');
+      }
+
+      const data = await response.json();
+      setBuildStatus({
+        type: 'success',
+        message: `Tokens built successfully! Platforms: ${data.platforms.join(', ')}. Check the 'build/' directory.`
+      });
+      // Auto-dismiss after 5 seconds
+      setTimeout(() => setBuildStatus(null), 5000);
+    } catch (err) {
+      setBuildStatus({
+        type: 'error',
+        message: `Build failed: ${err instanceof Error ? err.message : 'Unknown error'}`
+      });
     }
   };
 
@@ -111,15 +139,44 @@ export default function Home() {
                 </a>
               </nav>
             </div>
-            <button
-              onClick={fetchTokens}
-              className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md"
-            >
-              Refresh
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={buildTokens}
+                className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md"
+              >
+                Build Tokens
+              </button>
+              <button
+                onClick={fetchTokens}
+                className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md"
+              >
+                Refresh
+              </button>
+            </div>
           </div>
         </div>
       </header>
+
+      {buildStatus && (
+        <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 ${
+          buildStatus.type === 'success' ? 'bg-green-50' : 'bg-red-50'
+        }`}>
+          <div className={`flex items-center justify-between p-4 rounded-md ${
+            buildStatus.type === 'success' ? 'bg-green-100 text-green-900' : 'bg-red-100 text-red-900'
+          }`}>
+            <div className="flex items-center gap-2">
+              <span className="text-lg">{buildStatus.type === 'success' ? '✅' : '❌'}</span>
+              <span className="font-medium">{buildStatus.message}</span>
+            </div>
+            <button
+              onClick={() => setBuildStatus(null)}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
 
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         {Object.keys(tokenData).length === 0 ? (
