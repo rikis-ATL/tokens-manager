@@ -39,3 +39,6 @@ next-env.d.ts
 
 # Tokens directory (should be symlinked or configured)
 tokens/
+
+# Style Dictionary build output
+build/

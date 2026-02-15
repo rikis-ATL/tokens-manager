@@ -61,6 +61,24 @@ export default function Home() {
     }
   };
 
+  const buildTokens = async () => {
+    try {
+      const response = await fetch('/api/build', {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.details || 'Failed to build tokens');
+      }
+
+      const data = await response.json();
+      alert(`✅ Tokens built successfully!\n\nPlatforms: ${data.platforms.join(', ')}\n\nCheck the 'build/' directory for generated files.`);
+    } catch (err) {
+      alert(`❌ Build failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -111,12 +129,20 @@ export default function Home() {
                 </a>
               </nav>
             </div>
-            <button
-              onClick={fetchTokens}
-              className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md"
-            >
-              Refresh
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={buildTokens}
+                className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md"
+              >
+                Build Tokens
+              </button>
+              <button
+                onClick={fetchTokens}
+                className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md"
+              >
+                Refresh
+              </button>
+            </div>
           </div>
         </div>
       </header>
