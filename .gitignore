@@ -2,6 +2,18 @@
 node_modules
 .pnp
 .pnp.js
+/.next
+/dist
+/build
+/out
+/coverage
+/logs
+/tmp
+/cache
+/temp
+/test-results
+/test-coverage
+/test-reports
 
 # Testing
 coverage
@@ -29,6 +41,8 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+**/.env.local
+**/token-manager-*/.env.local
 
 # Vercel
 .vercel
@@ -36,6 +50,19 @@ yarn-error.log*
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
+
+# Yarn files
+**/yarn.lock
+**/.yarnrc.yaml
+.yarn/
+.yarnrc.yml
+
+# Backup files
+**/*.backup*
+
+# Build outputs
+**/build/
+**/www/
 
 # Tokens directory (should be symlinked or configured)
 tokens/
