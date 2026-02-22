@@ -61,8 +61,19 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
   const [showDirectoryPicker, setShowDirectoryPicker] = useState(false);
   const [directoryPickerMode, setDirectoryPickerMode] = useState<'export' | 'import'>('export');
   const [availableBranches, setAvailableBranches] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState('');
+  const [toast, setToast] = useState<{message: string, type: 'success' | 'error' | 'info'} | null>(null);
 
   const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+  // Toast helper functions
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 5000); // Auto-dismiss after 5 seconds
+  };
+
+  const hideToast = () => setToast(null);
 
   // Helper function to get all groups (including nested ones) in a flat array
   const getAllGroups = (groups: TokenGroup[]): TokenGroup[] => {
@@ -135,20 +146,25 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
     const parts = [];
     if (globalNamespace.trim()) parts.push(globalNamespace.trim());
 
-    // Build group hierarchy path
-    const buildGroupPath = (currentGroup: TokenGroup): string[] => {
-      const pathParts: string[] = [];
-      if (currentGroup.parent) {
-        const parentGroup = findGroupById(tokenGroups, currentGroup.parent);
-        if (parentGroup) {
-          pathParts.push(...buildGroupPath(parentGroup));
-        }
-      }
-      pathParts.push(currentGroup.name);
-      return pathParts;
-    };
+    // Build group hierarchy path iteratively to avoid recursion issues
+    const groupPath: string[] = [];
+    const visitedGroups = new Set<string>(); // Prevent circular references
+    let currentGroup: TokenGroup | null = group;
 
-    parts.push(...buildGroupPath(group));
+    // Build path from current group to root
+    const pathFromCurrentToRoot: string[] = [];
+    while (currentGroup && !visitedGroups.has(currentGroup.id)) {
+      visitedGroups.add(currentGroup.id);
+      pathFromCurrentToRoot.unshift(currentGroup.name);
+
+      if (currentGroup.parent) {
+        currentGroup = findGroupById(tokenGroups, currentGroup.parent);
+      } else {
+        currentGroup = null;
+      }
+    }
+
+    parts.push(...pathFromCurrentToRoot);
     return parts.length > 0 ? parts.join('.') + '.' : '';
   };
 
@@ -169,7 +185,7 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
   const deleteTokenGroup = (groupId: string) => {
     const allGroups = getAllGroups(tokenGroups);
     if (allGroups.length === 1) {
-      alert('Cannot delete the last group');
+      showToast('Cannot delete the last group', 'error');
       return;
     }
 
@@ -407,6 +423,9 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
       return;
     }
 
+    setIsLoading(true);
+    setLoadingMessage('Loading repository branches...');
+
     try {
       console.log('Loading branches for repository:', githubConfig.repository);
       const response = await fetch(`/api/github/branches?repository=${encodeURIComponent(githubConfig.repository)}&githubToken=${encodeURIComponent(githubConfig.token)}`);
@@ -420,26 +439,30 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
         } else {
           console.error('Invalid response format for branches:', result);
           setAvailableBranches([githubConfig.branch]); // Fallback to configured branch
+          showToast('Invalid branch data received, using default branch', 'error');
         }
       } else {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
         console.error('Failed to load branches. Response:', response.status, errorData);
-        // Fallback to the configured branch if API fails
         setAvailableBranches([githubConfig.branch]);
+        showToast('Failed to load branches, using default branch', 'error');
       }
     } catch (error) {
       console.error('Failed to load branches:', error);
-      // Fallback to the configured branch if there's a network error
       if (githubConfig.branch) {
         setAvailableBranches([githubConfig.branch]);
       }
+      showToast('Error loading branches, using default branch', 'error');
+    } finally {
+      setIsLoading(false);
+      setLoadingMessage('');
     }
   };
 
   const exportToGitHub = async () => {
     console.log('GitHub config check:', githubConfig); // Debug log
     if (!githubConfig) {
-      alert('Please configure GitHub connection first');
+      showToast('Please configure GitHub connection first', 'error');
       return;
     }
 
@@ -463,6 +486,11 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
 
     if (!githubConfig) return;
 
+    const isImportMode = directoryPickerMode === 'import';
+
+    setIsLoading(true);
+    setLoadingMessage(isImportMode ? 'Importing tokens from GitHub...' : 'Exporting tokens to GitHub...');
+
     try {
       if (directoryPickerMode === 'export') {
         // Export mode
@@ -481,9 +509,9 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
 
         const result = await response.json();
         if (response.ok) {
-          alert(`Successfully pushed to GitHub! View at: ${result.url}`);
+          showToast(`Successfully pushed to GitHub! View at: ${result.url}`, 'success');
         } else {
-          alert(`Failed to push to GitHub: ${result.error}`);
+          showToast(`Failed to push to GitHub: ${result.error}`, 'error');
         }
       } else {
         // Import mode
@@ -509,20 +537,23 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
 
           setTokenGroups(importedTokens);
           const tokenCount = importedTokens.reduce((total, group) => total + group.tokens.length, 0);
-          alert(`Successfully imported ${tokenCount} tokens across ${importedTokens.length} groups from GitHub!`);
+          showToast(`Successfully imported ${tokenCount} tokens across ${importedTokens.length} groups from GitHub!`, 'success');
         } else {
-          alert(`Failed to import from GitHub: ${result.error}`);
+          showToast(`Failed to import from GitHub: ${result.error}`, 'error');
         }
       }
     } catch (error) {
-      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      showToast(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
+    } finally {
+      setIsLoading(false);
+      setLoadingMessage('');
     }
   };
 
   const importFromGitHub = async () => {
     console.log('GitHub config check:', githubConfig); // Debug log
     if (!githubConfig) {
-      alert('Please configure GitHub connection first');
+      showToast('Please configure GitHub connection first', 'error');
       return;
     }
 
@@ -546,7 +577,7 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
       setTokenGroups([{ id: generateId(), name: 'colors', tokens: [], level: 0, expanded: true }]);
       setGlobalNamespace('');
       setExpandedTokens(new Set());
-      alert('Form cleared successfully!');
+      showToast('Form cleared successfully!', 'success');
     }
   };
 
@@ -790,10 +821,10 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
         const potentialBrandName = groupPath[1]; // e.g., 'brand1', 'brand2'
         const potentialCategory = groupPath[2]; // e.g., 'color', 'globals', 'palette'
 
-        // Transform brands.brand1.color -> brand1.color (flatten brands container)
+        // Transform brands.brand1.color.X -> color.X (remove both brands container and brand folder)
         if (potentialBrandContainer.toLowerCase().includes('brand') && groupPath.length >= 3) {
-          // Remove the brands container, promote brand name to top level
-          semanticGroupPath = [potentialBrandName, ...groupPath.slice(2)];
+          // Remove both the brands container and brand folder, use semantic path starting from category
+          semanticGroupPath = groupPath.slice(2); // Skip 'brands' and 'brand1', keep 'color.X.Y...'
           console.log(`   🏗️ Style Dictionary build transform: ${groupPath.join('.')} -> ${semanticGroupPath.join('.')}`);
         }
         // Handle direct globals and palette (not under brands)
@@ -838,7 +869,7 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
             name: groupName,
             tokens: [],
             children: [],
-            parent: parentPath,
+            parent: parentPath, // Keep as path temporarily
             level: i - 1,
             expanded: true
           };
@@ -914,6 +945,22 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
       }
     });
 
+    // Second pass: Convert path-based parent references to group IDs
+    console.log('\n🔧 Converting parent path references to group IDs...');
+    groupMap.forEach((group, groupKey) => {
+      if (group.parent && typeof group.parent === 'string') {
+        const parentGroup = groupMap.get(group.parent);
+        if (parentGroup) {
+          const oldParent = group.parent;
+          group.parent = parentGroup.id;
+          console.log(`   ✅ Group "${group.name}": parent path "${oldParent}" → parent ID "${parentGroup.id}"`);
+        } else {
+          console.log(`   ⚠️ Group "${group.name}": parent path "${group.parent}" not found, setting to undefined`);
+          group.parent = undefined;
+        }
+      }
+    });
+
     console.log(`\n📋 FINAL RESULT:`);
     console.log(`   - Total groups created: ${groupMap.size}`);
     console.log(`   - Root groups: ${rootGroups.length}`);
@@ -949,7 +996,7 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
     const fileKey = prompt('Enter Figma File Key:');
 
     if (!figmaToken || !fileKey) {
-      alert('Figma token and file key are required');
+      showToast('Figma token and file key are required', 'error');
       return;
     }
 
@@ -963,25 +1010,51 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
 
       const result = await response.json();
       if (response.ok) {
-        alert('Successfully exported to Figma!');
+        showToast('Successfully exported to Figma!', 'success');
       } else {
-        alert(`Failed to export to Figma: ${result.error}`);
+        showToast(`Failed to export to Figma: ${result.error}`, 'error');
       }
     } catch (error) {
-      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      showToast(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
     }
   };
 
+  // Function to resolve token references like {token.color.base.teal.200.value}
+  const resolveTokenReference = (value: string): string => {
+    if (typeof value !== 'string' || !value.startsWith('{') || !value.endsWith('}')) {
+      return value; // Not a token reference
+    }
+
+    // Extract the token path from {token.path.value} format
+    const tokenPath = value.slice(1, -1); // Remove { and }
+    const pathWithoutValue = tokenPath.replace(/\.value$/, ''); // Remove .value suffix
+
+    // Search through all groups and tokens to find the referenced token
+    const allGroups = getAllGroups(tokenGroups);
+    for (const group of allGroups) {
+      for (const token of group.tokens) {
+        const fullTokenPath = buildFullPath(group, token.path);
+        if (fullTokenPath === pathWithoutValue) {
+          // Found the referenced token, return its value (recursively resolve if needed)
+          return resolveTokenReference(token.value.toString());
+        }
+      }
+    }
+
+    return value; // If not found, return original value
+  };
+
   const getValuePlaceholder = (type: string): string => {
+    const globalNs = globalNamespace || 'token';
     switch (type) {
-      case 'color': return '#ff0000';
-      case 'dimension': return '16px';
-      case 'fontFamily': return '["Arial", "sans-serif"]';
-      case 'fontWeight': return '400';
-      case 'duration': return '200ms';
-      case 'cubicBezier': return '[0.25, 0.1, 0.25, 1]';
-      case 'number': return '1.5';
-      default: return 'Enter value...';
+      case 'color': return `#ff0000 or {${globalNs}.color.base.gray.600}`;
+      case 'dimension': return `16px or {${globalNs}.spacing.medium}`;
+      case 'fontFamily': return `["Arial", "sans-serif"] or {${globalNs}.font.family.base}`;
+      case 'fontWeight': return `400 or {${globalNs}.font.weight.normal}`;
+      case 'duration': return `200ms or {${globalNs}.animation.duration.fast}`;
+      case 'cubicBezier': return `[0.25, 0.1, 0.25, 1] or {${globalNs}.animation.easing.smooth}`;
+      case 'number': return `1.5 or {${globalNs}.scale.medium}`;
+      default: return `Enter value or {${globalNs}.reference.path}`;
     }
   };
 
@@ -992,10 +1065,10 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
     const indentLevel = group.level * 24;
 
     return (
-      <div key={group.id} style={{ marginLeft: `${indentLevel}px` }} className="mb-4">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-          <div className="border-b border-gray-200 p-4">
-            <div className="flex items-center justify-between">
+      <div key={group.id}  className="mb-4">
+        <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+          <div className="p-4 border-b border-gray-200">
+            <div className="flex justify-between items-center">
               <div className="flex items-center space-x-2">
                 {hasChildren && (
                   <button
@@ -1005,30 +1078,30 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
                     {group.expanded ? '▼' : '▶'}
                   </button>
                 )}
-                <span className="text-sm text-gray-500 font-mono">
+                <span className="font-mono text-sm text-gray-500">
                   Level {group.level}
                 </span>
                 <input
                   type="text"
                   value={group.name}
                   onChange={(e) => updateGroupName(group.id, e.target.value)}
-                  className="text-lg font-medium bg-transparent border-none outline-none focus:bg-gray-50 rounded px-2 py-1"
+                  className="px-2 py-1 text-lg font-medium bg-transparent rounded border-none outline-none focus:bg-gray-50"
                   placeholder="Group name"
                 />
                 {hasChildren && (
-                  <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">
+                  <span className="px-2 py-1 text-xs text-blue-600 bg-blue-100 rounded">
                     {group.children!.length} {group.children!.length === 1 ? 'child' : 'children'}
                   </span>
                 )}
                 {hasTokens && (
-                  <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
+                  <span className="px-2 py-1 text-xs text-green-600 bg-green-100 rounded">
                     {group.tokens.length} {group.tokens.length === 1 ? 'token' : 'tokens'}
                   </span>
                 )}
               </div>
               <button
                 onClick={() => deleteTokenGroup(group.id)}
-                className="text-red-600 hover:text-red-800 text-sm font-medium"
+                className="text-sm font-medium text-red-600 hover:text-red-800"
               >
                 Delete Group
               </button>
@@ -1040,11 +1113,11 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
               <table className="min-w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Path</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Value</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    <th className="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">Path</th>
+                    <th className="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">Type</th>
+                    <th className="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">Value</th>
+                    <th className="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">Description</th>
+                    <th className="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -1053,17 +1126,16 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
                       <tr className="hover:bg-gray-50">
                         <td className="px-4 py-3">
                           <div className="flex items-center">
-                            {getPathPrefix(group) && (
-                              <span className="text-gray-500 text-sm font-mono mr-1">
-                                {getPathPrefix(group)}
-                              </span>
-                            )}
+                            <div className="mr-2 font-mono text-sm text-gray-600">
+                              {buildFullPath(group, token.path)}
+                            </div>
                             <input
                               type="text"
                               value={token.path}
                               onChange={(e) => updateToken(group.id, token.id, 'path', e.target.value)}
                               placeholder="token.name"
-                              className="flex-1 border border-gray-300 rounded px-2 py-1 text-sm font-mono"
+                              className="px-2 py-1 font-mono text-xs rounded border border-gray-300 bg-gray-50 text-gray-600"
+                              style={{ minWidth: '100px', maxWidth: '150px' }}
                             />
                           </div>
                         </td>
@@ -1071,7 +1143,7 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
                           <select
                             value={token.type}
                             onChange={(e) => updateToken(group.id, token.id, 'type', e.target.value)}
-                            className="border border-gray-300 rounded px-2 py-1 text-sm"
+                            className="px-2 py-1 text-sm rounded border border-gray-300"
                           >
                             {TOKEN_TYPES.map(type => (
                               <option key={type} value={type}>{type}</option>
@@ -1079,13 +1151,29 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
                           </select>
                         </td>
                         <td className="px-4 py-3">
-                          <input
-                            type="text"
-                            value={token.value}
-                            onChange={(e) => updateToken(group.id, token.id, 'value', parseTokenValue(e.target.value, token.type))}
-                            placeholder={getValuePlaceholder(token.type)}
-                            className="flex-1 border border-gray-300 rounded px-2 py-1 text-sm font-mono"
-                          />
+                          <div className="flex items-center gap-2">
+                            {token.type === 'color' && (
+                              <div
+                                className="w-6 h-6 border border-gray-300 rounded cursor-pointer flex-shrink-0"
+                                style={{ backgroundColor: (() => {
+                                  const resolvedValue = resolveTokenReference(token.value.toString());
+                                  return typeof resolvedValue === 'string' && resolvedValue.startsWith('#')
+                                    ? resolvedValue
+                                    : typeof resolvedValue === 'string' && resolvedValue.startsWith('{')
+                                      ? '#cccccc'
+                                      : resolvedValue;
+                                })() }}
+                                title={`Color preview: ${token.value} ${token.value !== resolveTokenReference(token.value.toString()) ? `→ ${resolveTokenReference(token.value.toString())}` : ''}`}
+                              />
+                            )}
+                            <input
+                              type="text"
+                              value={token.value}
+                              onChange={(e) => updateToken(group.id, token.id, 'value', parseTokenValue(e.target.value, token.type))}
+                              placeholder={getValuePlaceholder(token.type)}
+                              className="flex-1 px-2 py-1 font-mono text-sm rounded border border-gray-300"
+                            />
+                          </div>
                         </td>
                         <td className="px-4 py-3">
                           <input
@@ -1093,20 +1181,20 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
                             value={token.description || ''}
                             onChange={(e) => updateToken(group.id, token.id, 'description', e.target.value)}
                             placeholder="Optional description"
-                            className="flex-1 border border-gray-300 rounded px-2 py-1 text-sm"
+                            className="flex-1 px-2 py-1 text-sm rounded border border-gray-300"
                           />
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex space-x-2">
                             <button
                               onClick={() => toggleTokenExpansion(token.id)}
-                              className="text-blue-600 hover:text-blue-800 text-sm"
+                              className="text-sm text-blue-600 hover:text-blue-800"
                             >
                               {expandedTokens.has(token.id) ? '↑' : '↓'}
                             </button>
                             <button
                               onClick={() => deleteToken(group.id, token.id)}
-                              className="text-red-600 hover:text-red-800 text-sm"
+                              className="text-sm text-red-600 hover:text-red-800"
                             >
                               ✕
                             </button>
@@ -1117,7 +1205,7 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
                         <tr className="bg-gray-50">
                           <td colSpan={5} className="px-4 py-3">
                             <div className="space-y-2">
-                              <h5 className="text-sm font-medium text-gray-700 mb-2">Custom Attributes</h5>
+                              <h5 className="mb-2 text-sm font-medium text-gray-700">Custom Attributes</h5>
                               {Object.entries(token.attributes || {}).map(([key, value]) => (
                                 <div key={key} className="flex items-center space-x-2">
                                   <input
@@ -1129,7 +1217,7 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
                                       updateTokenAttribute(group.id, token.id, newKey, value as string);
                                     }}
                                     placeholder="Attribute name"
-                                    className="flex-1 border border-gray-300 rounded px-2 py-1 text-xs"
+                                    className="flex-1 px-2 py-1 text-xs rounded border border-gray-300"
                                   />
                                   <span className="text-gray-500">:</span>
                                   <input
@@ -1137,11 +1225,11 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
                                     value={value as string}
                                     onChange={(e) => updateTokenAttribute(group.id, token.id, key, e.target.value)}
                                     placeholder="Attribute value"
-                                    className="flex-1 border border-gray-300 rounded px-2 py-1 text-xs"
+                                    className="flex-1 px-2 py-1 text-xs rounded border border-gray-300"
                                   />
                                   <button
                                     onClick={() => removeTokenAttribute(group.id, token.id, key)}
-                                    className="text-red-600 hover:text-red-800 text-sm"
+                                    className="text-sm text-red-600 hover:text-red-800"
                                   >
                                     ✕
                                   </button>
@@ -1149,7 +1237,7 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
                               ))}
                               <button
                                 onClick={() => updateTokenAttribute(group.id, token.id, 'newAttribute', '')}
-                                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                                className="text-sm font-medium text-blue-600 hover:text-blue-800"
                               >
                                 + Add Attribute
                               </button>
@@ -1163,7 +1251,7 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
                     <td colSpan={5} className="px-4 py-3 text-center">
                       <button
                         onClick={() => addToken(group.id)}
-                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                        className="text-sm font-medium text-blue-600 hover:text-blue-800"
                       >
                         + Add Token
                       </button>
@@ -1175,7 +1263,7 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
           )}
         </div>
         {hasChildren && group.expanded && (
-          <div className="ml-6 mt-2">
+          <div className="mt-2">
             {group.children!.map(childGroup => renderGroup(childGroup))}
           </div>
         )}
@@ -1186,8 +1274,8 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
   return (
     <div className="space-y-6">
       {/* Header Actions */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        <div className="flex items-center justify-between mb-4">
+      <div className="p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+        <div className="flex justify-between items-center mb-4">
           <div className="flex items-center space-x-4">
             <h3 className="text-lg font-medium text-gray-900">Export Actions</h3>
             <div className="flex items-center space-x-2">
@@ -1197,44 +1285,44 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
                 value={globalNamespace}
                 onChange={(e) => setGlobalNamespace(e.target.value)}
                 placeholder="Optional namespace (e.g., 'design', 'token')"
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-3 py-2 text-sm rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
           <div className="flex space-x-3">
             <button
               onClick={() => setShowJsonDialog(true)}
-              className="px-3 py-2 bg-gray-600 text-white rounded-md text-sm font-medium hover:bg-gray-700"
+              className="px-3 py-2 text-sm font-medium text-white bg-gray-600 rounded-md hover:bg-gray-700"
             >
               Preview JSON
             </button>
             <button
               onClick={exportToJSON}
-              className="px-3 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700"
+              className="px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
             >
               Download JSON
             </button>
             <button
               onClick={exportToGitHub}
-              className="px-3 py-2 bg-gray-800 text-white rounded-md text-sm font-medium hover:bg-gray-900"
+              className="px-3 py-2 text-sm font-medium text-white bg-gray-800 rounded-md hover:bg-gray-900"
             >
               Push to GitHub
             </button>
             <button
               onClick={importFromGitHub}
-              className="px-3 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700"
+              className="px-3 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700"
             >
               Import from GitHub
             </button>
             <button
               onClick={exportToFigma}
-              className="px-3 py-2 bg-purple-600 text-white rounded-md text-sm font-medium hover:bg-purple-700"
+              className="px-3 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700"
             >
               Export to Figma
             </button>
             <button
               onClick={clearForm}
-              className="px-3 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700"
+              className="px-3 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
             >
               Clear Form
             </button>
@@ -1250,16 +1338,16 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
       {/* Token Groups */}
       {tokenGroups.map(group => renderGroup(group))}
       {/* Add Group */}
-      <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+      <div className="p-6 text-center bg-gray-50 rounded-lg border-2 border-gray-300 border-dashed">
         {!isAddingGroup ? (
           <button
             onClick={() => setIsAddingGroup(true)}
-            className="text-gray-600 hover:text-gray-800 font-medium"
+            className="font-medium text-gray-600 hover:text-gray-800"
           >
             + Add Token Group
           </button>
         ) : (
-          <div className="flex items-center justify-center space-x-3">
+          <div className="flex justify-center items-center space-x-3">
             <input
               type="text"
               value={newGroupName}
@@ -1269,18 +1357,18 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
                 if (e.key === 'Escape') { setIsAddingGroup(false); setNewGroupName(''); }
               }}
               placeholder="Group name (optional)..."
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
               autoFocus
             />
             <button
               onClick={addTokenGroup}
-              className="px-3 py-2 bg-green-600 text-white rounded-md font-medium hover:bg-green-700"
+              className="px-3 py-2 font-medium text-white bg-green-600 rounded-md hover:bg-green-700"
             >
               ✓
             </button>
             <button
               onClick={() => { setIsAddingGroup(false); setNewGroupName(''); }}
-              className="px-3 py-2 bg-gray-500 text-white rounded-md font-medium hover:bg-gray-600"
+              className="px-3 py-2 font-medium text-white bg-gray-500 rounded-md hover:bg-gray-600"
             >
               ✕
             </button>
@@ -1304,9 +1392,9 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
 
       {/* JSON Preview Dialog */}
       {showJsonDialog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="flex fixed inset-0 z-50 justify-center items-center bg-black bg-opacity-50">
           <div className="bg-white rounded-lg shadow-xl max-w-4xl max-h-[80vh] w-full mx-4">
-            <div className="flex items-center justify-between p-4 border-b">
+            <div className="flex justify-between items-center p-4 border-b">
               <h3 className="text-lg font-medium">Generated JSON Preview</h3>
               <button
                 onClick={() => setShowJsonDialog(false)}
@@ -1316,17 +1404,70 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
               </button>
             </div>
             <div className="p-4 overflow-auto max-h-[60vh]">
-              <pre className="bg-gray-50 rounded-md p-4 text-xs overflow-auto border">
+              <pre className="overflow-auto p-4 text-xs bg-gray-50 rounded-md border">
                 {JSON.stringify(generateTokenSet(), null, 2)}
               </pre>
             </div>
-            <div className="p-4 border-t flex justify-end">
+            <div className="flex justify-end p-4 border-t">
               <button
                 onClick={() => setShowJsonDialog(false)}
-                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+                className="px-4 py-2 text-white bg-gray-600 rounded-md hover:bg-gray-700"
               >
                 Close
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Loading Indicator */}
+      {isLoading && (
+        <div className="flex fixed inset-0 z-50 justify-center items-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 mx-4 min-w-[300px]">
+            <div className="flex items-center space-x-3">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+              <div>
+                <h3 className="text-lg font-medium text-gray-900">Loading...</h3>
+                <p className="text-sm text-gray-600">{loadingMessage}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className="fixed top-4 right-4 z-50">
+          <div className={`max-w-sm w-full bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 ${
+            toast.type === 'success' ? 'border-l-4 border-green-400' :
+            toast.type === 'error' ? 'border-l-4 border-red-400' :
+            'border-l-4 border-blue-400'
+          }`}>
+            <div className="p-4">
+              <div className="flex items-start">
+                <div className="flex-shrink-0">
+                  {toast.type === 'success' ? (
+                    <div className="w-5 h-5 text-green-400">✓</div>
+                  ) : toast.type === 'error' ? (
+                    <div className="w-5 h-5 text-red-400">✕</div>
+                  ) : (
+                    <div className="w-5 h-5 text-blue-400">ℹ</div>
+                  )}
+                </div>
+                <div className="ml-3 w-0 flex-1">
+                  <p className="text-sm font-medium text-gray-900">
+                    {toast.message}
+                  </p>
+                </div>
+                <div className="ml-4 flex-shrink-0 flex">
+                  <button
+                    className="bg-white rounded-md inline-flex text-gray-400 hover:text-gray-600 focus:outline-none"
+                    onClick={hideToast}
+                  >
+                    <span className="text-sm">✕</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -2,11 +2,22 @@
   "name": "token-manager",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    ".",
+    "token-manager-stencil",
+    "token-manager-vite"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "dev:stencil": "yarn workspace token-manager-stencil dev",
+    "build:stencil": "yarn workspace token-manager-stencil build",
+    "start:stencil": "yarn workspace token-manager-stencil start",
+    "dev:vite": "yarn workspace token-manager-vite dev",
+    "build:vite": "yarn workspace token-manager-vite build",
+    "preview:vite": "yarn workspace token-manager-vite preview"
   },
   "dependencies": {
     "next": "13.5.6",

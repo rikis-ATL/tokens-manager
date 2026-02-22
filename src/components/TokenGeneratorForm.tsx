@@ -296,13 +296,13 @@ export function TokenGeneratorForm() {
   return (
     <div className="space-y-8">
       {/* Token Groups */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <div className="flex items-center justify-between mb-4">
+      <div className="p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
+        <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-medium text-gray-900">Token Groups</h3>
           {!isAddingGroup ? (
             <button
               onClick={() => setIsAddingGroup(true)}
-              className="px-3 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700"
+              className="px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
             >
               Add Group
             </button>
@@ -320,18 +320,18 @@ export function TokenGeneratorForm() {
                   }
                 }}
                 placeholder="Group name (optional)..."
-                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                className="px-3 py-2 text-sm rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 autoFocus
               />
               <button
                 onClick={addTokenGroup}
-                className="px-3 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700"
+                className="px-3 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700"
               >
                 ✓
               </button>
               <button
                 onClick={cancelAddGroup}
-                className="px-3 py-2 bg-gray-500 text-white rounded-md text-sm font-medium hover:bg-gray-600"
+                className="px-3 py-2 text-sm font-medium text-white bg-gray-500 rounded-md hover:bg-gray-600"
               >
                 ✕
               </button>
@@ -339,7 +339,7 @@ export function TokenGeneratorForm() {
           )}
         </div>
 
-        <div className="flex space-x-2 mb-6">
+        <div className="flex mb-6 space-x-2">
           {tokenGroups.map((group, index) => (
             <button
               key={index}
@@ -356,9 +356,9 @@ export function TokenGeneratorForm() {
         </div>
 
         {/* Token Form */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-2 lg:grid-cols-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block mb-1 text-sm font-medium text-gray-700">
               Token Path *
             </label>
             <input
@@ -366,18 +366,18 @@ export function TokenGeneratorForm() {
               value={newToken.path}
               onChange={(e) => setNewToken({ ...newToken, path: e.target.value })}
               placeholder="color.brand.primary"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-2 w-full rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block mb-1 text-sm font-medium text-gray-700">
               Type *
             </label>
             <select
               value={newToken.type}
               onChange={(e) => setNewToken({ ...newToken, type: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-2 w-full rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {TOKEN_TYPES.map(type => (
                 <option key={type} value={type}>{type}</option>
@@ -386,7 +386,7 @@ export function TokenGeneratorForm() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block mb-1 text-sm font-medium text-gray-700">
               Value *
             </label>
             <input
@@ -394,12 +394,12 @@ export function TokenGeneratorForm() {
               value={newToken.value}
               onChange={(e) => setNewToken({ ...newToken, value: e.target.value })}
               placeholder={getValuePlaceholder(newToken.type)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-2 w-full rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block mb-1 text-sm font-medium text-gray-700">
               Description
             </label>
             <input
@@ -407,40 +407,40 @@ export function TokenGeneratorForm() {
               value={newToken.description}
               onChange={(e) => setNewToken({ ...newToken, description: e.target.value })}
               placeholder="Optional description"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-2 w-full rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
 
         {/* Attributes */}
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block mb-2 text-sm font-medium text-gray-700">
             Attributes (Optional)
           </label>
-          <div className="flex space-x-2 mb-2">
+          <div className="flex mb-2 space-x-2">
             <input
               type="text"
               value={attributeKey}
               onChange={(e) => setAttributeKey(e.target.value)}
               placeholder="Attribute name"
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <input
               type="text"
               value={attributeValue}
               onChange={(e) => setAttributeValue(e.target.value)}
               placeholder="Attribute value"
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <button
               onClick={addAttribute}
-              className="px-4 py-2 bg-gray-600 text-white rounded-md text-sm font-medium hover:bg-gray-700"
+              className="px-4 py-2 text-sm font-medium text-white bg-gray-600 rounded-md hover:bg-gray-700"
             >
               Add
             </button>
           </div>
           {Object.entries(newToken.attributes).map(([key, value]) => (
-            <div key={key} className="inline-flex items-center bg-gray-100 rounded-md px-2 py-1 text-sm mr-2 mb-2">
+            <div key={key} className="inline-flex items-center px-2 py-1 mr-2 mb-2 text-sm bg-gray-100 rounded-md">
               <span className="font-medium">{key}:</span>
               <span className="ml-1">{String(value)}</span>
               <button
@@ -455,37 +455,37 @@ export function TokenGeneratorForm() {
 
         <button
           onClick={addToken}
-          className="w-full px-4 py-2 bg-green-600 text-white rounded-md font-medium hover:bg-green-700"
+          className="px-4 py-2 w-full font-medium text-white bg-green-600 rounded-md hover:bg-green-700"
         >
           Add Token to {tokenGroups[activeGroup]?.name}
         </button>
       </div>
 
       {/* Generated Tokens List */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">
+      <div className="p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
+        <h3 className="mb-4 text-lg font-medium text-gray-900">
           Generated Tokens: {tokenGroups[activeGroup]?.name}
         </h3>
 
         {tokenGroups[activeGroup]?.tokens.length === 0 ? (
-          <p className="text-gray-500 text-center py-8">No tokens generated yet</p>
+          <p className="py-8 text-center text-gray-500">No tokens generated yet</p>
         ) : (
           <div className="space-y-3">
             {tokenGroups[activeGroup]?.tokens.map(token => (
-              <div key={token.id} className="border border-gray-200 rounded-lg p-4">
-                <div className="flex items-start justify-between">
+              <div key={token.id} className="p-4 rounded-lg border border-gray-200">
+                <div className="flex justify-between items-start">
                   <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
+                    <div className="flex items-center mb-2">
                       <span className="font-mono text-sm font-medium">{token.path}</span>
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
                         {token.type}
                       </span>
                     </div>
-                    <div className="text-sm text-gray-600 mb-2">
+                    <div className="mb-2 text-sm text-gray-600">
                       <span className="font-medium">Value:</span> {JSON.stringify(token.value)}
                     </div>
                     {token.description && (
-                      <div className="text-sm text-gray-600 mb-2">
+                      <div className="mb-2 text-sm text-gray-600">
                         <span className="font-medium">Description:</span> {token.description}
                       </div>
                     )}
@@ -497,7 +497,7 @@ export function TokenGeneratorForm() {
                   </div>
                   <button
                     onClick={() => removeToken(activeGroup, token.id)}
-                    className="text-red-600 hover:text-red-800 text-sm font-medium"
+                    className="text-sm font-medium text-red-600 hover:text-red-800"
                   >
                     Remove
                   </button>
@@ -509,24 +509,24 @@ export function TokenGeneratorForm() {
       </div>
 
       {/* Export Section */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Export Token Set</h3>
+      <div className="p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
+        <h3 className="mb-4 text-lg font-medium text-gray-900">Export Token Set</h3>
         <div className="flex space-x-4">
           <button
             onClick={exportToJSON}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700"
+            className="px-4 py-2 font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
           >
             Download JSON
           </button>
           <button
             onClick={exportToGitHub}
-            className="px-4 py-2 bg-gray-800 text-white rounded-md font-medium hover:bg-gray-900"
+            className="px-4 py-2 font-medium text-white bg-gray-800 rounded-md hover:bg-gray-900"
           >
             Push to GitHub
           </button>
           <button
             onClick={exportToFigma}
-            className="px-4 py-2 bg-purple-600 text-white rounded-md font-medium hover:bg-purple-700"
+            className="px-4 py-2 font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700"
           >
             Export to Figma
           </button>
@@ -535,8 +535,8 @@ export function TokenGeneratorForm() {
         {/* Preview */}
         {tokenGroups.some(group => group.tokens.length > 0) && (
           <div className="mt-6">
-            <h4 className="text-sm font-medium text-gray-900 mb-2">JSON Preview</h4>
-            <pre className="bg-gray-50 rounded-md p-4 text-xs overflow-auto max-h-64 border">
+            <h4 className="mb-2 text-sm font-medium text-gray-900">JSON Preview</h4>
+            <pre className="overflow-auto p-4 max-h-64 text-xs bg-gray-50 rounded-md border">
               {JSON.stringify(generateTokenSet(), null, 2)}
             </pre>
           </div>

@@ -1,0 +1,77 @@
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-4xl font-bold text-center mb-8 text-gray-900">Token Manager - Vite Edition ⚡</h1>
+    <p class="text-center text-gray-600 mb-8">Lightning fast development with no build step!</p>
+
+    <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+      <h2 class="text-2xl font-semibold mb-4 text-gray-800">Design Token Generator</h2>
+      <p class="p-4 text-red-500 bg-slate-100 rounded-lg mb-6">Create, manage, and export design tokens for your design system</p>
+
+      <div class="space-y-4" x-data="{ tokenName: '', tokenValue: '', isColorValue(val) { return val.match(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/); } }">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Token Name</label>
+            <at-input id="token-name" placeholder="primary-color" class="w-full" x-model="tokenName"></at-input>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Token Value</label>
+            <at-input id="token-value" placeholder="#3B82F6" class="w-full" x-model="tokenValue"></at-input>
+          </div>
+          <div class="flex items-end">
+            <at-button id="generate-btn" type="primary" class="w-full">Generate Token</at-button>
+          </div>
+        </div>
+
+        <!-- Token Preview - Alpine.js enhancement -->
+        <div x-show="tokenName && tokenValue" x-transition class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <h4 class="text-sm font-medium text-blue-900 mb-2">Token Preview:</h4>
+          <div class="flex items-center gap-3">
+            <div x-show="isColorValue(tokenValue)"
+                 :style="`background-color: ${tokenValue}; width: 24px; height: 24px;`"
+                 class="rounded border border-gray-300"></div>
+            <code class="text-sm bg-blue-100 px-2 py-1 rounded" x-text="`${tokenName}: ${tokenValue}`"></code>
+          </div>
+        </div>
+
+        <div class="flex gap-4">
+          <at-button id="import-btn" type="secondary">Import from GitHub</at-button>
+          <at-button id="export-btn" type="outline">Export Tokens</at-button>
+          <at-button id="figma-btn" type="outline">Export to Figma</at-button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <at-card class="p-6">
+        <h3 class="text-lg font-semibold mb-3">Current Tokens</h3>
+        <div id="tokens-list" class="space-y-2">
+          <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+            <span class="text-sm font-medium">primary-color</span>
+            <span class="text-sm text-gray-600">#3B82F6</span>
+          </div>
+          <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+            <span class="text-sm font-medium">border-radius</span>
+            <span class="text-sm text-gray-600">8px</span>
+          </div>
+        </div>
+      </at-card>
+
+      <at-card class="p-6">
+        <h3 class="text-lg font-semibold mb-3">Performance Comparison</h3>
+        <div class="space-y-3 text-sm">
+          <div class="flex justify-between">
+            <span>Vite Startup:</span>
+            <span class="font-mono text-green-600">335ms ⚡</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Stencil Build:</span>
+            <span class="font-mono text-red-600">35+ seconds 🐢</span>
+          </div>
+          <div class="bg-green-50 p-2 rounded text-green-800 text-xs">
+            <strong>100x faster!</strong> Hot reload is instant with Vite + Web Components
+          </div>
+        </div>
+      </at-card>
+    </div>
+  </div>
+</div>

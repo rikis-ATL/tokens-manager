@@ -1,0 +1,31 @@
+/node_modules
+/.next
+/dist
+/build
+/out
+/coverage
+/logs
+/tmp
+/cache
+/temp
+/test-results
+/test-coverage
+/test-reports
+
+# Environment files with sensitive tokens
+.env.local
+**/.env.local
+**/token-manager-*/.env.local
+
+# Yarn files
+**/yarn.lock
+**/.yarnrc.yaml
+.yarn/
+.yarnrc.yml
+
+# Backup files
+**/*.backup*
+
+# Build outputs
+**/build/
+**/www/
