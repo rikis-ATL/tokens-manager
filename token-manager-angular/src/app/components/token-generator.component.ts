@@ -289,8 +289,18 @@ export class TokenGeneratorComponent implements OnInit {
         );
 
         // Process the imported tokens properly
-        if (result.tokenGroups.length > 0) {
-          this.tokenGroups = result.tokenGroups;
+        if (result.toast.type === 'success' && (result.toast as any).data) {
+          const tokenData = (result.toast as any).data;
+          const processed = this.tokenService.processImportedTokens(
+            tokenData,
+            this.globalNamespace
+          );
+
+          this.tokenGroups = processed.groups;
+          this.globalNamespace = processed.detectedGlobalNamespace;
+
+          this.showToast(createToast(result.toast.message, 'success'));
+        } else if (result.toast.type === 'error') {
           this.showToast(result.toast);
         } else {
           this.showToast(createToast('No tokens found in the selected directory', 'error'));

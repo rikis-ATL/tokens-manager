@@ -195,54 +195,46 @@ export class GitHubService {
     branch: string = 'main'
   ): Promise<{ tokenGroups: TokenGroup[]; toast: ToastMessage }> {
     try {
-      // List all files in the directory
-      const contents = await this.listDirectory(token, repository, directoryPath, branch);
-      const jsonFiles = contents.filter(item =>
-        item.type === 'file' && item.name.endsWith('.json')
-      );
-
-      if (jsonFiles.length === 0) {
-        throw new Error('No JSON token files found in the selected directory');
-      }
-
       const allTokens: any = {};
       let filesProcessed = 0;
 
-      for (const file of jsonFiles) {
-        try {
-          const fileContent = await this.getFileContent(token, repository, file.path, branch);
-          const tokenData = JSON.parse(fileContent.content || '{}');
-
-          // Merge tokens from this file
-          Object.assign(allTokens, tokenData);
-          filesProcessed++;
-        } catch (fileError) {
-          console.warn(`Failed to process file ${file.name}:`, fileError);
-          // Continue processing other files
+      // Recursively collect all JSON files from directory and subdirectories
+      const collectJsonFiles = async (path: string): Promise<void> => {
+        const contents = await this.listDirectory(token, repository, path, branch);
+        
+        for (const item of contents) {
+          if (item.type === 'file' && item.name.endsWith('.json')) {
+            try {
+              const fileContent = await this.getFileContent(token, repository, item.path, branch);
+              const tokenData = JSON.parse(fileContent.content || '{}');
+              
+              // Merge tokens from this file
+              Object.assign(allTokens, tokenData);
+              filesProcessed++;
+            } catch (fileError) {
+              console.warn(`Failed to process file ${item.name}:`, fileError);
+            }
+          } else if (item.type === 'dir') {
+            // Recursively process subdirectories
+            await collectJsonFiles(item.path);
+          }
         }
-      }
+      };
+
+      // Start collecting from the specified directory
+      await collectJsonFiles(directoryPath);
 
       if (filesProcessed === 0) {
-        throw new Error('Failed to process any token files from the directory');
+        throw new Error('No JSON token files found in the selected directory');
       }
 
-      // Convert to TokenGroups (this would need the TokenService)
-      // For now, return a simple structure
-      const tokenGroups: TokenGroup[] = [
-        {
-          id: 'imported-1',
-          name: 'Imported Tokens',
-          tokens: [],
-          level: 0,
-          expanded: true
-        }
-      ];
-
+      // Return raw tokens - let the component process them with TokenService
       return {
-        tokenGroups,
+        tokenGroups: [], // Will be processed by component
         toast: {
           type: 'success',
-          message: `Successfully imported tokens from ${filesProcessed} file(s)`
+          message: `Successfully imported tokens from ${filesProcessed} file(s)`,
+          data: allTokens // Pass the raw tokens in the toast data field
         }
       };
 
