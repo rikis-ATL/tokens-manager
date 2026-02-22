@@ -2,48 +2,32 @@
 
 import React, { useState, useEffect } from 'react';
 import { GitHubDirectoryPicker } from './GitHubDirectoryPicker';
+import { LoadingIndicator } from './LoadingIndicator';
+import { ToastNotification } from './ToastNotification';
+import { JsonPreviewDialog } from './JsonPreviewDialog';
 
-// W3C Design Token Types
-const TOKEN_TYPES = [
-  'color',
-  'dimension',
-  'fontFamily',
-  'fontWeight',
-  'duration',
-  'cubicBezier',
-  'number',
-  'strokeStyle',
-  'border',
-  'transition',
-  'shadow',
-  'gradient',
-  'typography'
-];
-
-interface GeneratedToken {
-  id: string;
-  path: string;
-  value: any;
-  type: string;
-  description?: string;
-  attributes?: Record<string, any>;
-}
-
-interface TokenGroup {
-  id: string;
-  name: string;
-  tokens: GeneratedToken[];
-  children?: TokenGroup[];
-  parent?: string;
-  level: number;
-  expanded?: boolean;
-}
-
-interface GitHubConfig {
-  repository: string;
-  token: string;
-  branch: string;
-}
+// Import services and types
+import { githubService, tokenService, fileService } from '../services';
+import {
+  GeneratedToken,
+  TokenGroup,
+  GitHubConfig,
+  TokenType,
+  TOKEN_TYPES,
+  ToastMessage,
+  LoadingState
+} from '../types';
+import {
+  generateId,
+  buildFullPath,
+  getPathPrefix,
+  findGroupById,
+  getAllGroups,
+  getValuePlaceholder,
+  validateTokenPath,
+  validateTokenValue
+} from '../utils';
+import { createToast, createLoadingState } from '../utils';
 
 interface TokenGeneratorFormNewProps {
   githubConfig?: GitHubConfig | null;
@@ -61,48 +45,23 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
   const [showDirectoryPicker, setShowDirectoryPicker] = useState(false);
   const [directoryPickerMode, setDirectoryPickerMode] = useState<'export' | 'import'>('export');
   const [availableBranches, setAvailableBranches] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [loadingMessage, setLoadingMessage] = useState('');
-  const [toast, setToast] = useState<{message: string, type: 'success' | 'error' | 'info'} | null>(null);
-
-  const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  const [loadingState, setLoadingState] = useState<LoadingState>(createLoadingState(false));
+  const [toast, setToast] = useState<ToastMessage | null>(null);
 
   // Toast helper functions
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
-    setToast({ message, type });
+    setToast(createToast(message, type));
     setTimeout(() => setToast(null), 5000); // Auto-dismiss after 5 seconds
   };
 
   const hideToast = () => setToast(null);
 
-  // Helper function to get all groups (including nested ones) in a flat array
-  const getAllGroups = (groups: TokenGroup[]): TokenGroup[] => {
-    const allGroups: TokenGroup[] = [];
-    const traverse = (groupList: TokenGroup[]) => {
-      for (const group of groupList) {
-        allGroups.push(group);
-        if (group.children && group.children.length > 0) {
-          traverse(group.children);
-        }
-      }
-    };
-    traverse(groups);
-    return allGroups;
+  // Loading helper functions
+  const setLoading = (isLoading: boolean, message?: string) => {
+    setLoadingState(createLoadingState(isLoading, message));
   };
 
-  // Helper function to find a group by ID in nested structure
-  const findGroupById = (groups: TokenGroup[], groupId: string): TokenGroup | null => {
-    for (const group of groups) {
-      if (group.id === groupId) {
-        return group;
-      }
-      if (group.children && group.children.length > 0) {
-        const found = findGroupById(group.children, groupId);
-        if (found) return found;
-      }
-    }
-    return null;
-  };
+  // Use utility functions from utils module
 
   // Helper function to toggle group expansion
   const toggleGroupExpansion = (groupId: string) => {
@@ -120,52 +79,23 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
     setTokenGroups(updateGroup(tokenGroups));
   };
 
-  const buildFullPath = (group: TokenGroup, tokenPath: string): string => {
+  // Create a wrapper for buildFullPath that includes global namespace
+  const buildTokenPath = (group: TokenGroup, tokenPath: string): string => {
     const parts = [];
     if (globalNamespace.trim()) parts.push(globalNamespace.trim());
 
-    // Build group hierarchy path
-    const buildGroupPath = (currentGroup: TokenGroup): string[] => {
-      const pathParts: string[] = [];
-      if (currentGroup.parent) {
-        const parentGroup = findGroupById(tokenGroups, currentGroup.parent);
-        if (parentGroup) {
-          pathParts.push(...buildGroupPath(parentGroup));
-        }
-      }
-      pathParts.push(currentGroup.name);
-      return pathParts;
-    };
-
-    parts.push(...buildGroupPath(group));
-    if (tokenPath.trim()) parts.push(tokenPath.trim());
-    return parts.join('.');
-  };
-
-  const getPathPrefix = (group: TokenGroup): string => {
-    const parts = [];
-    if (globalNamespace.trim()) parts.push(globalNamespace.trim());
-
-    // Build group hierarchy path iteratively to avoid recursion issues
-    const groupPath: string[] = [];
-    const visitedGroups = new Set<string>(); // Prevent circular references
-    let currentGroup: TokenGroup | null = group;
-
-    // Build path from current group to root
-    const pathFromCurrentToRoot: string[] = [];
-    while (currentGroup && !visitedGroups.has(currentGroup.id)) {
-      visitedGroups.add(currentGroup.id);
-      pathFromCurrentToRoot.unshift(currentGroup.name);
-
-      if (currentGroup.parent) {
-        currentGroup = findGroupById(tokenGroups, currentGroup.parent);
-      } else {
-        currentGroup = null;
-      }
+    // Use utility function to get the path prefix for the group
+    const groupPrefix = getPathPrefix(group, getAllGroups(tokenGroups), globalNamespace);
+    if (groupPrefix) {
+      // Remove the global namespace from the prefix since we're adding it separately
+      const prefixWithoutNamespace = groupPrefix.replace(new RegExp(`^${globalNamespace}\\.`), '');
+      if (prefixWithoutNamespace) parts.push(prefixWithoutNamespace.replace(/\.$/, ''));
+    } else {
+      parts.push(group.name);
     }
 
-    parts.push(...pathFromCurrentToRoot);
-    return parts.length > 0 ? parts.join('.') + '.' : '';
+    if (tokenPath.trim()) parts.push(tokenPath.trim());
+    return parts.join('.');
   };
 
   const addTokenGroup = () => {
@@ -373,48 +303,15 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
   };
 
   const generateTokenSet = () => {
-    const tokenSet: Record<string, any> = {};
-
-    tokenGroups.forEach(group => {
-      if (group.tokens.length === 0) return;
-
-      group.tokens.forEach(token => {
-        if (!token.path) return;
-
-        // Build full path including namespace and group
-        const fullPath = buildFullPath(group, token.path);
-        const pathParts = fullPath.split('.');
-        let current = tokenSet;
-
-        for (let i = 0; i < pathParts.length - 1; i++) {
-          if (!current[pathParts[i]]) {
-            current[pathParts[i]] = {};
-          }
-          current = current[pathParts[i]];
-        }
-
-        const lastPart = pathParts[pathParts.length - 1];
-        current[lastPart] = {
-          $value: parseTokenValue(token.value, token.type),
-          $type: token.type,
-          ...(token.description && { $description: token.description }),
-          ...(token.attributes && Object.keys(token.attributes).length > 0 && token.attributes)
-        };
-      });
-    });
-
-    return tokenSet;
+    return tokenService.generateStyleDictionaryOutput(tokenGroups, globalNamespace);
   };
 
   const exportToJSON = () => {
-    const tokenSet = generateTokenSet();
-    const blob = new Blob([JSON.stringify(tokenSet, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'design-tokens.json';
-    a.click();
-    URL.revokeObjectURL(url);
+    const content = fileService.exportTokens(tokenGroups, globalNamespace, {
+      format: 'json',
+      fileName: 'design-tokens.json'
+    });
+    fileService.downloadFile(content, 'design-tokens.json', 'application/json');
   };
 
   const loadBranches = async () => {
@@ -423,30 +320,14 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
       return;
     }
 
-    setIsLoading(true);
-    setLoadingMessage('Loading repository branches...');
+    setLoading(true, 'Loading repository branches...');
 
     try {
       console.log('Loading branches for repository:', githubConfig.repository);
-      const response = await fetch(`/api/github/branches?repository=${encodeURIComponent(githubConfig.repository)}&githubToken=${encodeURIComponent(githubConfig.token)}`);
-
-      if (response.ok) {
-        const result = await response.json();
-        if (result.branches && Array.isArray(result.branches)) {
-          const branchNames = result.branches.map((branch: any) => branch.name);
-          setAvailableBranches(branchNames);
-          console.log('Successfully loaded branches:', branchNames);
-        } else {
-          console.error('Invalid response format for branches:', result);
-          setAvailableBranches([githubConfig.branch]); // Fallback to configured branch
-          showToast('Invalid branch data received, using default branch', 'error');
-        }
-      } else {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        console.error('Failed to load branches. Response:', response.status, errorData);
-        setAvailableBranches([githubConfig.branch]);
-        showToast('Failed to load branches, using default branch', 'error');
-      }
+      const branches = await githubService.getBranches(githubConfig.token, githubConfig.repository);
+      const branchNames = branches.map(branch => branch.name);
+      setAvailableBranches(branchNames);
+      console.log('Successfully loaded branches:', branchNames);
     } catch (error) {
       console.error('Failed to load branches:', error);
       if (githubConfig.branch) {
@@ -454,8 +335,7 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
       }
       showToast('Error loading branches, using default branch', 'error');
     } finally {
-      setIsLoading(false);
-      setLoadingMessage('');
+      setLoading(false);
     }
   };
 
@@ -532,10 +412,12 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
           console.log('Token set:', result.tokenSet);
 
           // Convert imported tokens to our format
-          const importedTokens = convertToTokenGroups(result.tokenSet);
+          const { groups: importedTokens, detectedGlobalNamespace } = convertToTokenGroups(result.tokenSet);
           console.log('Converted token groups:', importedTokens);
+          console.log('Detected global namespace:', detectedGlobalNamespace);
 
           setTokenGroups(importedTokens);
+          setGlobalNamespace(detectedGlobalNamespace);
           const tokenCount = importedTokens.reduce((total, group) => total + group.tokens.length, 0);
           showToast(`Successfully imported ${tokenCount} tokens across ${importedTokens.length} groups from GitHub!`, 'success');
         } else {
@@ -545,8 +427,7 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
     } catch (error) {
       showToast(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
     } finally {
-      setIsLoading(false);
-      setLoadingMessage('');
+      setLoading(false);
     }
   };
 
@@ -581,414 +462,9 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
     }
   };
 
-  // Helper function to convert W3C tokens to our nested group format
-  const convertToTokenGroups = (tokenSet: any): TokenGroup[] => {
-    console.log('convertToTokenGroups - Input tokenSet:', JSON.stringify(tokenSet, null, 2));
-
-    // 🔍 HYBRID STRUCTURE DETECTION
-    // Detect if this is Structure A (flat) or Structure B (namespace wrapper)
-
-    let actualTokenSet = tokenSet;
-    let detectedStructureType = 'A'; // Default to Structure A (flat)
-    let extractedNamespace = '';
-
-    // Check for Structure B: Single top-level key that looks like a namespace
-    const topLevelKeys = Object.keys(tokenSet);
-    console.log('🔍 Top-level keys detected:', topLevelKeys);
-
-    if (topLevelKeys.length === 1) {
-      const singleKey = topLevelKeys[0];
-      const singleKeyLower = singleKey.toLowerCase();
-
-      // Known namespace patterns
-      const namespacePatterns = ['token', 'tokens', 'design', 'ds', 'brand', 'company', 'system'];
-      const looksLikeNamespace = namespacePatterns.some(pattern =>
-        singleKeyLower.includes(pattern) || pattern.includes(singleKeyLower)
-      );
-
-      // Additional check: If the single key contains complex nested structure, it's likely a namespace wrapper
-      const valueUnderKey = tokenSet[singleKey];
-      const hasComplexNesting = valueUnderKey && typeof valueUnderKey === 'object' &&
-        Object.keys(valueUnderKey).some(key =>
-          valueUnderKey[key] && typeof valueUnderKey[key] === 'object' &&
-          !valueUnderKey[key].hasOwnProperty('value') // Not a token itself
-        );
-
-      if (looksLikeNamespace && hasComplexNesting) {
-        detectedStructureType = 'B';
-        extractedNamespace = singleKey;
-        actualTokenSet = tokenSet[singleKey]; // Unwrap the namespace
-        console.log(`📦 Structure B detected - Namespace wrapper: "${extractedNamespace}"`);
-        console.log('📂 Unwrapped token set:', Object.keys(actualTokenSet));
-      }
-    }
-
-    if (detectedStructureType === 'A') {
-      console.log('🏗️  Structure A detected - Flat structure (no namespace wrapper)');
-      console.log('   Expected: Style Dictionary with platform-level prefix configuration');
-    }
-
-    // Create a map to store groups by their full path
-    const groupMap = new Map<string, TokenGroup>();
-
-    // Common global namespace prefixes that should be treated as global namespace, not as groups
-    const globalPrefixes = ['token', 'tokens', 'design', 'ds'];
-
-    // Recursive function to find all tokens in the structure
-    const findAllTokens = (obj: any, currentPath: string[] = []): Array<{ path: string[], token: any, key: string }> => {
-      const foundTokens: Array<{ path: string[], token: any, key: string }> = [];
-
-      for (const [key, value] of Object.entries(obj)) {
-        if (value && typeof value === 'object') {
-          // Check for both W3C format ($value) and regular format (value)
-          if ('$value' in value || ('value' in value && typeof value.value !== 'object')) {
-            // This is a token
-            foundTokens.push({
-              path: [...currentPath],
-              token: value,
-              key: key
-            });
-          } else {
-            // Recursively search nested objects
-            foundTokens.push(...findAllTokens(value, [...currentPath, key]));
-          }
-        }
-      }
-
-      return foundTokens;
-    };
-
-    const allTokens = findAllTokens(actualTokenSet);
-    console.log(`Found ${allTokens.length} tokens in total:`);
-
-    // Debug: Show first few token paths to understand structure
-    console.log('🔍 First 10 token paths for analysis:');
-    allTokens.slice(0, 10).forEach(({path, key}, index) => {
-      console.log(`   ${index + 1}. ${[...path, key].join('.')}`);
-    });
-
-    // Analyze token structure to detect common patterns
-    console.log('\n🧠 Analyzing token structure patterns...');
-    const pathAnalysis = allTokens.reduce((analysis, {path}) => {
-      if (path.length >= 2) {
-        const level0 = path[0];
-        const level1 = path[1];
-        const level2 = path.length > 2 ? path[2] : null;
-
-        if (!analysis.level0[level0]) analysis.level0[level0] = new Set();
-        analysis.level0[level0].add(level1);
-
-        if (level2 && !analysis.level1Patterns[`${level0}.${level1}`]) {
-          analysis.level1Patterns[`${level0}.${level1}`] = new Set();
-        }
-        if (level2) analysis.level1Patterns[`${level0}.${level1}`].add(level2);
-      }
-      return analysis;
-    }, {
-      level0: {} as Record<string, Set<string>>,
-      level1Patterns: {} as Record<string, Set<string>>
-    });
-
-    console.log('📊 Structure analysis:');
-    Object.entries(pathAnalysis.level0).forEach(([level0, level1s]) => {
-      console.log(`   ${level0} (${level1s.size} children): [${Array.from(level1s).join(', ')}]`);
-    });
-
-    // Detect Style Dictionary build output pattern
-    const hasBrandsContainer = pathAnalysis.level0['brands'];
-    if (hasBrandsContainer) {
-      console.log(`\n🏗️ Style Dictionary pattern detected!`);
-      console.log(`   Source structure: brands > [${Array.from(hasBrandsContainer).join(', ')}]`);
-      console.log(`   Will transform to: Individual brand groups at top level`);
-
-      // Show expected transformation
-      Array.from(hasBrandsContainer).forEach(brandName => {
-        const brandPattern = `brands.${brandName}`;
-        if (pathAnalysis.level1Patterns[brandPattern]) {
-          const categories = Array.from(pathAnalysis.level1Patterns[brandPattern]);
-          console.log(`   Expected: ${brandName} > [${categories.join(', ')}]`);
-        }
-      });
-    }
-
-    // 🎯 DUAL GLOBAL NAMESPACE DETECTION
-    let detectedGlobalNamespace = '';
-
-    // For Structure B: Use the extracted namespace from wrapper
-    if (detectedStructureType === 'B' && extractedNamespace) {
-      detectedGlobalNamespace = extractedNamespace;
-      console.log(`🎯 Structure B - Using extracted namespace: "${detectedGlobalNamespace}"`);
-    }
-    // For Structure A: Analyze token paths for common prefix
-    else if (detectedStructureType === 'A' && allTokens.length > 0) {
-      console.log('🔍 Structure A - Analyzing token paths for global namespace detection...');
-
-      // Check if most tokens share a common global prefix
-      const pathFirstElements = allTokens
-        .filter(token => token.path.length > 0)
-        .map(token => token.path[0]);
-
-      console.log('📊 First path elements found:', pathFirstElements);
-
-      if (pathFirstElements.length > 0) {
-        // Find the most common first element
-        const prefixCounts = pathFirstElements.reduce((counts, prefix) => {
-          counts[prefix] = (counts[prefix] || 0) + 1;
-          return counts;
-        }, {} as Record<string, number>);
-
-        console.log('📈 Prefix counts:', prefixCounts);
-
-        const mostCommonPrefix = Object.entries(prefixCounts)
-          .sort(([,a], [,b]) => b - a)[0][0];
-
-        console.log(`🏆 Most common prefix: "${mostCommonPrefix}" (${prefixCounts[mostCommonPrefix]} occurrences)`);
-
-        // Check if this prefix should be treated as a global namespace
-        const prefixLower = mostCommonPrefix.toLowerCase();
-        const usagePercentage = prefixCounts[mostCommonPrefix] / allTokens.length;
-
-        console.log(`✅ Checking if "${mostCommonPrefix}" should be global namespace:`);
-        console.log(`   - Is known prefix: ${globalPrefixes.includes(prefixLower)}`);
-        console.log(`   - Usage percentage: ${Math.round(usagePercentage * 100)}%`);
-
-        // Lower the threshold to 25% and be more aggressive for known Style Dictionary prefixes
-        const threshold = globalPrefixes.includes(prefixLower) ? 0.25 : 0.5;
-
-        // Special case: If we have ANY tokens with the exact "token" prefix (common Style Dictionary pattern),
-        // and it's the most common prefix, always use it regardless of percentage
-        const isStyleDictionaryToken = mostCommonPrefix === 'token' && prefixCounts[mostCommonPrefix] > 0;
-
-        if ((globalPrefixes.includes(prefixLower) && usagePercentage >= threshold) || isStyleDictionaryToken) {
-          detectedGlobalNamespace = mostCommonPrefix;
-          const reason = isStyleDictionaryToken ? '(Style Dictionary pattern detected)' : `(${Math.round(usagePercentage * 100)}% usage)`;
-          console.log(`🎯 DETECTED global namespace: "${detectedGlobalNamespace}" ${reason}`);
-        } else {
-          console.log(`❌ Not using "${mostCommonPrefix}" as global namespace (threshold: ${Math.round(threshold * 100)}%)`);
-        }
-      }
-    }
-
-    // Default namespace for Structure A when no common prefix detected
-    if (detectedStructureType === 'A' && !detectedGlobalNamespace) {
-      detectedGlobalNamespace = 'token'; // Default Style Dictionary namespace
-      console.log('🏗️  Structure A - Using default namespace: "token" (Style Dictionary convention)');
-    }
-
-    // Set the global namespace in UI immediately after detection
-    if (detectedGlobalNamespace && !globalNamespace) {
-      console.log(`🎯 Setting global namespace in UI: "${detectedGlobalNamespace}"`);
-      setGlobalNamespace(detectedGlobalNamespace);
-    } else if (detectedGlobalNamespace && globalNamespace) {
-      console.log(`ℹ️  Global namespace already set to: "${globalNamespace}", not overriding with: "${detectedGlobalNamespace}"`);
-    }
-
-    // Create nested group structure based on token paths
-    console.log('\n🏗️  Building group structure (Style Dictionary aware)...');
-    console.log(`🌐 Global namespace to strip: "${detectedGlobalNamespace}"`);
-
-    allTokens.forEach(({ path, token, key }) => {
-      // Build the full token path including the key
-      const fullTokenPath = [...path, key];
-      console.log(`\n🔧 Processing token: ${fullTokenPath.join('.')}`, token);
-      console.log(`   Original path: [${path.join(', ')}]`);
-
-      // 🎯 HYBRID NAMESPACE HANDLING
-      // Structure A: Skip namespace in token paths (if detected from common prefix)
-      // Structure B: No stripping needed (already unwrapped at tokenSet level)
-      let groupPath = path;
-
-      if (detectedStructureType === 'A' && detectedGlobalNamespace && path.length > 0 && path[0] === detectedGlobalNamespace) {
-        groupPath = path.slice(1); // Remove the global namespace from the group path
-        console.log(`   ✂️  Structure A - Stripped global namespace "${detectedGlobalNamespace}"`);
-        console.log(`   New group path: [${groupPath.join(', ')}]`);
-      } else if (detectedStructureType === 'B') {
-        // Structure B tokens are already unwrapped, use path as-is
-        groupPath = path;
-        console.log(`   📦 Structure B - Using unwrapped path: [${path.join(', ')}]`);
-      } else if (detectedStructureType === 'A' && detectedGlobalNamespace) {
-        console.log(`   ⚠️  Structure A - Path doesn't start with global namespace "${detectedGlobalNamespace}"`);
-      } else {
-        console.log(`   ℹ️  No global namespace to strip`);
-      }
-
-      // Apply Style Dictionary build output structure transformation
-      let semanticGroupPath = groupPath;
-
-      if (groupPath.length >= 3) {
-        // Check for Style Dictionary source structure: brands.brandX.category
-        const potentialBrandContainer = groupPath[0]; // e.g., 'brands'
-        const potentialBrandName = groupPath[1]; // e.g., 'brand1', 'brand2'
-        const potentialCategory = groupPath[2]; // e.g., 'color', 'globals', 'palette'
-
-        // Transform brands.brand1.color.X -> color.X (remove both brands container and brand folder)
-        if (potentialBrandContainer.toLowerCase().includes('brand') && groupPath.length >= 3) {
-          // Remove both the brands container and brand folder, use semantic path starting from category
-          semanticGroupPath = groupPath.slice(2); // Skip 'brands' and 'brand1', keep 'color.X.Y...'
-          console.log(`   🏗️ Style Dictionary build transform: ${groupPath.join('.')} -> ${semanticGroupPath.join('.')}`);
-        }
-        // Handle direct globals and palette (not under brands)
-        else if (['globals', 'global', 'palette', 'palettes'].includes(potentialBrandContainer.toLowerCase())) {
-          // globals.font-size -> globals.font-size (keep as-is)
-          semanticGroupPath = groupPath;
-          console.log(`   📋 Global category detected: ${groupPath.join('.')}`);
-        }
-      }
-
-      // Handle 2-level paths that might be brand.category
-      else if (groupPath.length === 2) {
-        const level0 = groupPath[0];
-        const level1 = groupPath[1];
-
-        // Check if level1 looks like a design token category
-        const designCategories = ['color', 'colors', 'colour', 'colours', 'spacing', 'space', 'typography', 'font', 'size', 'border', 'shadow', 'radius', 'palette', 'global', 'globals'];
-        const isDesignCategory = designCategories.some(cat =>
-          level1.toLowerCase().includes(cat) || cat.includes(level1.toLowerCase())
-        );
-
-        if (isDesignCategory) {
-          // Treat as brand.category structure
-          semanticGroupPath = groupPath; // brand1.color
-          console.log(`   🎨 Brand category pattern: ${level0} (brand) > ${level1} (category)`);
-        }
-      }
-
-      console.log(`   📋 Final semantic path: [${semanticGroupPath.join(', ')}]`);
-
-      // Ensure all parent groups exist in the hierarchy (excluding global namespace)
-      for (let i = 1; i <= semanticGroupPath.length; i++) {
-        const currentGroupPath = semanticGroupPath.slice(0, i);
-        const groupKey = currentGroupPath.join('.');
-
-        if (!groupMap.has(groupKey)) {
-          const groupName = currentGroupPath[currentGroupPath.length - 1];
-          const parentPath = i > 1 ? semanticGroupPath.slice(0, i - 1).join('.') : undefined;
-
-          const group: TokenGroup = {
-            id: generateId(),
-            name: groupName,
-            tokens: [],
-            children: [],
-            parent: parentPath, // Keep as path temporarily
-            level: i - 1,
-            expanded: true
-          };
-
-          console.log(`   ➕ Creating group: "${groupName}" at level ${i - 1}, parent: "${parentPath || 'none'}", key: "${groupKey}"`);
-          groupMap.set(groupKey, group);
-        }
-      }
-
-      // Find the appropriate group for this token (use the deepest group in the semantic path)
-      let targetGroupPath = semanticGroupPath.join('.');
-
-      // If no path exists after removing global namespace, create or use a default 'imported' group
-      if (semanticGroupPath.length === 0) {
-        targetGroupPath = 'imported';
-        if (!groupMap.has(targetGroupPath)) {
-          groupMap.set(targetGroupPath, {
-            id: generateId(),
-            name: 'imported',
-            tokens: [],
-            children: [],
-            level: 0,
-            expanded: true
-          });
-        }
-      }
-
-
-      const targetGroup = groupMap.get(targetGroupPath);
-      if (targetGroup) {
-        // Get token value (handle both W3C and regular formats)
-        let tokenValue = token.$value || token.value;
-        let tokenType = token.$type || token.type || 'color';
-
-        // Parse value if it's a string that looks like JSON
-        if (typeof tokenValue === 'string' && (tokenValue.startsWith('{') || tokenValue.startsWith('['))) {
-          try {
-            tokenValue = JSON.parse(tokenValue);
-          } catch (e) {
-            // Keep as string if parsing fails
-          }
-        }
-
-        // Add token to the target group
-        targetGroup.tokens.push({
-          id: generateId(),
-          path: key,
-          value: tokenValue,
-          type: tokenType,
-          description: token.$description || token.description,
-          attributes: Object.keys(token).reduce((attrs, k) => {
-            if (!k.startsWith('$') && !['value', 'type', 'description'].includes(k)) {
-              attrs[k] = token[k];
-            }
-            return attrs;
-          }, {} as Record<string, any>)
-        });
-      }
-    });
-
-    // Build the hierarchical structure by connecting parents and children
-    const rootGroups: TokenGroup[] = [];
-
-    groupMap.forEach((group, groupPath) => {
-      if (group.parent) {
-        const parentGroup = groupMap.get(group.parent);
-        if (parentGroup && parentGroup.children) {
-          parentGroup.children.push(group);
-        }
-      } else {
-        // This is a root level group
-        rootGroups.push(group);
-      }
-    });
-
-    // Second pass: Convert path-based parent references to group IDs
-    console.log('\n🔧 Converting parent path references to group IDs...');
-    groupMap.forEach((group, groupKey) => {
-      if (group.parent && typeof group.parent === 'string') {
-        const parentGroup = groupMap.get(group.parent);
-        if (parentGroup) {
-          const oldParent = group.parent;
-          group.parent = parentGroup.id;
-          console.log(`   ✅ Group "${group.name}": parent path "${oldParent}" → parent ID "${parentGroup.id}"`);
-        } else {
-          console.log(`   ⚠️ Group "${group.name}": parent path "${group.parent}" not found, setting to undefined`);
-          group.parent = undefined;
-        }
-      }
-    });
-
-    console.log(`\n📋 FINAL RESULT:`);
-    console.log(`   - Total groups created: ${groupMap.size}`);
-    console.log(`   - Root groups: ${rootGroups.length}`);
-    console.log(`   - Global namespace set: "${detectedGlobalNamespace}"`);
-
-    rootGroups.forEach((group, index) => {
-      console.log(`   ${index + 1}. Root Group: "${group.name}" (Level ${group.level}) - ${group.tokens.length} tokens`);
-      if (group.children && group.children.length > 0) {
-        group.children.forEach(child => {
-          console.log(`      └─ Child: "${child.name}" (Level ${child.level}) - ${child.tokens.length} tokens`);
-        });
-      }
-    });
-
-    // If no groups were created, create a default one
-    if (rootGroups.length === 0) {
-      console.log(`⚠️  No groups created, falling back to default 'imported' group`);
-      return [{
-        id: generateId(),
-        name: 'imported',
-        tokens: [],
-        children: [],
-        level: 0,
-        expanded: true
-      }];
-    }
-
-    return rootGroups;
+  // Use token service to convert tokens to groups
+  const convertToTokenGroups = (tokenSet: any): { groups: TokenGroup[]; detectedGlobalNamespace: string } => {
+    return tokenService.processImportedTokens(tokenSet, globalNamespace);
   };
 
   const exportToFigma = async () => {
@@ -1019,44 +495,12 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
     }
   };
 
-  // Function to resolve token references like {token.color.base.teal.200.value}
+  // Use token service for resolving token references
   const resolveTokenReference = (value: string): string => {
-    if (typeof value !== 'string' || !value.startsWith('{') || !value.endsWith('}')) {
-      return value; // Not a token reference
-    }
-
-    // Extract the token path from {token.path.value} format
-    const tokenPath = value.slice(1, -1); // Remove { and }
-    const pathWithoutValue = tokenPath.replace(/\.value$/, ''); // Remove .value suffix
-
-    // Search through all groups and tokens to find the referenced token
-    const allGroups = getAllGroups(tokenGroups);
-    for (const group of allGroups) {
-      for (const token of group.tokens) {
-        const fullTokenPath = buildFullPath(group, token.path);
-        if (fullTokenPath === pathWithoutValue) {
-          // Found the referenced token, return its value (recursively resolve if needed)
-          return resolveTokenReference(token.value.toString());
-        }
-      }
-    }
-
-    return value; // If not found, return original value
+    return tokenService.resolveTokenReference(value, tokenGroups);
   };
 
-  const getValuePlaceholder = (type: string): string => {
-    const globalNs = globalNamespace || 'token';
-    switch (type) {
-      case 'color': return `#ff0000 or {${globalNs}.color.base.gray.600}`;
-      case 'dimension': return `16px or {${globalNs}.spacing.medium}`;
-      case 'fontFamily': return `["Arial", "sans-serif"] or {${globalNs}.font.family.base}`;
-      case 'fontWeight': return `400 or {${globalNs}.font.weight.normal}`;
-      case 'duration': return `200ms or {${globalNs}.animation.duration.fast}`;
-      case 'cubicBezier': return `[0.25, 0.1, 0.25, 1] or {${globalNs}.animation.easing.smooth}`;
-      case 'number': return `1.5 or {${globalNs}.scale.medium}`;
-      default: return `Enter value or {${globalNs}.reference.path}`;
-    }
-  };
+  // Use imported getValuePlaceholder utility function
 
   // Recursive function to render nested groups
   const renderGroup = (group: TokenGroup) => {
@@ -1127,7 +571,7 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
                         <td className="px-4 py-3">
                           <div className="flex items-center">
                             <div className="mr-2 font-mono text-sm text-gray-600">
-                              {buildFullPath(group, token.path)}
+                              {buildTokenPath(group, token.path)}
                             </div>
                             <input
                               type="text"
@@ -1391,87 +835,17 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
       )}
 
       {/* JSON Preview Dialog */}
-      {showJsonDialog && (
-        <div className="flex fixed inset-0 z-50 justify-center items-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl max-h-[80vh] w-full mx-4">
-            <div className="flex justify-between items-center p-4 border-b">
-              <h3 className="text-lg font-medium">Generated JSON Preview</h3>
-              <button
-                onClick={() => setShowJsonDialog(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="p-4 overflow-auto max-h-[60vh]">
-              <pre className="overflow-auto p-4 text-xs bg-gray-50 rounded-md border">
-                {JSON.stringify(generateTokenSet(), null, 2)}
-              </pre>
-            </div>
-            <div className="flex justify-end p-4 border-t">
-              <button
-                onClick={() => setShowJsonDialog(false)}
-                className="px-4 py-2 text-white bg-gray-600 rounded-md hover:bg-gray-700"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <JsonPreviewDialog
+        isOpen={showJsonDialog}
+        onClose={() => setShowJsonDialog(false)}
+        jsonData={generateTokenSet()}
+      />
 
       {/* Loading Indicator */}
-      {isLoading && (
-        <div className="flex fixed inset-0 z-50 justify-center items-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 mx-4 min-w-[300px]">
-            <div className="flex items-center space-x-3">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-              <div>
-                <h3 className="text-lg font-medium text-gray-900">Loading...</h3>
-                <p className="text-sm text-gray-600">{loadingMessage}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <LoadingIndicator loadingState={loadingState} />
 
       {/* Toast Notification */}
-      {toast && (
-        <div className="fixed top-4 right-4 z-50">
-          <div className={`max-w-sm w-full bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 ${
-            toast.type === 'success' ? 'border-l-4 border-green-400' :
-            toast.type === 'error' ? 'border-l-4 border-red-400' :
-            'border-l-4 border-blue-400'
-          }`}>
-            <div className="p-4">
-              <div className="flex items-start">
-                <div className="flex-shrink-0">
-                  {toast.type === 'success' ? (
-                    <div className="w-5 h-5 text-green-400">✓</div>
-                  ) : toast.type === 'error' ? (
-                    <div className="w-5 h-5 text-red-400">✕</div>
-                  ) : (
-                    <div className="w-5 h-5 text-blue-400">ℹ</div>
-                  )}
-                </div>
-                <div className="ml-3 w-0 flex-1">
-                  <p className="text-sm font-medium text-gray-900">
-                    {toast.message}
-                  </p>
-                </div>
-                <div className="ml-4 flex-shrink-0 flex">
-                  <button
-                    className="bg-white rounded-md inline-flex text-gray-400 hover:text-gray-600 focus:outline-none"
-                    onClick={hideToast}
-                  >
-                    <span className="text-sm">✕</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <ToastNotification toast={toast} onClose={hideToast} />
     </div>
   );
 }
