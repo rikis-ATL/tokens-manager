@@ -10,6 +10,7 @@ interface Token {
   value: string;
   type: string;
   attributes?: Record<string, unknown>;
+  resolvedValue?: string;
 }
 
 interface TokenGroup {
@@ -76,6 +77,33 @@ function flattenMongoTokens(
   for (const section of Object.keys(result)) {
     for (const group of result[section]) {
       group.path = group.path.replace(/^\./, '');
+    }
+  }
+
+  // Resolve token references: build a flat path→value map, then resolve
+  const pathMap = new Map<string, string>();
+  for (const groups of Object.values(result)) {
+    for (const g of groups) {
+      pathMap.set(g.path, g.token.value);
+    }
+  }
+  const resolveRef = (val: string, depth = 0): string => {
+    if (depth > 10 || !val.startsWith('{') || !val.endsWith('}')) return val;
+    let ref = val.slice(1, -1);
+    if (ref.endsWith('.value')) ref = ref.slice(0, -6);
+    // Try exact match first, then suffix match
+    if (pathMap.has(ref)) return resolveRef(pathMap.get(ref)!, depth + 1);
+    for (const [path, v] of pathMap.entries()) {
+      if (ref.endsWith('.' + path)) return resolveRef(v, depth + 1);
+    }
+    return val; // unresolved
+  };
+  for (const groups of Object.values(result)) {
+    for (const g of groups) {
+      if (g.token.value.startsWith('{')) {
+        const resolved = resolveRef(g.token.value);
+        if (resolved !== g.token.value) g.token.resolvedValue = resolved;
+      }
     }
   }
 

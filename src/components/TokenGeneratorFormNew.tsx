@@ -80,8 +80,8 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
         ? { repo: githubConfig.repository, branch: githubConfig.branch, path: null }
         : null;
 
-      // If name matches an already-loaded collection, attempt PUT (overwrite) directly
-      if (loadedCollection && loadedCollection.name === name) {
+      // If user confirmed overwrite (saveDialogDuplicateName is set), attempt PUT directly
+      if (loadedCollection && saveDialogDuplicateName === name) {
         const res = await fetch(`/api/collections/${loadedCollection.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -670,7 +670,7 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
               <table className="min-w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">Path</th>
+                    <th className="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">Token Name</th>
                     <th className="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">Type</th>
                     <th className="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">Value</th>
                     <th className="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">Description</th>
@@ -684,7 +684,7 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
                         <td className="px-4 py-3">
                           <div className="flex items-center">
                             <div className="mr-2 font-mono text-sm text-gray-600">
-                              {buildTokenPath(group, token.path)}
+                              {buildTokenPath(group, token.path).replace(/\./g, '-')}
                             </div>
                             <input
                               type="text"

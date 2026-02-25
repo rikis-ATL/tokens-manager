@@ -366,7 +366,7 @@ export class TokenService {
     const search = (groups: TokenGroup[]): string | null => {
       for (const group of groups) {
         for (const token of group.tokens) {
-          const fullPath = `${group.path}.${token.path}`;
+          const fullPath = `${group.path ?? group.name}.${token.path}`;
           // Match exact path, or when the reference has a namespace prefix that was stripped
           // from group paths during import (e.g. cleanRef='token.colors.base.red' matches
           // fullPath='colors.base.red'). Check segment boundaries with a dot prefix to
