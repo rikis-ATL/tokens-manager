@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-25)
 ## Current Position
 
 Phase: 3 of 4 (Generator Form)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-02-26 — Completed 03-01 (POST + PUT API endpoints for collections write-side)
+Last activity: 2026-02-26 — Completed 03-02 (Save to Database button and SaveCollectionDialog modal)
 
-Progress: [██████░░░░] 55%
+Progress: [███████░░░] 63%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
-- Average duration: 2.8 min
-- Total execution time: ~0.23 hours
+- Total plans completed: 6
+- Average duration: 2.7 min
+- Total execution time: ~0.27 hours
 
 **By Phase:**
 
@@ -29,10 +29,10 @@ Progress: [██████░░░░] 55%
 |-------|-------|-------|----------|
 | 01-database-foundation | 3 | 10 min | 3.3 min |
 | 02-view-integration | 2 | 4 min | 2.0 min |
-| 03-generator-form | 1 | 2 min | 2.0 min |
+| 03-generator-form | 2 | 4 min | 2.0 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-03 (5 min), 02-01 (2 min), 02-02 (2 min), 03-01 (2 min)
+- Last 5 plans: 02-01 (2 min), 02-02 (2 min), 03-01 (2 min), 03-02 (2 min)
 - Trend: Phase 3 in progress
 
 *Updated after each plan completion*
@@ -86,6 +86,11 @@ Recent decisions affecting current work:
 - PUT body empty-check tests all three UpdateTokenCollectionInput fields; {} returns 400 rather than a no-op DB call
 - runValidators: true on findByIdAndUpdate ensures Mongoose schema validators run on updates
 
+**03-02 decisions:**
+- Step advance on onSave return: dialog advances to confirm-overwrite after await onSave() if dialog stays open — no extra prop needed
+- saveDialogDuplicateName state tracked in parent for future use; not passed to dialog as prop — dialog derives step from onSave flow
+- Rule 1 auto-fix: replaced pre-existing setIsLoading/setLoadingMessage with correct setLoading() to meet no-TypeScript-errors criterion
+
 ### Pending Todos
 
 None yet.
@@ -97,5 +102,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: Completed 03-01-PLAN.md
+Stopped at: Completed 03-02-PLAN.md
 Resume file: None
