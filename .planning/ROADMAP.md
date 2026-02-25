@@ -29,7 +29,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. A TokenCollection document can be created, queried, and deleted with all required fields present (name, tokens, sourceMetadata, userId, createdAt, updatedAt)
   4. Running the seed script once populates MongoDB with collections named after the local tokens/ JSON files
   5. New API routes and the MongoDB schema are documented in .planning/ANGULAR_PARITY.md
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Install mongoose + connection singleton (DB-01, DB-02)
+- [ ] 01-02-PLAN.md — TokenCollection schema + TypeScript types (DB-03)
+- [ ] 01-03-PLAN.md — Seed script + Angular parity doc (SEED-01, PARITY-01)
 
 ### Phase 2: View Integration
 **Goal**: Users can browse and view any MongoDB collection on the View Tokens page alongside local files
