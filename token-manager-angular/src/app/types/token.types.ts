@@ -160,6 +160,7 @@ export interface FigmaVariable {
 export interface ToastMessage {
   message: string;
   type: 'success' | 'error' | 'info';
+  data?: any;
 }
 
 export interface LoadingState {
