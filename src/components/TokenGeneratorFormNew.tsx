@@ -6,6 +6,7 @@ import { LoadingIndicator } from './LoadingIndicator';
 import { ToastNotification } from './ToastNotification';
 import { JsonPreviewDialog } from './JsonPreviewDialog';
 import { SaveCollectionDialog } from './SaveCollectionDialog';
+import { LoadCollectionDialog } from './LoadCollectionDialog';
 
 // Import services and types
 import { githubService, tokenService, fileService } from '../services';
@@ -54,6 +55,8 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveDialogDuplicateName, setSaveDialogDuplicateName] = useState<string | null>(null);
+  const [showLoadDialog, setShowLoadDialog] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
 
   // Toast helper functions
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
@@ -91,6 +94,7 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
         }
         setLoadedCollection({ id: data.collection._id, name: data.collection.name });
         setSaveDialogDuplicateName(null);
+        setIsDirty(false);
         setShowSaveDialog(false);
         showToast(`Saved to database: ${data.collection.name}`, 'success');
         return;
@@ -119,6 +123,7 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
 
       setLoadedCollection({ id: data.collection._id, name: data.collection.name });
       setSaveDialogDuplicateName(null);
+      setIsDirty(false);
       setShowSaveDialog(false);
       showToast(`Saved to database: ${data.collection.name}`, 'success');
     } catch (err) {
@@ -126,6 +131,38 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
     } finally {
       setIsSaving(false);
     }
+  };
+
+  // Load a collection by id from MongoDB
+  const handleLoadCollection = async (collectionId: string) => {
+    try {
+      const res = await fetch(`/api/collections/${collectionId}`);
+      const data = await res.json();
+      if (!res.ok) {
+        showToast(`Failed to load collection: ${data.error}`, 'error');
+        return;
+      }
+      const { collection } = data;
+      const { groups, detectedGlobalNamespace } = convertToTokenGroups(collection.tokens);
+      // Programmatic state update — do NOT set dirty
+      setTokenGroups(groups);
+      setGlobalNamespace(detectedGlobalNamespace);
+      setLoadedCollection({ id: collection._id, name: collection.name });
+      setIsDirty(false);
+      setShowLoadDialog(false);
+      showToast(`Loaded: ${collection.name}`, 'success');
+    } catch (err) {
+      showToast(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`, 'error');
+    }
+  };
+
+  // Unsaved-changes guard before loading a collection
+  const handleLoadRequest = async (collectionId: string) => {
+    if (isDirty) {
+      const confirmed = window.confirm('You have unsaved changes. Loading a collection will replace them. Continue?');
+      if (!confirmed) return;
+    }
+    await handleLoadCollection(collectionId);
   };
 
   // Use utility functions from utils module
@@ -175,6 +212,7 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
       expanded: true
     };
     setTokenGroups([...tokenGroups, newGroup]);
+    setIsDirty(true);
     setNewGroupName('');
     setIsAddingGroup(false);
   };
@@ -196,6 +234,7 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
     };
 
     setTokenGroups(removeGroup(tokenGroups));
+    setIsDirty(true);
   };
 
   const updateGroupName = (groupId: string, newName: string) => {
@@ -211,6 +250,7 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
       });
     };
     setTokenGroups(updateGroup(tokenGroups));
+    setIsDirty(true);
   };
 
   const addToken = (groupId: string) => {
@@ -236,6 +276,7 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
     };
 
     setTokenGroups(updateGroup(tokenGroups));
+    setIsDirty(true);
   };
 
   const updateToken = (groupId: string, tokenId: string, field: keyof GeneratedToken, value: any) => {
@@ -257,6 +298,7 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
     };
 
     setTokenGroups(updateGroup(tokenGroups));
+    setIsDirty(true);
   };
 
   const toggleTokenExpansion = (tokenId: string) => {
@@ -293,6 +335,7 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
     };
 
     setTokenGroups(updateGroup(tokenGroups));
+    setIsDirty(true);
   };
 
   const removeTokenAttribute = (groupId: string, tokenId: string, key: string) => {
@@ -321,6 +364,7 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
     };
 
     setTokenGroups(updateGroup(tokenGroups));
+    setIsDirty(true);
   };
 
   const deleteToken = (groupId: string, tokenId: string) => {
@@ -337,6 +381,7 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
     };
 
     setTokenGroups(updateGroup(tokenGroups));
+    setIsDirty(true);
   };
 
   const parseTokenValue = (value: string, type: string): any => {
@@ -524,6 +569,8 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
       setTokenGroups([{ id: generateId(), name: 'colors', tokens: [], level: 0, expanded: true }]);
       setGlobalNamespace('');
       setExpandedTokens(new Set());
+      setLoadedCollection(null);
+      setIsDirty(false);
       showToast('Form cleared successfully!', 'success');
     }
   };
@@ -798,7 +845,7 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
               <input
                 type="text"
                 value={globalNamespace}
-                onChange={(e) => setGlobalNamespace(e.target.value)}
+                onChange={(e) => { setGlobalNamespace(e.target.value); setIsDirty(true); }}
                 placeholder="Optional namespace (e.g., 'design', 'token')"
                 className="px-3 py-2 text-sm rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
@@ -816,6 +863,12 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
               className="px-3 py-2 text-sm font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700"
             >
               Save to Database
+            </button>
+            <button
+              onClick={() => setShowLoadDialog(true)}
+              className="px-3 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
+            >
+              Load Collection
             </button>
             <button
               onClick={exportToJSON}
@@ -925,6 +978,13 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
         onSave={handleSaveCollection}
         onCancel={() => { setShowSaveDialog(false); setSaveDialogDuplicateName(null); }}
         isSaving={isSaving}
+      />
+
+      {/* Load Collection Dialog */}
+      <LoadCollectionDialog
+        isOpen={showLoadDialog}
+        onLoad={handleLoadRequest}
+        onCancel={() => setShowLoadDialog(false)}
       />
 
       {/* Loading Indicator */}
