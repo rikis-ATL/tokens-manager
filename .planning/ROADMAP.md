@@ -34,7 +34,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 Plans:
 - [x] 01-01-PLAN.md — Install mongoose + connection singleton (DB-01, DB-02)
 - [x] 01-02-PLAN.md — TokenCollection schema + TypeScript types (DB-03)
-- [ ] 01-03-PLAN.md — Seed script + Angular parity doc (SEED-01, PARITY-01)
+- [x] 01-03-PLAN.md — Seed script + Angular parity doc (SEED-01, PARITY-01)
 
 ### Phase 2: View Integration
 **Goal**: Users can browse and view any MongoDB collection on the View Tokens page alongside local files
@@ -44,7 +44,11 @@ Plans:
   1. The View Tokens page displays a collection selector listing all MongoDB collections by name
   2. Selecting a MongoDB collection from the dropdown renders its tokens in the existing TokenTable UI
   3. A "Local Files" option remains in the selector and displays the original file-based tokens unchanged
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — GET /api/collections route (VIEW-01, VIEW-02, VIEW-03)
+- [ ] 02-02-PLAN.md — CollectionSelector component + page.tsx integration + GET /api/collections/[id] route (VIEW-01, VIEW-02, VIEW-03)
 
 ### Phase 3: Generator Form
 **Goal**: Users can save new collections to MongoDB, load existing collections into the generator form, and save edits back
@@ -75,6 +79,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Database Foundation | 3/3 | Complete   | 2026-02-25 |
-| 2. View Integration | 0/? | Not started | - |
+| 2. View Integration | 0/2 | Planned | - |
 | 3. Generator Form | 0/? | Not started | - |
 | 4. Collection Management | 0/? | Not started | - |
