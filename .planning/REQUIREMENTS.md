@@ -103,13 +103,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MGMT-02 | Phase 4 | Pending |
 | MGMT-03 | Phase 4 | Pending |
 | MGMT-04 | Phase 4 | Pending |
-| PARITY-01 | Phase 1-4 | Pending |
+| PARITY-01 | Phase 1 (ongoing through Phase 4) | Pending |
 
 **Coverage:**
 - v1 requirements: 21 total
 - Mapped to phases: 21
-- Unmapped: 0 ✓
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-25*
-*Last updated: 2026-02-25 after initial definition*
+*Last updated: 2026-02-25 after roadmap creation*
