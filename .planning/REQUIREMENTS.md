@@ -30,11 +30,11 @@
 
 ### Generator Form — Load
 
-- [ ] **GEN-05**: Token generator form has a "Load Collection" button
-- [ ] **GEN-06**: Clicking "Load Collection" opens a dialog listing all MongoDB collections by name
-- [ ] **GEN-07**: User selects a collection from the dialog; the generator form is populated with the collection's full token data
-- [ ] **GEN-08**: Once loaded, the collection name is retained so "Save to Database" can update the existing collection without re-prompting for a name
-- [ ] **GEN-09**: All existing generator form functionality (GitHub import, Figma export, GitHub PR export, format download, JSON preview) remains fully functional when working with loaded collections
+- [x] **GEN-05**: Token generator form has a "Load Collection" button
+- [x] **GEN-06**: Clicking "Load Collection" opens a dialog listing all MongoDB collections by name
+- [x] **GEN-07**: User selects a collection from the dialog; the generator form is populated with the collection's full token data
+- [x] **GEN-08**: Once loaded, the collection name is retained so "Save to Database" can update the existing collection without re-prompting for a name
+- [x] **GEN-09**: All existing generator form functionality (GitHub import, Figma export, GitHub PR export, format download, JSON preview) remains fully functional when working with loaded collections
 
 ### Collection Management
 
@@ -94,11 +94,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | GEN-02 | Phase 3 | Complete |
 | GEN-03 | Phase 3 | Complete |
 | GEN-04 | Phase 3 | Complete |
-| GEN-05 | Phase 3 | Pending |
-| GEN-06 | Phase 3 | Pending |
-| GEN-07 | Phase 3 | Pending |
-| GEN-08 | Phase 3 | Pending |
-| GEN-09 | Phase 3 | Pending |
+| GEN-05 | Phase 3 | Complete |
+| GEN-06 | Phase 3 | Complete |
+| GEN-07 | Phase 3 | Complete |
+| GEN-08 | Phase 3 | Complete |
+| GEN-09 | Phase 3 | Complete |
 | MGMT-01 | Phase 3 | Complete |
 | MGMT-02 | Phase 4 | Pending |
 | MGMT-03 | Phase 4 | Pending |

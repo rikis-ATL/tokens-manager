@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-25)
 ## Current Position
 
 Phase: 3 of 4 (Generator Form)
-Plan: 2 of 3 in current phase
-Status: In progress
-Last activity: 2026-02-26 — Completed 03-02 (Save to Database button and SaveCollectionDialog modal)
+Plan: 3 of 3 in current phase
+Status: Phase complete
+Last activity: 2026-02-26 — Completed 03-03 (Load Collection button, LoadCollectionDialog, dirty flag)
 
-Progress: [███████░░░] 63%
+Progress: [████████░░] 75%
 
 ## Performance Metrics
 
@@ -29,11 +29,11 @@ Progress: [███████░░░] 63%
 |-------|-------|-------|----------|
 | 01-database-foundation | 3 | 10 min | 3.3 min |
 | 02-view-integration | 2 | 4 min | 2.0 min |
-| 03-generator-form | 2 | 4 min | 2.0 min |
+| 03-generator-form | 3 | 7 min | 2.3 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-01 (2 min), 02-02 (2 min), 03-01 (2 min), 03-02 (2 min)
-- Trend: Phase 3 in progress
+- Last 5 plans: 02-01 (2 min), 02-02 (2 min), 03-01 (2 min), 03-02 (2 min), 03-03 (3 min)
+- Trend: Phase 3 complete
 
 *Updated after each plan completion*
 
@@ -91,6 +91,12 @@ Recent decisions affecting current work:
 - saveDialogDuplicateName state tracked in parent for future use; not passed to dialog as prop — dialog derives step from onSave flow
 - Rule 1 auto-fix: replaced pre-existing setIsLoading/setLoadingMessage with correct setLoading() to meet no-TypeScript-errors criterion
 
+**03-03 decisions:**
+- isDirty tracking in individual mutation handlers (not useEffect on tokenGroups): avoids false dirty on programmatic loads
+- handleLoadCollection does NOT call setIsDirty(true): programmatic state update distinguishes load from user edit
+- clearForm resets both loadedCollection and isDirty: clears full editing session context so next Save prompts for a new name
+- LoadCollectionDialog manages isFetching and isLoading separately: fetch on open vs load-in-progress are independent loading states
+
 ### Pending Todos
 
 None yet.
@@ -102,5 +108,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: Completed 03-02-PLAN.md
+Stopped at: Completed 03-03-PLAN.md
 Resume file: None
