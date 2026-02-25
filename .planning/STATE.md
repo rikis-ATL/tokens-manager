@@ -5,33 +5,34 @@
 See: .planning/PROJECT.md (updated 2026-02-25)
 
 **Core value:** Token collections are always available and editable — stored in MongoDB, loadable into the generator form, and visible on the view page.
-**Current focus:** Phase 1 — Database Foundation
+**Current focus:** Phase 2 — View Integration
 
 ## Current Position
 
-Phase: 1 of 4 (Database Foundation)
-Plan: 3 of 3 in current phase
-Status: Phase 1 complete
-Last activity: 2026-02-25 — Completed 01-03 (seed script and Angular parity tracking document)
+Phase: 2 of 4 (View Integration)
+Plan: 2 of 3 in current phase
+Status: In progress (at checkpoint — awaiting human verification of Task 3)
+Last activity: 2026-02-25 — Completed 02-02 auto tasks (CollectionSelector + page integration); at checkpoint
 
-Progress: [████░░░░░░] 25%
+Progress: [█████░░░░░] 44%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
-- Average duration: 3.3 min
-- Total execution time: ~0.17 hours
+- Total plans completed: 4
+- Average duration: 3.0 min
+- Total execution time: ~0.20 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-database-foundation | 3 | 10 min | 3.3 min |
+| 02-view-integration | 2 | 4 min | 2.0 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (3 min), 01-02 (2 min), 01-03 (5 min)
-- Trend: Phase 1 complete
+- Last 5 plans: 01-01 (3 min), 01-02 (2 min), 01-03 (5 min), 02-01 (2 min), 02-02 (2 min)
+- Trend: Phase 2 in progress
 
 *Updated after each plan completion*
 
@@ -68,6 +69,17 @@ Recent decisions affecting current work:
 - DOTENV_CONFIG_PATH + -r dotenv/config register to load .env.local before hoisted module imports check MONGODB_URI
 - Collection name derivation: path.relative + regex (slashes to ' / ') giving readable defaults users can rename in Phase 4
 
+**02-01 decisions:**
+- lean() projection for API route (find with { name: 1, createdAt: 1 }.lean() returns JSON-serialisable plain objects; avoids Mongoose Document overhead)
+- Explicit _id.toString() and createdAt.toISOString() in map (lean() preserves native ObjectId and Date types; explicit cast required for safe JSON serialisation)
+- No sort in collections query (UI displays in natural insertion order; sort is a UI concern per plan requirement)
+
+**02-02 decisions:**
+- flattenMongoTokens() inline in page.tsx (not a new file) — collocated with only consumer; no premature abstraction
+- Select stays enabled during loading — user can cancel by switching; AbortController handles in-flight fetch cancellation
+- localStorage id validated against live collections on mount — stale ids silently fall back to 'local'
+- GET /api/collections/[id] uses .lean() — consistent with collections list route pattern
+
 ### Pending Todos
 
 None yet.
@@ -79,5 +91,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-25
-Stopped at: Completed 01-03-PLAN.md (seed script and Angular parity tracking document — Phase 1 complete)
+Stopped at: 02-02 checkpoint (Task 3 — human-verify CollectionSelector in browser)
 Resume file: None

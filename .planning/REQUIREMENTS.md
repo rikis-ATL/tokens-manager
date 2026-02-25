@@ -17,9 +17,9 @@
 
 ### View Tokens Page
 
-- [ ] **VIEW-01**: View Tokens page shows a collection selector (select input) at the top of the page listing all MongoDB collections
-- [ ] **VIEW-02**: Selecting a collection from the dropdown displays its tokens in the existing TokenTable UI
-- [ ] **VIEW-03**: Local file-based tokens remain accessible as a "Local Files" option in the selector (original behavior preserved)
+- [x] **VIEW-01**: View Tokens page shows a collection selector (select input) at the top of the page listing all MongoDB collections
+- [x] **VIEW-02**: Selecting a collection from the dropdown displays its tokens in the existing TokenTable UI
+- [x] **VIEW-03**: Local file-based tokens remain accessible as a "Local Files" option in the selector (original behavior preserved)
 
 ### Generator Form — Save
 
@@ -87,9 +87,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DB-02 | Phase 1 | Complete |
 | DB-03 | Phase 1 | Complete |
 | SEED-01 | Phase 1 | Complete |
-| VIEW-01 | Phase 2 | Pending |
-| VIEW-02 | Phase 2 | Pending |
-| VIEW-03 | Phase 2 | Pending |
+| VIEW-01 | Phase 2 | Complete |
+| VIEW-02 | Phase 2 | Complete |
+| VIEW-03 | Phase 2 | Complete |
 | GEN-01 | Phase 3 | Pending |
 | GEN-02 | Phase 3 | Pending |
 | GEN-03 | Phase 3 | Pending |
