@@ -1,12 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { TokenTable } from '@/components/TokenTable';
+import { CollectionSelector } from '@/components/CollectionSelector';
+import { ToastNotification } from '@/components/ToastNotification';
+import type { ToastMessage } from '@/types';
 
 interface Token {
   value: string;
   type: string;
-  attributes?: Record<string, any>;
+  attributes?: Record<string, unknown>;
 }
 
 interface TokenGroup {
@@ -16,21 +19,125 @@ interface TokenGroup {
   section: string;
 }
 
+interface CollectionOption {
+  _id: string;
+  name: string;
+}
+
+/**
+ * Flatten a W3C Design Token JSON object (as stored in MongoDB) into the
+ * Record<string, TokenGroup[]> shape expected by TokenTable.
+ *
+ * - Top-level keys become section names.
+ * - Any node with a `$value` key is treated as a token leaf.
+ * - Path segments are joined with dots.
+ */
+function flattenMongoTokens(
+  tokens: Record<string, unknown>,
+  collectionName: string
+): Record<string, TokenGroup[]> {
+  const result: Record<string, TokenGroup[]> = {};
+
+  function walk(
+    node: Record<string, unknown>,
+    pathParts: string[],
+    section: string
+  ) {
+    if ('$value' in node) {
+      // Token leaf
+      const path = pathParts.join('.');
+      const tokenGroup: TokenGroup = {
+        path,
+        token: {
+          value: String(node.$value),
+          type: typeof node.$type === 'string' ? node.$type : 'other',
+        },
+        filePath: collectionName,
+        section,
+      };
+      if (!result[section]) {
+        result[section] = [];
+      }
+      result[section].push(tokenGroup);
+      return;
+    }
+
+    for (const key of Object.keys(node)) {
+      if (key.startsWith('$')) continue; // skip $description, $extensions, etc.
+      const child = node[key];
+      if (child && typeof child === 'object' && !Array.isArray(child)) {
+        walk(child as Record<string, unknown>, [...pathParts, key], section);
+      }
+    }
+  }
+
+  for (const topKey of Object.keys(tokens)) {
+    const topNode = tokens[topKey];
+    if (topNode && typeof topNode === 'object' && !Array.isArray(topNode)) {
+      walk(topNode as Record<string, unknown>, [topKey], topKey);
+    }
+  }
+
+  return result;
+}
+
 export default function Home() {
   const [tokenData, setTokenData] = useState<Record<string, TokenGroup[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [collections, setCollections] = useState<CollectionOption[]>([]);
+  const [selectedId, setSelectedId] = useState<string>('local');
+  const [tableLoading, setTableLoading] = useState(false);
+  const [toast, setToast] = useState<ToastMessage | null>(null);
 
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Auto-dismiss toast after 4 seconds
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 4000);
+    return () => clearTimeout(timer);
+  }, [toast]);
+
+  // Load collections list on mount; restore last selection from localStorage
+  useEffect(() => {
+    (async () => {
+      try {
+        const response = await fetch('/api/collections');
+        if (!response.ok) throw new Error('Failed to load collections list');
+        const data = await response.json();
+        const fetchedCollections: CollectionOption[] = data.collections || [];
+        setCollections(fetchedCollections);
+
+        const storedId = localStorage.getItem('atui-selected-collection-id');
+        const storedExists =
+          storedId &&
+          fetchedCollections.some((c) => c._id === storedId);
+
+        if (storedExists && storedId) {
+          handleSelectionChange(storedId, fetchedCollections);
+        } else {
+          handleSelectionChange('local', fetchedCollections);
+        }
+      } catch {
+        setToast({ message: 'Failed to load collections list', type: 'error' });
+        // Stay on local files — collections stays empty
+        handleSelectionChange('local', []);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Initial Local Files load
   useEffect(() => {
     fetchTokens();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchTokens = async () => {
     try {
       const response = await fetch('/api/tokens');
-      if (!response.ok) {
-        throw new Error('Failed to load tokens');
-      }
+      if (!response.ok) throw new Error('Failed to load tokens');
       const data = await response.json();
       setTokenData(data.flatTokens || {});
     } catch (err) {
@@ -40,20 +147,56 @@ export default function Home() {
     }
   };
 
-  const saveToken = async (filePath: string, tokenData: any) => {
+  const handleSelectionChange = (
+    id: string,
+    _collections?: CollectionOption[]
+  ) => {
+    // Cancel any in-flight request
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = new AbortController();
+
+    setSelectedId(id);
+    localStorage.setItem('atui-selected-collection-id', id);
+
+    if (id === 'local') {
+      fetchTokens();
+      return;
+    }
+
+    // Fetch MongoDB collection tokens
+    (async () => {
+      setTableLoading(true);
+      try {
+        const response = await fetch(`/api/collections/${id}`, {
+          signal: abortControllerRef.current!.signal,
+        });
+        if (!response.ok) throw new Error('Failed to load collection');
+        const data = await response.json();
+        const rawTokens = data.collection.tokens as Record<string, unknown>;
+        const collectionName = data.collection.name as string;
+        const transformed = flattenMongoTokens(rawTokens, collectionName);
+        setTokenData(transformed);
+      } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') {
+          // User switched away — do nothing
+          return;
+        }
+        setToast({ message: 'Failed to load collection', type: 'error' });
+        setTokenData({});
+      } finally {
+        setTableLoading(false);
+      }
+    })();
+  };
+
+  const saveToken = async (filePath: string, tokenData: unknown) => {
     try {
       const response = await fetch(`/api/tokens/${filePath}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(tokenData),
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to save token');
-      }
-
+      if (!response.ok) throw new Error('Failed to save token');
       return true;
     } catch (err) {
       console.error('Error saving token:', err);
@@ -122,23 +265,40 @@ export default function Home() {
       </header>
 
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        {Object.keys(tokenData).length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500">No design tokens found.</p>
-          </div>
-        ) : (
-          <div className="space-y-8">
-            {Object.entries(tokenData).map(([section, tokens]) => (
-              <TokenTable
-                key={section}
-                section={section}
-                tokens={tokens}
-                onSave={saveToken}
-              />
-            ))}
-          </div>
-        )}
+        <CollectionSelector
+          collections={collections}
+          selectedId={selectedId}
+          loading={tableLoading}
+          onChange={handleSelectionChange}
+        />
+
+        <div className="relative mt-6">
+          {tableLoading && (
+            <div className="absolute inset-0 bg-white bg-opacity-70 flex items-center justify-center z-10">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+            </div>
+          )}
+
+          {Object.keys(tokenData).length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500">No design tokens found.</p>
+            </div>
+          ) : (
+            <div className="space-y-8">
+              {Object.entries(tokenData).map(([section, tokens]) => (
+                <TokenTable
+                  key={section}
+                  section={section}
+                  tokens={tokens}
+                  onSave={saveToken}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </main>
+
+      <ToastNotification toast={toast} onClose={() => setToast(null)} />
     </div>
   );
 }
