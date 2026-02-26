@@ -163,6 +163,17 @@ async function buildBrandTokens(
             ],
           },
         },
+        // Treat broken token references as console output, not thrown errors.
+        // Tokens stored in MongoDB may contain reference values (e.g. {colors.primary})
+        // that point outside the current brand's token set after globals merging.
+        // SD v5 validates references internally even when outputReferences: false — this
+        // config prevents those validation failures from throwing and aborting the build.
+        // logBrokenReferenceLevels: 'throw' | 'console' (no 'warn' in SD v5 types)
+        log: {
+          verbosity: 'silent',
+          warnings: 'disabled',
+          errors: { brokenReferences: 'console' },
+        },
       });
 
       // SD v5: must call init() before formatPlatform()

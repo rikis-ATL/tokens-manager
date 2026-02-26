@@ -36,34 +36,32 @@ export default function GeneratePage() {
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-8">
-                <h1 className="text-2xl font-bold text-gray-900">Token Generator</h1>
-                <nav className="flex space-x-4">
-                  <Link
-                    href="/"
-                    className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-                  >
-                    View Tokens
-                  </Link>
-                  <Link
-                    href="/generate"
-                    className="bg-blue-100 text-blue-900 px-3 py-2 rounded-md text-sm font-medium"
-                  >
-                    Generate Tokens
-                  </Link>
-                </nav>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setBuildModalOpen(true)}
-                  disabled={!buildTokensData}
-                  className="px-4 py-2 text-sm font-medium bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed"
+            <div className="flex items-center gap-8">
+              <h1 className="text-2xl font-bold text-gray-900">Token Generator</h1>
+              <nav className="flex space-x-4">
+                <Link
+                  href="/"
+                  className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
                 >
-                  Build Tokens
-                </button>
-                <GitHubConfig onConfigChange={setGitHubConfig} />
-              </div>
+                  View Tokens
+                </Link>
+                <Link
+                  href="/generate"
+                  className="bg-blue-100 text-blue-900 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Generate Tokens
+                </Link>
+              </nav>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setBuildModalOpen(true)}
+                disabled={!buildTokensData}
+                className="px-4 py-2 text-sm font-medium bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Build Tokens
+              </button>
+              <GitHubConfig onConfigChange={setGitHubConfig} />
             </div>
           </div>
         </div>

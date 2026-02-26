@@ -71,7 +71,16 @@ export function TokenGeneratorFormNew({ githubConfig, onTokensChange }: TokenGen
       onTokensChange(null, globalNamespace, collectionName);
       return;
     }
-    const allTokens = tokenGroups.reduce((sum, g) => sum + g.tokens.length, 0);
+    // Count tokens recursively — loaded collections may have all tokens in nested child
+    // groups (e.g. { colors: { brand: { primary: {$value} } } } → root group has 0 direct
+    // tokens but child groups have tokens). Without recursion, allTokens would always be 0
+    // for nested structures and the button would stay disabled after loading a collection.
+    const countTokensRecursive = (groups: typeof tokenGroups): number =>
+      groups.reduce((sum, g) => {
+        const childCount = g.children ? countTokensRecursive(g.children) : 0;
+        return sum + g.tokens.length + childCount;
+      }, 0);
+    const allTokens = countTokensRecursive(tokenGroups);
     if (allTokens === 0) {
       onTokensChange(null, globalNamespace, collectionName);
       return;
