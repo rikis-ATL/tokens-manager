@@ -33,9 +33,14 @@ import { createToast, createLoadingState } from '../utils';
 
 interface TokenGeneratorFormNewProps {
   githubConfig?: GitHubConfig | null;
+  onTokensChange?: (
+    tokens: Record<string, unknown> | null,
+    namespace: string,
+    collectionName: string
+  ) => void;
 }
 
-export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewProps) {
+export function TokenGeneratorFormNew({ githubConfig, onTokensChange }: TokenGeneratorFormNewProps) {
   const [tokenGroups, setTokenGroups] = useState<TokenGroup[]>([
     { id: '1', name: 'colors', tokens: [], level: 0, expanded: true }
   ]);
@@ -57,6 +62,24 @@ export function TokenGeneratorFormNew({ githubConfig }: TokenGeneratorFormNewPro
   const [saveDialogDuplicateName, setSaveDialogDuplicateName] = useState<string | null>(null);
   const [showLoadDialog, setShowLoadDialog] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
+
+  // Expose live token state to parent via onTokensChange
+  useEffect(() => {
+    if (!onTokensChange) return;
+    const collectionName = loadedCollection?.name ?? '';
+    if (tokenGroups.length === 0) {
+      onTokensChange(null, globalNamespace, collectionName);
+      return;
+    }
+    const allTokens = tokenGroups.reduce((sum, g) => sum + g.tokens.length, 0);
+    if (allTokens === 0) {
+      onTokensChange(null, globalNamespace, collectionName);
+      return;
+    }
+    const rawJson = tokenService.generateStyleDictionaryOutput(tokenGroups, globalNamespace);
+    onTokensChange(rawJson as Record<string, unknown>, globalNamespace, collectionName);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tokenGroups, globalNamespace, loadedCollection]);
 
   // Toast helper functions
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {

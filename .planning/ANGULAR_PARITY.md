@@ -3,7 +3,94 @@
 Documents all new API routes, data models, and significant patterns introduced in the ATUI Tokens Manager Next.js milestone.
 Use this as the contract for implementing equivalent functionality in the Angular workspace.
 
-**Last updated:** Phase 4 — Collection Management
+**Last updated:** Phase 5 — Build Tokens Export
+
+---
+
+## Phase 5 — Build Tokens Export
+
+### 1. POST /api/build-tokens — Build Style Dictionary Output
+
+**Method:** POST
+**Path:** `/api/build-tokens`
+**Purpose:** Run a server-side style-dictionary build pipeline against provided token JSON and return formatted outputs for all 6 formats (CSS, SCSS, LESS, JS, TS, JSON), grouped by brand.
+
+**Request body:**
+```json
+{
+  "tokens": { },
+  "namespace": "token",
+  "collectionName": "my-tokens"
+}
+```
+
+**Response (200):**
+```json
+{
+  "formats": [
+    {
+      "format": "css",
+      "outputs": [
+        { "brand": "brand1", "content": "...", "filename": "tokens-brand1.css" }
+      ]
+    }
+  ],
+  "collectionName": "my-tokens"
+}
+```
+
+**Response shapes:**
+
+| Status | Body | Condition |
+|--------|------|-----------|
+| 200 | BuildTokensResult | Build succeeded |
+| 400 | `{ error: string }` | Missing/invalid tokens or collectionName |
+| 500 | `{ error: string }` | style-dictionary build failure |
+
+**Implementation notes:**
+- Uses style-dictionary v5 programmatic API (`sd.formatPlatform()`), no disk writes
+- File-path keyed tokens (e.g. `"globals/color-base.json": {...}`) are grouped by first path segment as brand
+- Globals tokens are deep-merged into every non-globals brand — each brand output file is self-contained
+- The "globals" brand is NOT emitted as a separate output file when real brand files exist
+- Flat tokens are treated as single brand "globals"
+- Token keys are normalised from `value`/`type` to `$value`/`$type` before passing to SD
+- Variable naming convention: `--{namespace}-{category}-{token}` (e.g. `--token-colors-primary`)
+- CSS transformGroup applied for css/scss/less; js transformGroup applied for js/ts/json
+
+---
+
+### 2. BuildTokensModal Component Pattern
+
+**Component:** `BuildTokensModal` (`src/components/BuildTokensModal.tsx`)
+**Pattern:** Shared modal used by both View Tokens and Generator pages — no code duplication.
+
+**Props:**
+- `tokens: Record<string, unknown>` — raw token JSON
+- `namespace: string` — CSS variable prefix
+- `collectionName: string` — used for ZIP filename (`{collectionName}-tokens.zip`)
+- `isOpen: boolean`
+- `onClose: () => void`
+
+**UI Pattern:**
+- Format tabs (CSS | SCSS | LESS | JS | TS | JSON)
+- Brand sub-tabs per format for multi-brand collections
+- Per-tab copy to clipboard button
+- "Download All" produces ZIP: `{collectionName}-tokens.zip` with flat file structure (`tokens-{brand}.{ext}`)
+- Loading spinner while API call in flight; error state with Retry button
+
+---
+
+### 3. TokenGeneratorFormNew onTokensChange signature
+
+The Generator page receives live token state from the form via:
+```typescript
+onTokensChange?: (
+  tokens: Record<string, unknown> | null,
+  namespace: string,
+  collectionName: string  // empty string when no collection loaded; actual name when loaded from MongoDB
+) => void;
+```
+This three-argument signature ensures the correct ZIP filename flows through to BuildTokensModal.
 
 ---
 

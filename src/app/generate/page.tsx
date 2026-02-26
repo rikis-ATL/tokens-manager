@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { TokenGeneratorFormNew } from '@/components/TokenGeneratorFormNew';
 import { TokenGeneratorDocs } from '@/components/TokenGeneratorDocs';
 import { GitHubConfig } from '@/components/GitHubConfig';
+import { BuildTokensModal } from '@/components/BuildTokensModal';
 
 interface GitHubRepo {
   repository: string;
@@ -14,6 +15,22 @@ interface GitHubRepo {
 
 export default function GeneratePage() {
   const [githubConfig, setGitHubConfig] = useState<GitHubRepo | null>(null);
+  const [buildModalOpen, setBuildModalOpen] = useState(false);
+  const [buildTokensData, setBuildTokensData] = useState<Record<string, unknown> | null>(null);
+  const [buildNamespace, setBuildNamespace] = useState('token');
+  const [buildCollectionName, setBuildCollectionName] = useState('');
+
+  const handleTokensChange = (
+    tokens: Record<string, unknown> | null,
+    namespace: string,
+    collectionName: string
+  ) => {
+    setBuildTokensData(tokens);
+    setBuildNamespace(namespace || 'token');
+    // Use actual collection name when available; fall back to 'generated-tokens' for unsaved/new collections
+    setBuildCollectionName(collectionName || 'generated-tokens');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm border-b border-gray-200">
@@ -37,7 +54,16 @@ export default function GeneratePage() {
                   </Link>
                 </nav>
               </div>
-              <GitHubConfig onConfigChange={setGitHubConfig} />
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setBuildModalOpen(true)}
+                  disabled={!buildTokensData}
+                  className="px-4 py-2 text-sm font-medium bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Build Tokens
+                </button>
+                <GitHubConfig onConfigChange={setGitHubConfig} />
+              </div>
             </div>
           </div>
         </div>
@@ -54,8 +80,18 @@ export default function GeneratePage() {
         </div>
 
         <TokenGeneratorDocs />
-        <TokenGeneratorFormNew githubConfig={githubConfig} />
+        <TokenGeneratorFormNew githubConfig={githubConfig} onTokensChange={handleTokensChange} />
       </main>
+
+      {buildTokensData && (
+        <BuildTokensModal
+          tokens={buildTokensData}
+          namespace={buildNamespace}
+          collectionName={buildCollectionName}
+          isOpen={buildModalOpen}
+          onClose={() => setBuildModalOpen(false)}
+        />
+      )}
     </div>
   );
 }
