@@ -39,6 +39,10 @@ Progress: [████████░░] 75%
 
 ## Accumulated Context
 
+### Roadmap Evolution
+
+- Phase 5 added: Export style dictionary build tokens
+
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
