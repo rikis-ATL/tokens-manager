@@ -5,6 +5,7 @@ import { TokenTable } from '@/components/TokenTable';
 import { CollectionSelector } from '@/components/CollectionSelector';
 import { CollectionActions } from '@/components/CollectionActions';
 import { ToastNotification } from '@/components/ToastNotification';
+import { BuildTokensModal } from '@/components/BuildTokensModal';
 import type { ToastMessage } from '@/types';
 
 interface Token {
@@ -119,8 +120,14 @@ export default function Home() {
   const [selectedId, setSelectedId] = useState<string>('local');
   const [tableLoading, setTableLoading] = useState(false);
   const [toast, setToast] = useState<ToastMessage | null>(null);
+  const [buildModalOpen, setBuildModalOpen] = useState(false);
+  const [rawCollectionTokens, setRawCollectionTokens] = useState<Record<string, unknown> | null>(null);
+  const [rawCollectionName, setRawCollectionName] = useState<string>('');
 
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Build is enabled when a MongoDB collection is selected (not 'local')
+  const isBuildEnabled = selectedId !== 'local' && selectedId !== '';
 
   // Auto-dismiss toast after 4 seconds
   useEffect(() => {
@@ -189,6 +196,8 @@ export default function Home() {
     localStorage.setItem('atui-selected-collection-id', id);
 
     if (id === 'local') {
+      setRawCollectionTokens(null);
+      setRawCollectionName('');
       fetchTokens();
       return;
     }
@@ -204,6 +213,8 @@ export default function Home() {
         const data = await response.json();
         const rawTokens = data.collection.tokens as Record<string, unknown>;
         const collectionName = data.collection.name as string;
+        setRawCollectionTokens(rawTokens);
+        setRawCollectionName(collectionName);
         const transformed = flattenMongoTokens(rawTokens, collectionName);
         setTokenData(transformed);
       } catch (err) {
@@ -308,12 +319,21 @@ export default function Home() {
                 </a>
               </nav>
             </div>
-            <button
-              onClick={fetchTokens}
-              className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md"
-            >
-              Refresh
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setBuildModalOpen(true)}
+                disabled={!isBuildEnabled}
+                className="px-4 py-2 text-sm font-medium bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Build Tokens
+              </button>
+              <button
+                onClick={fetchTokens}
+                className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md"
+              >
+                Refresh
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -362,6 +382,16 @@ export default function Home() {
       </main>
 
       <ToastNotification toast={toast} onClose={() => setToast(null)} />
+
+      {rawCollectionTokens && (
+        <BuildTokensModal
+          tokens={rawCollectionTokens}
+          namespace="token"
+          collectionName={rawCollectionName}
+          isOpen={buildModalOpen}
+          onClose={() => setBuildModalOpen(false)}
+        />
+      )}
     </div>
   );
 }
