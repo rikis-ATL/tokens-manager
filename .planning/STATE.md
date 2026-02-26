@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-25)
 ## Current Position
 
 Phase: 4 of 4 (Collection Management)
-Plan: 1 of 2 in current phase
-Status: In progress
-Last activity: 2026-02-26 — Completed 04-01 (DELETE endpoint, CollectionActions component)
+Plan: 2 of 2 in current phase
+Status: Phase complete
+Last activity: 2026-02-26 — Completed 04-02 (CollectionActions wired into page.tsx, ANGULAR_PARITY.md updated)
 
-Progress: [█████████░] 87%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -30,11 +30,11 @@ Progress: [█████████░] 87%
 | 01-database-foundation | 3 | 10 min | 3.3 min |
 | 02-view-integration | 2 | 4 min | 2.0 min |
 | 03-generator-form | 3 | 7 min | 2.3 min |
-| 04-collection-management | 1 | 2 min | 2.0 min |
+| 04-collection-management | 2 | 3 min | 1.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-01 (2 min), 03-02 (2 min), 03-03 (3 min), 04-01 (2 min)
-- Trend: Phase 4 in progress
+- Last 5 plans: 03-02 (2 min), 03-03 (3 min), 04-01 (2 min), 04-02 (1 min)
+- Trend: Phase 4 complete
 
 *Updated after each plan completion*
 
@@ -108,6 +108,10 @@ Recent decisions affecting current work:
 - Duplicate 409 handled inline in modal (not via onError) — error stays visible in context where user can fix the name
 - Two-step duplicate (GET source then POST copy) avoids adding server-side duplicate endpoint; reuses existing POST /api/collections
 
+**04-02 decisions:**
+- handleDeleted calls handleSelectionChange('local') with no second arg — detects id === 'local' and calls fetchTokens() directly
+- handleDuplicated updates collections state before switching selection — React batches setState so new entry is present when selector renders
+
 ### Pending Todos
 
 None yet.
@@ -119,5 +123,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: Completed 04-01-PLAN.md
+Stopped at: Completed 04-02-PLAN.md
 Resume file: None

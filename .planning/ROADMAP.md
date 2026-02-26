@@ -92,13 +92,13 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. Database Foundation | 3/3 | Complete   | 2026-02-25 |
 | 2. View Integration | 2/2 | Complete   | 2026-02-25 |
 | 3. Generator Form | 3/4 | In Progress|  |
-| 4. Collection Management | 1/3 | In Progress | - |
+| 4. Collection Management | 2/3 | In Progress|  |
 
 ### Phase 5: Export style dictionary build tokens
 
 **Goal:** [To be planned]
 **Depends on:** Phase 4
-**Plans:** 0 plans
+**Plans:** 2/3 plans executed
 
 Plans:
 - [ ] TBD (run /gsd:plan-phase 5 to break down)
