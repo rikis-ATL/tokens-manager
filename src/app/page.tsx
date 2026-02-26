@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { TokenTable } from '@/components/TokenTable';
 import { CollectionSelector } from '@/components/CollectionSelector';
+import { CollectionActions } from '@/components/CollectionActions';
 import { ToastNotification } from '@/components/ToastNotification';
 import type { ToastMessage } from '@/types';
 
@@ -218,6 +219,30 @@ export default function Home() {
     })();
   };
 
+  const handleDeleted = () => {
+    // Remove deleted collection from list
+    setCollections(prev => prev.filter(c => c._id !== selectedId));
+    // Clear selection back to local files
+    handleSelectionChange('local');
+    setToast({ message: 'Collection deleted', type: 'success' });
+  };
+
+  const handleRenamed = (newName: string) => {
+    // Update name in collections list in place
+    setCollections(prev =>
+      prev.map(c => c._id === selectedId ? { ...c, name: newName } : c)
+    );
+    setToast({ message: `Renamed to "${newName}"`, type: 'success' });
+  };
+
+  const handleDuplicated = (newId: string, newName: string) => {
+    // Add duplicate to collections list
+    setCollections(prev => [...prev, { _id: newId, name: newName }]);
+    // Switch to the new duplicate
+    handleSelectionChange(newId);
+    setToast({ message: `Duplicated as "${newName}"`, type: 'success' });
+  };
+
   const saveToken = async (filePath: string, tokenData: unknown) => {
     try {
       const response = await fetch(`/api/tokens/${filePath}`, {
@@ -299,6 +324,15 @@ export default function Home() {
           selectedId={selectedId}
           loading={tableLoading}
           onChange={handleSelectionChange}
+        />
+        <CollectionActions
+          selectedId={selectedId}
+          selectedName={collections.find(c => c._id === selectedId)?.name ?? ''}
+          collections={collections}
+          onDeleted={handleDeleted}
+          onRenamed={handleRenamed}
+          onDuplicated={handleDuplicated}
+          onError={(message) => setToast({ message, type: 'error' })}
         />
 
         <div className="relative mt-6">
