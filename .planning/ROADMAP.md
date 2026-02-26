@@ -75,7 +75,12 @@ Plans:
   1. User can delete a collection from MongoDB with a confirmation prompt; the collection no longer appears in any selector after deletion
   2. User can rename a collection; the new name appears immediately in selectors and dialogs
   3. User can duplicate a collection by providing a new name; the duplicate appears as a separate entry with identical token data
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — DELETE API endpoint + CollectionActions component (MGMT-02, MGMT-03, MGMT-04)
+- [ ] 04-02-PLAN.md — Wire CollectionActions into page.tsx + ANGULAR_PARITY.md update (MGMT-02, MGMT-03, MGMT-04)
+- [ ] 04-03-PLAN.md — Human verify delete/rename/duplicate end-to-end
 
 ## Progress
 
