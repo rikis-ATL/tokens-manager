@@ -371,7 +371,7 @@ export class TokenService {
           // from group paths during import (e.g. cleanRef='token.colors.base.red' matches
           // fullPath='colors.base.red'). Check segment boundaries with a dot prefix to
           // avoid partial segment matches (e.g. 'red' must not match 'infrared').
-          if (fullPath === cleanRef || cleanRef.endsWith('.' + fullPath)) {
+          if (fullPath === cleanRef || cleanRef.endsWith('.' + fullPath) || fullPath.endsWith('.' + cleanRef)) {
             const value = String(token.value);
             // Recursively resolve if the found value is also a reference
             if (value.startsWith('{') && value.endsWith('}')) {
