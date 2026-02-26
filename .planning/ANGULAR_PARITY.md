@@ -3,7 +3,76 @@
 Documents all new API routes, data models, and significant patterns introduced in the ATUI Tokens Manager Next.js milestone.
 Use this as the contract for implementing equivalent functionality in the Angular workspace.
 
-**Last updated:** Phase 3 — Generator Form
+**Last updated:** Phase 4 — Collection Management
+
+---
+
+## Phase 4 — Collection Management
+
+### 1. DELETE /api/collections/[id] — Delete Collection
+
+**Method:** DELETE
+**Path:** `/api/collections/[id]`
+**Purpose:** Permanently remove a token collection document from MongoDB.
+
+**Request body:** None
+
+**Response shapes:**
+
+| Status | Body | Condition |
+|--------|------|-----------|
+| 200 | `{ success: true }` | Deleted successfully |
+| 404 | `{ error: 'Collection not found' }` | `[id]` does not match any document |
+| 500 | `{ error: 'Failed to delete collection' }` | Unexpected server error |
+
+**Implementation notes:**
+- Uses `findByIdAndDelete(params.id)` — returns the deleted document or null if not found.
+
+---
+
+### 2. Rename via PUT /api/collections/[id]
+
+Rename reuses the existing PUT endpoint (documented in Phase 3) with a body of `{ name: newName }`.
+
+No new route required.
+
+---
+
+### 3. Duplicate via POST /api/collections
+
+Duplicate reuses the existing POST endpoint (documented in Phase 3). The client:
+1. Fetches the source collection via `GET /api/collections/[id]` to obtain its `tokens` and `sourceMetadata`.
+2. POSTs to `/api/collections` with `{ name: newName, tokens, sourceMetadata }`.
+3. The response contains the new collection's `_id` which the client uses to switch selection.
+
+No new route required.
+
+---
+
+### 4. UI Contracts — Collection Management Actions
+
+#### Action Surface
+- A row of three icon + label buttons appears **below the collection selector** when a MongoDB collection is active.
+- Buttons are hidden when "Local Files" is selected or when no collection is selected.
+- Button labels: "🗑️ Delete", "✏️ Rename", "📋 Duplicate"
+- Delete button uses red/destructive styling.
+
+#### Delete Flow
+- Clicking Delete opens a confirmation modal: "Delete '{name}'? This cannot be undone."
+- Modal has Cancel + Delete (red) buttons.
+- On confirm: `DELETE /api/collections/[id]`.
+- On success: selector reverts to "Local Files", deleted entry removed from list, toast "Collection deleted".
+
+#### Rename Flow
+- Clicking Rename opens a modal pre-filled with the current collection name.
+- Inline validation: if the entered name matches any other collection's name, show error and disable Save.
+- On save: `PUT /api/collections/[id]` with `{ name: newName }`.
+- On success: selector updates immediately with new name, toast "Renamed to '{newName}'".
+
+#### Duplicate Flow
+- Clicking Duplicate opens a modal pre-filled with "Copy of {originalName}".
+- On duplicate: `GET /api/collections/[id]` (fetch source tokens + metadata), then `POST /api/collections` with new name and copied data.
+- On success: new collection added to selector, selection switches to new duplicate, toast "Duplicated as '{newName}'".
 
 ---
 
