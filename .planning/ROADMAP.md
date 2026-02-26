@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: View Integration** - Collection selector on View Tokens page (completed 2026-02-25)
 - [x] **Phase 3: Generator Form** - Save, load, and update collections from the generator (completed 2026-02-26)
 - [x] **Phase 4: Collection Management** - Delete, rename, and duplicate collections (completed 2026-02-26)
-- [ ] **Phase 5: Export style dictionary build tokens** - Style-dictionary build pipeline with modal output
+- [x] **Phase 5: Export style dictionary build tokens** - Style-dictionary build pipeline with modal output (completed 2026-02-26)
 
 ## Phase Details
 
@@ -111,13 +111,13 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. View Integration | 2/2 | Complete   | 2026-02-25 |
 | 3. Generator Form | 3/4 | In Progress|  |
 | 4. Collection Management | 1/3 | In Progress | - |
-| 5. Export style dictionary | 0/2 | Planned | - |
+| 5. Export style dictionary | 2/2 | Complete   | 2026-02-26 |
 
 ### Phase 6: Collection UX Improvements
 
 **Goal:** [To be planned]
 **Depends on:** Phase 5
-**Plans:** 0 plans
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] TBD (run /gsd:plan-phase 6 to break down)

@@ -38,6 +38,7 @@ Progress: [████████░░] 80%
 - Trend: Phase 5 in progress
 
 *Updated after each plan completion*
+| Phase 05 P02 | 3 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -119,6 +120,8 @@ Recent decisions affecting current work:
 - Call sd.init() before formatPlatform() — SD v5 requires explicit initialization before formatting
 - normalizeTokens() converts value/type keys to $value/$type before passing to SD — W3C DTCG spec compliance
 - globals brand is NOT emitted as separate output when non-globals brands exist — only used as merge source (self-contained brand files)
+- [Phase 05-02]: namespace hardcoded to 'token' on View Tokens page — convention --token-{category}-{token} per plan spec
+- [Phase 05-02]: Three-argument onTokensChange in TokenGeneratorFormNew exposes collectionName so Generator page ZIP filename uses actual loaded collection name
 
 ### Pending Todos
 
