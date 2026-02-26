@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-25)
 
 **Core value:** Token collections are always available and editable — stored in MongoDB, loadable into the generator form, and visible on the view page.
-**Current focus:** Phase 4 — Collection Management
+**Current focus:** Phase 5 — Export Style Dictionary Build Tokens
 
 ## Current Position
 
-Phase: 4 of 4 (Collection Management)
-Plan: 3 of 3 in current phase (checkpoint:human-verify complete)
-Status: Phase complete
-Last activity: 2026-02-26 — Completed 04-03 (Checkpoint verification: MGMT-02/03/04 confirmed, new requirements logged)
+Phase: 5 of 5 (Export Style Dictionary Build Tokens)
+Plan: 1 of 2 in current phase (complete)
+Status: In progress
+Last activity: 2026-02-26 — Completed 05-01 (Build service, API route, BuildTokensModal component)
 
-Progress: [██████████] 100%
+Progress: [████████░░] 80%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
-- Average duration: 2.6 min
-- Total execution time: ~0.30 hours
+- Total plans completed: 8
+- Average duration: 2.7 min
+- Total execution time: ~0.37 hours
 
 **By Phase:**
 
@@ -31,10 +31,11 @@ Progress: [██████████] 100%
 | 02-view-integration | 2 | 4 min | 2.0 min |
 | 03-generator-form | 3 | 7 min | 2.3 min |
 | 04-collection-management | 2 | 3 min | 1.5 min |
+| 05-export-style-dictionary-build-tokens | 1 | 5 min | 5.0 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-02 (2 min), 03-03 (3 min), 04-01 (2 min), 04-02 (1 min)
-- Trend: Phase 4 complete
+- Last 5 plans: 03-03 (3 min), 04-01 (2 min), 04-02 (1 min), 05-01 (5 min)
+- Trend: Phase 5 in progress
 
 *Updated after each plan completion*
 
@@ -112,6 +113,12 @@ Recent decisions affecting current work:
 - handleDeleted calls handleSelectionChange('local') with no second arg — detects id === 'local' and calls fetchTokens() directly
 - handleDuplicated updates collections state before switching selection — React batches setState so new entry is present when selector renders
 
+**05-01 decisions:**
+- Use formatPlatform() (SD v5) instead of exportPlatform() — exportPlatform returns transformed token dict, not formatted file strings
+- Call sd.init() before formatPlatform() — SD v5 requires explicit initialization before formatting
+- normalizeTokens() converts value/type keys to $value/$type before passing to SD — W3C DTCG spec compliance
+- globals brand is NOT emitted as separate output when non-globals brands exist — only used as merge source (self-contained brand files)
+
 ### Pending Todos
 
 None yet.
@@ -123,5 +130,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: Completed 04-02-PLAN.md
+Stopped at: Completed 05-01-PLAN.md
 Resume file: None
