@@ -6,9 +6,12 @@ type TokenCollectionDoc = Omit<ITokenCollection, '_id'>;
 
 const sourceMetadataSchema = new Schema(
   {
-    repo:   { type: String, default: null },
-    branch: { type: String, default: null },
-    path:   { type: String, default: null },
+    repo:               { type: String, default: null },
+    branch:             { type: String, default: null },
+    path:               { type: String, default: null },
+    type:               { type: String, enum: ['github', 'figma', null], default: null },
+    figmaFileKey:       { type: String, default: null },
+    figmaCollectionId:  { type: String, default: null },
   },
   { _id: false }
 );

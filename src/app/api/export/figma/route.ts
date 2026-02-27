@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
-    const { tokenSet, figmaToken, fileKey } = await request.json();
+    const { tokenSet, figmaToken, fileKey, collectionId } = await request.json();
 
     if (!tokenSet || !figmaToken || !fileKey) {
       return NextResponse.json(
@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Transform tokens to Figma format
-    const figmaVariables = transformToFigmaVariables(tokenSet);
+    const figmaVariables = transformToFigmaVariables(tokenSet, collectionId);
 
     // Figma Variables API endpoint
     const apiUrl = `https://api.figma.com/v1/files/${fileKey}/variables/local`;
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${figmaToken}`,
+        'X-Figma-Token': figmaToken,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function transformToFigmaVariables(tokenSet: any): any[] {
+function transformToFigmaVariables(tokenSet: any, collectionId?: string): any[] {
   const variables: any[] = [];
 
   function processTokens(obj: any, path: string = '') {
@@ -63,7 +63,7 @@ function transformToFigmaVariables(tokenSet: any): any[] {
 
         const variable = {
           name: currentPath,
-          variableCollectionId: 'default', // Would need to be created/managed separately
+          variableCollectionId: collectionId || 'default',
           resolvedType: mapTokenTypeToFigmaType(token.$type),
           valuesByMode: {
             default: mapTokenValueToFigmaValue(token.$value, token.$type)

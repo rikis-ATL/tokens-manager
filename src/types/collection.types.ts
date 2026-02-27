@@ -1,11 +1,17 @@
 /**
- * Source metadata for tokens imported from GitHub.
+ * Source metadata for tokens imported from GitHub or Figma.
  * All fields nullable — tokens created manually have no source.
+ * The `type` field is a discriminator: null = no upstream source.
  */
 export interface ISourceMetadata {
+  // Existing GitHub fields
   repo: string | null;    // e.g. "org/design-tokens"
   branch: string | null;  // e.g. "main"
   path: string | null;    // e.g. "tokens/globals"
+  // Discriminator + Figma fields
+  type: 'github' | 'figma' | null;  // null = no upstream source
+  figmaFileKey: string | null;       // Figma file key (extracted from file URL)
+  figmaCollectionId: string | null;  // Figma variable collection ID
 }
 
 /**
