@@ -7,6 +7,9 @@ import { ToastNotification } from '@/components/ToastNotification';
 import { BuildTokensModal } from '@/components/BuildTokensModal';
 import { SaveCollectionDialog } from '@/components/SaveCollectionDialog';
 import { SharedCollectionHeader } from '@/components/SharedCollectionHeader';
+import { TokenGeneratorFormNew } from '@/components/TokenGeneratorFormNew';
+import { TokenGeneratorDocs } from '@/components/TokenGeneratorDocs';
+import { GitHubConfig } from '@/components/GitHubConfig';
 import type { ToastMessage } from '@/types';
 
 interface Token {
@@ -134,13 +137,37 @@ function HomeContent() {
   const [saveAsDialogOpen, setSaveAsDialogOpen] = useState(false);
   const [isSavingAs, setIsSavingAs] = useState(false);
 
+  // Generate tab state
+  const [githubConfig, setGitHubConfig] = useState<{ repository: string; token: string; branch: string } | null>(null);
+  const [generateTabTokens, setGenerateTabTokens] = useState<Record<string, unknown> | null>(null);
+  const [generateTabNamespace, setGenerateTabNamespace] = useState('token');
+  const [generateTabCollectionName, setGenerateTabCollectionName] = useState('');
+  const [generateFormKey, setGenerateFormKey] = useState(0);
+
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Build is enabled when a MongoDB collection is selected (not 'local')
-  const isBuildEnabled = selectedId !== 'local' && selectedId !== '';
+  // Build is enabled when a MongoDB collection is selected (view tab) or tokens are loaded (generate tab)
+  const isBuildEnabled =
+    (activeTab === 'view' && selectedId !== 'local' && selectedId !== '') ||
+    (activeTab === 'generate' && generateTabTokens !== null);
+
+  // Determine tokens/namespace/collectionName for the BuildTokensModal based on active tab
+  const buildTokens = activeTab === 'generate' ? generateTabTokens : rawCollectionTokens;
+  const buildNamespace = activeTab === 'generate' ? generateTabNamespace : 'token';
+  const buildCollectionName = activeTab === 'generate' ? generateTabCollectionName : rawCollectionName;
 
   const switchTab = (tab: 'view' | 'generate') => {
     router.push(tab === 'view' ? '/' : '/?tab=generate');
+  };
+
+  const handleGenerateTokensChange = (
+    tokens: Record<string, unknown> | null,
+    namespace: string,
+    collectionName: string
+  ) => {
+    setGenerateTabTokens(tokens);
+    setGenerateTabNamespace(namespace || 'token');
+    setGenerateTabCollectionName(collectionName || 'generated-tokens');
   };
 
   // Auto-dismiss toast after 4 seconds
@@ -269,16 +296,20 @@ function HomeContent() {
   };
 
   const handleNewCollection = () => {
-    // Clear selection to local, switch to generate tab
+    // Clear selection to local, reset the generate form, switch to generate tab
     handleSelectionChange('local');
+    setGenerateFormKey(k => k + 1); // reset form by remounting
     switchTab('generate');
   };
 
   const handleSaveAs = async (name: string) => {
     setIsSavingAs(true);
     try {
-      // Determine token payload: rawCollectionTokens for MongoDB collection, tokenData for local
-      const tokensPayload = rawCollectionTokens ?? tokenData;
+      // Use active tab's tokens: generate tab tokens or view tab tokens
+      const tokensPayload =
+        activeTab === 'generate'
+          ? generateTabTokens ?? {}
+          : rawCollectionTokens ?? tokenData;
       const res = await fetch('/api/collections', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -423,9 +454,10 @@ function HomeContent() {
         </div>
       </div>
 
-      {/* Tab content */}
+      {/* Tab content — both divs always mounted; hidden class hides inactive tab to preserve state */}
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        {activeTab === 'view' && (
+        {/* View tab */}
+        <div className={activeTab === 'view' ? '' : 'hidden'}>
           <div className="relative">
             {tableLoading && (
               <div className="absolute inset-0 bg-white bg-opacity-70 flex items-center justify-center z-10">
@@ -450,11 +482,24 @@ function HomeContent() {
               </div>
             )}
           </div>
-        )}
+        </div>
 
-        {activeTab === 'generate' && (
-          <div className="text-gray-500 text-sm">Generate tab (coming in Plan 02)</div>
-        )}
+        {/* Generate tab — always mounted to preserve form state across tab switches */}
+        <div className={activeTab === 'generate' ? '' : 'hidden'}>
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-medium text-gray-900 mb-1">Create W3C Design Token Specification Compliant Tokens</h2>
+              <p className="text-gray-600 text-sm">Generate design tokens that follow the W3C Design Tokens specification with proper value, type, and attributes.</p>
+            </div>
+            <GitHubConfig onConfigChange={setGitHubConfig} />
+          </div>
+          <TokenGeneratorDocs />
+          <TokenGeneratorFormNew
+            key={generateFormKey}
+            githubConfig={githubConfig}
+            onTokensChange={handleGenerateTokensChange}
+          />
+        </div>
       </main>
 
       <ToastNotification toast={toast} onClose={() => setToast(null)} />
@@ -466,11 +511,11 @@ function HomeContent() {
         isSaving={isSavingAs}
       />
 
-      {rawCollectionTokens && (
+      {buildTokens && (
         <BuildTokensModal
-          tokens={rawCollectionTokens}
-          namespace="token"
-          collectionName={rawCollectionName}
+          tokens={buildTokens}
+          namespace={buildNamespace}
+          collectionName={buildCollectionName}
           isOpen={buildModalOpen}
           onClose={() => setBuildModalOpen(false)}
         />
