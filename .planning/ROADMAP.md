@@ -17,6 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Generator Form** - Save, load, and update collections from the generator (completed 2026-02-26)
 - [x] **Phase 4: Collection Management** - Delete, rename, and duplicate collections (completed 2026-02-26)
 - [x] **Phase 5: Export style dictionary build tokens** - Style-dictionary build pipeline with modal output (completed 2026-02-26)
+- [x] **Phase 6: Collection UX Improvements** - Unified tabbed page with shared collection header (completed 2026-02-28)
 
 ## Phase Details
 
@@ -107,9 +108,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 06-01-PLAN.md — SharedCollectionHeader component + restructure page.tsx with tab scaffold and View tab
-- [ ] 06-02-PLAN.md — Wire Generate tab into page.tsx + /generate redirect
-- [ ] 06-03-PLAN.md — Human verify unified tabbed page end-to-end
+- [x] 06-01-PLAN.md — SharedCollectionHeader component + restructure page.tsx with tab scaffold and View tab
+- [x] 06-02-PLAN.md — Wire Generate tab into page.tsx + /generate redirect
+- [x] 06-03-PLAN.md — Human verify unified tabbed page end-to-end
 
 ## Progress
 
@@ -123,4 +124,18 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Generator Form | 4/4 | Complete   | 2026-02-26 |
 | 4. Collection Management | 3/3 | Complete   | 2026-02-26 |
 | 5. Export style dictionary | 2/2 | Complete   | 2026-02-26 |
-| 6. Collection UX Improvements | 2/3 | In Progress|  |
+| 6. Collection UX Improvements | 3/3 | Complete   | 2026-02-28 |
+
+### Phase 7: Fix Figma Integration
+
+**Goal:** Fix broken Figma export by consolidating user key + page key into a single persistent credentials dialog (stored like GitHub config, set once). Add import-from-Figma action to save as a collection. Highlight the upstream source (GitHub or Figma) clearly on both the View and Generate tabs so users know that pushing will affect the upstream source.
+**Depends on:** Phase 6
+**Plans:** 6 plans
+
+Plans:
+- [ ] 07-01-PLAN.md — FigmaConfig component + fix export auth header + extend sourceMetadata schema
+- [ ] 07-02-PLAN.md — Figma API proxy routes (test, list collections, import-and-save)
+- [ ] 07-03-PLAN.md — ExportToFigmaDialog component + wire into TokenGeneratorFormNew + post-export sourceMetadata update
+- [ ] 07-04-PLAN.md — ImportFromFigmaDialog component + Import from Figma button in Generate tab
+- [ ] 07-05-PLAN.md — SourceContextBar component + wire into page.tsx
+- [ ] 07-06-PLAN.md — Human verify complete Figma integration
