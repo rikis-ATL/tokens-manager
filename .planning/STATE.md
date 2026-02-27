@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-25)
 
 **Core value:** Token collections are always available and editable — stored in MongoDB, loadable into the generator form, and visible on the view page.
-**Current focus:** Phase 6 in progress — Plan 01 complete (tabbed layout + SharedCollectionHeader)
+**Current focus:** Phase 6 in progress — Plan 02 complete (Generate tab wired + /generate redirect)
 
 ## Current Position
 
 Phase: 6 of 6 (Collection UX Improvements)
-Plan: 1 of 3 in current phase (complete)
+Plan: 2 of 3 in current phase (complete)
 Status: In Progress
-Last activity: 2026-02-27 — Completed 06-01 (SharedCollectionHeader, tabbed layout, Save As, URL tab routing)
+Last activity: 2026-02-27 — Completed 06-02 (Generate tab with TokenGeneratorFormNew, hidden-class state preservation, /generate redirect)
 
 Progress: [█████████░] 90%
 
@@ -32,15 +32,16 @@ Progress: [█████████░] 90%
 | 03-generator-form | 3 | 7 min | 2.3 min |
 | 04-collection-management | 2 | 3 min | 1.5 min |
 | 05-export-style-dictionary-build-tokens | 2 | 21 min | 10.5 min |
-| 06-collection-ux-improvements | 1 of 3 | 3 min | 3 min |
+| 06-collection-ux-improvements | 2 of 3 | 6 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-02 (1 min), 05-01 (5 min), 05-02 (16 min), 06-01 (3 min)
-- Trend: Phase 6 underway — Plan 01 complete
+- Last 5 plans: 05-01 (5 min), 05-02 (16 min), 06-01 (3 min), 06-02 (3 min)
+- Trend: Phase 6 underway — Plans 01+02 complete
 
 *Updated after each plan completion*
 | Phase 05 P02 | 16 | 3 tasks | 5 files |
 | Phase 06 P01 | 3 | 2 tasks | 4 files |
+| Phase 06 P02 | 3 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -135,6 +136,9 @@ Recent decisions affecting current work:
 - Save As uses rawCollectionTokens (MongoDB) or tokenData (local flat) — flat format is valid SD token structure
 - switchTab uses router.push('/' | '/?tab=generate') — clean URL for default view tab
 - Suspense wrapper: export default Home wraps HomeContent in Suspense; all hooks/state in HomeContent (required for useSearchParams in Next.js App Router)
+- [Phase 06]: hidden CSS class for tab divs preserves TokenGeneratorFormNew state across tab switches without lifting state
+- [Phase 06]: generateFormKey increment triggers controlled remount of TokenGeneratorFormNew on New Collection action
+- [Phase 06]: generate/page.tsx is a server component with only redirect() to /?tab=generate
 
 ### Pending Todos
 
@@ -147,5 +151,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Completed 06-01-PLAN.md (Phase 6 Plan 01 — tabbed layout + SharedCollectionHeader complete)
+Stopped at: Completed 06-02-PLAN.md (Phase 6 Plan 02 — Generate tab wired + /generate redirect complete)
 Resume file: None
