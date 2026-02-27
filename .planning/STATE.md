@@ -43,6 +43,7 @@ Progress: [██████████] 100%
 | Phase 06 P01 | 3 | 2 tasks | 4 files |
 | Phase 06 P02 | 3 | 2 tasks | 2 files |
 | Phase 07 P02 | 110 | 2 tasks | 3 files |
+| Phase 07-fix-figma-integration P04 | 108 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -145,6 +146,8 @@ Recent decisions affecting current work:
 - [Phase 06-03]: + Add Token button rendered unconditionally outside {hasTokens && ...} block — visible on empty groups
 - [Phase 06-03]: collectionToLoad prop added to TokenGeneratorFormNew — selecting a MongoDB collection in shared header auto-populates the generator form via useEffect on collectionToLoad?.id
 - [Phase 07-02]: dbConnect default export used in import route (consistent with existing routes); FigmaVariable types defined inline server-side (server-only route; avoids client class coupling); 502 for Figma upstream failures
+- [Phase 07-04]: handleImported appends new collection then calls handleSelectionChange(newId) — mirrors handleDuplicated pattern
+- [Phase 07-04]: noCredentials state shown inline in dialog when localStorage figma-config absent or malformed
 
 ### Pending Todos
 
@@ -157,5 +160,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Milestone complete — all 6 phases done, post-verification bug fixes applied
+Stopped at: Completed 07-04-PLAN.md (ImportFromFigmaDialog + page.tsx wiring)
 Resume file: None
