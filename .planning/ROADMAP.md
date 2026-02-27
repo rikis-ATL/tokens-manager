@@ -97,27 +97,30 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — Install style-dictionary + jszip, build service, API route, BuildTokensModal component
-- [ ] 05-02-PLAN.md — Wire Build Tokens button into both pages + ANGULAR_PARITY.md + human verify
+- [x] 05-01-PLAN.md — Install style-dictionary + jszip, build service, API route, BuildTokensModal component
+- [x] 05-02-PLAN.md — Wire Build Tokens button into both pages + ANGULAR_PARITY.md + human verify
+
+### Phase 6: Collection UX Improvements
+**Goal**: View Tokens and Generate Tokens are unified into a single tabbed page at / with a shared collection management header, clean separation between read-only View and edit-mode Generate
+**Depends on:** Phase 5
+**Requirements**: UX-01, UX-02, UX-03, UX-04, UX-05
+**Plans**: 3 plans
+
+Plans:
+- [ ] 06-01-PLAN.md — SharedCollectionHeader component + restructure page.tsx with tab scaffold and View tab
+- [ ] 06-02-PLAN.md — Wire Generate tab into page.tsx + /generate redirect
+- [ ] 06-03-PLAN.md — Human verify unified tabbed page end-to-end
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Database Foundation | 3/3 | Complete   | 2026-02-25 |
 | 2. View Integration | 2/2 | Complete   | 2026-02-25 |
-| 3. Generator Form | 3/4 | In Progress|  |
-| 4. Collection Management | 1/3 | In Progress | - |
+| 3. Generator Form | 4/4 | Complete   | 2026-02-26 |
+| 4. Collection Management | 3/3 | Complete   | 2026-02-26 |
 | 5. Export style dictionary | 2/2 | Complete   | 2026-02-26 |
-
-### Phase 6: Collection UX Improvements
-
-**Goal:** [To be planned]
-**Depends on:** Phase 5
-**Plans:** 2/2 plans complete
-
-Plans:
-- [ ] TBD (run /gsd:plan-phase 6 to break down)
+| 6. Collection UX Improvements | 0/3 | In Progress | - |
