@@ -10,8 +10,11 @@ import { SharedCollectionHeader } from '@/components/SharedCollectionHeader';
 import { TokenGeneratorFormNew } from '@/components/TokenGeneratorFormNew';
 import { TokenGeneratorDocs } from '@/components/TokenGeneratorDocs';
 import { GitHubConfig } from '@/components/GitHubConfig';
+import { FigmaConfig } from '@/components/FigmaConfig';
+import { SourceContextBar } from '@/components/SourceContextBar';
 import { ImportFromFigmaDialog } from '@/components/ImportFromFigmaDialog';
 import type { ToastMessage } from '@/types';
+import type { ISourceMetadata } from '@/types/collection.types';
 
 interface Token {
   value: string;
@@ -35,11 +38,11 @@ interface CollectionOption {
 /**
  * Flatten MongoDB token data into the Record<string, TokenGroup[]> shape expected by TokenTable.
  *
- * Stored format: { [relativeFilePath]: tokenData } — e.g. "globals/color-base.json": { token: {...} }
+ * Stored format: { [relativeFilePath]: tokenData } -- e.g. "globals/color-base.json": { token: {...} }
  * This matches TokenUpdater.getAllTokens() so the same display logic works for local and MongoDB tokens.
  *
  * Section = first path segment of the file key (e.g. "globals", "brands", "palette").
- * Leaf detection: a node with both `value` and `type` keys is a token (Style Dictionary format).
+ * Leaf detection: a node with both value and type keys is a token (Style Dictionary format).
  */
 function flattenMongoTokens(
   tokens: Record<string, unknown>,
@@ -49,7 +52,7 @@ function flattenMongoTokens(
 
   function walk(node: Record<string, unknown>, currentPath: string, filePath: string, section: string) {
     if (('value' in node && 'type' in node) || ('$value' in node && '$type' in node)) {
-      // Token leaf — supports both plain {value, type} and W3C {$value, $type} formats
+      // Token leaf -- supports both plain {value, type} and W3C {$value, $type} formats
       const rawValue = node.$value ?? node.value;
       const rawType = node.$type ?? node.type;
       if (!result[section]) result[section] = [];
@@ -89,7 +92,7 @@ function flattenMongoTokens(
     }
   }
 
-  // Resolve token references: build a flat path→value map, then resolve
+  // Resolve token references: build a flat path->value map, then resolve
   const pathMap = new Map<string, string>();
   for (const groups of Object.values(result)) {
     for (const g of groups) {
@@ -138,9 +141,11 @@ function HomeContent() {
   const [saveAsDialogOpen, setSaveAsDialogOpen] = useState(false);
   const [isSavingAs, setIsSavingAs] = useState(false);
   const [importFigmaOpen, setImportFigmaOpen] = useState(false);
+  const [selectedSourceMetadata, setSelectedSourceMetadata] = useState<ISourceMetadata | null>(null);
 
   // Generate tab state
   const [githubConfig, setGitHubConfig] = useState<{ repository: string; token: string; branch: string } | null>(null);
+  const [figmaConfig, setFigmaConfig] = useState<{ token: string; fileKey: string } | null>(null);
   const [generateTabTokens, setGenerateTabTokens] = useState<Record<string, unknown> | null>(null);
   const [generateTabNamespace, setGenerateTabNamespace] = useState('token');
   const [generateTabCollectionName, setGenerateTabCollectionName] = useState('');
@@ -201,7 +206,7 @@ function HomeContent() {
         }
       } catch {
         setToast({ message: 'Failed to load collections list', type: 'error' });
-        // Stay on local files — collections stays empty
+        // Stay on local files -- collections stays empty
         handleSelectionChange('local', []);
       }
     })();
@@ -241,6 +246,7 @@ function HomeContent() {
     if (id === 'local') {
       setRawCollectionTokens(null);
       setRawCollectionName('');
+      setSelectedSourceMetadata(null);
       fetchTokens();
       return;
     }
@@ -256,13 +262,15 @@ function HomeContent() {
         const data = await response.json();
         const rawTokens = data.collection.tokens as Record<string, unknown>;
         const collectionName = data.collection.name as string;
+        const sourceMeta = data.collection.sourceMetadata as ISourceMetadata | null;
         setRawCollectionTokens(rawTokens);
         setRawCollectionName(collectionName);
+        setSelectedSourceMetadata(sourceMeta);
         const transformed = flattenMongoTokens(rawTokens, collectionName);
         setTokenData(transformed);
       } catch (err) {
         if (err instanceof Error && err.name === 'AbortError') {
-          // User switched away — do nothing
+          // User switched away -- do nothing
           return;
         }
         setToast({ message: 'Failed to load collection', type: 'error' });
@@ -304,12 +312,6 @@ function HomeContent() {
     switchTab('generate');
   };
 
-  const handleImported = (newId: string, newName: string) => {
-    setCollections(prev => [...prev, { _id: newId, name: newName }]);
-    handleSelectionChange(newId);
-    setToast({ message: `Imported "${newName}" from Figma`, type: 'success' });
-  };
-
   const handleSaveAs = async (name: string) => {
     setIsSavingAs(true);
     try {
@@ -331,7 +333,7 @@ function HomeContent() {
         setSaveAsDialogOpen(false);
         setToast({ message: `Saved as "${collection.name}"`, type: 'success' });
       } else if (res.status === 409) {
-        // Name conflict — dialog will show overwrite step
+        // Name conflict -- dialog will show overwrite step
         const data = await res.json();
         // Overwrite: PUT
         const putRes = await fetch(`/api/collections/${data.existingId}`, {
@@ -416,6 +418,7 @@ function HomeContent() {
               >
                 Build Tokens
               </button>
+              <FigmaConfig onConfigChange={setFigmaConfig} />
               <GitHubConfig onConfigChange={setGitHubConfig} />
             </div>
           </div>
@@ -464,7 +467,10 @@ function HomeContent() {
         </div>
       </div>
 
-      {/* Tab content — both divs always mounted; hidden class hides inactive tab to preserve state */}
+      {/* Source context bar -- slim upstream indicator, hidden when no source */}
+      <SourceContextBar sourceMetadata={selectedSourceMetadata} />
+
+      {/* Tab content -- both divs always mounted; hidden class hides inactive tab to preserve state */}
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         {/* View tab */}
         <div className={activeTab === 'view' ? '' : 'hidden'}>
@@ -494,19 +500,11 @@ function HomeContent() {
           </div>
         </div>
 
-        {/* Generate tab — always mounted to preserve form state across tab switches */}
+        {/* Generate tab -- always mounted to preserve form state across tab switches */}
         <div className={activeTab === 'generate' ? '' : 'hidden'}>
           <div className="mb-6">
             <h2 className="text-lg font-medium text-gray-900 mb-1">Create W3C Design Token Specification Compliant Tokens</h2>
             <p className="text-gray-600 text-sm">Generate design tokens that follow the W3C Design Tokens specification with proper value, type, and attributes.</p>
-          </div>
-          <div className="mb-4 flex items-center gap-2">
-            <button
-              onClick={() => setImportFigmaOpen(true)}
-              className="px-3 py-1.5 text-sm font-medium bg-purple-100 text-purple-800 border border-purple-200 rounded-md hover:bg-purple-200"
-            >
-              Import from Figma
-            </button>
           </div>
           <TokenGeneratorDocs />
           <TokenGeneratorFormNew
@@ -534,7 +532,12 @@ function HomeContent() {
       <ImportFromFigmaDialog
         isOpen={importFigmaOpen}
         onClose={() => setImportFigmaOpen(false)}
-        onImported={handleImported}
+        onImported={(collectionId, collectionName) => {
+          setCollections(prev => [...prev, { _id: collectionId, name: collectionName }]);
+          handleSelectionChange(collectionId);
+          setImportFigmaOpen(false);
+          setToast({ message: `Imported "${collectionName}" from Figma`, type: 'success' });
+        }}
       />
 
       {buildTokens && (

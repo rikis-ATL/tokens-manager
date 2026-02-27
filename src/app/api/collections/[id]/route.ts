@@ -16,7 +16,14 @@ export async function GET(
       return NextResponse.json({ error: 'Collection not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ collection: doc });
+    return NextResponse.json({
+      collection: {
+        _id: doc._id.toString(),
+        name: doc.name as string,
+        tokens: doc.tokens,
+        sourceMetadata: (doc.sourceMetadata as Record<string, unknown> | null | undefined) ?? null,
+      },
+    });
   } catch (error) {
     console.error('[GET /api/collections/[id]] Failed to fetch collection:', error);
     return NextResponse.json({ error: 'Failed to fetch collection' }, { status: 500 });
