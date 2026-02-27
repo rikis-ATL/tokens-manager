@@ -18,7 +18,7 @@ export function CollectionSelector({
   onChange,
 }: CollectionSelectorProps) {
   return (
-    <div className="w-full bg-white border-b border-gray-200 px-4 py-3 sm:px-6 lg:px-8">
+    <div className="flex items-center">
       <label className="text-sm font-medium text-gray-700 mr-3">Collection:</label>
       <select
         value={selectedId}
