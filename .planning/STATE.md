@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-25)
 
 **Core value:** Token collections are always available and editable — stored in MongoDB, loadable into the generator form, and visible on the view page.
-**Current focus:** Phase 6 in progress — Plan 02 complete (Generate tab wired + /generate redirect)
+**Current focus:** Milestone complete — all 6 phases done
 
 ## Current Position
 
 Phase: 6 of 6 (Collection UX Improvements)
-Plan: 2 of 3 in current phase (complete)
-Status: In Progress
-Last activity: 2026-02-27 — Completed 06-02 (Generate tab with TokenGeneratorFormNew, hidden-class state preservation, /generate redirect)
+Plan: 3 of 3 in current phase (complete)
+Status: Complete
+Last activity: 2026-02-28 — Completed 06-03 (human verification + post-verification bug fixes: GitHubConfig moved to app header, + Add Token always visible, collection auto-load into generator)
 
-Progress: [█████████░] 90%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -32,11 +32,11 @@ Progress: [█████████░] 90%
 | 03-generator-form | 3 | 7 min | 2.3 min |
 | 04-collection-management | 2 | 3 min | 1.5 min |
 | 05-export-style-dictionary-build-tokens | 2 | 21 min | 10.5 min |
-| 06-collection-ux-improvements | 2 of 3 | 6 min | 3 min |
+| 06-collection-ux-improvements | 3 of 3 | 6 min | 2 min |
 
 **Recent Trend:**
-- Last 5 plans: 05-01 (5 min), 05-02 (16 min), 06-01 (3 min), 06-02 (3 min)
-- Trend: Phase 6 underway — Plans 01+02 complete
+- Last 5 plans: 05-02 (16 min), 06-01 (3 min), 06-02 (3 min), 06-03 (human verify + bug fixes)
+- Trend: Milestone complete
 
 *Updated after each plan completion*
 | Phase 05 P02 | 16 | 3 tasks | 5 files |
@@ -49,6 +49,7 @@ Progress: [█████████░] 90%
 
 - Phase 5 added: Export style dictionary build tokens
 - Phase 6 added: Collection UX Improvements
+- Phase 7 added: Fix Figma Integration (unified credentials dialog, persistent storage, import-from-Figma, upstream source highlighting)
 
 ### Decisions
 
@@ -139,17 +140,20 @@ Recent decisions affecting current work:
 - [Phase 06]: hidden CSS class for tab divs preserves TokenGeneratorFormNew state across tab switches without lifting state
 - [Phase 06]: generateFormKey increment triggers controlled remount of TokenGeneratorFormNew on New Collection action
 - [Phase 06]: generate/page.tsx is a server component with only redirect() to /?tab=generate
+- [Phase 06-03]: GitHubConfig moved from Generate tab header to global app header — visible on both tabs
+- [Phase 06-03]: + Add Token button rendered unconditionally outside {hasTokens && ...} block — visible on empty groups
+- [Phase 06-03]: collectionToLoad prop added to TokenGeneratorFormNew — selecting a MongoDB collection in shared header auto-populates the generator form via useEffect on collectionToLoad?.id
 
 ### Pending Todos
 
-None yet.
+None.
 
 ### Blockers/Concerns
 
-None yet.
+None.
 
 ## Session Continuity
 
-Last session: 2026-02-27
-Stopped at: Completed 06-02-PLAN.md (Phase 6 Plan 02 — Generate tab wired + /generate redirect complete)
+Last session: 2026-02-28
+Stopped at: Milestone complete — all 6 phases done, post-verification bug fixes applied
 Resume file: None
