@@ -38,9 +38,10 @@ interface TokenGeneratorFormNewProps {
     namespace: string,
     collectionName: string
   ) => void;
+  collectionToLoad?: { id: string; name: string; tokens: Record<string, unknown> } | null;
 }
 
-export function TokenGeneratorFormNew({ githubConfig, onTokensChange }: TokenGeneratorFormNewProps) {
+export function TokenGeneratorFormNew({ githubConfig, onTokensChange, collectionToLoad }: TokenGeneratorFormNewProps) {
   const [tokenGroups, setTokenGroups] = useState<TokenGroup[]>([
     { id: '1', name: 'colors', tokens: [], level: 0, expanded: true }
   ]);
@@ -89,6 +90,20 @@ export function TokenGeneratorFormNew({ githubConfig, onTokensChange }: TokenGen
     onTokensChange(rawJson as Record<string, unknown>, globalNamespace, collectionName);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tokenGroups, globalNamespace, loadedCollection]);
+
+  // Auto-load a collection when the parent passes a new one (e.g. user selects from shared header)
+  useEffect(() => {
+    if (!collectionToLoad) return;
+    const { groups, detectedGlobalNamespace } = tokenService.processImportedTokens(
+      collectionToLoad.tokens,
+      ''
+    );
+    setTokenGroups(groups);
+    setGlobalNamespace(detectedGlobalNamespace);
+    setLoadedCollection({ id: collectionToLoad.id, name: collectionToLoad.name });
+    setIsDirty(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [collectionToLoad?.id]);
 
   // Toast helper functions
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
@@ -836,20 +851,19 @@ export function TokenGeneratorFormNew({ githubConfig, onTokensChange }: TokenGen
                       )}
                     </React.Fragment>
                   ))}
-                  <tr className="bg-blue-50">
-                    <td colSpan={5} className="px-4 py-3 text-center">
-                      <button
-                        onClick={() => addToken(group.id)}
-                        className="text-sm font-medium text-blue-600 hover:text-blue-800"
-                      >
-                        + Add Token
-                      </button>
-                    </td>
-                  </tr>
                 </tbody>
               </table>
             </div>
           )}
+          {/* Always show — even when group is empty */}
+          <div className="border-t border-gray-200 px-4 py-3 text-center">
+            <button
+              onClick={() => addToken(group.id)}
+              className="text-sm font-medium text-blue-600 hover:text-blue-800"
+            >
+              + Add Token
+            </button>
+          </div>
         </div>
         {hasChildren && group.expanded && (
           <div className="mt-2">

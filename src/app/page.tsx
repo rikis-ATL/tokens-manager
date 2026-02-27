@@ -310,6 +310,7 @@ function HomeContent() {
         activeTab === 'generate'
           ? generateTabTokens ?? {}
           : rawCollectionTokens ?? tokenData;
+
       const res = await fetch('/api/collections', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -407,6 +408,7 @@ function HomeContent() {
               >
                 Build Tokens
               </button>
+              <GitHubConfig onConfigChange={setGitHubConfig} />
             </div>
           </div>
         </div>
@@ -486,18 +488,20 @@ function HomeContent() {
 
         {/* Generate tab — always mounted to preserve form state across tab switches */}
         <div className={activeTab === 'generate' ? '' : 'hidden'}>
-          <div className="mb-6 flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-medium text-gray-900 mb-1">Create W3C Design Token Specification Compliant Tokens</h2>
-              <p className="text-gray-600 text-sm">Generate design tokens that follow the W3C Design Tokens specification with proper value, type, and attributes.</p>
-            </div>
-            <GitHubConfig onConfigChange={setGitHubConfig} />
+          <div className="mb-6">
+            <h2 className="text-lg font-medium text-gray-900 mb-1">Create W3C Design Token Specification Compliant Tokens</h2>
+            <p className="text-gray-600 text-sm">Generate design tokens that follow the W3C Design Tokens specification with proper value, type, and attributes.</p>
           </div>
           <TokenGeneratorDocs />
           <TokenGeneratorFormNew
             key={generateFormKey}
             githubConfig={githubConfig}
             onTokensChange={handleGenerateTokensChange}
+            collectionToLoad={
+              selectedId !== 'local' && rawCollectionTokens
+                ? { id: selectedId, name: rawCollectionName, tokens: rawCollectionTokens }
+                : null
+            }
           />
         </div>
       </main>
