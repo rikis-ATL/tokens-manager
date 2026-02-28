@@ -3,6 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 MVP** — Phases 1-7 (shipped 2026-02-28)
+- 🚧 **v1.1 shadcn UI** — Phases 1-2 (in progress)
 
 ## Phases
 
@@ -32,3 +33,24 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full phase details.
 | 5. Export Style Dictionary | v1.0 | 2/2 | Complete | 2026-02-26 |
 | 6. Collection UX Improvements | v1.0 | 3/3 | Complete | 2026-02-28 |
 | 7. Fix Figma Integration | v1.0 | 6/6 | Complete | 2026-02-28 |
+| 1. shadcn UI Components | v1.1 | 0/? | Not started | - |
+
+### 🚧 v1.1 shadcn UI
+
+### Phase 1: shadcn UI + Color Pickers
+
+**Goal:** Migrate all common UI elements to shadcn/ui components (buttons, tabs, modals/dialogs) and replace all color token fields with native color picker inputs
+**Depends on:** Nothing (first phase of v1.1)
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 1 to break down)
+
+### Phase 2: Test ATUI component library - confirm Button can be imported and used
+
+**Goal:** Confirm the ATUI Stencil component library Button can be imported and rendered in the Next.js 13.5.6 App Router by creating a minimal /dev-test sandbox page that establishes the integration pattern for Phase 1.
+**Depends on:** Phase 1
+**Plans:** 1 plan
+
+Plans:
+- [ ] 02-01-PLAN.md — Create /dev-test sandbox page with ATUI Button integration
