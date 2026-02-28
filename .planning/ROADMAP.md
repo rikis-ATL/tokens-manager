@@ -34,6 +34,7 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full phase details.
 | 6. Collection UX Improvements | v1.0 | 3/3 | Complete | 2026-02-28 |
 | 7. Fix Figma Integration | v1.0 | 6/6 | Complete | 2026-02-28 |
 | 1. shadcn UI Components | v1.1 | 0/? | Not started | - |
+| 2. Test ATUI Component Library | v1.1 | 1/1 | Complete | 2026-03-01 |
 
 ### 🚧 v1.1 shadcn UI
 
@@ -53,4 +54,4 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 02-01-PLAN.md — Create /dev-test sandbox page with ATUI Button integration
+- [x] 02-01-PLAN.md — Create /dev-test sandbox page with ATUI Button integration (complete 2026-03-01)
