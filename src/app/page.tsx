@@ -506,6 +506,14 @@ function HomeContent() {
             <h2 className="text-lg font-medium text-gray-900 mb-1">Create W3C Design Token Specification Compliant Tokens</h2>
             <p className="text-gray-600 text-sm">Generate design tokens that follow the W3C Design Tokens specification with proper value, type, and attributes.</p>
           </div>
+          <div className="mb-4 flex items-center gap-2">
+            <button
+              onClick={() => setImportFigmaOpen(true)}
+              className="px-3 py-1.5 text-sm font-medium bg-purple-100 text-purple-800 border border-purple-200 rounded-md hover:bg-purple-200"
+            >
+              Import from Figma
+            </button>
+          </div>
           <TokenGeneratorDocs />
           <TokenGeneratorFormNew
             key={generateFormKey}
