@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import JSZip from 'jszip';
 import type { BuildTokensResult, FormatOutput } from '@/types';
 
@@ -37,6 +37,7 @@ export function BuildTokensModal({
   const [activeFormat, setActiveFormat] = useState<Format>('css');
   const [activeBrand, setActiveBrand] = useState<string>('');
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const dialogRef = useRef<HTMLElement>(null);
 
   const runBuild = useCallback(async () => {
     setLoading(true);
@@ -83,15 +84,12 @@ export function BuildTokensModal({
     }
   }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Escape key listener
+  // Sync at-dialog open/close state with isOpen prop
   useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+    if (!dialogRef.current) return;
+    const el = dialogRef.current as any;
+    if (isOpen) { el.openDialog?.(); } else { el.closeDialog?.(); }
+  }, [isOpen]);
 
   // Reset activeBrand when format tab changes (pick first brand in new format)
   const handleFormatChange = (fmt: Format) => {
@@ -131,11 +129,6 @@ export function BuildTokensModal({
     URL.revokeObjectURL(url);
   };
 
-  // Backdrop click: only close if click is on the overlay itself
-  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) onClose();
-  };
-
   if (!isOpen) return null;
 
   // Derive current format outputs
@@ -146,31 +139,26 @@ export function BuildTokensModal({
   const copyKey = `${activeFormat}-${activeBrand}`;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-      onClick={handleBackdropClick}
-    >
+    <at-dialog ref={dialogRef} backdrop={true} close_backdrop={false}>
       <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden mx-4">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b flex-shrink-0">
           <h3 className="text-lg font-semibold text-gray-900">Build Tokens Output</h3>
           <div className="flex items-center gap-3">
             {result && (
-              <button
-                onClick={handleDownloadAll}
-                className="px-4 py-2 text-sm font-medium bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+              <at-button
+                label="Download All"
+                onAtuiClick={handleDownloadAll}
                 disabled={loading}
-              >
-                Download All
-              </button>
+                className="px-4 py-2 text-sm font-medium bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+              />
             )}
-            <button
-              onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 text-xl leading-none"
+            <at-button
+              label="×"
               aria-label="Close"
-            >
-              &times;
-            </button>
+              onAtuiClick={onClose}
+              className="text-gray-500 hover:text-gray-700 text-xl leading-none"
+            />
           </div>
         </div>
 
@@ -188,12 +176,11 @@ export function BuildTokensModal({
           {!loading && error && (
             <div className="flex flex-col items-center justify-center py-12">
               <p className="text-red-600 text-sm mb-4">{error}</p>
-              <button
-                onClick={runBuild}
+              <at-button
+                label="Retry"
+                onAtuiClick={runBuild}
                 className="px-4 py-2 text-sm font-medium bg-red-600 text-white rounded hover:bg-red-700"
-              >
-                Retry
-              </button>
+              />
             </div>
           )}
 
@@ -203,17 +190,16 @@ export function BuildTokensModal({
               {/* Format tabs */}
               <div className="flex border-b border-gray-200">
                 {FORMATS.map(fmt => (
-                  <button
+                  <at-button
                     key={fmt}
-                    onClick={() => handleFormatChange(fmt)}
+                    label={FORMAT_LABELS[fmt]}
+                    onAtuiClick={() => handleFormatChange(fmt)}
                     className={`px-4 py-2 text-sm font-medium rounded-t -mb-px border-b-2 transition-colors ${
                       activeFormat === fmt
                         ? 'bg-blue-100 text-blue-900 border-blue-600'
                         : 'text-gray-600 border-transparent hover:bg-gray-100'
                     }`}
-                  >
-                    {FORMAT_LABELS[fmt]}
-                  </button>
+                  />
                 ))}
               </div>
 
@@ -221,17 +207,16 @@ export function BuildTokensModal({
               {isMultiBrand && (
                 <div className="flex gap-1">
                   {currentBrands.map(({ brand }) => (
-                    <button
+                    <at-button
                       key={brand}
-                      onClick={() => setActiveBrand(brand)}
+                      label={brand}
+                      onAtuiClick={() => setActiveBrand(brand)}
                       className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
                         activeBrand === brand
                           ? 'bg-gray-800 text-white'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
-                    >
-                      {brand}
-                    </button>
+                    />
                   ))}
                 </div>
               )}
@@ -239,12 +224,11 @@ export function BuildTokensModal({
               {/* Code block */}
               {currentBrandOutput && (
                 <div className="relative">
-                  <button
-                    onClick={() => handleCopy(copyKey, currentBrandOutput.content)}
+                  <at-button
+                    label={copiedKey === copyKey ? 'Copied!' : 'Copy'}
+                    onAtuiClick={() => handleCopy(copyKey, currentBrandOutput.content)}
                     className="absolute top-2 right-2 z-10 px-2 py-1 text-xs bg-white border border-gray-300 rounded hover:bg-gray-50"
-                  >
-                    {copiedKey === copyKey ? 'Copied!' : 'Copy'}
-                  </button>
+                  />
                   <pre className="bg-gray-50 rounded p-4 text-sm font-mono overflow-x-auto whitespace-pre-wrap break-all max-h-[400px] overflow-y-auto">
                     <code>{currentBrandOutput.content || '/* (empty output) */'}</code>
                   </pre>
@@ -254,6 +238,6 @@ export function BuildTokensModal({
           )}
         </div>
       </div>
-    </div>
+    </at-dialog>
   );
 }
