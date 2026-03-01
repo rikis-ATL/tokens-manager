@@ -13,6 +13,7 @@ declare global {
         submit?: boolean;
         icon?: string;
         icon_after?: string;
+        'data-dialog'?: string;
         onAtuiClick?: (event: CustomEvent) => void;
       };
       // Inputs
@@ -33,7 +34,6 @@ declare global {
       // Select
       'at-select': React.HTMLAttributes<HTMLElement> & {
         value?: string;
-        options?: Array<{ value: string; label: string; disabled?: boolean }>;
         placeholder?: string;
         label?: string;
         disabled?: boolean;
@@ -44,15 +44,21 @@ declare global {
         hint_text?: string;
         clearable?: boolean;
         autoclose?: boolean;
+        typeahead?: boolean;
         onAtuiChange?: (event: CustomEvent<string>) => void;
+      };
+      'at-select-option': React.HTMLAttributes<HTMLElement> & React.ClassAttributes<HTMLElement> & {
+        value?: string;
+        label?: string;
+        disabled?: boolean;
       };
       // Tabs
       'at-tabs': React.HTMLAttributes<HTMLElement> & {
-        tabs?: Array<{ id: string; title: string; disabled?: boolean }>;
         active_tab?: string;
         layout?: string;
         fill?: boolean;
         hide_nav?: boolean;
+        onAtuiTabChange?: (event: CustomEvent<string>) => void;
         onAtuiChange?: (event: CustomEvent<string>) => void;
       };
       'at-tab-trigger': React.HTMLAttributes<HTMLElement> & {
@@ -61,10 +67,12 @@ declare global {
         is_active?: boolean;
         layout?: string;
         fill?: boolean;
+        slot?: string;
       };
       'at-tab-content': React.HTMLAttributes<HTMLElement> & {
         tab_id?: string;
         is_active?: boolean;
+        slot?: string;
       };
       // Dialog
       'at-dialog': React.HTMLAttributes<HTMLElement> & {

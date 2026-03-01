@@ -137,44 +137,40 @@ export function CollectionActions({
 
   return (
     <div className="flex gap-2">
-      {/* Delete button */}
+      {/* Delete button — data-dialog opens the dialog */}
       <at-button
         label="Delete"
-        onAtuiClick={() => {
-          (deleteDialogRef.current as any)?.openDialog();
-        }}
+        data-dialog="delete-collection-dialog"
         className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium bg-white border text-red-600 border-red-300 hover:bg-red-50 rounded-md"
       />
 
-      {/* Rename button */}
+      {/* Rename button — sets initial value AND opens dialog */}
       <at-button
         label="Rename"
-        onAtuiClick={() => {
-          setRenameValue(selectedName);
-          (renameDialogRef.current as any)?.openDialog();
-        }}
+        data-dialog="rename-collection-dialog"
+        onAtuiClick={() => setRenameValue(selectedName)}
         className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium bg-white border text-gray-700 border-gray-300 hover:bg-gray-50 rounded-md"
       />
 
-      {/* Duplicate button */}
+      {/* Duplicate button — sets initial value AND opens dialog */}
       <at-button
         label="Duplicate"
+        data-dialog="duplicate-collection-dialog"
         onAtuiClick={() => {
           setDuplicateName('Copy of ' + selectedName);
           setDuplicateError(null);
-          (duplicateDialogRef.current as any)?.openDialog();
         }}
         className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium bg-white border text-gray-700 border-gray-300 hover:bg-gray-50 rounded-md"
       />
 
       {/* ---- Delete Dialog ---- */}
-      <at-dialog ref={deleteDialogRef} backdrop={true} close_backdrop={false}>
+      <at-dialog ref={deleteDialogRef} trigger_id="delete-collection-dialog" backdrop={true} close_backdrop={false}>
         <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
           <div className="flex justify-between items-center p-4 border-b border-gray-200">
             <h3 className="text-lg font-medium text-gray-900">Delete Collection</h3>
             <at-button
               label="✕"
-              onAtuiClick={() => (deleteDialogRef.current as any)?.closeDialog()}
+              data-dialog="delete-collection-dialog"
               disabled={isDeleting}
               className="text-gray-500 hover:text-gray-700"
             />
@@ -187,7 +183,7 @@ export function CollectionActions({
           <div className="flex justify-end space-x-3 p-4 border-t border-gray-200">
             <at-button
               label="Cancel"
-              onAtuiClick={() => (deleteDialogRef.current as any)?.closeDialog()}
+              data-dialog="delete-collection-dialog"
               disabled={isDeleting}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
             />
@@ -202,13 +198,13 @@ export function CollectionActions({
       </at-dialog>
 
       {/* ---- Rename Dialog ---- */}
-      <at-dialog ref={renameDialogRef} backdrop={true} close_backdrop={false}>
+      <at-dialog ref={renameDialogRef} trigger_id="rename-collection-dialog" backdrop={true} close_backdrop={false}>
         <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
           <div className="flex justify-between items-center p-4 border-b border-gray-200">
             <h3 className="text-lg font-medium text-gray-900">Rename Collection</h3>
             <at-button
               label="✕"
-              onAtuiClick={() => (renameDialogRef.current as any)?.closeDialog()}
+              data-dialog="rename-collection-dialog"
               disabled={isRenaming}
               className="text-gray-500 hover:text-gray-700"
             />
@@ -230,7 +226,7 @@ export function CollectionActions({
           <div className="flex justify-end space-x-3 p-4 border-t border-gray-200">
             <at-button
               label="Cancel"
-              onAtuiClick={() => (renameDialogRef.current as any)?.closeDialog()}
+              data-dialog="rename-collection-dialog"
               disabled={isRenaming}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
             />
@@ -245,13 +241,13 @@ export function CollectionActions({
       </at-dialog>
 
       {/* ---- Duplicate Dialog ---- */}
-      <at-dialog ref={duplicateDialogRef} backdrop={true} close_backdrop={false}>
+      <at-dialog ref={duplicateDialogRef} trigger_id="duplicate-collection-dialog" backdrop={true} close_backdrop={false}>
         <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
           <div className="flex justify-between items-center p-4 border-b border-gray-200">
             <h3 className="text-lg font-medium text-gray-900">Duplicate Collection</h3>
             <at-button
               label="✕"
-              onAtuiClick={() => (duplicateDialogRef.current as any)?.closeDialog()}
+              data-dialog="duplicate-collection-dialog"
               disabled={isDuplicating}
               className="text-gray-500 hover:text-gray-700"
             />
@@ -271,7 +267,7 @@ export function CollectionActions({
           <div className="flex justify-end space-x-3 p-4 border-t border-gray-200">
             <at-button
               label="Cancel"
-              onAtuiClick={() => (duplicateDialogRef.current as any)?.closeDialog()}
+              data-dialog="duplicate-collection-dialog"
               disabled={isDuplicating}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
             />

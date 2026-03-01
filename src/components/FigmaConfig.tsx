@@ -24,19 +24,12 @@ export function FigmaConfig({ onConfigChange, className = '' }: FigmaConfigProps
     fileUrl: '',
     fileKey: '',
   });
-  const [isOpen, setIsOpen] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [loading, setLoading] = useState(false);
   const [testStatus, setTestStatus] = useState<'idle' | 'ok' | 'error'>('idle');
   const [testMessage, setTestMessage] = useState('');
 
   const dialogRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const el = dialogRef.current as any;
-    if (!el) return;
-    if (isOpen) { el.openDialog?.(); } else { el.closeDialog?.(); }
-  }, [isOpen]);
 
   // Load saved config on mount
   useEffect(() => {
@@ -56,14 +49,12 @@ export function FigmaConfig({ onConfigChange, className = '' }: FigmaConfigProps
   const handleFileUrlChange = (url: string) => {
     const fileKey = extractFileKeyFromUrl(url);
     setConfig(prev => ({ ...prev, fileUrl: url, fileKey }));
-    // Reset test status when URL changes
     setTestStatus('idle');
     setTestMessage('');
   };
 
   const handleTokenChange = (token: string) => {
     setConfig(prev => ({ ...prev, token }));
-    // Reset test status when token changes
     setTestStatus('idle');
     setTestMessage('');
   };
@@ -109,7 +100,7 @@ export function FigmaConfig({ onConfigChange, className = '' }: FigmaConfigProps
 
     localStorage.setItem('figma-config', JSON.stringify(config));
     setIsConnected(true);
-    setIsOpen(false);
+    (dialogRef.current as any)?.closeDialog?.();
 
     if (onConfigChange) {
       onConfigChange({ token: config.token, fileKey: config.fileKey });
@@ -123,7 +114,7 @@ export function FigmaConfig({ onConfigChange, className = '' }: FigmaConfigProps
       setIsConnected(false);
       setTestStatus('idle');
       setTestMessage('');
-      setIsOpen(false);
+      (dialogRef.current as any)?.closeDialog?.();
       if (onConfigChange) {
         onConfigChange(null);
       }
@@ -131,8 +122,6 @@ export function FigmaConfig({ onConfigChange, className = '' }: FigmaConfigProps
   };
 
   const handleCancel = () => {
-    setIsOpen(false);
-    // Reset test status on cancel so unsaved test state doesn't linger
     setTestStatus('idle');
     setTestMessage('');
     // Restore config from storage if user didn't save
@@ -140,6 +129,7 @@ export function FigmaConfig({ onConfigChange, className = '' }: FigmaConfigProps
     if (saved) {
       setConfig(JSON.parse(saved));
     }
+    (dialogRef.current as any)?.closeDialog?.();
   };
 
   const canSave = config.token.trim() !== '' && config.fileKey !== '' && testStatus === 'ok';
@@ -149,7 +139,7 @@ export function FigmaConfig({ onConfigChange, className = '' }: FigmaConfigProps
       <div className="flex items-center gap-2">
         <at-button
           label={isConnected ? '' : 'Configure Figma'}
-          onAtuiClick={() => setIsOpen(true)}
+          data-dialog="figma-config-dialog"
           className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
             isConnected ? 'bg-green-100 text-green-800 hover:bg-green-200' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
@@ -163,7 +153,7 @@ export function FigmaConfig({ onConfigChange, className = '' }: FigmaConfigProps
         </at-button>
       </div>
 
-      <at-dialog ref={dialogRef} backdrop={true} close_backdrop={false}>
+      <at-dialog ref={dialogRef} trigger_id="figma-config-dialog" backdrop={true} close_backdrop={false}>
         <div className="bg-white rounded-lg p-6 w-full max-w-md">
           <div className="flex justify-between items-center mb-4">
             <div>

@@ -34,11 +34,14 @@ export function ImportFromFigmaDialog({
   const [error, setError] = useState<string | null>(null);
   const [noCredentials, setNoCredentials] = useState(false);
   const dialogRef = useRef<HTMLElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    const el = dialogRef.current as any;
-    if (!el) return;
-    if (isOpen) { el.openDialog?.(); } else { el.closeDialog?.(); }
+    if (isOpen) {
+      triggerRef.current?.click();
+    } else {
+      (dialogRef.current as any)?.closeDialog?.();
+    }
   }, [isOpen]);
 
   // Load credentials and fetch collections on open
@@ -147,7 +150,15 @@ export function ImportFromFigmaDialog({
   }
 
   return (
-    <at-dialog ref={dialogRef} backdrop={true} close_backdrop={false}>
+    <>
+      <button
+        ref={triggerRef}
+        data-dialog="import-figma-dialog"
+        style={{ display: 'none' }}
+        aria-hidden="true"
+        tabIndex={-1}
+      />
+    <at-dialog ref={dialogRef} trigger_id="import-figma-dialog" backdrop={true} close_backdrop={false}>
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
         {/* Header */}
         <div className="flex justify-between items-center p-4 border-b border-gray-200">
@@ -195,10 +206,6 @@ export function ImportFromFigmaDialog({
                   </label>
                   <at-select
                     value={selectedCollectionId}
-                    options={[
-                      { value: '', label: 'Select a collection...' },
-                      ...collections.map(c => ({ value: c.id, label: c.name })),
-                    ]}
                     onAtuiChange={(e: CustomEvent<string>) => {
                       const id = e.detail;
                       setSelectedCollectionId(id);
@@ -209,7 +216,12 @@ export function ImportFromFigmaDialog({
                       }
                     }}
                     className="w-full"
-                  />
+                  >
+                    <at-select-option value="" label="Select a collection..." />
+                    {collections.map(c => (
+                      <at-select-option key={c.id} value={c.id} label={c.name} />
+                    ))}
+                  </at-select>
                   {selectedCollectionId && (
                     <p className="text-xs text-gray-500">
                       {modeCount} {modeCount === 1 ? 'mode' : 'modes'} will be imported as brands
@@ -273,5 +285,6 @@ export function ImportFromFigmaDialog({
         </div>
       </div>
     </at-dialog>
+    </>
   );
 }

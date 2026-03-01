@@ -443,14 +443,13 @@ function HomeContent() {
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
           <at-tabs
-            tabs={[
-              { id: 'view', title: 'View Tokens' },
-              { id: 'generate', title: 'Generate Tokens' },
-            ]}
+            layout="horizontal"
             active_tab={activeTab}
-            onAtuiChange={(e: CustomEvent<string>) => switchTab(e.detail as 'view' | 'generate')}
-            className="border-none"
-          />
+            onAtuiTabChange={(e: CustomEvent<string>) => switchTab(e.detail as 'view' | 'generate')}
+          >
+            <at-tab-trigger slot="tab-list" tab_title="View Tokens" tab_id="view" />
+            <at-tab-trigger slot="tab-list" tab_title="Generate Tokens" tab_id="generate" />
+          </at-tabs>
         </div>
       </div>
 

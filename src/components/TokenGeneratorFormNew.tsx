@@ -722,10 +722,13 @@ export function TokenGeneratorFormNew({ githubConfig, onTokensChange, collection
                         <td className="px-4 py-3">
                           <at-select
                             value={token.type}
-                            options={TOKEN_TYPES.map(type => ({ value: type, label: type }))}
                             onAtuiChange={(e: CustomEvent<string>) => updateToken(group.id, token.id, 'type', e.detail)}
                             className="px-2 py-1 text-sm rounded border border-gray-300"
-                          />
+                          >
+                            {TOKEN_TYPES.map(type => (
+                              <at-select-option key={type} value={type} label={type} />
+                            ))}
+                          </at-select>
                         </td>
                         <td className="px-4 py-3">
                           {token.type === 'color' ? (
@@ -736,7 +739,8 @@ export function TokenGeneratorFormNew({ githubConfig, onTokensChange, collection
                                 return typeof resolvedValue === 'string' && resolvedValue.startsWith('#') ? resolvedValue : '#cccccc';
                               })()}
                               onInput={(e: React.FormEvent<HTMLInputElement>) => updateToken(group.id, token.id, 'value', (e.target as HTMLInputElement).value)}
-                              className="w-10 h-10 border border-gray-300 rounded cursor-pointer"
+                              className="border border-gray-300 rounded cursor-pointer"
+                              style={{ width: '40px', height: '40px' }}
                               title={`Color: ${token.value}`}
                             />
                           ) : (

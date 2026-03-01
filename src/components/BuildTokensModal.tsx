@@ -38,6 +38,7 @@ export function BuildTokensModal({
   const [activeBrand, setActiveBrand] = useState<string>('');
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const dialogRef = useRef<HTMLElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   const runBuild = useCallback(async () => {
     setLoading(true);
@@ -84,11 +85,13 @@ export function BuildTokensModal({
     }
   }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Sync at-dialog open/close state with isOpen prop
+  // Open/close the at-dialog in sync with isOpen prop
   useEffect(() => {
-    if (!dialogRef.current) return;
-    const el = dialogRef.current as any;
-    if (isOpen) { el.openDialog?.(); } else { el.closeDialog?.(); }
+    if (isOpen) {
+      triggerRef.current?.click();
+    } else {
+      (dialogRef.current as any)?.closeDialog?.();
+    }
   }, [isOpen]);
 
   // Reset activeBrand when format tab changes (pick first brand in new format)
@@ -139,7 +142,16 @@ export function BuildTokensModal({
   const copyKey = `${activeFormat}-${activeBrand}`;
 
   return (
-    <at-dialog ref={dialogRef} backdrop={true} close_backdrop={false}>
+    <>
+      {/* Hidden trigger button — clicked programmatically to open the at-dialog */}
+      <button
+        ref={triggerRef}
+        data-dialog="build-tokens-modal"
+        style={{ display: 'none' }}
+        aria-hidden="true"
+        tabIndex={-1}
+      />
+    <at-dialog ref={dialogRef} trigger_id="build-tokens-modal" backdrop={true} close_backdrop={false}>
       <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden mx-4">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b flex-shrink-0">
@@ -239,5 +251,6 @@ export function BuildTokensModal({
         </div>
       </div>
     </at-dialog>
+    </>
   );
 }

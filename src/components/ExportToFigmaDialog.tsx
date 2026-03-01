@@ -37,11 +37,14 @@ export function ExportToFigmaDialog({
   const [hasCredentials, setHasCredentials] = useState(false);
   const prevIsOpen = useRef(false);
   const dialogRef = useRef<HTMLElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    const el = dialogRef.current as any;
-    if (!el) return;
-    if (isOpen) { el.openDialog?.(); } else { el.closeDialog?.(); }
+    if (isOpen) {
+      triggerRef.current?.click();
+    } else {
+      (dialogRef.current as any)?.closeDialog?.();
+    }
   }, [isOpen]);
 
   const fetchCollections = async (token: string, key: string) => {
@@ -139,7 +142,15 @@ export function ExportToFigmaDialog({
   if (!isOpen) return null;
 
   return (
-    <at-dialog ref={dialogRef} backdrop={true} close_backdrop={false}>
+    <>
+      <button
+        ref={triggerRef}
+        data-dialog="export-figma-dialog"
+        style={{ display: 'none' }}
+        aria-hidden="true"
+        tabIndex={-1}
+      />
+    <at-dialog ref={dialogRef} trigger_id="export-figma-dialog" backdrop={true} close_backdrop={false}>
       <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 shadow-xl">
         {/* Header */}
         <div className="flex justify-between items-center mb-4">
@@ -213,14 +224,15 @@ export function ExportToFigmaDialog({
               </label>
               <at-select
                 value={selectedCollectionId}
-                options={[
-                  { value: '', label: 'Select a collection...' },
-                  ...collections.map(col => ({ value: col.id, label: col.name })),
-                ]}
                 disabled={loading || collections.length === 0 || exporting}
                 onAtuiChange={(e: CustomEvent<string>) => setSelectedCollectionId(e.detail)}
                 className="w-full"
-              />
+              >
+                <at-select-option value="" label="Select a collection..." />
+                {collections.map(col => (
+                  <at-select-option key={col.id} value={col.id} label={col.name} />
+                ))}
+              </at-select>
               {loading && (
                 <p className="mt-1 text-xs text-gray-500">Loading collections from Figma...</p>
               )}
@@ -262,5 +274,6 @@ export function ExportToFigmaDialog({
         )}
       </div>
     </at-dialog>
+    </>
   );
 }

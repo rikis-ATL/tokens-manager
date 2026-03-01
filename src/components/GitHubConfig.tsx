@@ -19,7 +19,6 @@ export function GitHubConfig({ onConfigChange, className = '' }: GitHubConfigPro
     token: '',
     branch: 'main'
   });
-  const [isOpen, setIsOpen] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [branches, setBranches] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -28,12 +27,6 @@ export function GitHubConfig({ onConfigChange, className = '' }: GitHubConfigPro
   const [sourceBranch, setSourceBranch] = useState('');
 
   const dialogRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const el = dialogRef.current as any;
-    if (!el) return;
-    if (isOpen) { el.openDialog?.(); } else { el.closeDialog?.(); }
-  }, [isOpen]);
 
   // Load saved config on mount
   useEffect(() => {
@@ -97,7 +90,7 @@ export function GitHubConfig({ onConfigChange, className = '' }: GitHubConfigPro
 
       localStorage.setItem('github-config', JSON.stringify(cleanedConfig));
       setIsConnected(true);
-      setIsOpen(false);
+      (dialogRef.current as any)?.closeDialog?.();
 
       if (onConfigChange) {
         onConfigChange(cleanedConfig);
@@ -128,7 +121,7 @@ export function GitHubConfig({ onConfigChange, className = '' }: GitHubConfigPro
       setConfig({ repository: '', token: '', branch: 'main' });
       setIsConnected(false);
       setBranches([]);
-      setIsOpen(false); // Close the dialog after disconnect
+      (dialogRef.current as any)?.closeDialog?.(); // Close the dialog after disconnect
       if (onConfigChange) {
         onConfigChange(null);
       }
@@ -198,7 +191,7 @@ export function GitHubConfig({ onConfigChange, className = '' }: GitHubConfigPro
       <div className="flex items-center gap-2">
         <at-button
           label={isConnected ? '' : 'Configure GitHub'}
-          onAtuiClick={() => setIsOpen(true)}
+          data-dialog="github-config-dialog"
           className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
             isConnected ? 'bg-green-100 text-green-800 hover:bg-green-200' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
@@ -214,14 +207,14 @@ export function GitHubConfig({ onConfigChange, className = '' }: GitHubConfigPro
         {isConnected && (
           <at-button
             label="Reconfigure"
-            onAtuiClick={() => setIsOpen(true)}
+            data-dialog="github-config-dialog"
             title="Reconfigure GitHub connection (e.g., update token)"
             className="px-2 py-1 text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 rounded"
           />
         )}
       </div>
 
-      <at-dialog ref={dialogRef} backdrop={true} close_backdrop={false}>
+      <at-dialog ref={dialogRef} trigger_id="github-config-dialog" backdrop={true} close_backdrop={false}>
         <div className="bg-white rounded-lg p-6 w-full max-w-md">
           <div className="flex justify-between items-center mb-4">
             <div>
@@ -234,7 +227,7 @@ export function GitHubConfig({ onConfigChange, className = '' }: GitHubConfigPro
             </div>
             <at-button
               label="×"
-              onAtuiClick={() => setIsOpen(false)}
+              onAtuiClick={() => (dialogRef.current as any)?.closeDialog?.()}
               className="text-gray-500 hover:text-gray-700"
             />
           </div>
@@ -290,10 +283,13 @@ export function GitHubConfig({ onConfigChange, className = '' }: GitHubConfigPro
                 </div>
                 <at-select
                   value={config.branch}
-                  options={branches.map(b => ({ value: b, label: b }))}
                   onAtuiChange={(e: CustomEvent<string>) => setConfig(prev => ({ ...prev, branch: e.detail }))}
                   className="w-full"
-                />
+                >
+                  {branches.map(b => (
+                    <at-select-option key={b} value={b} label={b} />
+                  ))}
+                </at-select>
               </div>
             )}
 
@@ -315,14 +311,15 @@ export function GitHubConfig({ onConfigChange, className = '' }: GitHubConfigPro
                   </label>
                   <at-select
                     value={sourceBranch}
-                    options={[
-                      { value: '', label: 'Select source branch' },
-                      ...branches.map(b => ({ value: b, label: b })),
-                    ]}
                     placeholder="Select source branch"
                     onAtuiChange={(e: CustomEvent<string>) => setSourceBranch(e.detail)}
                     className="w-full"
-                  />
+                  >
+                    <at-select-option value="" label="Select source branch" />
+                    {branches.map(b => (
+                      <at-select-option key={b} value={b} label={b} />
+                    ))}
+                  </at-select>
                 </div>
                 <div className="flex justify-end space-x-2">
                   <at-button
@@ -354,7 +351,7 @@ export function GitHubConfig({ onConfigChange, className = '' }: GitHubConfigPro
             <div className="space-x-2">
               <at-button
                 label="Cancel"
-                onAtuiClick={() => setIsOpen(false)}
+                onAtuiClick={() => (dialogRef.current as any)?.closeDialog?.()}
                 className="px-4 py-2 text-gray-600 hover:text-gray-700"
               />
               <at-button
