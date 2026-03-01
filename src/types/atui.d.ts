@@ -53,7 +53,7 @@ declare global {
         disabled?: boolean;
       };
       // Tabs
-      'at-tabs': React.HTMLAttributes<HTMLElement> & {
+      'at-tabs': React.HTMLAttributes<HTMLElement> & React.ClassAttributes<HTMLElement> & {
         active_tab?: string;
         layout?: string;
         fill?: boolean;

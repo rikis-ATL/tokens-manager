@@ -152,6 +152,20 @@ function HomeContent() {
   const [generateFormKey, setGenerateFormKey] = useState(0);
 
   const abortControllerRef = useRef<AbortController | null>(null);
+  const tabsRef = useRef<HTMLElement>(null);
+
+  // at-tabs fires a custom event that React can't bind via JSX props — use addEventListener
+  useEffect(() => {
+    const el = tabsRef.current;
+    if (!el) return;
+    const handler = (e: Event) => {
+      const tab = (e as CustomEvent<string>).detail as 'view' | 'generate';
+      switchTab(tab);
+    };
+    el.addEventListener('atuiTabChange', handler);
+    return () => el.removeEventListener('atuiTabChange', handler);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Build is enabled when a MongoDB collection is selected (view tab) or tokens are loaded (generate tab)
   const isBuildEnabled =
@@ -443,9 +457,9 @@ function HomeContent() {
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
           <at-tabs
+            ref={tabsRef}
             layout="horizontal"
             active_tab={activeTab}
-            onAtuiTabChange={(e: CustomEvent<string>) => switchTab(e.detail as 'view' | 'generate')}
           >
             <at-tab-trigger slot="tab-list" tab_title="View Tokens" tab_id="view" />
             <at-tab-trigger slot="tab-list" tab_title="Generate Tokens" tab_id="generate" />
