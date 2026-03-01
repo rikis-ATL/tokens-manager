@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface GitHubRepo {
   repository: string;
@@ -26,6 +26,14 @@ export function GitHubConfig({ onConfigChange, className = '' }: GitHubConfigPro
   const [showCreateBranch, setShowCreateBranch] = useState(false);
   const [newBranchName, setNewBranchName] = useState('');
   const [sourceBranch, setSourceBranch] = useState('');
+
+  const dialogRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const el = dialogRef.current as any;
+    if (!el) return;
+    if (isOpen) { el.openDialog?.(); } else { el.closeDialog?.(); }
+  }, [isOpen]);
 
   // Load saved config on mount
   useEffect(() => {
@@ -188,12 +196,11 @@ export function GitHubConfig({ onConfigChange, className = '' }: GitHubConfigPro
   return (
     <div className={className}>
       <div className="flex items-center gap-2">
-        <button
-          onClick={() => setIsOpen(true)}
+        <at-button
+          label={isConnected ? '' : 'Configure GitHub'}
+          onAtuiClick={() => setIsOpen(true)}
           className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-            isConnected
-              ? 'bg-green-100 text-green-800 hover:bg-green-200'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            isConnected ? 'bg-green-100 text-green-800 hover:bg-green-200' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
         >
           {isConnected ? (
@@ -201,200 +208,165 @@ export function GitHubConfig({ onConfigChange, className = '' }: GitHubConfigPro
               <span className="w-2 h-2 bg-green-500 rounded-full"></span>
               {config.repository} ({config.branch})
             </span>
-          ) : (
-            'Configure GitHub'
-          )}
-        </button>
+          ) : null}
+        </at-button>
 
         {isConnected && (
-          <button
-            onClick={() => setIsOpen(true)}
-            className="px-2 py-1 text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 rounded transition-colors"
+          <at-button
+            label="Reconfigure"
+            onAtuiClick={() => setIsOpen(true)}
             title="Reconfigure GitHub connection (e.g., update token)"
-          >
-            Reconfigure
-          </button>
+            className="px-2 py-1 text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 rounded"
+          />
         )}
       </div>
 
-      {isOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <div className="flex justify-between items-center mb-4">
-              <div>
-                <h3 className="text-lg font-semibold">GitHub Repository Configuration</h3>
-                {isConnected && (
-                  <p className="text-sm text-green-600 mt-1">
-                    ✓ Connected to {config.repository}
-                  </p>
-                )}
-              </div>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                ×
-              </button>
+      <at-dialog ref={dialogRef} backdrop={true} close_backdrop={false}>
+        <div className="bg-white rounded-lg p-6 w-full max-w-md">
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <h3 className="text-lg font-semibold">GitHub Repository Configuration</h3>
+              {isConnected && (
+                <p className="text-sm text-green-600 mt-1">
+                  Connected to {config.repository}
+                </p>
+              )}
+            </div>
+            <at-button
+              label="×"
+              onAtuiClick={() => setIsOpen(false)}
+              className="text-gray-500 hover:text-gray-700"
+            />
+          </div>
+
+          {isConnected && (
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-4">
+              <h4 className="text-sm font-medium text-blue-900 mb-1">Need to update your token?</h4>
+              <p className="text-xs text-blue-700">
+                If you&apos;ve regenerated your Personal Access Token, update it below and click &quot;Save &amp; Connect&quot; again.
+              </p>
+            </div>
+          )}
+
+          <div className="space-y-4">
+            <div>
+              <at-input
+                value={config.repository}
+                placeholder="rikisommers/design-tokens"
+                label="Repository Name"
+                onAtuiChange={(e: CustomEvent<string | number>) => setConfig(prev => ({ ...prev, repository: String(e.detail) }))}
+                className="w-full"
+              />
+              <p className="text-gray-500 text-xs mt-1">
+                Enter just the repository name in format: <code className="bg-gray-100 px-1 rounded">username/repository</code><br/>
+                Correct: &quot;rikisommers/design-tokens&quot;<br/>
+                Do not include: &quot;https://github.com/...&quot;
+              </p>
             </div>
 
-            {isConnected && (
-              <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-4">
-                <h4 className="text-sm font-medium text-blue-900 mb-1">Need to update your token?</h4>
-                <p className="text-xs text-blue-700">
-                  If you've regenerated your Personal Access Token, update it below and click "Save & Connect" again.
-                </p>
+            <div>
+              <at-input
+                type="password"
+                value={config.token}
+                placeholder="ghp_xxxxxxxxxxxx"
+                label="Personal Access Token"
+                onAtuiChange={(e: CustomEvent<string | number>) => setConfig(prev => ({ ...prev, token: String(e.detail) }))}
+                className="w-full"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Token needs &apos;repo&apos; scope permissions
+              </p>
+            </div>
+
+            {branches.length > 0 && (
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-medium text-gray-700">Branch</label>
+                  <at-button
+                    label="+ Create Branch"
+                    onAtuiClick={() => { setShowCreateBranch(true); setSourceBranch(config.branch); }}
+                    className="text-xs text-blue-600 hover:text-blue-700"
+                  />
+                </div>
+                <at-select
+                  value={config.branch}
+                  options={branches.map(b => ({ value: b, label: b }))}
+                  onAtuiChange={(e: CustomEvent<string>) => setConfig(prev => ({ ...prev, branch: e.detail }))}
+                  className="w-full"
+                />
               </div>
             )}
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Repository Name
-                </label>
-                <input
-                  type="text"
-                  value={config.repository}
-                  onChange={(e) => setConfig(prev => ({ ...prev, repository: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="rikisommers/design-tokens"
-                />
-                <p className="text-gray-500 text-xs mt-1">
-                  Enter just the repository name in format: <code className="bg-gray-100 px-1 rounded">username/repository</code><br/>
-                  ✅ Correct: "rikisommers/design-tokens"<br/>
-                  ❌ Don't include: "https://github.com/..."
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Personal Access Token
-                </label>
-                <input
-                  type="password"
-                  value={config.token}
-                  onChange={(e) => setConfig(prev => ({ ...prev, token: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="ghp_xxxxxxxxxxxx"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Token needs 'repo' scope permissions
-                </p>
-              </div>
-
-              {branches.length > 0 && (
+            {showCreateBranch && (
+              <div className="bg-blue-50 rounded-md p-3 space-y-3">
+                <h4 className="text-sm font-medium text-blue-900">Create New Branch</h4>
                 <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Branch
-                    </label>
-                    <button
-                      onClick={() => {
-                        setShowCreateBranch(true);
-                        setSourceBranch(config.branch);
-                      }}
-                      className="text-xs text-blue-600 hover:text-blue-700"
-                    >
-                      + Create Branch
-                    </button>
-                  </div>
-                  <select
-                    value={config.branch}
-                    onChange={(e) => setConfig(prev => ({ ...prev, branch: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    {branches.map(branch => (
-                      <option key={branch} value={branch}>{branch}</option>
-                    ))}
-                  </select>
+                  <at-input
+                    value={newBranchName}
+                    placeholder="feature/new-tokens"
+                    label="Branch Name"
+                    onAtuiChange={(e: CustomEvent<string | number>) => setNewBranchName(String(e.detail))}
+                    className="w-full"
+                  />
                 </div>
-              )}
+                <div>
+                  <label className="block text-xs font-medium text-blue-700 mb-1">
+                    Create From
+                  </label>
+                  <at-select
+                    value={sourceBranch}
+                    options={[
+                      { value: '', label: 'Select source branch' },
+                      ...branches.map(b => ({ value: b, label: b })),
+                    ]}
+                    placeholder="Select source branch"
+                    onAtuiChange={(e: CustomEvent<string>) => setSourceBranch(e.detail)}
+                    className="w-full"
+                  />
+                </div>
+                <div className="flex justify-end space-x-2">
+                  <at-button
+                    label="Cancel"
+                    onAtuiClick={() => { setShowCreateBranch(false); setNewBranchName(''); setSourceBranch(''); }}
+                    className="px-2 py-1 text-xs text-blue-600 hover:text-blue-700"
+                  />
+                  <at-button
+                    label={loading ? 'Creating...' : 'Create'}
+                    onAtuiClick={handleCreateBranch}
+                    disabled={loading}
+                    className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
 
-              {showCreateBranch && (
-                <div className="bg-blue-50 rounded-md p-3 space-y-3">
-                  <h4 className="text-sm font-medium text-blue-900">Create New Branch</h4>
-                  <div>
-                    <label className="block text-xs font-medium text-blue-700 mb-1">
-                      Branch Name
-                    </label>
-                    <input
-                      type="text"
-                      value={newBranchName}
-                      onChange={(e) => setNewBranchName(e.target.value)}
-                      placeholder="feature/new-tokens"
-                      className="w-full px-2 py-1 text-sm border border-blue-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-blue-700 mb-1">
-                      Create From
-                    </label>
-                    <select
-                      value={sourceBranch}
-                      onChange={(e) => setSourceBranch(e.target.value)}
-                      className="w-full px-2 py-1 text-sm border border-blue-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    >
-                      <option value="">Select source branch</option>
-                      {branches.map(branch => (
-                        <option key={branch} value={branch}>{branch}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="flex justify-end space-x-2">
-                    <button
-                      onClick={() => {
-                        setShowCreateBranch(false);
-                        setNewBranchName('');
-                        setSourceBranch('');
-                      }}
-                      className="px-2 py-1 text-xs text-blue-600 hover:text-blue-700"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleCreateBranch}
-                      disabled={loading}
-                      className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-                    >
-                      {loading ? 'Creating...' : 'Create'}
-                    </button>
-                  </div>
-                </div>
+          <div className="flex justify-between items-center mt-6">
+            <div className="flex space-x-3">
+              {isConnected && (
+                <at-button
+                  label="Reset Connection"
+                  onAtuiClick={handleDisconnect}
+                  className="px-3 py-2 bg-red-100 text-red-700 hover:bg-red-200 rounded-md text-sm font-medium"
+                />
               )}
             </div>
-
-            <div className="flex justify-between items-center mt-6">
-              <div className="flex space-x-3">
-                {isConnected && (
-                  <>
-                    <button
-                      onClick={handleDisconnect}
-                      className="px-3 py-2 bg-red-100 text-red-700 hover:bg-red-200 rounded-md text-sm font-medium transition-colors"
-                      title="Completely disconnect and clear all GitHub settings"
-                    >
-                      Reset Connection
-                    </button>
-                  </>
-                )}
-              </div>
-              <div className="space-x-2">
-                <button
-                  onClick={() => setIsOpen(false)}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-700"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSave}
-                  disabled={loading}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-                >
-                  {loading ? 'Connecting...' : (isConnected ? 'Update & Reconnect' : 'Save & Connect')}
-                </button>
-              </div>
+            <div className="space-x-2">
+              <at-button
+                label="Cancel"
+                onAtuiClick={() => setIsOpen(false)}
+                className="px-4 py-2 text-gray-600 hover:text-gray-700"
+              />
+              <at-button
+                label={loading ? 'Connecting...' : (isConnected ? 'Update & Reconnect' : 'Save & Connect')}
+                onAtuiClick={handleSave}
+                disabled={loading}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+              />
             </div>
           </div>
         </div>
-      )}
+      </at-dialog>
     </div>
   );
 }
