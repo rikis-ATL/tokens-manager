@@ -4,18 +4,6 @@ import React, { useEffect } from 'react';
 // CSS imported via relative path to bypass the package's restrictive `exports` field
 import '../../node_modules/@alliedtelesis-labs-nz/atui-components-stencil/dist/atui-components-stencil/atui-components-stencil.css';
 
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      'at-button': React.HTMLAttributes<HTMLElement> & {
-        variant?: string;
-        disabled?: boolean;
-        size?: string;
-      };
-    }
-  }
-}
-
 export default function AtuiDevTest() {
   useEffect(() => {
     import('@alliedtelesis-labs-nz/atui-components-stencil/loader').then(({ defineCustomElements }) => {
