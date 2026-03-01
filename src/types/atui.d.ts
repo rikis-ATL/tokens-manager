@@ -4,7 +4,7 @@ declare global {
   namespace JSX {
     interface IntrinsicElements {
       // Buttons
-      'at-button': React.HTMLAttributes<HTMLElement> & {
+      'at-button': React.HTMLAttributes<HTMLElement> & React.ClassAttributes<HTMLElement> & React.Attributes & {
         variant?: string;
         disabled?: boolean;
         size?: string;
@@ -68,6 +68,7 @@ declare global {
       };
       // Dialog
       'at-dialog': React.HTMLAttributes<HTMLElement> & {
+        ref?: React.Ref<HTMLElement>;
         backdrop?: boolean;
         close_backdrop?: boolean;
         trigger_id?: string;
