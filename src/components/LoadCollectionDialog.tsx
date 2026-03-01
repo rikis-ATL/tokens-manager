@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 interface CollectionListItem {
   _id: string;
@@ -21,6 +21,7 @@ export function LoadCollectionDialog({
   const [isFetching, setIsFetching] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const dialogRef = useRef<HTMLElement>(null);
 
   // Fetch collections when dialog opens
   useEffect(() => {
@@ -54,6 +55,17 @@ export function LoadCollectionDialog({
     fetchCollections();
   }, [isOpen]);
 
+  // Sync at-dialog open/close state with isOpen prop
+  useEffect(() => {
+    if (!dialogRef.current) return;
+    const el = dialogRef.current as any;
+    if (isOpen) {
+      el.openDialog?.();
+    } else {
+      el.closeDialog?.();
+    }
+  }, [isOpen]);
+
   if (!isOpen) {
     return null;
   }
@@ -68,18 +80,17 @@ export function LoadCollectionDialog({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <at-dialog ref={dialogRef} backdrop={true}>
       <div className="bg-white rounded-lg shadow-xl w-full max-w-sm mx-4">
         {/* Header */}
         <div className="flex justify-between items-center p-4 border-b border-gray-200">
           <h3 className="text-lg font-medium text-gray-900">Load Collection</h3>
-          <button
-            onClick={onCancel}
-            className="text-gray-500 hover:text-gray-700"
+          <at-button
+            label="✕"
+            onAtuiClick={onCancel}
             disabled={isLoading}
-          >
-            ✕
-          </button>
+            className="text-gray-500 hover:text-gray-700"
+          />
         </div>
 
         {/* Body */}
@@ -95,14 +106,13 @@ export function LoadCollectionDialog({
           ) : (
             <div className="max-h-64 overflow-y-auto">
               {collections.map((item) => (
-                <button
+                <at-button
                   key={item._id}
-                  onClick={() => handleSelect(item._id)}
+                  label={item.name}
+                  onAtuiClick={() => handleSelect(item._id)}
                   disabled={isLoading}
                   className="w-full text-left px-4 py-2 text-sm text-gray-800 hover:bg-gray-100 disabled:opacity-50"
-                >
-                  {item.name}
-                </button>
+                />
               ))}
             </div>
           )}
@@ -110,15 +120,14 @@ export function LoadCollectionDialog({
 
         {/* Footer */}
         <div className="flex justify-end p-4 border-t border-gray-200">
-          <button
-            onClick={onCancel}
+          <at-button
+            label="Cancel"
+            onAtuiClick={onCancel}
             disabled={isLoading}
             className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
-          >
-            Cancel
-          </button>
+          />
         </div>
       </div>
-    </div>
+    </at-dialog>
   );
 }

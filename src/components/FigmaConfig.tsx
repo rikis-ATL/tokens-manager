@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface FigmaConfigState {
   token: string;
@@ -29,6 +29,14 @@ export function FigmaConfig({ onConfigChange, className = '' }: FigmaConfigProps
   const [loading, setLoading] = useState(false);
   const [testStatus, setTestStatus] = useState<'idle' | 'ok' | 'error'>('idle');
   const [testMessage, setTestMessage] = useState('');
+
+  const dialogRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const el = dialogRef.current as any;
+    if (!el) return;
+    if (isOpen) { el.openDialog?.(); } else { el.closeDialog?.(); }
+  }, [isOpen]);
 
   // Load saved config on mount
   useEffect(() => {
@@ -139,12 +147,11 @@ export function FigmaConfig({ onConfigChange, className = '' }: FigmaConfigProps
   return (
     <div className={className}>
       <div className="flex items-center gap-2">
-        <button
-          onClick={() => setIsOpen(true)}
+        <at-button
+          label={isConnected ? '' : 'Configure Figma'}
+          onAtuiClick={() => setIsOpen(true)}
           className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-            isConnected
-              ? 'bg-green-100 text-green-800 hover:bg-green-200'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            isConnected ? 'bg-green-100 text-green-800 hover:bg-green-200' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
         >
           {isConnected ? (
@@ -152,119 +159,106 @@ export function FigmaConfig({ onConfigChange, className = '' }: FigmaConfigProps
               <span className="w-2 h-2 bg-green-500 rounded-full"></span>
               <span className="max-w-[120px] truncate">{config.fileKey}</span>
             </span>
-          ) : (
-            'Configure Figma'
-          )}
-        </button>
+          ) : null}
+        </at-button>
       </div>
 
-      {isOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <div className="flex justify-between items-center mb-4">
-              <div>
-                <h3 className="text-lg font-semibold">Figma Configuration</h3>
-                {isConnected && (
-                  <p className="text-sm text-green-600 mt-1">
-                    Connected to {config.fileKey}
-                  </p>
-                )}
-              </div>
-              <button
-                onClick={handleCancel}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                x
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Personal Access Token
-                </label>
-                <input
-                  type="password"
-                  value={config.token}
-                  onChange={(e) => handleTokenChange(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="figd_xxxx..."
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Generate at figma.com &rarr; Account Settings &rarr; Personal access tokens
+      <at-dialog ref={dialogRef} backdrop={true} close_backdrop={false}>
+        <div className="bg-white rounded-lg p-6 w-full max-w-md">
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <h3 className="text-lg font-semibold">Figma Configuration</h3>
+              {isConnected && (
+                <p className="text-sm text-green-600 mt-1">
+                  Connected to {config.fileKey}
                 </p>
-              </div>
+              )}
+            </div>
+            <at-button
+              label="x"
+              onAtuiClick={handleCancel}
+              className="text-gray-500 hover:text-gray-700"
+            />
+          </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Figma File URL
-                </label>
-                <input
-                  type="text"
-                  value={config.fileUrl}
-                  onChange={(e) => handleFileUrlChange(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="https://www.figma.com/design/ABC123/..."
-                />
-                {config.fileKey && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    File key: <code className="bg-gray-100 px-1 rounded">{config.fileKey}</code>
-                  </p>
-                )}
-              </div>
-
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={handleTestConnection}
-                  disabled={loading || !config.token}
-                  className="px-4 py-2 text-sm font-medium text-blue-600 border border-blue-300 rounded-md hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {loading ? 'Testing...' : 'Test Connection'}
-                </button>
-
-                {testStatus === 'ok' && (
-                  <span className="text-sm text-green-600 flex items-center gap-1">
-                    <span className="w-2 h-2 bg-green-500 rounded-full inline-block"></span>
-                    {testMessage}
-                  </span>
-                )}
-                {testStatus === 'error' && (
-                  <span className="text-sm text-red-600">{testMessage}</span>
-                )}
-              </div>
+          <div className="space-y-4">
+            <div>
+              <at-input
+                type="password"
+                value={config.token}
+                placeholder="figd_xxxx..."
+                label="Personal Access Token"
+                onAtuiChange={(e: CustomEvent<string | number>) => handleTokenChange(String(e.detail))}
+                className="w-full"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Generate at figma.com &rarr; Account Settings &rarr; Personal access tokens.
+                Note: Figma import/export requires an Enterprise Figma plan (Variables REST API).
+              </p>
             </div>
 
-            <div className="flex justify-between items-center mt-6">
-              <div>
-                {isConnected && (
-                  <button
-                    onClick={handleReset}
-                    className="px-3 py-2 bg-red-100 text-red-700 hover:bg-red-200 rounded-md text-sm font-medium transition-colors"
-                    title="Completely disconnect and clear all Figma settings"
-                  >
-                    Reset Connection
-                  </button>
-                )}
-              </div>
-              <div className="space-x-2">
-                <button
-                  onClick={handleCancel}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-700"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSave}
-                  disabled={!canSave}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Save
-                </button>
-              </div>
+            <div>
+              <at-input
+                type="text"
+                value={config.fileUrl}
+                placeholder="https://www.figma.com/design/ABC123/..."
+                label="Figma File URL"
+                onAtuiChange={(e: CustomEvent<string | number>) => handleFileUrlChange(String(e.detail))}
+                className="w-full"
+              />
+              {config.fileKey && (
+                <p className="text-xs text-gray-500 mt-1">
+                  File key: <code className="bg-gray-100 px-1 rounded">{config.fileKey}</code>
+                </p>
+              )}
+            </div>
+
+            <div className="flex items-center gap-3">
+              <at-button
+                label={loading ? 'Testing...' : 'Test Connection'}
+                onAtuiClick={handleTestConnection}
+                disabled={loading || !config.token}
+                className="px-4 py-2 text-sm font-medium text-blue-600 border border-blue-300 rounded-md hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              />
+
+              {testStatus === 'ok' && (
+                <span className="text-sm text-green-600 flex items-center gap-1">
+                  <span className="w-2 h-2 bg-green-500 rounded-full inline-block"></span>
+                  {testMessage}
+                </span>
+              )}
+              {testStatus === 'error' && (
+                <span className="text-sm text-red-600">{testMessage}</span>
+              )}
+            </div>
+          </div>
+
+          <div className="flex justify-between items-center mt-6">
+            <div>
+              {isConnected && (
+                <at-button
+                  label="Reset Connection"
+                  onAtuiClick={handleReset}
+                  className="px-3 py-2 bg-red-100 text-red-700 hover:bg-red-200 rounded-md text-sm font-medium"
+                />
+              )}
+            </div>
+            <div className="space-x-2">
+              <at-button
+                label="Cancel"
+                onAtuiClick={handleCancel}
+                className="px-4 py-2 text-gray-600 hover:text-gray-700"
+              />
+              <at-button
+                label="Save"
+                onAtuiClick={handleSave}
+                disabled={!canSave}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              />
             </div>
           </div>
         </div>
-      )}
+      </at-dialog>
     </div>
   );
 }
