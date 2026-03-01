@@ -28,9 +28,6 @@ export function SharedCollectionHeader({
   onDuplicated,
   onError,
 }: SharedCollectionHeaderProps) {
-  const buttonClass =
-    'px-3 py-1.5 text-sm font-medium bg-white border border-gray-300 rounded-md hover:bg-gray-50';
-
   return (
     <div className="bg-white border-b border-gray-200 px-4 py-3 sm:px-6 lg:px-8">
       <div className="flex items-center gap-3 flex-wrap">
@@ -41,13 +38,17 @@ export function SharedCollectionHeader({
           onChange={onSelectionChange}
         />
 
-        <button onClick={onSaveAs} className={buttonClass}>
-          Save As Collection
-        </button>
+        <at-button
+          label="Save As Collection"
+          onAtuiClick={onSaveAs}
+          className="px-3 py-1.5 text-sm font-medium bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+        />
 
-        <button onClick={onNewCollection} className={buttonClass}>
-          New Collection
-        </button>
+        <at-button
+          label="New Collection"
+          onAtuiClick={onNewCollection}
+          className="px-3 py-1.5 text-sm font-medium bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+        />
 
         <CollectionActions
           selectedId={selectedId}

@@ -12,32 +12,22 @@ interface CollectionSelectorProps {
   onChange: (id: string) => void;
 }
 
-export function CollectionSelector({
-  collections,
-  selectedId,
-  onChange,
-}: CollectionSelectorProps) {
+export function CollectionSelector({ collections, selectedId, onChange }: CollectionSelectorProps) {
+  const options = [
+    { value: 'local', label: 'Local Files' },
+    ...collections.map((c) => ({ value: c._id, label: c.name })),
+  ];
+
   return (
     <div className="flex items-center">
       <label className="text-sm font-medium text-gray-700 mr-3">Collection:</label>
-      <select
+      <at-select
         value={selectedId}
-        onChange={(e) => onChange(e.target.value)}
+        options={options}
+        placeholder="Select collection..."
+        onAtuiChange={(e: CustomEvent<string>) => onChange(e.detail)}
         className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-      >
-        <optgroup label="Local">
-          <option value="local">Local Files</option>
-        </optgroup>
-        {collections.length > 0 && (
-          <optgroup label="Database">
-            {collections.map((c) => (
-              <option key={c._id} value={c._id}>
-                {c.name}
-              </option>
-            ))}
-          </optgroup>
-        )}
-      </select>
+      />
     </div>
   );
 }
