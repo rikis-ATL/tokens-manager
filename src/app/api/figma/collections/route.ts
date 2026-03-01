@@ -17,10 +17,20 @@ export async function GET(request: NextRequest) {
     );
 
     if (!response.ok) {
-      const errorText = await response.text();
+      let errorMessage = `Figma API error: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        if (response.status === 403 && typeof errorData.message === 'string' && errorData.message.includes('file_variables')) {
+          errorMessage = 'The Figma Variables API requires an Enterprise Figma plan. Your current plan does not include access to the Variables REST API.';
+        } else {
+          errorMessage = `Figma API error: ${errorData.message || response.statusText}`;
+        }
+      } catch {
+        // response was not JSON
+      }
       return NextResponse.json(
-        { error: `Figma API error: ${errorText}` },
-        { status: 502 }
+        { error: errorMessage },
+        { status: response.status === 403 ? 403 : 502 }
       );
     }
 

@@ -34,13 +34,12 @@ export function ImportFromFigmaDialog({
   const [error, setError] = useState<string | null>(null);
   const [noCredentials, setNoCredentials] = useState(false);
   const dialogRef = useRef<HTMLElement>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (isOpen) {
-      triggerRef.current?.click();
+      (dialogRef.current as any)?.openDialog();
     } else {
-      (dialogRef.current as any)?.closeDialog?.();
+      (dialogRef.current as any)?.closeDialog();
     }
   }, [isOpen]);
 
@@ -145,27 +144,15 @@ export function ImportFromFigmaDialog({
   const selectedCollection = collections.find((c) => c.id === selectedCollectionId);
   const modeCount = selectedCollection ? selectedCollection.modes.length : 0;
 
-  if (!isOpen) {
-    return null;
-  }
-
   return (
-    <>
-      <button
-        ref={triggerRef}
-        data-dialog="import-figma-dialog"
-        style={{ display: 'none' }}
-        aria-hidden="true"
-        tabIndex={-1}
-      />
-    <at-dialog ref={dialogRef} trigger_id="import-figma-dialog" backdrop={true} close_backdrop={false}>
+    <at-dialog ref={dialogRef} backdrop={true} close_backdrop={false}>
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
         {/* Header */}
         <div className="flex justify-between items-center p-4 border-b border-gray-200">
           <h3 className="text-lg font-medium text-gray-900">
             {step === 'pick' ? 'Import from Figma' : 'Name your collection'}
           </h3>
-          <at-button label="✕" onAtuiClick={onClose} disabled={saving} className="text-gray-500 hover:text-gray-700" />
+          <at-button label="✕" onClick={onClose} disabled={saving} className="text-gray-500 hover:text-gray-700" />
         </div>
 
         {/* Body */}
@@ -195,7 +182,7 @@ export function ImportFromFigmaDialog({
               ) : error ? (
                 <div className="space-y-3">
                   <p className="text-sm text-red-600">{error}</p>
-                  <at-button label="Retry" onAtuiClick={handleRetry} className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700" />
+                  <at-button label="Retry" onClick={handleRetry} className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700" />
                 </div>
               ) : collections.length === 0 ? (
                 <p className="text-sm text-gray-500">No variable collections found in this Figma file.</p>
@@ -260,7 +247,7 @@ export function ImportFromFigmaDialog({
         <div className="flex justify-end space-x-3 p-4 border-t border-gray-200">
           <at-button
             label="Cancel"
-            onAtuiClick={onClose}
+            onClick={onClose}
             disabled={saving}
             className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
           />
@@ -268,7 +255,7 @@ export function ImportFromFigmaDialog({
           {!noCredentials && step === 'pick' && !loading && !error && collections.length > 0 && (
             <at-button
               label="Next"
-              onAtuiClick={handleNext}
+              onClick={handleNext}
               disabled={!selectedCollectionId}
               className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
             />
@@ -277,7 +264,7 @@ export function ImportFromFigmaDialog({
           {!noCredentials && step === 'name' && (
             <at-button
               label={saving ? 'Importing...' : 'Import & Save'}
-              onAtuiClick={handleSave}
+              onClick={handleSave}
               disabled={saving || !collectionNameInput.trim()}
               className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
             />
@@ -285,6 +272,5 @@ export function ImportFromFigmaDialog({
         </div>
       </div>
     </at-dialog>
-    </>
   );
 }

@@ -40,13 +40,13 @@ export function SharedCollectionHeader({
 
         <at-button
           label="Save As Collection"
-          onAtuiClick={onSaveAs}
+          onClick={onSaveAs}
           className="px-3 py-1.5 text-sm font-medium bg-white border border-gray-300 rounded-md hover:bg-gray-50"
         />
 
         <at-button
           label="New Collection"
-          onAtuiClick={onNewCollection}
+          onClick={onNewCollection}
           className="px-3 py-1.5 text-sm font-medium bg-white border border-gray-300 rounded-md hover:bg-gray-50"
         />
 

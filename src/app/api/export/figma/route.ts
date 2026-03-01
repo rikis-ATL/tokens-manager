@@ -29,8 +29,18 @@ export async function POST(request: NextRequest) {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to export to Figma');
+      let errorMessage = 'Failed to export to Figma';
+      try {
+        const errorData = await response.json();
+        if (response.status === 403 && typeof errorData.message === 'string' && errorData.message.includes('file_variables')) {
+          errorMessage = 'The Figma Variables API requires an Enterprise Figma plan. Your current plan does not include access to the Variables REST API.';
+        } else {
+          errorMessage = errorData.message || 'Failed to export to Figma';
+        }
+      } catch {
+        // response was not JSON
+      }
+      throw new Error(errorMessage);
     }
 
     const responseData = await response.json();

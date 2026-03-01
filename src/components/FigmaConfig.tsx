@@ -166,7 +166,7 @@ export function FigmaConfig({ onConfigChange, className = '' }: FigmaConfigProps
             </div>
             <at-button
               label="x"
-              onAtuiClick={handleCancel}
+              onClick={handleCancel}
               className="text-gray-500 hover:text-gray-700"
             />
           </div>
@@ -206,7 +206,7 @@ export function FigmaConfig({ onConfigChange, className = '' }: FigmaConfigProps
             <div className="flex items-center gap-3">
               <at-button
                 label={loading ? 'Testing...' : 'Test Connection'}
-                onAtuiClick={handleTestConnection}
+                onClick={handleTestConnection}
                 disabled={loading || !config.token}
                 className="px-4 py-2 text-sm font-medium text-blue-600 border border-blue-300 rounded-md hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
               />
@@ -228,7 +228,7 @@ export function FigmaConfig({ onConfigChange, className = '' }: FigmaConfigProps
               {isConnected && (
                 <at-button
                   label="Reset Connection"
-                  onAtuiClick={handleReset}
+                  onClick={handleReset}
                   className="px-3 py-2 bg-red-100 text-red-700 hover:bg-red-200 rounded-md text-sm font-medium"
                 />
               )}
@@ -236,12 +236,12 @@ export function FigmaConfig({ onConfigChange, className = '' }: FigmaConfigProps
             <div className="space-x-2">
               <at-button
                 label="Cancel"
-                onAtuiClick={handleCancel}
+                onClick={handleCancel}
                 className="px-4 py-2 text-gray-600 hover:text-gray-700"
               />
               <at-button
                 label="Save"
-                onAtuiClick={handleSave}
+                onClick={handleSave}
                 disabled={!canSave}
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               />

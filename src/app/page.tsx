@@ -123,6 +123,7 @@ function flattenMongoTokens(
 }
 
 function HomeContent() {
+  console.log('[HomeContent] render — NEW CODE LOADED ✓');
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -159,9 +160,12 @@ function HomeContent() {
   // and at-tabs is actually mounted in the DOM.
   useEffect(() => {
     const el = tabsRef.current;
+    console.log('[at-tabs] effect ran, loading:', loading, 'el:', el);
     if (!el) return;
     const handler = (e: Event) => {
+      console.log('[at-tabs] atuiTabChange fired', e);
       const tab = (e as CustomEvent<string>).detail as 'view' | 'generate';
+      console.log('[at-tabs] detail:', tab);
       switchTab(tab);
     };
     el.addEventListener('atuiTabChange', handler);
@@ -411,7 +415,7 @@ function HomeContent() {
           <at-button
             label="Retry"
             variant="primary"
-            onAtuiClick={fetchTokens}
+            onClick={fetchTokens}
             className="mt-4"
           />
         </div>
@@ -431,7 +435,7 @@ function HomeContent() {
                 label="Build Tokens"
                 variant="primary"
                 disabled={!isBuildEnabled}
-                onAtuiClick={() => setBuildModalOpen(true)}
+                onClick={() => setBuildModalOpen(true)}
                 className="px-4 py-2 text-sm font-medium bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed"
               />
               <FigmaConfig onConfigChange={setFigmaConfig} />
@@ -512,7 +516,7 @@ function HomeContent() {
             <at-button
               label="Import from Figma"
               title="Requires a Figma Enterprise plan (Variables REST API)"
-              onAtuiClick={() => setImportFigmaOpen(true)}
+              onClick={() => setImportFigmaOpen(true)}
               className="px-3 py-1.5 text-sm font-medium bg-purple-100 text-purple-800 border border-purple-200 rounded-md hover:bg-purple-200"
             />
           </div>

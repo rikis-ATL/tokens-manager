@@ -38,7 +38,6 @@ export function BuildTokensModal({
   const [activeBrand, setActiveBrand] = useState<string>('');
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const dialogRef = useRef<HTMLElement>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
 
   const runBuild = useCallback(async () => {
     setLoading(true);
@@ -88,9 +87,9 @@ export function BuildTokensModal({
   // Open/close the at-dialog in sync with isOpen prop
   useEffect(() => {
     if (isOpen) {
-      triggerRef.current?.click();
+      (dialogRef.current as any)?.openDialog();
     } else {
-      (dialogRef.current as any)?.closeDialog?.();
+      (dialogRef.current as any)?.closeDialog();
     }
   }, [isOpen]);
 
@@ -132,8 +131,6 @@ export function BuildTokensModal({
     URL.revokeObjectURL(url);
   };
 
-  if (!isOpen) return null;
-
   // Derive current format outputs
   const currentFormatData: FormatOutput | undefined = result?.formats.find(f => f.format === activeFormat);
   const currentBrands = currentFormatData?.outputs ?? [];
@@ -143,15 +140,7 @@ export function BuildTokensModal({
 
   return (
     <>
-      {/* Hidden trigger button — clicked programmatically to open the at-dialog */}
-      <button
-        ref={triggerRef}
-        data-dialog="build-tokens-modal"
-        style={{ display: 'none' }}
-        aria-hidden="true"
-        tabIndex={-1}
-      />
-    <at-dialog ref={dialogRef} trigger_id="build-tokens-modal" backdrop={true} close_backdrop={false}>
+    <at-dialog ref={dialogRef} backdrop={true} close_backdrop={false}>
       <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden mx-4">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b flex-shrink-0">
@@ -160,7 +149,7 @@ export function BuildTokensModal({
             {result && (
               <at-button
                 label="Download All"
-                onAtuiClick={handleDownloadAll}
+                onClick={handleDownloadAll}
                 disabled={loading}
                 className="px-4 py-2 text-sm font-medium bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
               />
@@ -168,7 +157,7 @@ export function BuildTokensModal({
             <at-button
               label="×"
               aria-label="Close"
-              onAtuiClick={onClose}
+              onClick={onClose}
               className="text-gray-500 hover:text-gray-700 text-xl leading-none"
             />
           </div>
@@ -190,7 +179,7 @@ export function BuildTokensModal({
               <p className="text-red-600 text-sm mb-4">{error}</p>
               <at-button
                 label="Retry"
-                onAtuiClick={runBuild}
+                onClick={runBuild}
                 className="px-4 py-2 text-sm font-medium bg-red-600 text-white rounded hover:bg-red-700"
               />
             </div>
@@ -205,7 +194,7 @@ export function BuildTokensModal({
                   <at-button
                     key={fmt}
                     label={FORMAT_LABELS[fmt]}
-                    onAtuiClick={() => handleFormatChange(fmt)}
+                    onClick={() => handleFormatChange(fmt)}
                     className={`px-4 py-2 text-sm font-medium rounded-t -mb-px border-b-2 transition-colors ${
                       activeFormat === fmt
                         ? 'bg-blue-100 text-blue-900 border-blue-600'
@@ -222,7 +211,7 @@ export function BuildTokensModal({
                     <at-button
                       key={brand}
                       label={brand}
-                      onAtuiClick={() => setActiveBrand(brand)}
+                      onClick={() => setActiveBrand(brand)}
                       className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
                         activeBrand === brand
                           ? 'bg-gray-800 text-white'
@@ -238,7 +227,7 @@ export function BuildTokensModal({
                 <div className="relative">
                   <at-button
                     label={copiedKey === copyKey ? 'Copied!' : 'Copy'}
-                    onAtuiClick={() => handleCopy(copyKey, currentBrandOutput.content)}
+                    onClick={() => handleCopy(copyKey, currentBrandOutput.content)}
                     className="absolute top-2 right-2 z-10 px-2 py-1 text-xs bg-white border border-gray-300 rounded hover:bg-gray-50"
                   />
                   <pre className="bg-gray-50 rounded p-4 text-sm font-mono overflow-x-auto whitespace-pre-wrap break-all max-h-[400px] overflow-y-auto">

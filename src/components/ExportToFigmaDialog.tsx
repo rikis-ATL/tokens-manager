@@ -37,13 +37,12 @@ export function ExportToFigmaDialog({
   const [hasCredentials, setHasCredentials] = useState(false);
   const prevIsOpen = useRef(false);
   const dialogRef = useRef<HTMLElement>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (isOpen) {
-      triggerRef.current?.click();
+      (dialogRef.current as any)?.openDialog();
     } else {
-      (dialogRef.current as any)?.closeDialog?.();
+      (dialogRef.current as any)?.closeDialog();
     }
   }, [isOpen]);
 
@@ -139,23 +138,13 @@ export function ExportToFigmaDialog({
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <>
-      <button
-        ref={triggerRef}
-        data-dialog="export-figma-dialog"
-        style={{ display: 'none' }}
-        aria-hidden="true"
-        tabIndex={-1}
-      />
-    <at-dialog ref={dialogRef} trigger_id="export-figma-dialog" backdrop={true} close_backdrop={false}>
+    <at-dialog ref={dialogRef} backdrop={true} close_backdrop={false}>
       <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 shadow-xl">
         {/* Header */}
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-medium text-gray-900">Export to Figma</h3>
-          <at-button label="✕" onAtuiClick={onClose} disabled={exporting} className="text-gray-500 hover:text-gray-700" />
+          <at-button label="✕" onClick={onClose} disabled={exporting} className="text-gray-500 hover:text-gray-700" />
         </div>
 
         {/* Enterprise warning */}
@@ -170,7 +159,7 @@ export function ExportToFigmaDialog({
               Configure Figma credentials first using the Figma config button in the app header.
             </p>
             <div className="flex justify-end">
-              <at-button label="Close" onAtuiClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50" />
+              <at-button label="Close" onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50" />
             </div>
           </div>
         ) : successMessage ? (
@@ -180,7 +169,7 @@ export function ExportToFigmaDialog({
               {successMessage}
             </p>
             <div className="flex justify-end">
-              <at-button label="Close" onAtuiClick={onClose} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700" />
+              <at-button label="Close" onClick={onClose} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700" />
             </div>
           </div>
         ) : (
@@ -207,7 +196,7 @@ export function ExportToFigmaDialog({
                 />
                 <at-button
                   label={loading ? 'Loading...' : 'Load collections'}
-                  onAtuiClick={handleLoadCollections}
+                  onClick={handleLoadCollections}
                   disabled={loading || !fileKey.trim() || exporting}
                   className="px-3 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                 />
@@ -259,13 +248,13 @@ export function ExportToFigmaDialog({
             <div className="flex justify-end gap-3 pt-2 border-t border-gray-200">
               <at-button
                 label="Cancel"
-                onAtuiClick={onClose}
+                onClick={onClose}
                 disabled={exporting}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
               />
               <at-button
                 label={exporting ? 'Exporting...' : 'Export'}
-                onAtuiClick={handleExport}
+                onClick={handleExport}
                 disabled={!selectedCollectionId || exporting}
                 className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
               />
@@ -274,6 +263,5 @@ export function ExportToFigmaDialog({
         )}
       </div>
     </at-dialog>
-    </>
   );
 }

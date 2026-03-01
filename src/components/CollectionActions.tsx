@@ -148,7 +148,7 @@ export function CollectionActions({
       <at-button
         label="Rename"
         data-dialog="rename-collection-dialog"
-        onAtuiClick={() => setRenameValue(selectedName)}
+        onClick={() => setRenameValue(selectedName)}
         className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium bg-white border text-gray-700 border-gray-300 hover:bg-gray-50 rounded-md"
       />
 
@@ -156,7 +156,7 @@ export function CollectionActions({
       <at-button
         label="Duplicate"
         data-dialog="duplicate-collection-dialog"
-        onAtuiClick={() => {
+        onClick={() => {
           setDuplicateName('Copy of ' + selectedName);
           setDuplicateError(null);
         }}
@@ -189,7 +189,7 @@ export function CollectionActions({
             />
             <at-button
               label={isDeleting ? 'Deleting...' : 'Delete'}
-              onAtuiClick={handleDelete}
+              onClick={handleDelete}
               disabled={isDeleting}
               className={`px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 ${isDeleting ? 'opacity-50 cursor-not-allowed' : ''}`}
             />
@@ -232,7 +232,7 @@ export function CollectionActions({
             />
             <at-button
               label={isRenaming ? 'Saving...' : 'Save'}
-              onAtuiClick={handleRename}
+              onClick={handleRename}
               disabled={renameSaveDisabled}
               className={`px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 ${renameSaveDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
             />
@@ -273,7 +273,7 @@ export function CollectionActions({
             />
             <at-button
               label={isDuplicating ? 'Duplicating...' : 'Duplicate'}
-              onAtuiClick={handleDuplicate}
+              onClick={handleDuplicate}
               disabled={duplicateSaveDisabled}
               className={`px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 ${duplicateSaveDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
             />

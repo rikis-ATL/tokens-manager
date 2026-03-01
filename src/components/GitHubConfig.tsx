@@ -227,7 +227,7 @@ export function GitHubConfig({ onConfigChange, className = '' }: GitHubConfigPro
             </div>
             <at-button
               label="×"
-              onAtuiClick={() => (dialogRef.current as any)?.closeDialog?.()}
+              onClick={() => (dialogRef.current as any)?.closeDialog?.()}
               className="text-gray-500 hover:text-gray-700"
             />
           </div>
@@ -277,7 +277,7 @@ export function GitHubConfig({ onConfigChange, className = '' }: GitHubConfigPro
                   <label className="block text-sm font-medium text-gray-700">Branch</label>
                   <at-button
                     label="+ Create Branch"
-                    onAtuiClick={() => { setShowCreateBranch(true); setSourceBranch(config.branch); }}
+                    onClick={() => { setShowCreateBranch(true); setSourceBranch(config.branch); }}
                     className="text-xs text-blue-600 hover:text-blue-700"
                   />
                 </div>
@@ -324,12 +324,12 @@ export function GitHubConfig({ onConfigChange, className = '' }: GitHubConfigPro
                 <div className="flex justify-end space-x-2">
                   <at-button
                     label="Cancel"
-                    onAtuiClick={() => { setShowCreateBranch(false); setNewBranchName(''); setSourceBranch(''); }}
+                    onClick={() => { setShowCreateBranch(false); setNewBranchName(''); setSourceBranch(''); }}
                     className="px-2 py-1 text-xs text-blue-600 hover:text-blue-700"
                   />
                   <at-button
                     label={loading ? 'Creating...' : 'Create'}
-                    onAtuiClick={handleCreateBranch}
+                    onClick={handleCreateBranch}
                     disabled={loading}
                     className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
                   />
@@ -343,7 +343,7 @@ export function GitHubConfig({ onConfigChange, className = '' }: GitHubConfigPro
               {isConnected && (
                 <at-button
                   label="Reset Connection"
-                  onAtuiClick={handleDisconnect}
+                  onClick={handleDisconnect}
                   className="px-3 py-2 bg-red-100 text-red-700 hover:bg-red-200 rounded-md text-sm font-medium"
                 />
               )}
@@ -351,12 +351,12 @@ export function GitHubConfig({ onConfigChange, className = '' }: GitHubConfigPro
             <div className="space-x-2">
               <at-button
                 label="Cancel"
-                onAtuiClick={() => (dialogRef.current as any)?.closeDialog?.()}
+                onClick={() => (dialogRef.current as any)?.closeDialog?.()}
                 className="px-4 py-2 text-gray-600 hover:text-gray-700"
               />
               <at-button
                 label={loading ? 'Connecting...' : (isConnected ? 'Update & Reconnect' : 'Save & Connect')}
-                onAtuiClick={handleSave}
+                onClick={handleSave}
                 disabled={loading}
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
               />

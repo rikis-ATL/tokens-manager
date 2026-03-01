@@ -655,7 +655,7 @@ export function TokenGeneratorFormNew({ githubConfig, onTokensChange, collection
                 {hasChildren && (
                   <at-button
                     label={group.expanded ? '▼' : '▶'}
-                    onAtuiClick={() => toggleGroupExpansion(group.id)}
+                    onClick={() => toggleGroupExpansion(group.id)}
                     className="text-gray-500 hover:text-gray-700 focus:outline-none"
                   />
                 )}
@@ -682,7 +682,7 @@ export function TokenGeneratorFormNew({ githubConfig, onTokensChange, collection
               </div>
               <at-button
                 label="Delete Group"
-                onAtuiClick={() => deleteTokenGroup(group.id)}
+                onClick={() => deleteTokenGroup(group.id)}
                 className="text-sm font-medium text-red-600 hover:text-red-800"
               />
             </div>
@@ -714,7 +714,7 @@ export function TokenGeneratorFormNew({ githubConfig, onTokensChange, collection
                               value={token.path}
                               placeholder="token.name"
                               onAtuiChange={(e: CustomEvent<string | number>) => updateToken(group.id, token.id, 'path', String(e.detail))}
-                              className="px-2 py-1 font-mono text-xs rounded border border-gray-300 bg-gray-50 text-gray-600"
+                              className="px-2 py-1 font-mono text-xs text-gray-600 bg-gray-50 rounded border border-gray-300"
                               style={{ minWidth: '100px', maxWidth: '150px' } as React.CSSProperties}
                             />
                           </div>
@@ -739,7 +739,7 @@ export function TokenGeneratorFormNew({ githubConfig, onTokensChange, collection
                                 return typeof resolvedValue === 'string' && resolvedValue.startsWith('#') ? resolvedValue : '#cccccc';
                               })()}
                               onInput={(e: React.FormEvent<HTMLInputElement>) => updateToken(group.id, token.id, 'value', (e.target as HTMLInputElement).value)}
-                              className="border border-gray-300 rounded cursor-pointer"
+                              className="rounded border border-gray-300 cursor-pointer"
                               style={{ width: '40px', height: '40px' }}
                               title={`Color: ${token.value}`}
                             />
@@ -766,12 +766,12 @@ export function TokenGeneratorFormNew({ githubConfig, onTokensChange, collection
                           <div className="flex space-x-2">
                             <at-button
                               label={expandedTokens.has(token.id) ? '↑' : '↓'}
-                              onAtuiClick={() => toggleTokenExpansion(token.id)}
+                              onClick={() => toggleTokenExpansion(token.id)}
                               className="text-sm text-blue-600 hover:text-blue-800"
                             />
                             <at-button
                               label="✕"
-                              onAtuiClick={() => deleteToken(group.id, token.id)}
+                              onClick={() => deleteToken(group.id, token.id)}
                               className="text-sm text-red-600 hover:text-red-800"
                             />
                           </div>
@@ -805,14 +805,14 @@ export function TokenGeneratorFormNew({ githubConfig, onTokensChange, collection
                                   />
                                   <at-button
                                     label="✕"
-                                    onAtuiClick={() => removeTokenAttribute(group.id, token.id, key)}
+                                    onClick={() => removeTokenAttribute(group.id, token.id, key)}
                                     className="text-sm text-red-600 hover:text-red-800"
                                   />
                                 </div>
                               ))}
                               <at-button
                                 label="+ Add Attribute"
-                                onAtuiClick={() => updateTokenAttribute(group.id, token.id, 'newAttribute', '')}
+                                onClick={() => updateTokenAttribute(group.id, token.id, 'newAttribute', '')}
                                 className="text-sm font-medium text-blue-600 hover:text-blue-800"
                               />
                             </div>
@@ -826,10 +826,10 @@ export function TokenGeneratorFormNew({ githubConfig, onTokensChange, collection
             </div>
           )}
           {/* Always show — even when group is empty */}
-          <div className="border-t border-gray-200 px-4 py-3 text-center">
+          <div className="px-4 py-3 text-center border-t border-gray-200">
             <at-button
               label="+ Add Token"
-              onAtuiClick={() => addToken(group.id)}
+              onClick={() => addToken(group.id)}
               className="text-sm font-medium text-blue-600 hover:text-blue-800"
             />
           </div>
@@ -851,7 +851,7 @@ export function TokenGeneratorFormNew({ githubConfig, onTokensChange, collection
           <div className="flex items-center space-x-4">
             <h3 className="text-lg font-medium text-gray-900">Export Actions</h3>
             {loadedCollection && (
-              <p className="text-xs text-emerald-700 font-medium">
+              <p className="text-xs font-medium text-emerald-700">
                 Editing: {loadedCollection.name}
               </p>
             )}
@@ -869,43 +869,43 @@ export function TokenGeneratorFormNew({ githubConfig, onTokensChange, collection
           <div className="flex space-x-3">
             <at-button
               label="Preview JSON"
-              onAtuiClick={() => setShowJsonDialog(true)}
+              onClick={() => setShowJsonDialog(true)}
               className="px-3 py-2 text-sm font-medium text-white bg-gray-600 rounded-md hover:bg-gray-700"
             />
             <at-button
               label="Save to Database"
-              onAtuiClick={() => setShowSaveDialog(true)}
+              onClick={() => setShowSaveDialog(true)}
               className="px-3 py-2 text-sm font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700"
             />
             <at-button
               label="Load Collection"
-              onAtuiClick={() => setShowLoadDialog(true)}
+              onClick={() => setShowLoadDialog(true)}
               className="px-3 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
             />
             <at-button
               label="Download JSON"
-              onAtuiClick={exportToJSON}
+              onClick={exportToJSON}
               className="px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
             />
             <at-button
               label="Push to GitHub"
-              onAtuiClick={exportToGitHub}
+              onClick={exportToGitHub}
               className="px-3 py-2 text-sm font-medium text-white bg-gray-800 rounded-md hover:bg-gray-900"
             />
             <at-button
               label="Import from GitHub"
-              onAtuiClick={importFromGitHub}
+              onClick={importFromGitHub}
               className="px-3 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700"
             />
             <at-button
               label="Export to Figma"
               title="Requires a Figma Enterprise plan (Variables REST API)"
-              onAtuiClick={exportToFigma}
+              onClick={exportToFigma}
               className="px-3 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700"
             />
             <at-button
               label="Clear Form"
-              onAtuiClick={clearForm}
+              onClick={clearForm}
               className="px-3 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
             />
           </div>
@@ -924,7 +924,7 @@ export function TokenGeneratorFormNew({ githubConfig, onTokensChange, collection
         {!isAddingGroup ? (
           <at-button
             label="+ Add Token Group"
-            onAtuiClick={() => setIsAddingGroup(true)}
+            onClick={() => setIsAddingGroup(true)}
             className="font-medium text-gray-600 hover:text-gray-800"
           />
         ) : (
@@ -938,12 +938,12 @@ export function TokenGeneratorFormNew({ githubConfig, onTokensChange, collection
             />
             <at-button
               label="✓"
-              onAtuiClick={addTokenGroup}
+              onClick={addTokenGroup}
               className="px-3 py-2 font-medium text-white bg-green-600 rounded-md hover:bg-green-700"
             />
             <at-button
               label="✕"
-              onAtuiClick={() => { setIsAddingGroup(false); setNewGroupName(''); }}
+              onClick={() => { setIsAddingGroup(false); setNewGroupName(''); }}
               className="px-3 py-2 font-medium text-white bg-gray-500 rounded-md hover:bg-gray-600"
             />
           </div>
