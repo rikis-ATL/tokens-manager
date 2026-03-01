@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 ## Current Position
 
 Phase: 01-update-ui-to-use-shadcn-components-for-common-elements-buttons-tabs-modals (v1.1)
-Plan: 3/N complete
-Status: Plan 01-03 complete — CollectionSelector (at-select), SharedCollectionHeader (at-button), CollectionActions (at-button + at-dialog + at-input) migrated
-Last activity: 2026-03-01 — 01-03 complete; collection picker, save-as, new/delete/rename/duplicate collection all use ATUI
+Plan: 7/N complete
+Status: Plan 01-07 complete — TokenGeneratorFormNew fully migrated to ATUI (at-button, at-input, at-select, native color picker)
+Last activity: 2026-03-01 — 01-07 complete; all header actions, token row inputs, type selects, color pickers, inline buttons migrated
 
-Progress: [████░░░░░░] Phase 1 in progress (3 plans complete)
+Progress: [███████░░░] Phase 1 in progress (7 plans complete)
 
 ## Accumulated Context
 
@@ -46,6 +46,11 @@ All v1.0 decisions logged in PROJECT.md Key Decisions table.
 - [Phase 01-03]: at-dialog imperative control via useRef<HTMLElement> + openDialog()/closeDialog()
 - [Phase 01-03]: at-dialog needs ref?: React.Ref<HTMLElement> in atui.d.ts; at-button needs React.ClassAttributes<HTMLElement> for key prop
 
+**01-06 (Figma dialog ATUI migration):**
+- Both Figma dialogs retain isOpen guard (if (!isOpen) return null) alongside at-dialog ref — defense-in-depth approach
+- at-button in .map() lists needs React.Attributes added to at-button type in atui.d.ts to accept key prop
+- onKeyDown Enter-to-save shortcut dropped from at-input — ATUI web component does not expose same keyboard events
+
 ### Pending Todos
 
 None.
@@ -57,5 +62,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 01-03-PLAN.md — Collection management UI trio migrated to ATUI (CollectionSelector, SharedCollectionHeader, CollectionActions)
+Stopped at: Completed 01-04-PLAN.md — SaveCollectionDialog, LoadCollectionDialog, BuildTokensModal migrated to at-dialog + at-button + at-input (retroactive execution; BuildTokensModal was the only remaining task)
 Resume file: None
