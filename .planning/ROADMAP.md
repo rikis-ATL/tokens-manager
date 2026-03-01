@@ -33,7 +33,7 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full phase details.
 | 5. Export Style Dictionary | v1.0 | 2/2 | Complete | 2026-02-26 |
 | 6. Collection UX Improvements | v1.0 | 3/3 | Complete | 2026-02-28 |
 | 7. Fix Figma Integration | v1.0 | 6/6 | Complete | 2026-02-28 |
-| 1. shadcn UI Components | v1.1 | 0/8 | Not started | - |
+| 1. shadcn UI Components | v1.1 | 1/8 | In progress | - |
 | 2. Test ATUI Component Library | v1.1 | 1/1 | Complete | 2026-03-01 |
 
 ### 🚧 v1.1 shadcn UI
@@ -45,7 +45,7 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full phase details.
 **Plans:** 8 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Create AtuiProvider, global JSX types, update root layout
+- [x] 01-01-PLAN.md — Create AtuiProvider, global JSX types, update root layout (complete 2026-03-01)
 - [ ] 01-02-PLAN.md — Migrate page.tsx: at-tabs navigation, at-button actions
 - [ ] 01-03-PLAN.md — Migrate CollectionSelector (at-select), SharedCollectionHeader + CollectionActions (at-button, at-dialog, at-input)
 - [ ] 01-04-PLAN.md — Migrate SaveCollectionDialog, LoadCollectionDialog, BuildTokensModal (at-dialog, at-button, at-input)
