@@ -392,12 +392,12 @@ function HomeContent() {
         <div className="text-center">
           <div className="text-red-600 text-xl mb-4">Error</div>
           <p className="text-gray-600">{error}</p>
-          <button
-            onClick={fetchTokens}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Retry
-          </button>
+          <at-button
+            label="Retry"
+            variant="primary"
+            onAtuiClick={fetchTokens}
+            className="mt-4"
+          />
         </div>
       </div>
     );
@@ -411,13 +411,13 @@ function HomeContent() {
           <div className="flex items-center justify-between h-16">
             <h1 className="text-2xl font-bold text-gray-900">Design Token Manager</h1>
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => setBuildModalOpen(true)}
+              <at-button
+                label="Build Tokens"
+                variant="primary"
                 disabled={!isBuildEnabled}
+                onAtuiClick={() => setBuildModalOpen(true)}
                 className="px-4 py-2 text-sm font-medium bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                Build Tokens
-              </button>
+              />
               <FigmaConfig onConfigChange={setFigmaConfig} />
               <GitHubConfig onConfigChange={setGitHubConfig} />
             </div>
@@ -441,29 +441,16 @@ function HomeContent() {
 
       {/* Tab switcher */}
       <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-1 py-2">
-            <button
-              onClick={() => switchTab('view')}
-              className={
-                activeTab === 'view'
-                  ? 'px-4 py-2 text-sm font-medium bg-blue-100 text-blue-900 rounded-md'
-                  : 'px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md'
-              }
-            >
-              View Tokens
-            </button>
-            <button
-              onClick={() => switchTab('generate')}
-              className={
-                activeTab === 'generate'
-                  ? 'px-4 py-2 text-sm font-medium bg-blue-100 text-blue-900 rounded-md'
-                  : 'px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md'
-              }
-            >
-              Generate Tokens
-            </button>
-          </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+          <at-tabs
+            tabs={[
+              { id: 'view', title: 'View Tokens' },
+              { id: 'generate', title: 'Generate Tokens' },
+            ]}
+            active_tab={activeTab}
+            onAtuiChange={(e: CustomEvent<string>) => switchTab(e.detail as 'view' | 'generate')}
+            className="border-none"
+          />
         </div>
       </div>
 
@@ -507,12 +494,12 @@ function HomeContent() {
             <p className="text-gray-600 text-sm">Generate design tokens that follow the W3C Design Tokens specification with proper value, type, and attributes.</p>
           </div>
           <div className="mb-4 flex items-center gap-2">
-            <button
-              onClick={() => setImportFigmaOpen(true)}
+            <at-button
+              label="Import from Figma"
+              title="Requires a Figma Enterprise plan (Variables REST API)"
+              onAtuiClick={() => setImportFigmaOpen(true)}
               className="px-3 py-1.5 text-sm font-medium bg-purple-100 text-purple-800 border border-purple-200 rounded-md hover:bg-purple-200"
-            >
-              Import from Figma
-            </button>
+            />
           </div>
           <TokenGeneratorDocs />
           <TokenGeneratorFormNew
