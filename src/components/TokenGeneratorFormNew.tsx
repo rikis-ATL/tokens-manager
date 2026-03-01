@@ -647,28 +647,27 @@ export function TokenGeneratorFormNew({ githubConfig, onTokensChange, collection
     const indentLevel = group.level * 24;
 
     return (
-      <div key={group.id}  className="mb-4">
+      <div key={group.id} className="mb-4">
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
           <div className="p-4 border-b border-gray-200">
             <div className="flex justify-between items-center">
               <div className="flex items-center space-x-2">
                 {hasChildren && (
-                  <button
-                    onClick={() => toggleGroupExpansion(group.id)}
+                  <at-button
+                    label={group.expanded ? '▼' : '▶'}
+                    onAtuiClick={() => toggleGroupExpansion(group.id)}
                     className="text-gray-500 hover:text-gray-700 focus:outline-none"
-                  >
-                    {group.expanded ? '▼' : '▶'}
-                  </button>
+                  />
                 )}
                 <span className="font-mono text-sm text-gray-500">
                   Level {group.level}
                 </span>
-                <input
+                <at-input
                   type="text"
                   value={group.name}
-                  onChange={(e) => updateGroupName(group.id, e.target.value)}
-                  className="px-2 py-1 text-lg font-medium bg-transparent rounded border-none outline-none focus:bg-gray-50"
                   placeholder="Group name"
+                  onAtuiChange={(e: CustomEvent<string | number>) => updateGroupName(group.id, String(e.detail))}
+                  className="px-2 py-1 text-lg font-medium bg-transparent rounded border-none outline-none focus:bg-gray-50"
                 />
                 {hasChildren && (
                   <span className="px-2 py-1 text-xs text-blue-600 bg-blue-100 rounded">
@@ -681,12 +680,11 @@ export function TokenGeneratorFormNew({ githubConfig, onTokensChange, collection
                   </span>
                 )}
               </div>
-              <button
-                onClick={() => deleteTokenGroup(group.id)}
+              <at-button
+                label="Delete Group"
+                onAtuiClick={() => deleteTokenGroup(group.id)}
                 className="text-sm font-medium text-red-600 hover:text-red-800"
-              >
-                Delete Group
-              </button>
+              />
             </div>
           </div>
 
@@ -711,75 +709,67 @@ export function TokenGeneratorFormNew({ githubConfig, onTokensChange, collection
                             <div className="mr-2 font-mono text-sm text-gray-600">
                               {buildTokenPath(group, token.path).replace(/\./g, '-')}
                             </div>
-                            <input
+                            <at-input
                               type="text"
                               value={token.path}
-                              onChange={(e) => updateToken(group.id, token.id, 'path', e.target.value)}
                               placeholder="token.name"
+                              onAtuiChange={(e: CustomEvent<string | number>) => updateToken(group.id, token.id, 'path', String(e.detail))}
                               className="px-2 py-1 font-mono text-xs rounded border border-gray-300 bg-gray-50 text-gray-600"
-                              style={{ minWidth: '100px', maxWidth: '150px' }}
+                              style={{ minWidth: '100px', maxWidth: '150px' } as React.CSSProperties}
                             />
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          <select
+                          <at-select
                             value={token.type}
-                            onChange={(e) => updateToken(group.id, token.id, 'type', e.target.value)}
+                            options={TOKEN_TYPES.map(type => ({ value: type, label: type }))}
+                            onAtuiChange={(e: CustomEvent<string>) => updateToken(group.id, token.id, 'type', e.detail)}
                             className="px-2 py-1 text-sm rounded border border-gray-300"
-                          >
-                            {TOKEN_TYPES.map(type => (
-                              <option key={type} value={type}>{type}</option>
-                            ))}
-                          </select>
+                          />
                         </td>
                         <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            {token.type === 'color' && (
-                              <div
-                                className="w-6 h-6 border border-gray-300 rounded cursor-pointer flex-shrink-0"
-                                style={{ backgroundColor: (() => {
-                                  const resolvedValue = resolveTokenReference(token.value.toString());
-                                  return typeof resolvedValue === 'string' && resolvedValue.startsWith('#')
-                                    ? resolvedValue
-                                    : typeof resolvedValue === 'string' && resolvedValue.startsWith('{')
-                                      ? '#cccccc'
-                                      : resolvedValue;
-                                })() }}
-                                title={`Color preview: ${token.value} ${token.value !== resolveTokenReference(token.value.toString()) ? `→ ${resolveTokenReference(token.value.toString())}` : ''}`}
-                              />
-                            )}
+                          {token.type === 'color' ? (
                             <input
+                              type="color"
+                              value={(() => {
+                                const resolvedValue = resolveTokenReference(token.value.toString());
+                                return typeof resolvedValue === 'string' && resolvedValue.startsWith('#') ? resolvedValue : '#cccccc';
+                              })()}
+                              onInput={(e: React.FormEvent<HTMLInputElement>) => updateToken(group.id, token.id, 'value', (e.target as HTMLInputElement).value)}
+                              className="w-10 h-10 border border-gray-300 rounded cursor-pointer"
+                              title={`Color: ${token.value}`}
+                            />
+                          ) : (
+                            <at-input
                               type="text"
-                              value={token.value}
-                              onChange={(e) => updateToken(group.id, token.id, 'value', parseTokenValue(e.target.value, token.type))}
+                              value={String(token.value)}
                               placeholder={getValuePlaceholder(token.type)}
+                              onAtuiChange={(e: CustomEvent<string | number>) => updateToken(group.id, token.id, 'value', parseTokenValue(String(e.detail), token.type))}
                               className="flex-1 px-2 py-1 font-mono text-sm rounded border border-gray-300"
                             />
-                          </div>
+                          )}
                         </td>
                         <td className="px-4 py-3">
-                          <input
+                          <at-input
                             type="text"
                             value={token.description || ''}
-                            onChange={(e) => updateToken(group.id, token.id, 'description', e.target.value)}
                             placeholder="Optional description"
+                            onAtuiChange={(e: CustomEvent<string | number>) => updateToken(group.id, token.id, 'description', String(e.detail))}
                             className="flex-1 px-2 py-1 text-sm rounded border border-gray-300"
                           />
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex space-x-2">
-                            <button
-                              onClick={() => toggleTokenExpansion(token.id)}
+                            <at-button
+                              label={expandedTokens.has(token.id) ? '↑' : '↓'}
+                              onAtuiClick={() => toggleTokenExpansion(token.id)}
                               className="text-sm text-blue-600 hover:text-blue-800"
-                            >
-                              {expandedTokens.has(token.id) ? '↑' : '↓'}
-                            </button>
-                            <button
-                              onClick={() => deleteToken(group.id, token.id)}
+                            />
+                            <at-button
+                              label="✕"
+                              onAtuiClick={() => deleteToken(group.id, token.id)}
                               className="text-sm text-red-600 hover:text-red-800"
-                            >
-                              ✕
-                            </button>
+                            />
                           </div>
                         </td>
                       </tr>
@@ -790,39 +780,37 @@ export function TokenGeneratorFormNew({ githubConfig, onTokensChange, collection
                               <h5 className="mb-2 text-sm font-medium text-gray-700">Custom Attributes</h5>
                               {Object.entries(token.attributes || {}).map(([key, value]) => (
                                 <div key={key} className="flex items-center space-x-2">
-                                  <input
+                                  <at-input
                                     type="text"
                                     value={key}
-                                    onChange={(e) => {
-                                      const newKey = e.target.value;
+                                    placeholder="Attribute name"
+                                    onAtuiChange={(e: CustomEvent<string | number>) => {
+                                      const newKey = String(e.detail);
                                       removeTokenAttribute(group.id, token.id, key);
                                       updateTokenAttribute(group.id, token.id, newKey, value as string);
                                     }}
-                                    placeholder="Attribute name"
                                     className="flex-1 px-2 py-1 text-xs rounded border border-gray-300"
                                   />
                                   <span className="text-gray-500">:</span>
-                                  <input
+                                  <at-input
                                     type="text"
                                     value={value as string}
-                                    onChange={(e) => updateTokenAttribute(group.id, token.id, key, e.target.value)}
                                     placeholder="Attribute value"
+                                    onAtuiChange={(e: CustomEvent<string | number>) => updateTokenAttribute(group.id, token.id, key, String(e.detail))}
                                     className="flex-1 px-2 py-1 text-xs rounded border border-gray-300"
                                   />
-                                  <button
-                                    onClick={() => removeTokenAttribute(group.id, token.id, key)}
+                                  <at-button
+                                    label="✕"
+                                    onAtuiClick={() => removeTokenAttribute(group.id, token.id, key)}
                                     className="text-sm text-red-600 hover:text-red-800"
-                                  >
-                                    ✕
-                                  </button>
+                                  />
                                 </div>
                               ))}
-                              <button
-                                onClick={() => updateTokenAttribute(group.id, token.id, 'newAttribute', '')}
+                              <at-button
+                                label="+ Add Attribute"
+                                onAtuiClick={() => updateTokenAttribute(group.id, token.id, 'newAttribute', '')}
                                 className="text-sm font-medium text-blue-600 hover:text-blue-800"
-                              >
-                                + Add Attribute
-                              </button>
+                              />
                             </div>
                           </td>
                         </tr>
@@ -835,12 +823,11 @@ export function TokenGeneratorFormNew({ githubConfig, onTokensChange, collection
           )}
           {/* Always show — even when group is empty */}
           <div className="border-t border-gray-200 px-4 py-3 text-center">
-            <button
-              onClick={() => addToken(group.id)}
+            <at-button
+              label="+ Add Token"
+              onAtuiClick={() => addToken(group.id)}
               className="text-sm font-medium text-blue-600 hover:text-blue-800"
-            >
-              + Add Token
-            </button>
+            />
           </div>
         </div>
         {hasChildren && group.expanded && (
@@ -866,64 +853,57 @@ export function TokenGeneratorFormNew({ githubConfig, onTokensChange, collection
             )}
             <div className="flex items-center space-x-2">
               <label className="text-sm font-medium text-gray-700">Global Namespace:</label>
-              <input
+              <at-input
                 type="text"
                 value={globalNamespace}
-                onChange={(e) => { setGlobalNamespace(e.target.value); setIsDirty(true); }}
                 placeholder="Optional namespace (e.g., 'design', 'token')"
+                onAtuiChange={(e: CustomEvent<string | number>) => { setGlobalNamespace(String(e.detail)); setIsDirty(true); }}
                 className="px-3 py-2 text-sm rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
           <div className="flex space-x-3">
-            <button
-              onClick={() => setShowJsonDialog(true)}
+            <at-button
+              label="Preview JSON"
+              onAtuiClick={() => setShowJsonDialog(true)}
               className="px-3 py-2 text-sm font-medium text-white bg-gray-600 rounded-md hover:bg-gray-700"
-            >
-              Preview JSON
-            </button>
-            <button
-              onClick={() => setShowSaveDialog(true)}
+            />
+            <at-button
+              label="Save to Database"
+              onAtuiClick={() => setShowSaveDialog(true)}
               className="px-3 py-2 text-sm font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700"
-            >
-              Save to Database
-            </button>
-            <button
-              onClick={() => setShowLoadDialog(true)}
+            />
+            <at-button
+              label="Load Collection"
+              onAtuiClick={() => setShowLoadDialog(true)}
               className="px-3 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
-            >
-              Load Collection
-            </button>
-            <button
-              onClick={exportToJSON}
+            />
+            <at-button
+              label="Download JSON"
+              onAtuiClick={exportToJSON}
               className="px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
-            >
-              Download JSON
-            </button>
-            <button
-              onClick={exportToGitHub}
+            />
+            <at-button
+              label="Push to GitHub"
+              onAtuiClick={exportToGitHub}
               className="px-3 py-2 text-sm font-medium text-white bg-gray-800 rounded-md hover:bg-gray-900"
-            >
-              Push to GitHub
-            </button>
-            <button
-              onClick={importFromGitHub}
+            />
+            <at-button
+              label="Import from GitHub"
+              onAtuiClick={importFromGitHub}
               className="px-3 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700"
-            >
-              Import from GitHub
-            </button>
-            <button
-              onClick={exportToFigma}
+            />
+            <at-button
+              label="Export to Figma"
+              title="Requires a Figma Enterprise plan (Variables REST API)"
+              onAtuiClick={exportToFigma}
               className="px-3 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700"
-            >
-              Export to Figma
-            </button>
-            <button
-              onClick={clearForm}
+            />
+            <at-button
+              label="Clear Form"
+              onAtuiClick={clearForm}
               className="px-3 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
-            >
-              Clear Form
-            </button>
+            />
           </div>
         </div>
         {globalNamespace && (
@@ -938,38 +918,30 @@ export function TokenGeneratorFormNew({ githubConfig, onTokensChange, collection
       {/* Add Group */}
       <div className="p-6 text-center bg-gray-50 rounded-lg border-2 border-gray-300 border-dashed">
         {!isAddingGroup ? (
-          <button
-            onClick={() => setIsAddingGroup(true)}
+          <at-button
+            label="+ Add Token Group"
+            onAtuiClick={() => setIsAddingGroup(true)}
             className="font-medium text-gray-600 hover:text-gray-800"
-          >
-            + Add Token Group
-          </button>
+          />
         ) : (
           <div className="flex justify-center items-center space-x-3">
-            <input
+            <at-input
               type="text"
               value={newGroupName}
-              onChange={(e) => setNewGroupName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') addTokenGroup();
-                if (e.key === 'Escape') { setIsAddingGroup(false); setNewGroupName(''); }
-              }}
               placeholder="Group name (optional)..."
+              onAtuiChange={(e: CustomEvent<string | number>) => setNewGroupName(String(e.detail))}
               className="px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              autoFocus
             />
-            <button
-              onClick={addTokenGroup}
+            <at-button
+              label="✓"
+              onAtuiClick={addTokenGroup}
               className="px-3 py-2 font-medium text-white bg-green-600 rounded-md hover:bg-green-700"
-            >
-              ✓
-            </button>
-            <button
-              onClick={() => { setIsAddingGroup(false); setNewGroupName(''); }}
+            />
+            <at-button
+              label="✕"
+              onAtuiClick={() => { setIsAddingGroup(false); setNewGroupName(''); }}
               className="px-3 py-2 font-medium text-white bg-gray-500 rounded-md hover:bg-gray-600"
-            >
-              ✕
-            </button>
+            />
           </div>
         )}
       </div>
