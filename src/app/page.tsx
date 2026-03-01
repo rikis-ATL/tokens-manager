@@ -154,7 +154,9 @@ function HomeContent() {
   const abortControllerRef = useRef<AbortController | null>(null);
   const tabsRef = useRef<HTMLElement>(null);
 
-  // at-tabs fires a custom event that React can't bind via JSX props — use addEventListener
+  // at-tabs fires a custom event that React can't bind via JSX props — use addEventListener.
+  // Depends on `loading` so the effect re-runs after the early-return loading state clears
+  // and at-tabs is actually mounted in the DOM.
   useEffect(() => {
     const el = tabsRef.current;
     if (!el) return;
@@ -165,7 +167,7 @@ function HomeContent() {
     el.addEventListener('atuiTabChange', handler);
     return () => el.removeEventListener('atuiTabChange', handler);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loading]);
 
   // Build is enabled when a MongoDB collection is selected (view tab) or tokens are loaded (generate tab)
   const isBuildEnabled =
