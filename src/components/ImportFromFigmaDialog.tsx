@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 interface FigmaCollectionMode {
   modeId: string;
@@ -33,6 +33,13 @@ export function ImportFromFigmaDialog({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [noCredentials, setNoCredentials] = useState(false);
+  const dialogRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const el = dialogRef.current as any;
+    if (!el) return;
+    if (isOpen) { el.openDialog?.(); } else { el.closeDialog?.(); }
+  }, [isOpen]);
 
   // Load credentials and fetch collections on open
   useEffect(() => {
@@ -98,16 +105,6 @@ export function ImportFromFigmaDialog({
     }
   };
 
-  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const id = e.target.value;
-    setSelectedCollectionId(id);
-    const found = collections.find((c) => c.id === id);
-    if (found) {
-      setSelectedCollectionName(found.name);
-      setCollectionNameInput(found.name);
-    }
-  };
-
   const handleNext = () => {
     if (!selectedCollectionId) return;
     setStep('name');
@@ -150,24 +147,23 @@ export function ImportFromFigmaDialog({
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <at-dialog ref={dialogRef} backdrop={true} close_backdrop={false}>
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
         {/* Header */}
         <div className="flex justify-between items-center p-4 border-b border-gray-200">
           <h3 className="text-lg font-medium text-gray-900">
             {step === 'pick' ? 'Import from Figma' : 'Name your collection'}
           </h3>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
-            disabled={saving}
-          >
-            &#x2715;
-          </button>
+          <at-button label="✕" onAtuiClick={onClose} disabled={saving} className="text-gray-500 hover:text-gray-700" />
         </div>
 
         {/* Body */}
         <div className="p-4">
+          {/* Enterprise warning */}
+          <div className="mb-4 px-3 py-2 bg-amber-50 border border-amber-200 rounded-md text-xs text-amber-800">
+            Requires a <strong>Figma Enterprise plan</strong>. The Variables REST API is not available on Professional or lower plans.
+          </div>
+
           {/* No credentials state */}
           {noCredentials ? (
             <div className="space-y-3">
@@ -188,12 +184,7 @@ export function ImportFromFigmaDialog({
               ) : error ? (
                 <div className="space-y-3">
                   <p className="text-sm text-red-600">{error}</p>
-                  <button
-                    onClick={handleRetry}
-                    className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
-                  >
-                    Retry
-                  </button>
+                  <at-button label="Retry" onAtuiClick={handleRetry} className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700" />
                 </div>
               ) : collections.length === 0 ? (
                 <p className="text-sm text-gray-500">No variable collections found in this Figma file.</p>
@@ -202,18 +193,23 @@ export function ImportFromFigmaDialog({
                   <label className="block text-sm font-medium text-gray-700">
                     Variable collection
                   </label>
-                  <select
+                  <at-select
                     value={selectedCollectionId}
-                    onChange={handleSelectChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
-                  >
-                    <option value="">Select a collection...</option>
-                    {collections.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
+                    options={[
+                      { value: '', label: 'Select a collection...' },
+                      ...collections.map(c => ({ value: c.id, label: c.name })),
+                    ]}
+                    onAtuiChange={(e: CustomEvent<string>) => {
+                      const id = e.detail;
+                      setSelectedCollectionId(id);
+                      const found = collections.find(c => c.id === id);
+                      if (found) {
+                        setSelectedCollectionName(found.name);
+                        setCollectionNameInput(found.name);
+                      }
+                    }}
+                    className="w-full"
+                  />
                   {selectedCollectionId && (
                     <p className="text-xs text-gray-500">
                       {modeCount} {modeCount === 1 ? 'mode' : 'modes'} will be imported as brands
@@ -228,19 +224,12 @@ export function ImportFromFigmaDialog({
               <label className="block text-sm font-medium text-gray-700">
                 Collection name
               </label>
-              <input
-                type="text"
+              <at-input
                 value={collectionNameInput}
-                onChange={(e) => setCollectionNameInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !saving && collectionNameInput.trim()) {
-                    handleSave();
-                  }
-                  if (e.key === 'Escape') onClose();
-                }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
-                autoFocus
+                onAtuiChange={(e: CustomEvent<string | number>) => setCollectionNameInput(String(e.detail))}
                 disabled={saving}
+                placeholder="Enter collection name"
+                className="w-full"
               />
               <p className="text-xs text-gray-500">
                 This name will be used in the Design Token Manager
@@ -257,35 +246,32 @@ export function ImportFromFigmaDialog({
 
         {/* Footer */}
         <div className="flex justify-end space-x-3 p-4 border-t border-gray-200">
-          <button
-            onClick={onClose}
+          <at-button
+            label="Cancel"
+            onAtuiClick={onClose}
             disabled={saving}
             className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
-          >
-            Cancel
-          </button>
+          />
 
           {!noCredentials && step === 'pick' && !loading && !error && collections.length > 0 && (
-            <button
-              onClick={handleNext}
+            <at-button
+              label="Next"
+              onAtuiClick={handleNext}
               disabled={!selectedCollectionId}
               className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Next
-            </button>
+            />
           )}
 
           {!noCredentials && step === 'name' && (
-            <button
-              onClick={handleSave}
+            <at-button
+              label={saving ? 'Importing...' : 'Import & Save'}
+              onAtuiClick={handleSave}
               disabled={saving || !collectionNameInput.trim()}
               className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {saving ? 'Importing...' : 'Import & Save'}
-            </button>
+            />
           )}
         </div>
       </div>
-    </div>
+    </at-dialog>
   );
 }
