@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 ## Current Position
 
 Phase: 01-update-ui-to-use-shadcn-components-for-common-elements-buttons-tabs-modals (v1.1)
-Plan: 2/N complete
-Status: Plan 01-02 complete — page.tsx migrated to at-tabs (tab navigation) and at-button (action buttons)
-Last activity: 2026-03-01 — 01-02 complete; tab switcher, Build Tokens, Retry, Import from Figma buttons use ATUI
+Plan: 3/N complete
+Status: Plan 01-03 complete — CollectionSelector (at-select), SharedCollectionHeader (at-button), CollectionActions (at-button + at-dialog + at-input) migrated
+Last activity: 2026-03-01 — 01-03 complete; collection picker, save-as, new/delete/rename/duplicate collection all use ATUI
 
-Progress: [███░░░░░░░] Phase 1 in progress (2 plans complete)
+Progress: [████░░░░░░] Phase 1 in progress (3 plans complete)
 
 ## Accumulated Context
 
@@ -42,6 +42,9 @@ All v1.0 decisions logged in PROJECT.md Key Decisions table.
 - at-tabs with onAtuiChange drives URL-based switchTab — bridges ATUI event API to existing router.push() routing
 - Tab content divs with hidden class approach preserved (locked v1.0 decision) — at-tab-content NOT used
 - at-button with onAtuiClick replaces native button onClick for all action buttons in page.tsx
+- [Phase 01-03]: at-select has no optgroup support — flatten into single options array
+- [Phase 01-03]: at-dialog imperative control via useRef<HTMLElement> + openDialog()/closeDialog()
+- [Phase 01-03]: at-dialog needs ref?: React.Ref<HTMLElement> in atui.d.ts; at-button needs React.ClassAttributes<HTMLElement> for key prop
 
 ### Pending Todos
 
@@ -54,5 +57,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 01-02-PLAN.md — ATUI migration of page.tsx (at-tabs tab navigation, at-button action buttons)
+Stopped at: Completed 01-03-PLAN.md — Collection management UI trio migrated to ATUI (CollectionSelector, SharedCollectionHeader, CollectionActions)
 Resume file: None
