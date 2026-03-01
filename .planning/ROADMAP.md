@@ -26,7 +26,7 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full phase details.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 1. Database Foundation | v1.0 | 3/3 | Complete | 2026-02-25 |
+| 1. Database Foundation | 2/8 | In Progress|  | 2026-02-25 |
 | 2. View Integration | v1.0 | 2/2 | Complete | 2026-02-25 |
 | 3. Generator Form | v1.0 | 4/4 | Complete | 2026-02-26 |
 | 4. Collection Management | v1.0 | 3/3 | Complete | 2026-02-26 |
@@ -42,7 +42,7 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full phase details.
 
 **Goal:** Migrate all common UI elements to ATUI Stencil components (`@alliedtelesis-labs-nz/atui-components-stencil`) and replace all color token fields with native `<input type="color">` pickers
 **Depends on:** Nothing (first phase of v1.1)
-**Plans:** 8 plans
+**Plans:** 2/8 plans executed
 
 Plans:
 - [x] 01-01-PLAN.md — Create AtuiProvider, global JSX types, update root layout (complete 2026-03-01)

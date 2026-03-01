@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 ## Current Position
 
 Phase: 01-update-ui-to-use-shadcn-components-for-common-elements-buttons-tabs-modals (v1.1)
-Plan: 1/N complete
-Status: Plan 01-01 complete — ATUI global integration foundation established (AtuiProvider, atui.d.ts, layout update)
-Last activity: 2026-03-01 — 01-01 complete; AtuiProvider registered globally, JSX types declared, build passes
+Plan: 2/N complete
+Status: Plan 01-02 complete — page.tsx migrated to at-tabs (tab navigation) and at-button (action buttons)
+Last activity: 2026-03-01 — 01-02 complete; tab switcher, Build Tokens, Retry, Import from Figma buttons use ATUI
 
-Progress: [██░░░░░░░░] Phase 1 in progress (1 plan complete)
+Progress: [███░░░░░░░] Phase 1 in progress (2 plans complete)
 
 ## Accumulated Context
 
@@ -38,6 +38,11 @@ All v1.0 decisions logged in PROJECT.md Key Decisions table.
 - tsconfig.json now excludes token-manager-angular/stencil/vite workspaces — prevents pre-existing TS errors from blocking build
 - Per-component next/dynamic ssr:false is NOT needed when AtuiProvider is in layout (confirmed working without it)
 
+**01-02 (page.tsx ATUI migration):**
+- at-tabs with onAtuiChange drives URL-based switchTab — bridges ATUI event API to existing router.push() routing
+- Tab content divs with hidden class approach preserved (locked v1.0 decision) — at-tab-content NOT used
+- at-button with onAtuiClick replaces native button onClick for all action buttons in page.tsx
+
 ### Pending Todos
 
 None.
@@ -49,5 +54,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 01-01-PLAN.md — ATUI global foundation (AtuiProvider, atui.d.ts, layout update)
+Stopped at: Completed 01-02-PLAN.md — ATUI migration of page.tsx (at-tabs tab navigation, at-button action buttons)
 Resume file: None
