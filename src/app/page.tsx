@@ -445,7 +445,7 @@ function HomeContent() {
           <at-tabs
             layout="horizontal"
             active_tab={activeTab}
-            onAtuiTabChange={(e: CustomEvent<{ value: string }>) => switchTab(e.detail.value as 'view' | 'generate')}
+            onAtuiTabChange={(e: CustomEvent<string>) => switchTab(e.detail as 'view' | 'generate')}
           >
             <at-tab-trigger slot="tab-list" tab_title="View Tokens" tab_id="view" />
             <at-tab-trigger slot="tab-list" tab_title="Generate Tokens" tab_id="generate" />

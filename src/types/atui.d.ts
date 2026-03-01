@@ -58,7 +58,7 @@ declare global {
         layout?: string;
         fill?: boolean;
         hide_nav?: boolean;
-        onAtuiTabChange?: (event: CustomEvent<{ value: string }>) => void;
+        onAtuiTabChange?: (event: CustomEvent<string>) => void;
         onAtuiChange?: (event: CustomEvent<string>) => void;
       };
       'at-tab-trigger': React.HTMLAttributes<HTMLElement> & {
