@@ -101,6 +101,8 @@ All v1.0 decisions logged in PROJECT.md Key Decisions table.
 - handleRename uses optimistic update in local state, reverts to server fetch on error — avoids stale UI
 - Empty state shown separately from grid when collections.length === 0 and !loading — grid only renders when data is available
 - New Collection card always rendered at grid position 0 — consistent spatial anchor regardless of collection count
+- [Phase 04-06]: Excluded token-manager-angular/stencil/vite from root tsconfig.json to prevent sub-project TypeScript errors from blocking Next.js build
+- [Phase 04-06]: Cast processed objects to Record<string, unknown> in token.service.ts to fix TS7053 that was blocking yarn build
 
 ### Pending Todos
 
@@ -108,10 +110,10 @@ None.
 
 ### Blockers/Concerns
 
-Pre-existing TypeScript error in src/services/token.service.ts line 131 (string index on `{}`). Not caused by shadcn work. Deferred.
+None. Pre-existing TypeScript error in src/services/token.service.ts (string index on `{}`) resolved in 04-06 Task 1 — yarn build now passes cleanly.
 
 ## Session Continuity
 
 Last session: 2026-03-12
-Stopped at: Phase 4, Plan 05 complete. Per-collection settings page — CollectionSettingsPage at /collections/[id]/settings, auto-save debounce, localStorage fallback, save status badge.
+Stopped at: Phase 4, Plan 06 — Task 1 complete (build verification passed). Awaiting Task 2 human-verify checkpoint for full collection management flow.
 Resume file: None
