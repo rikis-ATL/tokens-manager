@@ -36,7 +36,7 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full phase details.
 | 1. shadcn UI Components | v1.1 | 5/5 | Complete | 2026-03-09 |
 | 2. Test ATUI Component Library | v1.1 | 1/1 | Complete | 2026-03-01 |
 | 3. App Layout UX (sidebar + scoped pages) | v1.1 | 0/4 | In progress | - |
-| 4. Collection Management (grid + scoped routing + config persistence) | v1.1 | 0/6 | Planned | - |
+| 4. Collection Management (grid + scoped routing + config persistence) | v1.1 | 3/6 | In Progress | - |
 
 ### 🚧 v1.1 shadcn UI
 
@@ -78,7 +78,7 @@ Plans:
 
 **Goal:** Deliver a full collection management flow: a browseable grid of all collections (no sidebar), collection-scoped navigation where each collection has its own Tokens/Config/Settings pages with a sidebar, and per-collection Figma/GitHub config persisted to MongoDB. URL structure changes to /collections/[id]/tokens etc.
 **Depends on:** Phase 3
-**Plans:** 2/6 plans executed
+**Plans:** 3/6 plans executed
 
 Plans:
 - [ ] 04-01-PLAN.md — Extend DB schema and API: collection metadata fields (description, tags) + per-collection config fields (figmaToken, figmaFileId, githubRepo, githubBranch) + duplicate endpoint

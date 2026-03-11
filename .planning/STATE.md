@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 ## Current Position
 
 Phase: 04-collection-management
-Plan: 2/5 complete
-Status: IN PROGRESS — 04-02 Layout restructure complete
-Last activity: 2026-03-11 — 04-02 LayoutShell created; / redirects to /collections; sidebar hidden on grid page
+Plan: 3/5 complete
+Status: IN PROGRESS — 04-03 Collections grid page complete
+Last activity: 2026-03-12 — 04-03 CollectionCard, DeleteCollectionDialog, and /collections grid page built
 
-Progress: [████░░░░░░] 40% — Phase 4 plan 2/5 done
+Progress: [██████░░░░] 60% — Phase 4 plan 3/5 done
 
 ## Accumulated Context
 
@@ -84,6 +84,12 @@ All v1.0 decisions logged in PROJECT.md Key Decisions table.
 - CollectionProvider moved into LayoutShell so it wraps both the grid path and the sidebar shell path
 - pathname === '/collections' strict equality — collection-scoped routes (/collections/[id]) still get sidebar via their own layout in plan 04-04
 
+**04-03 (Collections grid page):**
+- CollectionCard uses local isMenuOpen state and document click listener for kebab dropdown — no Radix DropdownMenu needed for three-item list
+- handleRename uses optimistic update in local state, reverts to server fetch on error — avoids stale UI
+- Empty state shown separately from grid when collections.length === 0 and !loading — grid only renders when data is available
+- New Collection card always rendered at grid position 0 — consistent spatial anchor regardless of collection count
+
 ### Pending Todos
 
 None.
@@ -94,6 +100,6 @@ Pre-existing TypeScript error in src/services/token.service.ts line 131 (string 
 
 ## Session Continuity
 
-Last session: 2026-03-11
-Stopped at: Phase 4, Plan 02 complete. Layout restructure — LayoutShell component, / redirect, /collections full-width shell.
+Last session: 2026-03-12
+Stopped at: Phase 4, Plan 03 complete. Collections grid — CollectionCard, DeleteCollectionDialog, /collections grid page with full CRUD.
 Resume file: None
