@@ -1,19 +1,14 @@
 'use client';
 
-import { useState, useEffect, useRef, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useState, useEffect, useRef } from 'react';
 import { TokenTable } from '@/components/TokenTable';
 import { ToastNotification } from '@/components/ToastNotification';
-import { BuildTokensModal } from '@/components/BuildTokensModal';
 import { SaveCollectionDialog } from '@/components/SaveCollectionDialog';
-import { SharedCollectionHeader } from '@/components/SharedCollectionHeader';
 import { TokenGeneratorFormNew } from '@/components/TokenGeneratorFormNew';
 import { TokenGeneratorDocs } from '@/components/TokenGeneratorDocs';
-import { GitHubConfig } from '@/components/GitHubConfig';
-import { FigmaConfig } from '@/components/FigmaConfig';
 import { SourceContextBar } from '@/components/SourceContextBar';
 import { ImportFromFigmaDialog } from '@/components/ImportFromFigmaDialog';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CollectionActions } from '@/components/CollectionActions';
 import { Button } from '@/components/ui/button';
 import type { ToastMessage } from '@/types';
 import type { ISourceMetadata } from '@/types/collection.types';
@@ -121,15 +116,11 @@ function flattenMongoTokens(
     }
   }
 
+
   return result;
 }
 
-function HomeContent() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-
-  const activeTab = (searchParams.get('tab') as 'view' | 'generate') ?? 'view';
-
+export default function Home() {
   const [tokenData, setTokenData] = useState<Record<string, TokenGroup[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -137,7 +128,6 @@ function HomeContent() {
   const [selectedId, setSelectedId] = useState<string>('local');
   const [tableLoading, setTableLoading] = useState(false);
   const [toast, setToast] = useState<ToastMessage | null>(null);
-  const [buildModalOpen, setBuildModalOpen] = useState(false);
   const [rawCollectionTokens, setRawCollectionTokens] = useState<Record<string, unknown> | null>(null);
   const [rawCollectionName, setRawCollectionName] = useState<string>('');
   const [saveAsDialogOpen, setSaveAsDialogOpen] = useState(false);
@@ -154,20 +144,6 @@ function HomeContent() {
   const [generateFormKey, setGenerateFormKey] = useState(0);
 
   const abortControllerRef = useRef<AbortController | null>(null);
-
-  // Build is enabled when a MongoDB collection is selected (view tab) or tokens are loaded (generate tab)
-  const isBuildEnabled =
-    (activeTab === 'view' && selectedId !== 'local' && selectedId !== '') ||
-    (activeTab === 'generate' && generateTabTokens !== null);
-
-  // Determine tokens/namespace/collectionName for the BuildTokensModal based on active tab
-  const buildTokens = activeTab === 'generate' ? generateTabTokens : rawCollectionTokens;
-  const buildNamespace = activeTab === 'generate' ? generateTabNamespace : 'token';
-  const buildCollectionName = activeTab === 'generate' ? generateTabCollectionName : rawCollectionName;
-
-  const switchTab = (tab: 'view' | 'generate') => {
-    router.push(tab === 'view' ? '/' : '/?tab=generate');
-  };
 
   const handleGenerateTokensChange = (
     tokens: Record<string, unknown> | null,
@@ -308,20 +284,15 @@ function HomeContent() {
   };
 
   const handleNewCollection = () => {
-    // Clear selection to local, reset the generate form, switch to generate tab
+    // Clear selection to local, reset the generate form
     handleSelectionChange('local');
     setGenerateFormKey(k => k + 1); // reset form by remounting
-    switchTab('generate');
   };
 
   const handleSaveAs = async (name: string) => {
     setIsSavingAs(true);
     try {
-      // Use active tab's tokens: generate tab tokens or view tab tokens
-      const tokensPayload =
-        activeTab === 'generate'
-          ? generateTabTokens ?? {}
-          : rawCollectionTokens ?? tokenData;
+      const tokensPayload = generateTabTokens ?? rawCollectionTokens ?? tokenData;
 
       const res = await fetch('/api/collections', {
         method: 'POST',
@@ -379,89 +350,70 @@ function HomeContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading design tokens...</p>
-        </div>
+      <div className="flex items-center justify-center py-24">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-red-600 text-xl mb-4">Error</div>
-          <p className="text-gray-600">{error}</p>
-          <Button
-            onClick={fetchTokens}
-            className="mt-4"
-          >
-            Retry
-          </Button>
-        </div>
+      <div className="flex flex-col items-center justify-center py-24">
+        <div className="text-red-600 text-lg mb-2">Error</div>
+        <p className="text-gray-600 text-sm">{error}</p>
+        <Button onClick={fetchTokens} className="mt-4">Retry</Button>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* App header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <h1 className="text-2xl font-bold text-gray-900">Design Token Manager</h1>
-            <div className="flex items-center gap-2">
-              <Button
-                onClick={() => setBuildModalOpen(true)}
-                disabled={!isBuildEnabled}
-                variant="default"
-              >
-                Build Tokens
-              </Button>
-              <FigmaConfig onConfigChange={setFigmaConfig} />
-              <GitHubConfig onConfigChange={setGitHubConfig} />
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Shared collection header */}
-      <SharedCollectionHeader
-        collections={collections}
-        selectedId={selectedId}
-        tableLoading={tableLoading}
-        onSelectionChange={handleSelectionChange}
-        onSaveAs={() => setSaveAsDialogOpen(true)}
-        onNewCollection={handleNewCollection}
-        onDeleted={handleDeleted}
-        onRenamed={handleRenamed}
-        onDuplicated={handleDuplicated}
-        onError={(msg) => setToast({ message: msg, type: 'error' })}
-      />
-
-      {/* Tab switcher */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-2">
-            <Tabs value={activeTab} onValueChange={(v) => switchTab(v as 'view' | 'generate')}>
-              <TabsList>
-                <TabsTrigger value="view">View Tokens</TabsTrigger>
-                <TabsTrigger value="generate">Generate Tokens</TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
-        </div>
+    <div>
+      {/* Collection actions top bar */}
+      <div className="flex items-center gap-3 flex-wrap border-b border-gray-200 bg-white px-6 py-3">
+        <Button variant="outline" size="sm" onClick={() => setSaveAsDialogOpen(true)}>Save As</Button>
+        <Button variant="outline" size="sm" onClick={handleNewCollection}>New Collection</Button>
+        <CollectionActions
+          selectedId={selectedId}
+          selectedName={collections.find(c => c._id === selectedId)?.name ?? ''}
+          collections={collections}
+          onDeleted={handleDeleted}
+          onRenamed={handleRenamed}
+          onDuplicated={handleDuplicated}
+          onError={(msg) => setToast({ message: msg, type: 'error' })}
+        />
       </div>
 
       {/* Source context bar -- slim upstream indicator, hidden when no source */}
       <SourceContextBar sourceMetadata={selectedSourceMetadata} />
 
-      {/* Tab content -- both divs always mounted; hidden class hides inactive tab to preserve state */}
-      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        {/* View tab */}
-        <div className={activeTab === 'view' ? '' : 'hidden'}>
+      {/* Main content -- Generate Tokens form as primary content */}
+      <main className="py-6 px-6">
+        <div className="mb-6">
+          <h2 className="text-lg font-medium text-gray-900 mb-1">Create W3C Design Token Specification Compliant Tokens</h2>
+          <p className="text-gray-600 text-sm">Generate design tokens that follow the W3C Design Tokens specification with proper value, type, and attributes.</p>
+        </div>
+        <div className="mb-4 flex items-center gap-2">
+          <Button
+            onClick={() => setImportFigmaOpen(true)}
+            variant="outline"
+          >
+            Import from Figma
+          </Button>
+        </div>
+        <TokenGeneratorDocs />
+        <TokenGeneratorFormNew
+          key={generateFormKey}
+          githubConfig={githubConfig}
+          onTokensChange={handleGenerateTokensChange}
+          collectionToLoad={
+            selectedId !== 'local' && rawCollectionTokens
+              ? { id: selectedId, name: rawCollectionName, tokens: rawCollectionTokens }
+              : null
+          }
+        />
+
+        {/* View Tokens section -- preserved in code but hidden from navigation */}
+        <div className="hidden">
           <div className="relative">
             {tableLoading && (
               <div className="absolute inset-0 bg-white bg-opacity-70 flex items-center justify-center z-10">
@@ -487,33 +439,6 @@ function HomeContent() {
             )}
           </div>
         </div>
-
-        {/* Generate tab -- always mounted to preserve form state across tab switches */}
-        <div className={activeTab === 'generate' ? '' : 'hidden'}>
-          <div className="mb-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-1">Create W3C Design Token Specification Compliant Tokens</h2>
-            <p className="text-gray-600 text-sm">Generate design tokens that follow the W3C Design Tokens specification with proper value, type, and attributes.</p>
-          </div>
-          <div className="mb-4 flex items-center gap-2">
-            <Button
-              onClick={() => setImportFigmaOpen(true)}
-              variant="outline"
-            >
-              Import from Figma
-            </Button>
-          </div>
-          <TokenGeneratorDocs />
-          <TokenGeneratorFormNew
-            key={generateFormKey}
-            githubConfig={githubConfig}
-            onTokensChange={handleGenerateTokensChange}
-            collectionToLoad={
-              selectedId !== 'local' && rawCollectionTokens
-                ? { id: selectedId, name: rawCollectionName, tokens: rawCollectionTokens }
-                : null
-            }
-          />
-        </div>
       </main>
 
       <ToastNotification toast={toast} onClose={() => setToast(null)} />
@@ -535,30 +460,6 @@ function HomeContent() {
           setToast({ message: `Imported "${collectionName}" from Figma`, type: 'success' });
         }}
       />
-
-      {buildTokens && (
-        <BuildTokensModal
-          tokens={buildTokens}
-          namespace={buildNamespace}
-          collectionName={buildCollectionName}
-          isOpen={buildModalOpen}
-          onClose={() => setBuildModalOpen(false)}
-        />
-      )}
     </div>
-  );
-}
-
-export default function Home() {
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        </div>
-      }
-    >
-      <HomeContent />
-    </Suspense>
   );
 }
