@@ -37,6 +37,9 @@
     "**/*.mts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "token-manager-angular",
+    "token-manager-stencil",
+    "token-manager-vite"
   ]
 }

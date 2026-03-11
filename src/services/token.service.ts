@@ -120,9 +120,9 @@ export class TokenService {
   }
 
   private stripGlobalNamespaceFromPaths(tokenSet: any, namespace: string): any {
-    const result = {};
+    const result: Record<string, unknown> = {};
     const processObject = (obj: any, currentPath: string[] = []): any => {
-      const processed = {};
+      const processed: Record<string, unknown> = {};
 
       for (const [key, value] of Object.entries(obj)) {
         if (value && typeof value === 'object') {
