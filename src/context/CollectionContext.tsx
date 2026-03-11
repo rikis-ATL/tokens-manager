@@ -14,6 +14,7 @@ interface CollectionContextValue {
   selectedId: string;
   setSelectedId: (id: string) => void;
   loading: boolean;
+  loadError: boolean;
   refreshCollections: () => Promise<Collection[]>;
 }
 
@@ -23,10 +24,14 @@ export function CollectionProvider({ children }: { children: React.ReactNode }) 
   const [collections, setCollections] = useState<Collection[]>([]);
   const [selectedId, setSelectedIdState] = useState<string>('local');
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   const refreshCollections = useCallback(async (): Promise<Collection[]> => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
     try {
-      const res = await fetch('/api/collections');
+      setLoadError(false);
+      const res = await fetch('/api/collections', { signal: controller.signal });
       if (!res.ok) throw new Error();
       const data = await res.json();
       const fetched: Collection[] = data.collections || [];
@@ -34,7 +39,10 @@ export function CollectionProvider({ children }: { children: React.ReactNode }) 
       return fetched;
     } catch {
       setCollections([]);
+      setLoadError(true);
       return [];
+    } finally {
+      clearTimeout(timeout);
     }
   }, []);
 
@@ -54,7 +62,7 @@ export function CollectionProvider({ children }: { children: React.ReactNode }) 
   }, []);
 
   return (
-    <CollectionContext.Provider value={{ collections, selectedId, setSelectedId, loading, refreshCollections }}>
+    <CollectionContext.Provider value={{ collections, selectedId, setSelectedId, loading, loadError, refreshCollections }}>
       {children}
     </CollectionContext.Provider>
   );

@@ -1,13 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, RefreshCw } from 'lucide-react';
 import { useCollection } from '@/context/CollectionContext';
 import { CollectionSelector } from '@/components/CollectionSelector';
 import { Button } from '@/components/ui/button';
 
 export function AppHeader() {
-  const { collections, selectedId, setSelectedId, loading, refreshCollections } = useCollection();
+  const { collections, selectedId, setSelectedId, loading, loadError, refreshCollections } = useCollection();
   const [creating, setCreating] = useState(false);
 
   const handleNewCollection = async () => {
@@ -31,12 +31,22 @@ export function AppHeader() {
 
   return (
     <header className="flex items-center gap-4 px-6 py-3 border-b border-gray-200 bg-white flex-shrink-0">
-      <CollectionSelector
-        collections={collections}
-        selectedId={selectedId}
-        loading={loading}
-        onChange={setSelectedId}
-      />
+      {loadError ? (
+        <div className="flex items-center gap-2 text-sm text-red-600">
+          <span>Failed to load collections</span>
+          <Button variant="outline" size="sm" onClick={() => refreshCollections()}>
+            <RefreshCw size={13} className="mr-1.5" />
+            Retry
+          </Button>
+        </div>
+      ) : (
+        <CollectionSelector
+          collections={collections}
+          selectedId={selectedId}
+          loading={loading}
+          onChange={setSelectedId}
+        />
+      )}
       <Button
         variant="outline"
         size="sm"
