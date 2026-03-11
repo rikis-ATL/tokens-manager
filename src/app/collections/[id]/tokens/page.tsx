@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { TokenTable } from '@/components/TokenTable';
 import { ToastNotification } from '@/components/ToastNotification';
 import { SaveCollectionDialog } from '@/components/SaveCollectionDialog';
 import { TokenGeneratorFormNew } from '@/components/TokenGeneratorFormNew';
@@ -14,96 +13,42 @@ import { Button } from '@/components/ui/button';
 import type { ToastMessage } from '@/types';
 import type { ISourceMetadata } from '@/types/collection.types';
 
-interface Token {
-  value: string;
-  type: string;
-  attributes?: Record<string, unknown>;
-  resolvedValue?: string;
+/** Return the unique section names (first path segment) from the raw token map. */
+function getSections(tokens: Record<string, unknown>): string[] {
+  const seen = new Set<string>();
+  for (const filePath of Object.keys(tokens)) {
+    seen.add(filePath.split('/')[0]);
+  }
+  return Array.from(seen);
 }
 
-interface TokenGroup {
-  path: string;
-  token: Token;
-  filePath: string;
-  section: string;
-}
-
-/**
- * Flatten MongoDB token data into the Record<string, TokenGroup[]> shape expected by TokenTable.
- * Ported from the original home page — same flatten/resolve logic.
- */
-function flattenMongoTokens(
-  tokens: Record<string, unknown>
-): Record<string, TokenGroup[]> {
-  const result: Record<string, TokenGroup[]> = {};
-
-  function walk(node: Record<string, unknown>, currentPath: string, filePath: string, section: string) {
-    if (('value' in node && 'type' in node) || ('$value' in node && '$type' in node)) {
-      const rawValue = node.$value ?? node.value;
-      const rawType = node.$type ?? node.type;
-      if (!result[section]) result[section] = [];
-      result[section].push({
-        path: currentPath,
-        token: {
-          value: String(rawValue),
-          type: typeof rawType === 'string' ? rawType : 'other',
-        },
-        filePath,
-        section,
-      });
+/** Count leaf tokens inside a raw file-keyed token blob for a given section. */
+function countSectionTokens(tokens: Record<string, unknown>, section: string): number {
+  let count = 0;
+  function walk(node: unknown) {
+    if (!node || typeof node !== 'object' || Array.isArray(node)) return;
+    const obj = node as Record<string, unknown>;
+    if (('value' in obj && 'type' in obj) || ('$value' in obj && '$type' in obj)) {
+      count++;
       return;
     }
-    for (const key of Object.keys(node)) {
-      const child = node[key];
-      if (child && typeof child === 'object' && !Array.isArray(child)) {
-        const childPath = currentPath ? `${currentPath}.${key}` : key;
-        walk(child as Record<string, unknown>, childPath, filePath, section);
-      }
-    }
+    for (const v of Object.values(obj)) walk(v);
   }
-
-  for (const filePath of Object.keys(tokens)) {
-    const section = filePath.split('/')[0];
-    const fileData = tokens[filePath];
-    if (fileData && typeof fileData === 'object' && !Array.isArray(fileData)) {
-      walk(fileData as Record<string, unknown>, '', filePath, section);
-    }
+  for (const [filePath, data] of Object.entries(tokens)) {
+    if (filePath.split('/')[0] === section) walk(data);
   }
-
-  for (const section of Object.keys(result)) {
-    for (const group of result[section]) {
-      group.path = group.path.replace(/^\./, '');
-    }
-  }
-
-  // Resolve token references
-  const pathMap = new Map<string, string>();
-  for (const groups of Object.values(result)) {
-    for (const g of groups) pathMap.set(g.path, g.token.value);
-  }
-  const resolveRef = (val: string, depth = 0): string => {
-    if (depth > 10 || !val.startsWith('{') || !val.endsWith('}')) return val;
-    let ref = val.slice(1, -1);
-    if (ref.endsWith('.value')) ref = ref.slice(0, -6);
-    if (pathMap.has(ref)) return resolveRef(pathMap.get(ref)!, depth + 1);
-    for (const [path, v] of pathMap.entries()) {
-      if (ref.endsWith('.' + path)) return resolveRef(v, depth + 1);
-    }
-    return val;
-  };
-  for (const groups of Object.values(result)) {
-    for (const g of groups) {
-      if (g.token.value.startsWith('{')) {
-        const resolved = resolveRef(g.token.value);
-        if (resolved !== g.token.value) g.token.resolvedValue = resolved;
-      }
-    }
-  }
-
-  return result;
+  return count;
 }
 
-const GENERATE_SECTION = '__generate__';
+/** Filter raw tokens to only include file paths belonging to the given section. */
+function filterBySection(
+  tokens: Record<string, unknown>,
+  section: string
+): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(tokens).filter(([filePath]) => filePath.split('/')[0] === section)
+  );
+}
 
 interface TokensPageProps {
   params: { id: string };
@@ -114,18 +59,16 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   const router = useRouter();
 
   const [collectionName, setCollectionName] = useState('');
-  const [tokenData, setTokenData] = useState<Record<string, TokenGroup[]>>({});
-  const [selectedSection, setSelectedSection] = useState<string>(GENERATE_SECTION);
-  const [loading, setLoading] = useState(true);
-  const [tableLoading, setTableLoading] = useState(false);
-  const [toast, setToast] = useState<ToastMessage | null>(null);
   const [rawCollectionTokens, setRawCollectionTokens] = useState<Record<string, unknown> | null>(null);
+  const [sections, setSections] = useState<string[]>([]);
+  const [selectedSection, setSelectedSection] = useState<string>('');
+  const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState<ToastMessage | null>(null);
   const [saveAsDialogOpen, setSaveAsDialogOpen] = useState(false);
   const [isSavingAs, setIsSavingAs] = useState(false);
   const [importFigmaOpen, setImportFigmaOpen] = useState(false);
   const [selectedSourceMetadata, setSelectedSourceMetadata] = useState<ISourceMetadata | null>(null);
   const [generateTabTokens, setGenerateTabTokens] = useState<Record<string, unknown> | null>(null);
-  const [generateFormKey, setGenerateFormKey] = useState(0);
 
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -144,7 +87,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   const loadCollection = async () => {
     abortControllerRef.current?.abort();
     abortControllerRef.current = new AbortController();
-    setTableLoading(true);
+    setLoading(true);
     try {
       const res = await fetch(`/api/collections/${id}`, {
         signal: abortControllerRef.current.signal,
@@ -152,19 +95,18 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       if (!res.ok) throw new Error('Failed to load collection');
       const data = await res.json();
       const col = data.collection ?? data;
+      const rawTokens = (col.tokens ?? {}) as Record<string, unknown>;
       setCollectionName(col.name ?? '');
-      setRawCollectionTokens(col.tokens ?? null);
+      setRawCollectionTokens(rawTokens);
       setSelectedSourceMetadata(col.sourceMetadata ?? null);
-      const transformed = flattenMongoTokens(col.tokens ?? {});
-      setTokenData(transformed);
-      const sections = Object.keys(transformed);
-      if (sections.length > 0) setSelectedSection(sections[0]);
+      const sectionList = getSections(rawTokens);
+      setSections(sectionList);
+      if (sectionList.length > 0) setSelectedSection(sectionList[0]);
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') return;
       setToast({ message: 'Failed to load collection', type: 'error' });
     } finally {
       setLoading(false);
-      setTableLoading(false);
     }
   };
 
@@ -195,8 +137,8 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
         router.push(`/collections/${collection._id}/tokens`);
         setToast({ message: `Saved as "${collection.name}"`, type: 'success' });
       } else if (res.status === 409) {
-        const data = await res.json();
-        const putRes = await fetch(`/api/collections/${data.existingId}`, {
+        const existingData = await res.json();
+        const putRes = await fetch(`/api/collections/${existingData.existingId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name, tokens: tokensPayload }),
@@ -219,20 +161,14 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     }
   };
 
-  const saveToken = async (filePath: string, tokenPayload: unknown) => {
-    try {
-      const res = await fetch(`/api/tokens/${filePath}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(tokenPayload),
-      });
-      return res.ok;
-    } catch {
-      return false;
-    }
-  };
+  // Tokens passed to the generator — scoped to the selected section if one exists
+  const scopedTokens =
+    rawCollectionTokens && selectedSection
+      ? filterBySection(rawCollectionTokens, selectedSection)
+      : rawCollectionTokens ?? {};
 
-  const sections = Object.keys(tokenData);
+  // Virtual collection id — changes when section changes so the form re-loads
+  const scopedCollectionId = selectedSection ? `${id}-${selectedSection}` : id;
 
   if (loading) {
     return (
@@ -274,7 +210,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
           </div>
 
           {sections.length === 0 && (
-            <p className="px-4 py-3 text-xs text-gray-400">No tokens yet.</p>
+            <p className="px-4 py-3 text-xs text-gray-400">No token groups yet.</p>
           )}
 
           {sections.map((section) => (
@@ -288,74 +224,38 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
               }`}
             >
               <span className="truncate">{section}</span>
-              <span className={`text-xs ml-1 flex-shrink-0 ${selectedSection === section ? 'text-gray-300' : 'text-gray-400'}`}>
-                {tokenData[section].length}
-              </span>
+              {rawCollectionTokens && (
+                <span className={`text-xs ml-1 flex-shrink-0 ${selectedSection === section ? 'text-gray-300' : 'text-gray-400'}`}>
+                  {countSectionTokens(rawCollectionTokens, section)}
+                </span>
+              )}
             </button>
           ))}
-
-          <div className="border-t border-gray-200 mt-2">
-            <button
-              onClick={() => setSelectedSection(GENERATE_SECTION)}
-              className={`w-full text-left px-4 py-2 text-sm ${
-                selectedSection === GENERATE_SECTION
-                  ? 'bg-gray-900 text-white'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              + Generate Tokens
-            </button>
-          </div>
         </aside>
 
-        {/* Detail panel */}
-        <main className="flex-1 overflow-y-auto">
-          {tableLoading && (
-            <div className="flex items-center justify-center py-16">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        {/* Detail: TokenGeneratorFormNew scoped to selected section */}
+        <main className="flex-1 overflow-y-auto p-6">
+          {sections.length === 0 && !rawCollectionTokens && (
+            <div className="mb-6">
+              <h2 className="text-lg font-medium text-gray-900 mb-1">
+                Create W3C Design Token Specification Compliant Tokens
+              </h2>
+              <p className="text-gray-600 text-sm">
+                Generate design tokens that follow the W3C Design Tokens specification with proper value, type, and attributes.
+              </p>
             </div>
           )}
-
-          {!tableLoading && selectedSection === GENERATE_SECTION && (
-            <div className="p-6">
-              <div className="mb-6">
-                <h2 className="text-lg font-medium text-gray-900 mb-1">
-                  Create W3C Design Token Specification Compliant Tokens
-                </h2>
-                <p className="text-gray-600 text-sm">
-                  Generate design tokens that follow the W3C Design Tokens specification with proper value, type, and attributes.
-                </p>
-              </div>
-              <TokenGeneratorDocs />
-              <TokenGeneratorFormNew
-                key={generateFormKey}
-                githubConfig={null}
-                onTokensChange={(tokens) => setGenerateTabTokens(tokens)}
-                collectionToLoad={
-                  rawCollectionTokens
-                    ? { id, name: collectionName, tokens: rawCollectionTokens }
-                    : null
-                }
-              />
-            </div>
-          )}
-
-          {!tableLoading && selectedSection !== GENERATE_SECTION && tokenData[selectedSection] && (
-            <div className="p-6">
-              <h2 className="text-base font-medium text-gray-900 mb-4">{selectedSection}</h2>
-              <TokenTable
-                section={selectedSection}
-                tokens={tokenData[selectedSection]}
-                onSave={saveToken}
-              />
-            </div>
-          )}
-
-          {!tableLoading && selectedSection !== GENERATE_SECTION && !tokenData[selectedSection] && (
-            <div className="flex items-center justify-center py-16 text-sm text-gray-400">
-              Select a token group from the left panel.
-            </div>
-          )}
+          <TokenGeneratorDocs />
+          <TokenGeneratorFormNew
+            key={scopedCollectionId}
+            githubConfig={null}
+            onTokensChange={(tokens) => setGenerateTabTokens(tokens)}
+            collectionToLoad={
+              Object.keys(scopedTokens).length > 0
+                ? { id: scopedCollectionId, name: `${collectionName}${selectedSection ? ` / ${selectedSection}` : ''}`, tokens: scopedTokens }
+                : null
+            }
+          />
         </main>
       </div>
 
