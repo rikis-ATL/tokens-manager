@@ -35,6 +35,7 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full phase details.
 | 7. Fix Figma Integration | v1.0 | 6/6 | Complete | 2026-02-28 |
 | 1. shadcn UI Components | v1.1 | 5/5 | Complete | 2026-03-09 |
 | 2. Test ATUI Component Library | v1.1 | 1/1 | Complete | 2026-03-01 |
+| 3. App Layout UX (sidebar + scoped pages) | v1.1 | 0/? | Not planned | - |
 
 ### 🚧 v1.1 shadcn UI
 
@@ -59,3 +60,12 @@ Plans:
 
 Plans:
 - [x] 02-01-PLAN.md — Create /dev-test sandbox page with ATUI Button integration (complete 2026-03-01)
+
+### Phase 3: Update app layout to improve UX (sidebar + scoped config/status pages)
+
+**Goal:** [To be planned]
+**Depends on:** Phase 2
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 3 to break down)
