@@ -23,12 +23,12 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.className} antialiased`}>
         <CollectionProvider>
-          <div className="flex h-screen overflow-hidden bg-gray-50">
-            <div className="w-[200px] flex-shrink-0">
-              <AppSidebar />
-            </div>
-            <div className="flex-1 flex flex-col overflow-hidden">
-              <AppHeader />
+          <div className="flex flex-col h-screen overflow-hidden bg-gray-50">
+            <AppHeader />
+            <div className="flex flex-1 overflow-hidden">
+              <div className="w-[200px] flex-shrink-0">
+                <AppSidebar />
+              </div>
               <main className="flex-1 overflow-y-auto">
                 {children}
               </main>

@@ -14,10 +14,10 @@ export function AppSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="h-full bg-gray-900 flex flex-col">
+    <aside className="h-full bg-white border-r border-gray-200 flex flex-col">
       {/* App name */}
       <div className="px-4 py-4">
-        <span className="text-white font-semibold text-sm tracking-wide">ATUI Tokens</span>
+        <span className="text-gray-900 font-semibold text-sm tracking-wide">ATUI Tokens</span>
       </div>
 
       {/* Nav items */}
@@ -30,8 +30,8 @@ export function AppSidebar() {
               href={href}
               className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium w-full transition-colors ${
                 isActive
-                  ? 'bg-white/15 text-white'
-                  : 'text-white/70 hover:bg-white/10 hover:text-white'
+                  ? 'bg-gray-900 text-white'
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
               }`}
             >
               <Icon size={16} />
