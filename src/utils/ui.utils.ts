@@ -246,9 +246,10 @@ export const createCssCustomProperties = (tokens: Record<string, any>): string =
       const propertyName = prefix ? `${prefix}-${key}` : key;
 
       if (value && typeof value === 'object' && !Array.isArray(value)) {
-        if (value.$value !== undefined) {
+        const valueObj = value as Record<string, unknown>;
+        if (valueObj.$value !== undefined) {
           // This is a token
-          properties.push(`  --${propertyName}: ${value.$value};`);
+          properties.push(`  --${propertyName}: ${valueObj.$value};`);
         } else {
           // This is a group, recurse
           processTokens(value, propertyName);
