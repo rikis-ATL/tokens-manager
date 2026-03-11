@@ -22,6 +22,12 @@ const tokenCollectionSchema = new Schema<TokenCollectionDoc>(
     tokens:         { type: Schema.Types.Mixed, required: true },
     sourceMetadata: { type: sourceMetadataSchema, default: null },
     userId:         { type: String, default: null, index: true },
+    description:    { type: String, default: null },
+    tags:           { type: [String], default: [] },
+    figmaToken:     { type: String, default: null },
+    figmaFileId:    { type: String, default: null },
+    githubRepo:     { type: String, default: null },
+    githubBranch:   { type: String, default: null },
   },
   {
     timestamps: true,  // auto createdAt / updatedAt

@@ -25,6 +25,29 @@ export interface ITokenCollection {
   userId: string | null;  // Reserved for multi-user; null in v1
   createdAt: Date;
   updatedAt: Date;
+  // Metadata fields
+  description: string | null;
+  tags: string[];
+  // Per-collection integration config
+  figmaToken: string | null;
+  figmaFileId: string | null;
+  githubRepo: string | null;
+  githubBranch: string | null;
+}
+
+/**
+ * Shape for collection list items returned by GET /api/collections.
+ * Derived fields (tokenCount, figmaConfigured, githubConfigured) are computed server-side.
+ */
+export interface CollectionCardData {
+  _id: string;
+  name: string;
+  description: string | null;
+  tags: string[];
+  tokenCount: number;
+  updatedAt: string;
+  figmaConfigured: boolean;
+  githubConfigured: boolean;
 }
 
 /**
@@ -35,4 +58,4 @@ export type CreateTokenCollectionInput = Omit<ITokenCollection, '_id' | 'created
 /**
  * Shape for updating an existing collection.
  */
-export type UpdateTokenCollectionInput = Partial<Pick<ITokenCollection, 'name' | 'tokens' | 'sourceMetadata'>>;
+export type UpdateTokenCollectionInput = Partial<Pick<ITokenCollection, 'name' | 'tokens' | 'sourceMetadata' | 'description' | 'tags' | 'figmaToken' | 'figmaFileId' | 'githubRepo' | 'githubBranch'>>;
