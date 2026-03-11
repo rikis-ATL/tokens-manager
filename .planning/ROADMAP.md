@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 MVP** — Phases 1-7 (shipped 2026-02-28)
-- 🚧 **v1.1 shadcn UI** — Phases 1-2 (in progress)
+- ✅ **v1.1 shadcn UI** — Phases 1-2 (shipped 2026-03-09)
 
 ## Phases
 
@@ -33,7 +33,7 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full phase details.
 | 5. Export Style Dictionary | v1.0 | 2/2 | Complete | 2026-02-26 |
 | 6. Collection UX Improvements | v1.0 | 3/3 | Complete | 2026-02-28 |
 | 7. Fix Figma Integration | v1.0 | 6/6 | Complete | 2026-02-28 |
-| 1. shadcn UI Components | v1.1 | 0/5 | Not started | - |
+| 1. shadcn UI Components | v1.1 | 5/5 | Complete | 2026-03-09 |
 | 2. Test ATUI Component Library | v1.1 | 1/1 | Complete | 2026-03-01 |
 
 ### 🚧 v1.1 shadcn UI

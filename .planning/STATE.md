@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** Token collections are always available and editable — stored in MongoDB, loadable into the generator form, and visible on the view page, with Figma import/export fully integrated.
-**Current focus:** v1.1 — Phase 1: shadcn UI components
+**Current focus:** v1.1 complete — both phases shipped
 
 ## Current Position
 
@@ -64,5 +64,5 @@ Pre-existing TypeScript error in src/services/token.service.ts line 131 (string 
 
 Last session: 2026-03-09
 Stopped at: Phase 1 complete. All 5 plans done. Human approved visual verification.
-Next: Phase 2 (v1.1) — Test ATUI component library, confirm Button can be imported and used
+v1.1 complete. Both phases shipped.
 Resume file: None
