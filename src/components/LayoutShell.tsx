@@ -7,7 +7,7 @@ import { CollectionProvider } from '@/context/CollectionContext';
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isCollectionsGrid = pathname === '/collections';
+  const isCollectionsGrid = pathname.startsWith('/collections');
 
   return (
     <CollectionProvider>
