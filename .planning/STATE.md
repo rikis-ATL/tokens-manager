@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** Token collections are always available and editable — stored in MongoDB, loadable into the generator form, and visible on the view page, with Figma import/export fully integrated.
-**Current focus:** Phase 3 in progress — app layout UX (sidebar + scoped config/status pages)
+**Current focus:** Phase 4 in progress — Collection Management (grid, collection-scoped pages, config persisted to DB)
 
 ## Current Position
 
-Phase: 03-update-app-layout-to-improve-ux
-Plan: 3/4 complete
-Status: IN PROGRESS — 03-03 Configuration + Settings pages complete
-Last activity: 2026-03-11 — 03-03 Configuration/Settings pages created; BuildTokensPanel inline component added
+Phase: 04-collection-management
+Plan: 2/5 complete
+Status: IN PROGRESS — 04-02 Layout restructure complete
+Last activity: 2026-03-11 — 04-02 LayoutShell created; / redirects to /collections; sidebar hidden on grid page
 
-Progress: [███████░░░] 75% — Phase 3 plan 3/4 done
+Progress: [████░░░░░░] 40% — Phase 4 plan 2/5 done
 
 ## Accumulated Context
 
@@ -26,6 +26,12 @@ Progress: [███████░░░] 75% — Phase 3 plan 3/4 done
 - Phase 4 (v1.1) added: Collection Management — grid of collections, collection-scoped pages with sidebar, tokens/config/settings per collection, config persisted to DB
 
 ### Decisions
+
+**04-01 (Collection schema + API extension):**
+- CollectionCardData omits raw integration tokens — only boolean figmaConfigured/githubConfigured flags in list response (security)
+- tokenCount computed as Object.keys(tokens ?? {}).length at request time — no counter field to sync
+- Timestamp suffix for duplicate name collision — simple, unique, avoids sequential counter complexity
+- Lean query casts new fields with (doc.field as T | undefined) ?? default — safe for pre-existing docs missing fields
 
 **03-03 (Configuration + Settings pages):**
 - BuildTokensPanel is a standalone component — does not import BuildTokensModal; logic duplicated to keep files independent
@@ -73,6 +79,11 @@ All v1.0 decisions logged in PROJECT.md Key Decisions table.
 - shadcn Select onValueChange pattern: (v) => setState(v) throughout all form components
 - [Phase 03-04]: ui.utils.ts TS2339 ( on object) auto-fixed by casting to Record<string, unknown> — pre-existing error not caused by Phase 3
 
+**04-02 (Layout restructure):**
+- LayoutShell is a 'use client' component in src/components/ — root layout.tsx stays a clean server component (required for Next.js metadata export)
+- CollectionProvider moved into LayoutShell so it wraps both the grid path and the sidebar shell path
+- pathname === '/collections' strict equality — collection-scoped routes (/collections/[id]) still get sidebar via their own layout in plan 04-04
+
 ### Pending Todos
 
 None.
@@ -84,5 +95,5 @@ Pre-existing TypeScript error in src/services/token.service.ts line 131 (string 
 ## Session Continuity
 
 Last session: 2026-03-11
-Stopped at: Phase 3, Plan 03 complete. Configuration and Settings pages created — BuildTokensPanel inline, FigmaConfig and GitHubConfig always-expanded.
+Stopped at: Phase 4, Plan 02 complete. Layout restructure — LayoutShell component, / redirect, /collections full-width shell.
 Resume file: None
