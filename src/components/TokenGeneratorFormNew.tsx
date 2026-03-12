@@ -994,10 +994,25 @@ export function TokenGeneratorFormNew({
       </div>
 
       {/* Token Groups */}
-      {(selectedGroupId
-        ? tokenGroups.filter(g => g.id === selectedGroupId)
-        : tokenGroups
-      ).map(group => renderGroup(group))}
+      {(() => {
+        if (!selectedGroupId) return tokenGroups;
+        // Try top-level first (fast path)
+        const topLevel = tokenGroups.find(g => g.id === selectedGroupId);
+        if (topLevel) return [topLevel];
+        // Find anywhere in tree (nested groups)
+        const found = findGroupById(tokenGroups, selectedGroupId);
+        return found ? [found] : tokenGroups;
+      })().map(group => renderGroup(group))}
+      {/* No tokens empty state for selected group with no direct tokens */}
+      {selectedGroupId && (() => {
+        const found = findGroupById(tokenGroups, selectedGroupId)
+                   ?? tokenGroups.find(g => g.id === selectedGroupId);
+        if (!found) return null;
+        if (found.tokens.length === 0) {
+          return <p className="p-6 text-sm text-gray-400 text-center">No tokens in this group</p>;
+        }
+        return null;
+      })()}
       {/* Add Group */}
       {!hideAddGroupButton && (
         <div className="p-6 text-center bg-gray-50 rounded-lg border-2 border-gray-300 border-dashed">

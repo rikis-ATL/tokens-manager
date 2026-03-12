@@ -11,6 +11,7 @@ import { SourceContextBar } from '@/components/SourceContextBar';
 import { ImportFromFigmaDialog } from '@/components/ImportFromFigmaDialog';
 import { CollectionActions } from '@/components/CollectionActions';
 import { TokenGroupTree } from '@/components/TokenGroupTree';
+import { GroupBreadcrumb } from '@/components/GroupBreadcrumb';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -210,24 +211,31 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
           />
         </aside>
 
-        {/* Detail: TokenGeneratorFormNew */}
-        <main className="flex-1 overflow-y-auto p-6">
-          <TokenGeneratorFormNew
-            key={id}
-            githubConfig={null}
-            onTokensChange={(tokens) => setGenerateTabTokens(tokens)}
-            collectionToLoad={rawCollectionTokens && Object.keys(rawCollectionTokens).length > 0
-              ? { id, name: collectionName, tokens: rawCollectionTokens } : null}
-            namespace={globalNamespace}
-            onNamespaceChange={setGlobalNamespace}
-            onGroupsChange={handleGroupsChange}
+        {/* Detail: breadcrumb + content */}
+        <div className="flex flex-col flex-1 overflow-hidden">
+          <GroupBreadcrumb
+            groups={masterGroups}
             selectedGroupId={selectedGroupId}
-            pendingNewGroup={pendingNewGroup}
-            onGroupAdded={handleGroupAdded}
-            hideNamespaceAndActions={true}
-            hideAddGroupButton={true}
+            onSelect={setSelectedGroupId}
           />
-        </main>
+          <main className="flex-1 overflow-y-auto p-6">
+            <TokenGeneratorFormNew
+              key={id}
+              githubConfig={null}
+              onTokensChange={(tokens) => setGenerateTabTokens(tokens)}
+              collectionToLoad={rawCollectionTokens && Object.keys(rawCollectionTokens).length > 0
+                ? { id, name: collectionName, tokens: rawCollectionTokens } : null}
+              namespace={globalNamespace}
+              onNamespaceChange={setGlobalNamespace}
+              onGroupsChange={handleGroupsChange}
+              selectedGroupId={selectedGroupId}
+              pendingNewGroup={pendingNewGroup}
+              onGroupAdded={handleGroupAdded}
+              hideNamespaceAndActions={true}
+              hideAddGroupButton={true}
+            />
+          </main>
+        </div>
       </div>
 
       <ToastNotification toast={toast} onClose={() => setToast(null)} />
