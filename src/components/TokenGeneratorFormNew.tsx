@@ -11,6 +11,16 @@ import { ExportToFigmaDialog } from './ExportToFigmaDialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+
 
 // Import services and types
 import { githubService, tokenService, fileService } from '../services';
@@ -45,7 +55,7 @@ interface TokenGeneratorFormNewProps {
   collectionToLoad?: { id: string; name: string; tokens: Record<string, unknown> } | null;
   namespace?: string;
   onNamespaceChange?: (ns: string) => void;
-  onGroupsChange?: (groups: { id: string; name: string }[]) => void;
+  onGroupsChange?: (groups: TokenGroup[]) => void;
   selectedGroupId?: string;
   pendingNewGroup?: string | null;
   onGroupAdded?: (group: { id: string; name: string }) => void;
@@ -296,15 +306,14 @@ export function TokenGeneratorFormNew({
     return newGroup;
   };
 
-  // Notify parent when group id/name list changes
+  // Notify parent when token groups change (emits full TokenGroup[] tree with children)
   const prevGroupsRef = useRef<string>('');
   useEffect(() => {
     if (!onGroupsChange) return;
-    const summary = tokenGroups.map(g => ({ id: g.id, name: g.name }));
-    const serialized = JSON.stringify(summary);
+    const serialized = JSON.stringify(tokenGroups);
     if (serialized === prevGroupsRef.current) return;
     prevGroupsRef.current = serialized;
-    onGroupsChange(summary);
+    onGroupsChange(tokenGroups);
   }, [tokenGroups, onGroupsChange]);
 
   // Handle external pending new group
@@ -704,16 +713,7 @@ export function TokenGeneratorFormNew({
           <div className="p-4 border-b border-gray-200">
             <div className="flex justify-between items-center">
               <div className="flex items-center space-x-2">
-                {hasChildren && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => toggleGroupExpansion(group.id)}
-                    className="text-gray-500 hover:text-gray-700 h-auto p-0"
-                  >
-                    {group.expanded ? '▼' : '▶'}
-                  </Button>
-                )}
+     
                 <span className="font-mono text-sm text-gray-500">
                   Level {group.level}
                 </span>
@@ -735,16 +735,18 @@ export function TokenGeneratorFormNew({
                   </span>
                 )}
               </div>
-              <Button
+              {/* <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => deleteTokenGroup(group.id)}
                 className="text-sm font-medium text-red-600 hover:text-red-800"
               >
                 Delete Group
-              </Button>
+              </Button> */}
             </div>
           </div>
+
+
 
           {hasTokens && (
             <div className="overflow-x-auto">
@@ -925,86 +927,71 @@ export function TokenGeneratorFormNew({
   return (
     <div className="space-y-6">
       {/* Header Actions */}
-      {!hideNamespaceAndActions && (
-        <div className="p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center space-x-4">
-              <h3 className="text-lg font-medium text-gray-900">Export Actions</h3>
-              {loadedCollection && (
-                <p className="text-xs text-emerald-700 font-medium">
-                  Editing: {loadedCollection.name}
-                </p>
-              )}
-              <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium text-gray-700">Global Namespace:</label>
-                <Input
-                  type="text"
-                  value={globalNamespace}
-                  onChange={(e) => { setGlobalNamespace(e.target.value); onNamespaceChange?.(e.target.value); setIsDirty(true); }}
-                  placeholder="Optional namespace (e.g., 'design', 'token')"
-                  className="text-sm"
-                />
-              </div>
-            </div>
-            <div className="flex space-x-3">
-              <Button
-                size="sm"
-                onClick={() => setShowJsonDialog(true)}
-                className="bg-gray-600 hover:bg-gray-700 text-white"
-              >
-                Preview JSON
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => setShowSaveDialog(true)}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white"
-              >
-                Save to Database
-              </Button>
-              <Button
-                size="sm"
-                onClick={exportToJSON}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                Download JSON
-              </Button>
-              <Button
-                size="sm"
-                onClick={exportToGitHub}
-                className="bg-gray-800 hover:bg-gray-900 text-white"
-              >
-                Push to GitHub
-              </Button>
-              <Button
-                size="sm"
-                onClick={importFromGitHub}
-                className="bg-green-600 hover:bg-green-700 text-white"
-              >
-                Import from GitHub
-              </Button>
-              <Button
-                size="sm"
-                onClick={exportToFigma}
-                className="bg-purple-600 hover:bg-purple-700 text-white"
-              >
-                Export to Figma
-              </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={clearForm}
-              >
-                Clear Form
-              </Button>
+      <div className="p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+        {!hideNamespaceAndActions && (
+          <div className="flex items-center space-x-4 mb-4">
+            <h3 className="text-lg font-medium text-gray-900">Export Actions</h3>
+            {loadedCollection && (
+              <p className="text-xs text-emerald-700 font-medium">
+                Editing: {loadedCollection.name}
+              </p>
+            )}
+            <div className="flex items-center space-x-2">
+              <label className="text-sm font-medium text-gray-700">Global Namespace:</label>
+              <Input
+                type="text"
+                value={globalNamespace}
+                onChange={(e) => { setGlobalNamespace(e.target.value); onNamespaceChange?.(e.target.value); setIsDirty(true); }}
+                placeholder="Optional namespace (e.g., 'design', 'token')"
+                className="text-sm"
+              />
             </div>
           </div>
-          {globalNamespace && (
-            <div className="text-sm text-gray-600">
-              <strong>Preview:</strong> Tokens will be prefixed with "{globalNamespace}."
-            </div>
-          )}
+        )}
+        <div className="flex flex-wrap gap-2">
+          <Button
+            size="sm"
+            onClick={() => setShowJsonDialog(true)}
+            className="bg-gray-600 hover:bg-gray-700 text-white"
+          >
+            Preview JSON
+          </Button>
+
+
+          <DropdownMenu>
+  <DropdownMenuTrigger asChild>
+    <Button variant="outline">Open</Button>
+  </DropdownMenuTrigger>
+  <DropdownMenuContent>
+    <DropdownMenuGroup>
+      <DropdownMenuItem onClick={exportToJSON}>Download JSON</DropdownMenuItem>
+    <DropdownMenuItem onClick={() => setShowSaveDialog(true)}>Save to Database</DropdownMenuItem>
+    <DropdownMenuItem onClick={() => setShowLoadDialog(true)}>Load from Database</DropdownMenuItem>
+    <DropdownMenuItem onClick={exportToJSON}>Download JSON</DropdownMenuItem>
+    <DropdownMenuItem onClick={exportToGitHub}>Push to GitHub</DropdownMenuItem>
+    <DropdownMenuItem onClick={importFromGitHub}>Import from GitHub</DropdownMenuItem>
+    <DropdownMenuItem onClick={exportToFigma}>Export to Figma</DropdownMenuItem>
+    <DropdownMenuItem onClick={clearForm}>Clear Form</DropdownMenuItem>
+    </DropdownMenuGroup>
+  </DropdownMenuContent>
+</DropdownMenu>
+
+
+      
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={clearForm}
+          >
+            Clear Form
+          </Button>
         </div>
-      )}
+        {!hideNamespaceAndActions && globalNamespace && (
+          <div className="text-sm text-gray-600 mt-4">
+            <strong>Preview:</strong> Tokens will be prefixed with "{globalNamespace}."
+          </div>
+        )}
+      </div>
 
       {/* Token Groups */}
       {(selectedGroupId

@@ -13,7 +13,7 @@ import { CollectionActions } from '@/components/CollectionActions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import type { ToastMessage } from '@/types';
+import type { ToastMessage, TokenGroup } from '@/types';
 import type { ISourceMetadata } from '@/types/collection.types';
 
 interface TokensPageProps {
@@ -36,7 +36,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
 
   // Token groups master panel state
   const [globalNamespace, setGlobalNamespace] = useState('token');
-  const [masterGroups, setMasterGroups] = useState<{ id: string; name: string }[]>([]);
+  const [masterGroups, setMasterGroups] = useState<TokenGroup[]>([]);
   const [selectedGroupId, setSelectedGroupId] = useState('');
   const [pendingNewGroup, setPendingNewGroup] = useState<string | null>(null);
   const [guideOpen, setGuideOpen] = useState(false);
@@ -132,7 +132,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   };
 
   const handleGroupsChange = useCallback(
-    (groups: { id: string; name: string }[]) => {
+    (groups: TokenGroup[]) => {
       setMasterGroups(groups);
       setSelectedGroupId(prev => {
         if (prev && groups.some(g => g.id === prev)) return prev;
