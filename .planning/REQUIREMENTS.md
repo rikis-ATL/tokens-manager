@@ -9,7 +9,7 @@
 
 - [ ] **TREE-01**: Groups sidebar displays all token groups as a hierarchical tree, including groups that contain no direct tokens
 - [ ] **TREE-02**: Tree node display names are parsed from the `group.name` path — path segments split, `.json` extension removed (e.g. `brands/brand2/color.json` → tree: Brand2 > Color)
-- [ ] **TREE-03**: Selecting a tree node shows only the direct tokens of that group in the content area
+- [x] **TREE-03**: Selecting a tree node shows only the direct tokens of that group in the content area
 - [ ] **TREE-04**: User can add a new group from the tree sidebar (as a child of any node, or at root level)
 - [ ] **TREE-05**: Tree nodes can be expanded and collapsed
 
@@ -43,7 +43,7 @@
 | TREE-01 | Phase 5 | Pending |
 | TREE-02 | Phase 5 | Pending |
 | TREE-05 | Phase 5 | Pending |
-| TREE-03 | Phase 6 | Pending |
+| TREE-03 | Phase 6 | Complete |
 | BREAD-01 | Phase 6 | Complete |
 | BREAD-02 | Phase 6 | Complete |
 | CONT-01 | Phase 6 | Pending |

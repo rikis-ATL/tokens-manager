@@ -49,8 +49,11 @@ All decisions logged in PROJECT.md Key Decisions table.
 - No expand/collapse toggle in Phase 5 — all nodes always visible (overrides TREE-05; deferred)
 - Dynamic indent via inline style (paddingLeft), not Tailwind (Tailwind cannot compute runtime values)
 - Add-group sidebar UI deferred to Phase 7 (Mutations)
-- [Phase 06-selection-breadcrumbs-content-scoping]: Used local findAncestors helper instead of findGroupById — findGroupById returns only the node, not its ancestors
-- [Phase 06-selection-breadcrumbs-content-scoping]: GroupBreadcrumb display labels derived from last segment of parseGroupPath(group.name) — consistent with TokenGroupTree FlatNode.displayLabel
+**Phase 6 key decisions:**
+- [06-01]: Background-only highlight (bg-gray-200) on selected node — no left border (user decision)
+- [06-01]: onGroupSelect uses optional chaining (onGroupSelect?.) so TokenGroupTree works standalone without a handler
+- [06-02]: Used local findAncestors helper instead of findGroupById — findGroupById returns only the node, not its ancestors
+- [06-02]: GroupBreadcrumb display labels derived from last segment of parseGroupPath(group.name) — consistent with TokenGroupTree FlatNode.displayLabel
 
 ### Pending Todos
 
@@ -63,5 +66,5 @@ None — Phase 5 complete. Blocker resolved: onGroupsChange now emits full Token
 ## Session Continuity
 
 Last session: 2026-03-13
-Stopped at: Completed 06-02-PLAN.md (GroupBreadcrumb component)
+Stopped at: Completed 06-01-PLAN.md (selection highlight and click wiring) — 06-01-SUMMARY.md created
 Resume file: None
