@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Info } from 'lucide-react';
+import { Info } from 'lucide-react';
 import { ToastNotification } from '@/components/ToastNotification';
 import { SaveCollectionDialog } from '@/components/SaveCollectionDialog';
 import { TokenGeneratorFormNew } from '@/components/TokenGeneratorFormNew';
@@ -10,6 +10,7 @@ import { TokenGeneratorDocs } from '@/components/TokenGeneratorDocs';
 import { SourceContextBar } from '@/components/SourceContextBar';
 import { ImportFromFigmaDialog } from '@/components/ImportFromFigmaDialog';
 import { CollectionActions } from '@/components/CollectionActions';
+import { TokenGroupTree } from '@/components/TokenGroupTree';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -201,62 +202,11 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       <div className="flex flex-1 overflow-hidden">
         {/* Master: token groups */}
         <aside className="w-56 border-r border-gray-200 bg-gray-50 overflow-y-auto flex-shrink-0">
-          <div className="px-4 py-2 border-b border-gray-200 flex items-center justify-between">
-            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Token Groups</span>
-            <button
-              onClick={() => setIsAddingGroup(true)}
-              className="text-gray-400 hover:text-gray-700 p-0.5 rounded"
-              title="Add group"
-            >
-              <Plus size={14} />
-            </button>
-          </div>
-
-          {isAddingGroup && (
-            <div className="px-2 py-2 border-b border-gray-200 flex items-center gap-1">
-              <Input
-                value={newGroupName}
-                onChange={(e) => setNewGroupName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') confirmAddGroup();
-                  if (e.key === 'Escape') { setIsAddingGroup(false); setNewGroupName(''); }
-                }}
-                placeholder="Group name..."
-                className="h-6 text-xs"
-                autoFocus
-              />
-              <button
-                onClick={confirmAddGroup}
-                className="text-green-600 hover:text-green-800 text-xs px-1"
-              >
-                ✓
-              </button>
-              <button
-                onClick={() => { setIsAddingGroup(false); setNewGroupName(''); }}
-                className="text-gray-400 hover:text-gray-600 text-xs px-1"
-              >
-                ✕
-              </button>
-            </div>
-          )}
-
-          {masterGroups.length === 0 && (
-            <p className="px-4 py-3 text-xs text-gray-400">No token groups yet.</p>
-          )}
-
-          {masterGroups.map((group) => (
-            <button
-              key={group.id}
-              onClick={() => setSelectedGroupId(group.id)}
-              className={`w-full text-left px-4 py-2 text-sm ${
-                selectedGroupId === group.id
-                  ? 'bg-gray-900 text-white'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <span className="truncate block">{group.name}</span>
-            </button>
-          ))}
+          <TokenGroupTree
+            groups={masterGroups}
+            namespace={globalNamespace}
+            selectedGroupId={selectedGroupId}
+          />
         </aside>
 
         {/* Detail: TokenGeneratorFormNew */}
