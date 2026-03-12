@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { PlusCircle, Loader2 } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
 import type { CollectionCardData } from '@/types/collection.types';
 import { CollectionCard } from '@/components/CollectionCard';
 import { DeleteCollectionDialog } from '@/components/DeleteCollectionDialog';
+import { NewCollectionDialog } from '@/components/NewCollectionDialog';
 import { Button } from '@/components/ui/button';
 
 export default function CollectionsPage() {
@@ -17,7 +18,7 @@ export default function CollectionsPage() {
     name: string;
   } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   const fetchCollections = async () => {
     try {
@@ -34,24 +35,6 @@ export default function CollectionsPage() {
   useEffect(() => {
     fetchCollections();
   }, []);
-
-  const handleCreate = async () => {
-    setIsCreating(true);
-    try {
-      const res = await fetch('/api/collections', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: 'New Collection', tokens: {} }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const newId = (data.collection ?? data)._id;
-        router.push(`/collections/${newId}/tokens`);
-      }
-    } finally {
-      setIsCreating(false);
-    }
-  };
 
   const handleCardClick = (id: string) => {
     router.push(`/collections/${id}/tokens`);
@@ -121,7 +104,13 @@ export default function CollectionsPage() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Collections</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Collections</h1>
+        <Button onClick={() => setCreateDialogOpen(true)}>
+          <PlusCircle size={14} className="mr-1.5" />
+          New Collection
+        </Button>
+      </div>
 
       {/* Loading skeleton */}
       {loading && (
@@ -144,12 +133,8 @@ export default function CollectionsPage() {
           <p className="text-sm text-gray-500 mt-1 mb-4">
             Create your first collection to start managing your design tokens.
           </p>
-          <Button onClick={handleCreate} disabled={isCreating}>
-            {isCreating ? (
-              <Loader2 size={14} className="mr-1.5 animate-spin" />
-            ) : (
-              <PlusCircle size={14} className="mr-1.5" />
-            )}
+          <Button onClick={() => setCreateDialogOpen(true)}>
+            <PlusCircle size={14} className="mr-1.5" />
             Create Collection
           </Button>
         </div>
@@ -161,13 +146,9 @@ export default function CollectionsPage() {
           {/* + New Collection card — always first */}
           <div
             className="border-2 border-dashed border-gray-300 rounded-lg p-4 cursor-pointer hover:border-gray-400 hover:bg-gray-50 transition-all flex flex-col items-center justify-center min-h-[120px] text-gray-400 hover:text-gray-600"
-            onClick={handleCreate}
+            onClick={() => setCreateDialogOpen(true)}
           >
-            {isCreating ? (
-              <Loader2 size={24} className="animate-spin" />
-            ) : (
-              <PlusCircle size={24} />
-            )}
+            <PlusCircle size={24} />
             <span className="mt-2 text-sm font-medium">New Collection</span>
           </div>
 
@@ -192,6 +173,14 @@ export default function CollectionsPage() {
         onConfirm={handleDeleteConfirm}
         onCancel={handleDeleteCancel}
         loading={isDeleting}
+      />
+
+      {/* New Collection dialog */}
+      <NewCollectionDialog
+        isOpen={createDialogOpen}
+        onClose={() => setCreateDialogOpen(false)}
+        existingCollections={collections}
+        onCreated={(newId) => { router.push(`/collections/${newId}/tokens`); }}
       />
     </div>
   );

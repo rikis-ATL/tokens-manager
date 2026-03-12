@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { Plus, Info } from 'lucide-react';
 import { ToastNotification } from '@/components/ToastNotification';
 import { SaveCollectionDialog } from '@/components/SaveCollectionDialog';
 import { TokenGeneratorFormNew } from '@/components/TokenGeneratorFormNew';
@@ -10,45 +11,10 @@ import { SourceContextBar } from '@/components/SourceContextBar';
 import { ImportFromFigmaDialog } from '@/components/ImportFromFigmaDialog';
 import { CollectionActions } from '@/components/CollectionActions';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import type { ToastMessage } from '@/types';
 import type { ISourceMetadata } from '@/types/collection.types';
-
-/** Return the unique section names (first path segment) from the raw token map. */
-function getSections(tokens: Record<string, unknown>): string[] {
-  const seen = new Set<string>();
-  for (const filePath of Object.keys(tokens)) {
-    seen.add(filePath.split('/')[0]);
-  }
-  return Array.from(seen);
-}
-
-/** Count leaf tokens inside a raw file-keyed token blob for a given section. */
-function countSectionTokens(tokens: Record<string, unknown>, section: string): number {
-  let count = 0;
-  function walk(node: unknown) {
-    if (!node || typeof node !== 'object' || Array.isArray(node)) return;
-    const obj = node as Record<string, unknown>;
-    if (('value' in obj && 'type' in obj) || ('$value' in obj && '$type' in obj)) {
-      count++;
-      return;
-    }
-    for (const v of Object.values(obj)) walk(v);
-  }
-  for (const [filePath, data] of Object.entries(tokens)) {
-    if (filePath.split('/')[0] === section) walk(data);
-  }
-  return count;
-}
-
-/** Filter raw tokens to only include file paths belonging to the given section. */
-function filterBySection(
-  tokens: Record<string, unknown>,
-  section: string
-): Record<string, unknown> {
-  return Object.fromEntries(
-    Object.entries(tokens).filter(([filePath]) => filePath.split('/')[0] === section)
-  );
-}
 
 interface TokensPageProps {
   params: { id: string };
@@ -60,8 +26,6 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
 
   const [collectionName, setCollectionName] = useState('');
   const [rawCollectionTokens, setRawCollectionTokens] = useState<Record<string, unknown> | null>(null);
-  const [sections, setSections] = useState<string[]>([]);
-  const [selectedSection, setSelectedSection] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<ToastMessage | null>(null);
   const [saveAsDialogOpen, setSaveAsDialogOpen] = useState(false);
@@ -69,6 +33,15 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   const [importFigmaOpen, setImportFigmaOpen] = useState(false);
   const [selectedSourceMetadata, setSelectedSourceMetadata] = useState<ISourceMetadata | null>(null);
   const [generateTabTokens, setGenerateTabTokens] = useState<Record<string, unknown> | null>(null);
+
+  // Token groups master panel state
+  const [globalNamespace, setGlobalNamespace] = useState('token');
+  const [masterGroups, setMasterGroups] = useState<{ id: string; name: string }[]>([]);
+  const [selectedGroupId, setSelectedGroupId] = useState('');
+  const [pendingNewGroup, setPendingNewGroup] = useState<string | null>(null);
+  const [guideOpen, setGuideOpen] = useState(false);
+  const [isAddingGroup, setIsAddingGroup] = useState(false);
+  const [newGroupName, setNewGroupName] = useState('');
 
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -99,9 +72,6 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       setCollectionName(col.name ?? '');
       setRawCollectionTokens(rawTokens);
       setSelectedSourceMetadata(col.sourceMetadata ?? null);
-      const sectionList = getSections(rawTokens);
-      setSections(sectionList);
-      if (sectionList.length > 0) setSelectedSection(sectionList[0]);
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') return;
       setToast({ message: 'Failed to load collection', type: 'error' });
@@ -161,14 +131,29 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     }
   };
 
-  // Tokens passed to the generator — scoped to the selected section if one exists
-  const scopedTokens =
-    rawCollectionTokens && selectedSection
-      ? filterBySection(rawCollectionTokens, selectedSection)
-      : rawCollectionTokens ?? {};
+  const handleGroupsChange = useCallback(
+    (groups: { id: string; name: string }[]) => {
+      setMasterGroups(groups);
+      setSelectedGroupId(prev => {
+        if (prev && groups.some(g => g.id === prev)) return prev;
+        return groups[0]?.id ?? '';
+      });
+    },
+    []
+  );
 
-  // Virtual collection id — changes when section changes so the form re-loads
-  const scopedCollectionId = selectedSection ? `${id}-${selectedSection}` : id;
+  const handleGroupAdded = useCallback((group: { id: string; name: string }) => {
+    setPendingNewGroup(null);
+    setSelectedGroupId(group.id);
+  }, []);
+
+  const confirmAddGroup = () => {
+    const name = newGroupName.trim();
+    if (!name) return;
+    setPendingNewGroup(name);
+    setNewGroupName('');
+    setIsAddingGroup(false);
+  };
 
   if (loading) {
     return (
@@ -197,6 +182,17 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
           onDuplicated={handleDuplicated}
           onError={(msg) => setToast({ message: msg, type: 'error' })}
         />
+        <div className="h-4 border-l border-gray-200 mx-1" />
+        <label className="text-sm text-gray-600 whitespace-nowrap">Namespace:</label>
+        <Input
+          value={globalNamespace}
+          onChange={(e) => setGlobalNamespace(e.target.value)}
+          className="w-32 h-8 text-sm"
+          placeholder="e.g. token"
+        />
+        <Button variant="ghost" size="sm" onClick={() => setGuideOpen(true)} title="Generator Guide">
+          <Info size={16} />
+        </Button>
       </div>
 
       <SourceContextBar sourceMetadata={selectedSourceMetadata} />
@@ -205,56 +201,80 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       <div className="flex flex-1 overflow-hidden">
         {/* Master: token groups */}
         <aside className="w-56 border-r border-gray-200 bg-gray-50 overflow-y-auto flex-shrink-0">
-          <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200">
-            Token Groups
+          <div className="px-4 py-2 border-b border-gray-200 flex items-center justify-between">
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Token Groups</span>
+            <button
+              onClick={() => setIsAddingGroup(true)}
+              className="text-gray-400 hover:text-gray-700 p-0.5 rounded"
+              title="Add group"
+            >
+              <Plus size={14} />
+            </button>
           </div>
 
-          {sections.length === 0 && (
+          {isAddingGroup && (
+            <div className="px-2 py-2 border-b border-gray-200 flex items-center gap-1">
+              <Input
+                value={newGroupName}
+                onChange={(e) => setNewGroupName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') confirmAddGroup();
+                  if (e.key === 'Escape') { setIsAddingGroup(false); setNewGroupName(''); }
+                }}
+                placeholder="Group name..."
+                className="h-6 text-xs"
+                autoFocus
+              />
+              <button
+                onClick={confirmAddGroup}
+                className="text-green-600 hover:text-green-800 text-xs px-1"
+              >
+                ✓
+              </button>
+              <button
+                onClick={() => { setIsAddingGroup(false); setNewGroupName(''); }}
+                className="text-gray-400 hover:text-gray-600 text-xs px-1"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
+          {masterGroups.length === 0 && (
             <p className="px-4 py-3 text-xs text-gray-400">No token groups yet.</p>
           )}
 
-          {sections.map((section) => (
+          {masterGroups.map((group) => (
             <button
-              key={section}
-              onClick={() => setSelectedSection(section)}
-              className={`w-full text-left px-4 py-2 text-sm flex items-center justify-between ${
-                selectedSection === section
+              key={group.id}
+              onClick={() => setSelectedGroupId(group.id)}
+              className={`w-full text-left px-4 py-2 text-sm ${
+                selectedGroupId === group.id
                   ? 'bg-gray-900 text-white'
                   : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
-              <span className="truncate">{section}</span>
-              {rawCollectionTokens && (
-                <span className={`text-xs ml-1 flex-shrink-0 ${selectedSection === section ? 'text-gray-300' : 'text-gray-400'}`}>
-                  {countSectionTokens(rawCollectionTokens, section)}
-                </span>
-              )}
+              <span className="truncate block">{group.name}</span>
             </button>
           ))}
         </aside>
 
-        {/* Detail: TokenGeneratorFormNew scoped to selected section */}
+        {/* Detail: TokenGeneratorFormNew */}
         <main className="flex-1 overflow-y-auto p-6">
-          {sections.length === 0 && !rawCollectionTokens && (
-            <div className="mb-6">
-              <h2 className="text-lg font-medium text-gray-900 mb-1">
-                Create W3C Design Token Specification Compliant Tokens
-              </h2>
-              <p className="text-gray-600 text-sm">
-                Generate design tokens that follow the W3C Design Tokens specification with proper value, type, and attributes.
-              </p>
-            </div>
-          )}
-          <TokenGeneratorDocs />
           <TokenGeneratorFormNew
-            key={scopedCollectionId}
+            key={id}
             githubConfig={null}
             onTokensChange={(tokens) => setGenerateTabTokens(tokens)}
-            collectionToLoad={
-              Object.keys(scopedTokens).length > 0
-                ? { id: scopedCollectionId, name: `${collectionName}${selectedSection ? ` / ${selectedSection}` : ''}`, tokens: scopedTokens }
-                : null
-            }
+            collectionToLoad={rawCollectionTokens && Object.keys(rawCollectionTokens).length > 0
+              ? { id, name: collectionName, tokens: rawCollectionTokens } : null}
+            namespace={globalNamespace}
+            onNamespaceChange={setGlobalNamespace}
+            onGroupsChange={handleGroupsChange}
+            selectedGroupId={selectedGroupId}
+            pendingNewGroup={pendingNewGroup}
+            onGroupAdded={handleGroupAdded}
+            hideNamespaceAndActions={true}
+            hideAddGroupButton={true}
           />
         </main>
       </div>
@@ -277,6 +297,15 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
           setToast({ message: `Imported "${name}" from Figma`, type: 'success' });
         }}
       />
+
+      <Dialog open={guideOpen} onOpenChange={setGuideOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>W3C Design Token Generator Guide</DialogTitle>
+          </DialogHeader>
+          <TokenGeneratorDocs />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

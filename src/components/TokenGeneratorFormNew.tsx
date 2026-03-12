@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { GitHubDirectoryPicker } from './GitHubDirectoryPicker';
 import { LoadingIndicator } from './LoadingIndicator';
 import { ToastNotification } from './ToastNotification';
@@ -43,9 +43,29 @@ interface TokenGeneratorFormNewProps {
     collectionName: string
   ) => void;
   collectionToLoad?: { id: string; name: string; tokens: Record<string, unknown> } | null;
+  namespace?: string;
+  onNamespaceChange?: (ns: string) => void;
+  onGroupsChange?: (groups: { id: string; name: string }[]) => void;
+  selectedGroupId?: string;
+  pendingNewGroup?: string | null;
+  onGroupAdded?: (group: { id: string; name: string }) => void;
+  hideNamespaceAndActions?: boolean;
+  hideAddGroupButton?: boolean;
 }
 
-export function TokenGeneratorFormNew({ githubConfig, onTokensChange, collectionToLoad }: TokenGeneratorFormNewProps) {
+export function TokenGeneratorFormNew({
+  githubConfig,
+  onTokensChange,
+  collectionToLoad,
+  namespace,
+  onNamespaceChange,
+  onGroupsChange,
+  selectedGroupId,
+  pendingNewGroup,
+  onGroupAdded,
+  hideNamespaceAndActions,
+  hideAddGroupButton,
+}: TokenGeneratorFormNewProps) {
   const [tokenGroups, setTokenGroups] = useState<TokenGroup[]>([
     { id: '1', name: 'colors', tokens: [], level: 0, expanded: true }
   ]);
@@ -109,6 +129,12 @@ export function TokenGeneratorFormNew({ githubConfig, onTokensChange, collection
     setIsDirty(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [collectionToLoad?.id]);
+
+  // Sync controlled namespace prop into internal state
+  useEffect(() => {
+    if (namespace !== undefined && namespace !== globalNamespace) setGlobalNamespace(namespace);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [namespace]);
 
   // Toast helper functions
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
@@ -254,8 +280,8 @@ export function TokenGeneratorFormNew({ githubConfig, onTokensChange, collection
     return parts.join('.');
   };
 
-  const addTokenGroup = () => {
-    const groupName = newGroupName.trim() || `group-${tokenGroups.length + 1}`;
+  const addTokenGroup = (externalName?: string): TokenGroup => {
+    const groupName = (externalName ?? newGroupName).trim() || `group-${tokenGroups.length + 1}`;
     const newGroup: TokenGroup = {
       id: generateId(),
       name: groupName,
@@ -263,11 +289,34 @@ export function TokenGeneratorFormNew({ githubConfig, onTokensChange, collection
       level: 0,
       expanded: true
     };
-    setTokenGroups([...tokenGroups, newGroup]);
+    setTokenGroups(prev => [...prev, newGroup]);
     setIsDirty(true);
     setNewGroupName('');
     setIsAddingGroup(false);
+    return newGroup;
   };
+
+  // Notify parent when group id/name list changes
+  const prevGroupsRef = useRef<string>('');
+  useEffect(() => {
+    if (!onGroupsChange) return;
+    const summary = tokenGroups.map(g => ({ id: g.id, name: g.name }));
+    const serialized = JSON.stringify(summary);
+    if (serialized === prevGroupsRef.current) return;
+    prevGroupsRef.current = serialized;
+    onGroupsChange(summary);
+  }, [tokenGroups, onGroupsChange]);
+
+  // Handle external pending new group
+  const prevPendingGroupRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!pendingNewGroup) return;
+    if (pendingNewGroup === prevPendingGroupRef.current) return;
+    prevPendingGroupRef.current = pendingNewGroup;
+    const newGroup = addTokenGroup(pendingNewGroup);
+    onGroupAdded?.({ id: newGroup.id, name: newGroup.name });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingNewGroup]);
 
   const deleteTokenGroup = (groupId: string) => {
     const allGroups = getAllGroups(tokenGroups);
@@ -876,132 +925,132 @@ export function TokenGeneratorFormNew({ githubConfig, onTokensChange, collection
   return (
     <div className="space-y-6">
       {/* Header Actions */}
-      <div className="p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center space-x-4">
-            <h3 className="text-lg font-medium text-gray-900">Export Actions</h3>
-            {loadedCollection && (
-              <p className="text-xs text-emerald-700 font-medium">
-                Editing: {loadedCollection.name}
-              </p>
-            )}
-            <div className="flex items-center space-x-2">
-              <label className="text-sm font-medium text-gray-700">Global Namespace:</label>
-              <Input
-                type="text"
-                value={globalNamespace}
-                onChange={(e) => { setGlobalNamespace(e.target.value); setIsDirty(true); }}
-                placeholder="Optional namespace (e.g., 'design', 'token')"
-                className="text-sm"
-              />
+      {!hideNamespaceAndActions && (
+        <div className="p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center space-x-4">
+              <h3 className="text-lg font-medium text-gray-900">Export Actions</h3>
+              {loadedCollection && (
+                <p className="text-xs text-emerald-700 font-medium">
+                  Editing: {loadedCollection.name}
+                </p>
+              )}
+              <div className="flex items-center space-x-2">
+                <label className="text-sm font-medium text-gray-700">Global Namespace:</label>
+                <Input
+                  type="text"
+                  value={globalNamespace}
+                  onChange={(e) => { setGlobalNamespace(e.target.value); onNamespaceChange?.(e.target.value); setIsDirty(true); }}
+                  placeholder="Optional namespace (e.g., 'design', 'token')"
+                  className="text-sm"
+                />
+              </div>
+            </div>
+            <div className="flex space-x-3">
+              <Button
+                size="sm"
+                onClick={() => setShowJsonDialog(true)}
+                className="bg-gray-600 hover:bg-gray-700 text-white"
+              >
+                Preview JSON
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => setShowSaveDialog(true)}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              >
+                Save to Database
+              </Button>
+              <Button
+                size="sm"
+                onClick={exportToJSON}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                Download JSON
+              </Button>
+              <Button
+                size="sm"
+                onClick={exportToGitHub}
+                className="bg-gray-800 hover:bg-gray-900 text-white"
+              >
+                Push to GitHub
+              </Button>
+              <Button
+                size="sm"
+                onClick={importFromGitHub}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                Import from GitHub
+              </Button>
+              <Button
+                size="sm"
+                onClick={exportToFigma}
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                Export to Figma
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={clearForm}
+              >
+                Clear Form
+              </Button>
             </div>
           </div>
-          <div className="flex space-x-3">
-            <Button
-              size="sm"
-              onClick={() => setShowJsonDialog(true)}
-              className="bg-gray-600 hover:bg-gray-700 text-white"
-            >
-              Preview JSON
-            </Button>
-            <Button
-              size="sm"
-              onClick={() => setShowSaveDialog(true)}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white"
-            >
-              Save to Database
-            </Button>
-            <Button
-              size="sm"
-              onClick={() => setShowLoadDialog(true)}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white"
-            >
-              Load Collection
-            </Button>
-            <Button
-              size="sm"
-              onClick={exportToJSON}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              Download JSON
-            </Button>
-            <Button
-              size="sm"
-              onClick={exportToGitHub}
-              className="bg-gray-800 hover:bg-gray-900 text-white"
-            >
-              Push to GitHub
-            </Button>
-            <Button
-              size="sm"
-              onClick={importFromGitHub}
-              className="bg-green-600 hover:bg-green-700 text-white"
-            >
-              Import from GitHub
-            </Button>
-            <Button
-              size="sm"
-              onClick={exportToFigma}
-              className="bg-purple-600 hover:bg-purple-700 text-white"
-            >
-              Export to Figma
-            </Button>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={clearForm}
-            >
-              Clear Form
-            </Button>
-          </div>
+          {globalNamespace && (
+            <div className="text-sm text-gray-600">
+              <strong>Preview:</strong> Tokens will be prefixed with "{globalNamespace}."
+            </div>
+          )}
         </div>
-        {globalNamespace && (
-          <div className="text-sm text-gray-600">
-            <strong>Preview:</strong> Tokens will be prefixed with "{globalNamespace}."
-          </div>
-        )}
-      </div>
+      )}
 
       {/* Token Groups */}
-      {tokenGroups.map(group => renderGroup(group))}
+      {(selectedGroupId
+        ? tokenGroups.filter(g => g.id === selectedGroupId)
+        : tokenGroups
+      ).map(group => renderGroup(group))}
       {/* Add Group */}
-      <div className="p-6 text-center bg-gray-50 rounded-lg border-2 border-gray-300 border-dashed">
-        {!isAddingGroup ? (
-          <Button
-            variant="ghost"
-            onClick={() => setIsAddingGroup(true)}
-            className="font-medium text-gray-600 hover:text-gray-800"
-          >
-            + Add Token Group
-          </Button>
-        ) : (
-          <div className="flex justify-center items-center space-x-3">
-            <Input
-              type="text"
-              value={newGroupName}
-              onChange={(e) => setNewGroupName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') addTokenGroup();
-                if (e.key === 'Escape') { setIsAddingGroup(false); setNewGroupName(''); }
-              }}
-              placeholder="Group name (optional)..."
-              autoFocus
-            />
+      {!hideAddGroupButton && (
+        <div className="p-6 text-center bg-gray-50 rounded-lg border-2 border-gray-300 border-dashed">
+          {!isAddingGroup ? (
             <Button
-              onClick={addTokenGroup}
-              className="bg-green-600 hover:bg-green-700 text-white"
+              variant="ghost"
+              onClick={() => setIsAddingGroup(true)}
+              className="font-medium text-gray-600 hover:text-gray-800"
             >
-              ✓
+              + Add Token Group
             </Button>
-            <Button
-              variant="outline"
-              onClick={() => { setIsAddingGroup(false); setNewGroupName(''); }}
-            >
-              ✕
-            </Button>
-          </div>
-        )}
-      </div>
+          ) : (
+            <div className="flex justify-center items-center space-x-3">
+              <Input
+                type="text"
+                value={newGroupName}
+                onChange={(e) => setNewGroupName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') addTokenGroup();
+                  if (e.key === 'Escape') { setIsAddingGroup(false); setNewGroupName(''); }
+                }}
+                placeholder="Group name (optional)..."
+                autoFocus
+              />
+              <Button
+                onClick={() => addTokenGroup()}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                ✓
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => { setIsAddingGroup(false); setNewGroupName(''); }}
+              >
+                ✕
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Directory Picker */}
       {showDirectoryPicker && githubConfig && (
