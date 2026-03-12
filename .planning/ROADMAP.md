@@ -69,7 +69,12 @@ Plans:
   2. The content area shows only the direct tokens of the selected group — tokens from descendant groups are not shown
   3. A breadcrumb trail above the content area reflects the full path of the selected group (e.g. `Brand2 / Color`)
   4. Clicking any breadcrumb segment navigates to and selects that ancestor group
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 06-01-PLAN.md — Tree node selection highlight + onGroupSelect wiring
+- [ ] 06-02-PLAN.md — GroupBreadcrumb component
+- [ ] 06-03-PLAN.md — Wire breadcrumb into tokens page + content scoping + human verify
 
 ### Phase 7: Mutations
 **Goal**: Users can add new groups from the tree and add or edit tokens within the currently selected group
