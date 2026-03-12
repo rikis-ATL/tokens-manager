@@ -10,25 +10,25 @@ See: .planning/PROJECT.md (updated 2026-03-12)
 ## Current Position
 
 Phase: 6 of 7 (Selection, Breadcrumbs, Content Scoping)
-Plan: 2 of 3 in current phase
-Status: 06-02 complete — GroupBreadcrumb component built and TypeScript-clean
-Last activity: 2026-03-13 — Phase 6 Plan 02 complete (GroupBreadcrumb created)
+Plan: 3 of 3 in current phase
+Status: 06-03 complete — Phase 6 fully complete, human-verified in browser
+Last activity: 2026-03-13 — Phase 6 Plan 03 complete (GroupBreadcrumb wired, content scoping, empty state)
 
-Progress: [██░░░░░░░░] 20% (v1.2)
+Progress: [████░░░░░░] 40% (v1.2)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed (v1.2): 3
-- Average duration: ~10 min
-- Total execution time: ~35 min
+- Total plans completed (v1.2): 5
+- Average duration: ~8 min
+- Total execution time: ~42 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 5. Tree Data Model | 2 | ~30 min | ~15 min |
-| 6. Selection + Breadcrumbs (so far) | 1 | ~5 min | ~5 min |
+| 6. Selection + Breadcrumbs | 3 | ~12 min | ~4 min |
 
 *Updated after each plan completion*
 
@@ -54,6 +54,8 @@ All decisions logged in PROJECT.md Key Decisions table.
 - [06-01]: onGroupSelect uses optional chaining (onGroupSelect?.) so TokenGroupTree works standalone without a handler
 - [06-02]: Used local findAncestors helper instead of findGroupById — findGroupById returns only the node, not its ancestors
 - [06-02]: GroupBreadcrumb display labels derived from last segment of parseGroupPath(group.name) — consistent with TokenGroupTree FlatNode.displayLabel
+- [06-03]: Recursive group resolution in TokenGeneratorFormNew: fast path for top-level, findGroupById fallback for nested nodes
+- [06-03]: Empty state checks found.tokens.length === 0 regardless of children — parent-only groups show "No tokens in this group"
 
 ### Pending Todos
 
@@ -66,5 +68,5 @@ None — Phase 5 complete. Blocker resolved: onGroupsChange now emits full Token
 ## Session Continuity
 
 Last session: 2026-03-13
-Stopped at: Completed 06-01-PLAN.md (selection highlight and click wiring) — 06-01-SUMMARY.md created
+Stopped at: Completed 06-03-PLAN.md (GroupBreadcrumb wiring, content scoping, empty state) — Phase 6 complete, human-verified
 Resume file: None

@@ -20,7 +20,7 @@
 
 ### Content Area
 
-- [ ] **CONT-01**: Content area shows only direct tokens of the selected group (not descendants)
+- [x] **CONT-01**: Content area shows only direct tokens of the selected group (not descendants)
 - [ ] **CONT-02**: User can add tokens to the currently selected group
 - [ ] **CONT-03**: User can edit token values in the currently selected group
 
@@ -46,7 +46,7 @@
 | TREE-03 | Phase 6 | Complete |
 | BREAD-01 | Phase 6 | Complete |
 | BREAD-02 | Phase 6 | Complete |
-| CONT-01 | Phase 6 | Pending |
+| CONT-01 | Phase 6 | Complete |
 | TREE-04 | Phase 7 | Pending |
 | CONT-02 | Phase 7 | Pending |
 | CONT-03 | Phase 7 | Pending |
@@ -58,4 +58,4 @@
 
 ---
 *Requirements defined: 2026-03-12*
-*Last updated: 2026-03-12 — traceability mapped to v1.2 phases 5-7*
+*Last updated: 2026-03-13 — CONT-01 marked complete (Phase 6 Plan 03)*

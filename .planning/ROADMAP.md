@@ -40,7 +40,7 @@ See: `.planning/milestones/v1.1-ROADMAP.md` for full phase details.
 **Milestone Goal:** Refactor the token generator page so all groups appear as a navigable, collapsible tree in the master sidebar, with breadcrumb navigation and content scoped to the selected group's direct tokens.
 
 - [x] **Phase 5: Tree Data Model** — Parse group path names into a `TokenGroup[]` tree structure and render collapsible nodes in the sidebar
-- [ ] **Phase 6: Selection + Breadcrumbs + Content Scoping** — Node selection drives breadcrumbs and scopes the content area to the selected group's direct tokens
+- [x] **Phase 6: Selection + Breadcrumbs + Content Scoping** — Node selection drives breadcrumbs and scopes the content area to the selected group's direct tokens
 - [ ] **Phase 7: Mutations** — Add group from tree and add/edit tokens in the selected group
 
 ## Phase Details
@@ -72,9 +72,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 06-01-PLAN.md — Tree node selection highlight + onGroupSelect wiring
-- [ ] 06-02-PLAN.md — GroupBreadcrumb component
-- [ ] 06-03-PLAN.md — Wire breadcrumb into tokens page + content scoping + human verify
+- [x] 06-01-PLAN.md — Tree node selection highlight + onGroupSelect wiring
+- [x] 06-02-PLAN.md — GroupBreadcrumb component
+- [x] 06-03-PLAN.md — Wire breadcrumb into tokens page + content scoping + human verify
 
 ### Phase 7: Mutations
 **Goal**: Users can add new groups from the tree and add or edit tokens within the currently selected group
@@ -103,5 +103,5 @@ Plans:
 | 3. App Layout UX (sidebar + scoped pages) | v1.1 | 4/4 | Complete | 2026-03-11 |
 | 4. Collection Management (grid + scoped routing + config persistence) | v1.1 | 6/6 | Complete | 2026-03-12 |
 | 5. Tree Data Model | v1.2 | 2/2 | Complete | 2026-03-13 |
-| 6. Selection + Breadcrumbs + Content Scoping | v1.2 | 0/TBD | Not started | - |
+| 6. Selection + Breadcrumbs + Content Scoping | v1.2 | 3/3 | Complete | 2026-03-13 |
 | 7. Mutations | v1.2 | 0/TBD | Not started | - |
