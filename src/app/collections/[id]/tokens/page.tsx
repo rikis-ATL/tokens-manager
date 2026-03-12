@@ -206,6 +206,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
             groups={masterGroups}
             namespace={globalNamespace}
             selectedGroupId={selectedGroupId}
+            onGroupSelect={setSelectedGroupId}
           />
         </aside>
 
