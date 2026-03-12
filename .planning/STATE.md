@@ -5,16 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-03-12)
 
 **Core value:** Token collections are always available and editable — accessible via collection-scoped URLs, with per-collection Figma/GitHub config persisted to MongoDB, full CRUD from a card grid, and Figma import/export integrated.
-**Current focus:** Planning next milestone
+**Current focus:** v1.2 — Token Groups Tree refactor
 
 ## Current Position
 
-Phase: —
+Phase: Not started (defining requirements)
 Plan: —
-Status: MILESTONE COMPLETE — v1.1 shadcn UI shipped 2026-03-12
-Last activity: 2026-03-12 — v1.1 milestone archived
-
-Progress: [██████████] 100% — v1.1 complete (4 phases, 16 plans)
+Status: Defining requirements
+Last activity: 2026-03-12 — Milestone v1.2 started
 
 ## Accumulated Context
 

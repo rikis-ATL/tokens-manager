@@ -8,6 +8,16 @@ A Next.js design token management tool for the Allied Telesis ATUI design system
 
 Token collections are always available and editable: stored in MongoDB, accessible via collection-scoped URLs, with per-collection Figma/GitHub config, full CRUD from the collections grid, and Figma import/export fully integrated.
 
+## Current Milestone: v1.2 Token Groups Tree
+
+**Goal:** Refactor the token generator page to display all groups as a navigable tree in the master sidebar, with breadcrumbs in the content area and content scoped to the selected group's direct tokens.
+
+**Target features:**
+- Hierarchical tree sidebar (all groups, parsed from path names, collapsible)
+- Breadcrumb navigation above the content area
+- Content area scoped to direct tokens of the selected group
+- Add group from any node in the tree
+
 ## Requirements
 
 ### Validated
@@ -43,7 +53,10 @@ Token collections are always available and editable: stored in MongoDB, accessib
 
 ### Active
 
-(None — planning next milestone)
+- [ ] Token groups sidebar shows hierarchical tree of all groups (parsed from path names)
+- [ ] Content area scoped to direct tokens of selected group only
+- [ ] Breadcrumb navigation reflects selected group's path
+- [ ] User can add groups as children of any tree node
 
 ### Out of Scope
 
@@ -101,4 +114,4 @@ Token collections are always available and editable: stored in MongoDB, accessib
 | Exclude sub-workspaces from root tsconfig | Angular/Stencil/Vite TS errors blocked yarn build | ✓ Good — build clean; sub-projects have own TS configs |
 
 ---
-*Last updated: 2026-03-12 after v1.1 milestone*
+*Last updated: 2026-03-12 after v1.2 milestone start*
