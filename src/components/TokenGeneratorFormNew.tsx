@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { HexColorPicker, HexColorInput } from 'react-colorful';
+import { ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
 import { GitHubDirectoryPicker } from './GitHubDirectoryPicker';
 import { LoadingIndicator } from './LoadingIndicator';
 import { ToastNotification } from './ToastNotification';
@@ -8,9 +10,11 @@ import { JsonPreviewDialog } from './JsonPreviewDialog';
 import { SaveCollectionDialog } from './SaveCollectionDialog';
 import { LoadCollectionDialog } from './LoadCollectionDialog';
 import { ExportToFigmaDialog } from './ExportToFigmaDialog';
+import { TokenReferencePicker } from './TokenReferencePicker';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,6 +49,271 @@ import {
 } from '../utils';
 import { createToast, createLoadingState } from '../utils';
 
+// ─── TokenTableRow ─────────────────────────────────────────────────────────────
+
+interface TokenTableRowProps {
+  token: GeneratedToken;
+  group: TokenGroup;
+  tokenGroups: TokenGroup[];
+  selectedTokenId?: string | null;
+  isExpanded: boolean;
+  onTokenSelect?: (token: GeneratedToken | null, groupPath: string) => void;
+  onUpdateToken: (groupId: string, tokenId: string, field: keyof GeneratedToken, value: unknown) => void;
+  onDeleteToken: (groupId: string, tokenId: string) => void;
+  onToggleExpansion: (tokenId: string) => void;
+  onUpdateAttribute: (groupId: string, tokenId: string, key: string, value: string) => void;
+  onRemoveAttribute: (groupId: string, tokenId: string, key: string) => void;
+  resolveRef: (value: string) => string;
+  getFullPath: (group: TokenGroup, tokenPath: string) => string;
+  parseValue: (raw: string, type: TokenType) => unknown;
+}
+
+function TokenTableRow({
+  token, group, tokenGroups, selectedTokenId, isExpanded,
+  onTokenSelect, onUpdateToken, onDeleteToken, onToggleExpansion,
+  onUpdateAttribute, onRemoveAttribute, resolveRef, getFullPath, parseValue,
+}: TokenTableRowProps) {
+  const [editingField, setEditingField] = useState<string | null>(null);
+  const [colorPickerOpen, setColorPickerOpen] = useState(false);
+  const trRef = useRef<HTMLTableRowElement>(null);
+
+  const handleBlur = useCallback((e: React.FocusEvent) => {
+    if (!trRef.current?.contains(e.relatedTarget as Node)) {
+      setEditingField(null);
+    }
+  }, []);
+
+  const enterEdit = useCallback((field: string) => (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingField(field);
+  }, []);
+
+  const resolvedValue = resolveRef(token.value?.toString() ?? '');
+  const swatchBg = resolvedValue.startsWith('#') ? resolvedValue
+    : resolvedValue.startsWith('{') ? '#cccccc'
+    : (resolvedValue || '#cccccc');
+
+  const isSelected = selectedTokenId === token.id;
+
+  return (
+    <>
+      <tr
+        ref={trRef}
+        className={`transition-colors group/row ${isSelected ? 'bg-blue-50 ring-1 ring-inset ring-blue-200' : 'hover:bg-gray-50/60'}`}
+        style={{ height: 36 }}
+        onClick={() => onTokenSelect?.(isSelected ? null : token, group.path ?? group.name)}
+      >
+        {/* Name */}
+        <td className="px-0 py-0 border-r border-gray-100 w-[180px]">
+          {editingField === 'path' ? (
+            <Input
+              autoFocus
+              value={token.path}
+              onChange={e => onUpdateToken(group.id, token.id, 'path', e.target.value)}
+              onBlur={handleBlur}
+              onClick={e => e.stopPropagation()}
+              placeholder="token-name"
+              className="h-9 w-full border-0 rounded-none shadow-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-400 font-mono text-xs bg-white"
+            />
+          ) : (
+            <div
+              className="h-9 flex items-center px-4 cursor-text font-mono text-sm text-gray-700"
+              onClick={enterEdit('path')}
+            >
+              <span className="truncate">{token.path || <span className="text-gray-300">—</span>}</span>
+            </div>
+          )}
+        </td>
+
+        {/* Type */}
+        <td className="px-0 py-0 border-r border-gray-100 w-[120px]">
+          {editingField === 'type' ? (
+            <Select
+              value={token.type}
+              onValueChange={v => { onUpdateToken(group.id, token.id, 'type', v); setEditingField(null); }}
+              open
+              onOpenChange={o => { if (!o) setEditingField(null); }}
+            >
+              <SelectTrigger
+                className="h-9 w-full border-0 rounded-none shadow-none focus:ring-0 text-xs"
+                onClick={e => e.stopPropagation()}
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {TOKEN_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          ) : (
+            <div
+              className="h-9 flex items-center px-3 cursor-pointer"
+              onClick={enterEdit('type')}
+            >
+              <span className="text-[11px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 font-medium">{token.type}</span>
+            </div>
+          )}
+        </td>
+
+        {/* Value */}
+        <td className="px-0 py-0 border-r border-gray-100">
+          <div className="h-9 flex items-center gap-1.5 px-2">
+            {/* Color swatch / picker */}
+            {token.type === 'color' && (
+              <Popover open={colorPickerOpen} onOpenChange={setColorPickerOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className="w-5 h-5 rounded border border-gray-300 flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-offset-1 hover:ring-blue-400 transition-shadow"
+                    style={{ backgroundColor: swatchBg }}
+                    onClick={e => e.stopPropagation()}
+                    title="Pick color"
+                  />
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-3 flex flex-col gap-2" align="start" onClick={e => e.stopPropagation()}>
+                  <HexColorPicker
+                    color={swatchBg.startsWith('#') ? swatchBg : '#000000'}
+                    onChange={hex => onUpdateToken(group.id, token.id, 'value', hex)}
+                  />
+                  <HexColorInput
+                    color={swatchBg.startsWith('#') ? swatchBg : '#000000'}
+                    onChange={hex => onUpdateToken(group.id, token.id, 'value', hex)}
+                    prefixed
+                    className="w-full border border-gray-200 rounded px-2 py-1 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-blue-400"
+                  />
+                </PopoverContent>
+              </Popover>
+            )}
+
+            {/* Value input / display */}
+            {editingField === 'value' ? (
+              <Input
+                autoFocus
+                value={token.value?.toString() ?? ''}
+                onChange={e => onUpdateToken(group.id, token.id, 'value', parseValue(e.target.value, token.type))}
+                onBlur={handleBlur}
+                onClick={e => e.stopPropagation()}
+                placeholder={getValuePlaceholder(token.type)}
+                className="flex-1 h-7 border border-gray-300 rounded px-2 text-sm font-mono shadow-none focus-visible:ring-1 focus-visible:ring-blue-400"
+              />
+            ) : (
+              <div
+                className="flex-1 cursor-text text-sm font-mono text-gray-700 truncate"
+                onClick={enterEdit('value')}
+              >
+                {token.value?.toString() || <span className="text-gray-300">{getValuePlaceholder(token.type)}</span>}
+              </div>
+            )}
+
+            {/* Reference picker */}
+            <div onClick={e => e.stopPropagation()}>
+              <TokenReferencePicker
+                allGroups={tokenGroups}
+                onSelect={alias => onUpdateToken(group.id, token.id, 'value', alias)}
+              />
+            </div>
+          </div>
+        </td>
+
+        {/* Description */}
+        <td className="px-0 py-0 border-r border-gray-100">
+          {editingField === 'description' ? (
+            <Input
+              autoFocus
+              value={token.description || ''}
+              onChange={e => onUpdateToken(group.id, token.id, 'description', e.target.value)}
+              onBlur={handleBlur}
+              onClick={e => e.stopPropagation()}
+              placeholder="Optional description"
+              className="h-9 w-full border-0 rounded-none shadow-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-400 text-sm bg-white"
+            />
+          ) : (
+            <div
+              className="h-9 flex items-center px-4 cursor-text text-sm text-gray-500 truncate"
+              onClick={enterEdit('description')}
+            >
+              {token.description || <span className="text-gray-300">—</span>}
+            </div>
+          )}
+        </td>
+
+        {/* Actions */}
+        <td className="px-2 py-0 w-[72px]">
+          <div className="flex items-center gap-1 opacity-0 group-hover/row:opacity-100 transition-opacity">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0 text-gray-400 hover:text-blue-600"
+              onClick={e => { e.stopPropagation(); onToggleExpansion(token.id); }}
+              title="Toggle attributes"
+            >
+              {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0 text-gray-400 hover:text-red-600"
+              onClick={e => { e.stopPropagation(); onDeleteToken(group.id, token.id); }}
+              title="Delete token"
+            >
+              <Trash2 size={12} />
+            </Button>
+          </div>
+        </td>
+      </tr>
+
+      {/* Expanded: custom attributes */}
+      {isExpanded && (
+        <tr className="bg-gray-50">
+          <td colSpan={5} className="px-4 py-3">
+            <div className="space-y-2">
+              <h5 className="mb-2 text-sm font-medium text-gray-700">Custom Attributes</h5>
+              {Object.entries(token.attributes || {}).map(([key, value]) => (
+                <div key={key} className="flex items-center space-x-2">
+                  <Input
+                    type="text"
+                    value={key}
+                    onChange={e => {
+                      const newKey = e.target.value;
+                      onRemoveAttribute(group.id, token.id, key);
+                      onUpdateAttribute(group.id, token.id, newKey, value as string);
+                    }}
+                    placeholder="Attribute name"
+                    className="flex-1 px-2 py-1 text-xs rounded border border-gray-300 h-auto"
+                  />
+                  <span className="text-gray-500">:</span>
+                  <Input
+                    type="text"
+                    value={value as string}
+                    onChange={e => onUpdateAttribute(group.id, token.id, key, e.target.value)}
+                    placeholder="Attribute value"
+                    className="flex-1 px-2 py-1 text-xs rounded border border-gray-300 h-auto"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onRemoveAttribute(group.id, token.id, key)}
+                    className="text-sm text-red-600 hover:text-red-800 h-auto p-0"
+                  >
+                    ✕
+                  </Button>
+                </div>
+              ))}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onUpdateAttribute(group.id, token.id, 'newAttribute', '')}
+                className="text-sm font-medium text-blue-600 hover:text-blue-800 h-auto p-0"
+              >
+                + Add Attribute
+              </Button>
+            </div>
+          </td>
+        </tr>
+      )}
+    </>
+  );
+}
+
 interface TokenGeneratorFormNewProps {
   githubConfig?: GitHubConfig | null;
   onTokensChange?: (
@@ -56,11 +325,18 @@ interface TokenGeneratorFormNewProps {
   namespace?: string;
   onNamespaceChange?: (ns: string) => void;
   onGroupsChange?: (groups: TokenGroup[]) => void;
+  onGroupSelect?: (groupId: string) => void;
   selectedGroupId?: string;
   pendingNewGroup?: string | null;
   onGroupAdded?: (group: { id: string; name: string }) => void;
   hideNamespaceAndActions?: boolean;
   hideAddGroupButton?: boolean;
+  onTokenSelect?: (token: GeneratedToken | null, groupPath: string) => void;
+  selectedTokenId?: string | null;
+  pendingBulkInsert?: { groupId: string; tokens: GeneratedToken[]; subgroupName?: string } | null;
+  onBulkInsertProcessed?: () => void;
+  pendingGroupAction?: { type: 'delete' | 'addSub'; groupId: string } | null;
+  onGroupActionProcessed?: () => void;
 }
 
 export function TokenGeneratorFormNew({
@@ -70,11 +346,18 @@ export function TokenGeneratorFormNew({
   namespace,
   onNamespaceChange,
   onGroupsChange,
+  onGroupSelect,
   selectedGroupId,
   pendingNewGroup,
   onGroupAdded,
   hideNamespaceAndActions,
   hideAddGroupButton,
+  onTokenSelect,
+  selectedTokenId,
+  pendingBulkInsert,
+  onBulkInsertProcessed,
+  pendingGroupAction,
+  onGroupActionProcessed,
 }: TokenGeneratorFormNewProps) {
   const [tokenGroups, setTokenGroups] = useState<TokenGroup[]>([
     { id: '1', name: 'colors', tokens: [], level: 0, expanded: true }
@@ -327,6 +610,56 @@ export function TokenGeneratorFormNew({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingNewGroup]);
 
+  useEffect(() => {
+    if (!pendingBulkInsert) return;
+    const { groupId, tokens, subgroupName } = pendingBulkInsert;
+
+    if (subgroupName) {
+      // Create a new child group under groupId and place the tokens inside it
+      const insertSubgroup = (groups: TokenGroup[]): TokenGroup[] =>
+        groups.map(g => {
+          if (g.id === groupId) {
+            const newChild: TokenGroup = {
+              id: generateId(),
+              name: subgroupName,
+              tokens,
+              level: g.level + 1,
+              parent: groupId,
+              children: [],
+              expanded: true,
+            };
+            return { ...g, children: [...(g.children ?? []), newChild], expanded: true };
+          }
+          if (g.children?.length) return { ...g, children: insertSubgroup(g.children) };
+          return g;
+        });
+      setTokenGroups(prev => insertSubgroup(prev));
+    } else {
+      const insertIntoGroup = (groups: TokenGroup[]): TokenGroup[] =>
+        groups.map(group => {
+          if (group.id === groupId) return { ...group, tokens: [...group.tokens, ...tokens] };
+          if (group.children?.length) return { ...group, children: insertIntoGroup(group.children) };
+          return group;
+        });
+      setTokenGroups(prev => insertIntoGroup(prev));
+    }
+
+    setIsDirty(true);
+    onBulkInsertProcessed?.();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingBulkInsert]);
+
+  useEffect(() => {
+    if (!pendingGroupAction) return;
+    if (pendingGroupAction.type === 'delete') {
+      deleteTokenGroup(pendingGroupAction.groupId);
+    } else if (pendingGroupAction.type === 'addSub') {
+      addSubGroup(pendingGroupAction.groupId);
+    }
+    onGroupActionProcessed?.();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingGroupAction]);
+
   const deleteTokenGroup = (groupId: string) => {
     const allGroups = getAllGroups(tokenGroups);
     if (allGroups.length === 1) {
@@ -388,6 +721,7 @@ export function TokenGeneratorFormNew({
     setTokenGroups(updateGroup(tokenGroups));
     setIsDirty(true);
   };
+
 
   const updateToken = (groupId: string, tokenId: string, field: keyof GeneratedToken, value: any) => {
     const updateGroup = (groups: TokenGroup[]): TokenGroup[] => {
@@ -701,215 +1035,123 @@ export function TokenGeneratorFormNew({
 
   // Use imported getValuePlaceholder utility function
 
+  // Add a child group under an existing group
+  const addSubGroup = (parentGroupId: string) => {
+    const insertChild = (groups: TokenGroup[]): TokenGroup[] =>
+      groups.map(g => {
+        if (g.id === parentGroupId) {
+          const newChild: TokenGroup = {
+            id: generateId(),
+            name: 'new-group',
+            tokens: [],
+            level: g.level + 1,
+            parent: parentGroupId,
+            children: [],
+            expanded: true,
+          };
+          return { ...g, children: [...(g.children ?? []), newChild], expanded: true };
+        }
+        if (g.children?.length) return { ...g, children: insertChild(g.children) };
+        return g;
+      });
+    setTokenGroups(insertChild(tokenGroups));
+    setIsDirty(true);
+  };
+
   // Recursive function to render nested groups
   const renderGroup = (group: TokenGroup) => {
     const hasChildren = group.children && group.children.length > 0;
     const hasTokens = group.tokens.length > 0;
-    const indentLevel = group.level * 24;
 
     return (
-      <div key={group.id}  className="mb-4">
+      <div key={group.id} className="mb-4">
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-          <div className="p-4 border-b border-gray-200">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center space-x-2">
-     
-                <span className="font-mono text-sm text-gray-500">
-                  Level {group.level}
+          {/* Card header */}
+          <div className="px-4 py-3 border-b border-gray-200">
+            <div className="flex items-center gap-2">
+              <Input
+                type="text"
+                value={group.name}
+                onChange={(e) => updateGroupName(group.id, e.target.value)}
+                className="px-2 py-1 text-base font-semibold bg-transparent rounded border-none outline-none focus:bg-gray-50 h-auto flex-1"
+                placeholder="Group name"
+              />
+              {hasChildren && (
+                <span className="px-2 py-0.5 text-xs text-blue-600 bg-blue-50 border border-blue-100 rounded-full">
+                  {group.children!.length} sub
                 </span>
-                <Input
-                  type="text"
-                  value={group.name}
-                  onChange={(e) => updateGroupName(group.id, e.target.value)}
-                  className="px-2 py-1 text-lg font-medium bg-transparent rounded border-none outline-none focus:bg-gray-50 h-auto"
-                  placeholder="Group name"
-                />
-                {hasChildren && (
-                  <span className="px-2 py-1 text-xs text-blue-600 bg-blue-100 rounded">
-                    {group.children!.length} {group.children!.length === 1 ? 'child' : 'children'}
-                  </span>
-                )}
-                {hasTokens && (
-                  <span className="px-2 py-1 text-xs text-green-600 bg-green-100 rounded">
-                    {group.tokens.length} {group.tokens.length === 1 ? 'token' : 'tokens'}
-                  </span>
-                )}
-              </div>
-              {/* <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => deleteTokenGroup(group.id)}
-                className="text-sm font-medium text-red-600 hover:text-red-800"
-              >
-                Delete Group
-              </Button> */}
+              )}
+              {hasTokens && (
+                <span className="px-2 py-0.5 text-xs text-green-600 bg-green-50 border border-green-100 rounded-full">
+                  {group.tokens.length} tokens
+                </span>
+              )}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-gray-400 hover:text-gray-700">
+                    ···
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-44">
+                  <DropdownMenuItem onClick={() => addSubGroup(group.id)}>
+                    + Add Sub-group
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="text-red-600 focus:text-red-700"
+                    onClick={() => deleteTokenGroup(group.id)}
+                  >
+                    Delete Group
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 
-
-
           {hasTokens && (
             <div className="overflow-x-auto">
-              <table className="min-w-full">
-                <thead className="bg-gray-50">
+              <table className="min-w-full border-collapse">
+                <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    <th className="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">Token Name</th>
-                    <th className="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">Type</th>
-                    <th className="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">Value</th>
-                    <th className="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">Description</th>
-                    <th className="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">Actions</th>
+                    <th className="px-4 py-2 text-[10px] font-semibold text-left text-gray-400 uppercase tracking-wide w-[180px]">Name</th>
+                    <th className="px-4 py-2 text-[10px] font-semibold text-left text-gray-400 uppercase tracking-wide w-[120px]">Type</th>
+                    <th className="px-4 py-2 text-[10px] font-semibold text-left text-gray-400 uppercase tracking-wide">Value</th>
+                    <th className="px-4 py-2 text-[10px] font-semibold text-left text-gray-400 uppercase tracking-wide">Description</th>
+                    <th className="px-4 py-2 text-[10px] font-semibold text-left text-gray-400 uppercase tracking-wide w-[72px]"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {group.tokens.map((token) => (
-                    <React.Fragment key={token.id}>
-                      <tr className="hover:bg-gray-50">
-                        <td className="px-4 py-3">
-                          <div className="flex items-center">
-                            <div className="mr-2 font-mono text-sm text-gray-600">
-                              {buildTokenPath(group, token.path).replace(/\./g, '-')}
-                            </div>
-                            <Input
-                              type="text"
-                              value={token.path}
-                              onChange={(e) => updateToken(group.id, token.id, 'path', e.target.value)}
-                              placeholder="token.name"
-                              className="px-2 py-1 font-mono text-xs rounded border border-gray-300 bg-gray-50 text-gray-600 h-auto"
-                              style={{ minWidth: '100px', maxWidth: '150px' }}
-                            />
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <Select
-                            value={token.type}
-                            onValueChange={(v) => updateToken(group.id, token.id, 'type', v)}
-                          >
-                            <SelectTrigger className="h-8 text-sm px-2 w-auto min-w-[100px]">
-                              <SelectValue placeholder="Type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {TOKEN_TYPES.map(type => (
-                                <SelectItem key={type} value={type}>{type}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            {token.type === 'color' && (
-                              <div
-                                className="w-6 h-6 border border-gray-300 rounded cursor-pointer flex-shrink-0"
-                                style={{ backgroundColor: (() => {
-                                  const resolvedValue = resolveTokenReference(token.value.toString());
-                                  return typeof resolvedValue === 'string' && resolvedValue.startsWith('#')
-                                    ? resolvedValue
-                                    : typeof resolvedValue === 'string' && resolvedValue.startsWith('{')
-                                      ? '#cccccc'
-                                      : resolvedValue;
-                                })() }}
-                                title={`Color preview: ${token.value} ${token.value !== resolveTokenReference(token.value.toString()) ? `→ ${resolveTokenReference(token.value.toString())}` : ''}`}
-                              />
-                            )}
-                            <Input
-                              type="text"
-                              value={token.value}
-                              onChange={(e) => updateToken(group.id, token.id, 'value', parseTokenValue(e.target.value, token.type))}
-                              placeholder={getValuePlaceholder(token.type)}
-                              className="flex-1 px-2 py-1 font-mono text-sm rounded border border-gray-300 h-auto"
-                            />
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <Input
-                            type="text"
-                            value={token.description || ''}
-                            onChange={(e) => updateToken(group.id, token.id, 'description', e.target.value)}
-                            placeholder="Optional description"
-                            className="flex-1 px-2 py-1 text-sm rounded border border-gray-300 h-auto"
-                          />
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex space-x-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => toggleTokenExpansion(token.id)}
-                              className="text-sm text-blue-600 hover:text-blue-800 h-auto p-0"
-                            >
-                              {expandedTokens.has(token.id) ? '↑' : '↓'}
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => deleteToken(group.id, token.id)}
-                              className="text-sm text-red-600 hover:text-red-800 h-auto p-0"
-                            >
-                              ✕
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                      {expandedTokens.has(token.id) && (
-                        <tr className="bg-gray-50">
-                          <td colSpan={5} className="px-4 py-3">
-                            <div className="space-y-2">
-                              <h5 className="mb-2 text-sm font-medium text-gray-700">Custom Attributes</h5>
-                              {Object.entries(token.attributes || {}).map(([key, value]) => (
-                                <div key={key} className="flex items-center space-x-2">
-                                  <Input
-                                    type="text"
-                                    value={key}
-                                    onChange={(e) => {
-                                      const newKey = e.target.value;
-                                      removeTokenAttribute(group.id, token.id, key);
-                                      updateTokenAttribute(group.id, token.id, newKey, value as string);
-                                    }}
-                                    placeholder="Attribute name"
-                                    className="flex-1 px-2 py-1 text-xs rounded border border-gray-300 h-auto"
-                                  />
-                                  <span className="text-gray-500">:</span>
-                                  <Input
-                                    type="text"
-                                    value={value as string}
-                                    onChange={(e) => updateTokenAttribute(group.id, token.id, key, e.target.value)}
-                                    placeholder="Attribute value"
-                                    className="flex-1 px-2 py-1 text-xs rounded border border-gray-300 h-auto"
-                                  />
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => removeTokenAttribute(group.id, token.id, key)}
-                                    className="text-sm text-red-600 hover:text-red-800 h-auto p-0"
-                                  >
-                                    ✕
-                                  </Button>
-                                </div>
-                              ))}
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => updateTokenAttribute(group.id, token.id, 'newAttribute', '')}
-                                className="text-sm font-medium text-blue-600 hover:text-blue-800 h-auto p-0"
-                              >
-                                + Add Attribute
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      )}
-                    </React.Fragment>
+                <tbody className="divide-y divide-gray-100">
+                  {group.tokens.map(token => (
+                    <TokenTableRow
+                      key={token.id}
+                      token={token}
+                      group={group}
+                      tokenGroups={tokenGroups}
+                      selectedTokenId={selectedTokenId}
+                      isExpanded={expandedTokens.has(token.id)}
+                      onTokenSelect={onTokenSelect}
+                      onUpdateToken={updateToken}
+                      onDeleteToken={deleteToken}
+                      onToggleExpansion={toggleTokenExpansion}
+                      onUpdateAttribute={updateTokenAttribute}
+                      onRemoveAttribute={removeTokenAttribute}
+                      resolveRef={resolveTokenReference}
+                      getFullPath={buildTokenPath}
+                      parseValue={parseTokenValue}
+                    />
                   ))}
                 </tbody>
               </table>
             </div>
           )}
-          {/* Always show — even when group is empty */}
-          <div className="border-t border-gray-200 px-4 py-3 text-center">
+
+          {/* Add Token */}
+          <div className="border-t border-gray-100 px-4 py-2 text-center">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => addToken(group.id)}
-              className="text-sm font-medium text-blue-600 hover:text-blue-800 h-auto p-0"
+              className="text-xs font-medium text-blue-600 hover:text-blue-800 h-auto p-0"
             >
               + Add Token
             </Button>
@@ -994,25 +1236,69 @@ export function TokenGeneratorFormNew({
       </div>
 
       {/* Token Groups */}
-      {(() => {
-        if (!selectedGroupId) return tokenGroups;
-        // Try top-level first (fast path)
-        const topLevel = tokenGroups.find(g => g.id === selectedGroupId);
-        if (topLevel) return [topLevel];
-        // Find anywhere in tree (nested groups)
-        const found = findGroupById(tokenGroups, selectedGroupId);
-        return found ? [found] : tokenGroups;
-      })().map(group => renderGroup(group))}
-      {/* No tokens empty state for selected group with no direct tokens */}
-      {selectedGroupId && (() => {
-        const found = findGroupById(tokenGroups, selectedGroupId)
-                   ?? tokenGroups.find(g => g.id === selectedGroupId);
-        if (!found) return null;
-        if (found.tokens.length === 0) {
-          return <p className="p-6 text-sm text-gray-400 text-center">No tokens in this group</p>;
-        }
-        return null;
-      })()}
+      {!selectedGroupId ? (
+        /* Default view: overview table of all top-level groups */
+        <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+          <div className="px-4 py-3 border-b border-gray-100">
+            <h3 className="text-sm font-semibold text-gray-700">All Groups</h3>
+          </div>
+          {tokenGroups.length === 0 ? (
+            <p className="px-4 py-8 text-sm text-gray-400 text-center">No groups yet. Add a group below.</p>
+          ) : (
+            <table className="min-w-full">
+              <thead className="bg-gray-50 border-b border-gray-100">
+                <tr>
+                  <th className="px-4 py-2 text-[10px] font-semibold text-left text-gray-400 uppercase tracking-wide">Group</th>
+                  <th className="px-4 py-2 text-[10px] font-semibold text-left text-gray-400 uppercase tracking-wide w-[90px]">Tokens</th>
+                  <th className="px-4 py-2 text-[10px] font-semibold text-left text-gray-400 uppercase tracking-wide w-[90px]">Sub-groups</th>
+                  <th className="px-4 py-2 w-[40px]"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {tokenGroups.map(group => (
+                  <tr
+                    key={group.id}
+                    className="hover:bg-gray-50 cursor-pointer transition-colors"
+                    onClick={() => onGroupSelect?.(group.id)}
+                  >
+                    <td className="px-4 py-2.5">
+                      <span className="text-sm font-medium text-gray-800">{group.name}</span>
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <span className="text-xs text-gray-500">{group.tokens.length}</span>
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <span className="text-xs text-gray-500">{group.children?.length ?? 0}</span>
+                    </td>
+                    <td className="px-4 py-2.5 text-right">
+                      <span className="text-gray-300 text-sm">→</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      ) : (
+        <>
+          {/* Render selected group */}
+          {(() => {
+            const topLevel = tokenGroups.find(g => g.id === selectedGroupId);
+            if (topLevel) return renderGroup(topLevel);
+            const found = findGroupById(tokenGroups, selectedGroupId);
+            return found ? renderGroup(found) : null;
+          })()}
+          {/* No tokens empty state */}
+          {(() => {
+            const found = findGroupById(tokenGroups, selectedGroupId)
+                       ?? tokenGroups.find(g => g.id === selectedGroupId);
+            if (found && found.tokens.length === 0) {
+              return <p className="p-6 text-sm text-gray-400 text-center">No tokens in this group</p>;
+            }
+            return null;
+          })()}
+        </>
+      )}
       {/* Add Group */}
       {!hideAddGroupButton && (
         <div className="p-6 text-center bg-gray-50 rounded-lg border-2 border-gray-300 border-dashed">

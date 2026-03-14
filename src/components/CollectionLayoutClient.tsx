@@ -28,9 +28,7 @@ export function CollectionLayoutClient({ id, children }: CollectionLayoutClientP
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
-      <div className="w-[200px] flex-shrink-0">
-        <CollectionSidebar collectionId={id} collectionName={collectionName} />
-      </div>
+      <CollectionSidebar collectionId={id} collectionName={collectionName} />
       <main className="flex-1 overflow-y-auto">
         {children}
       </main>

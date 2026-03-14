@@ -14,6 +14,8 @@ export interface ISourceMetadata {
   figmaCollectionId: string | null;  // Figma variable collection ID
 }
 
+import type { CollectionGraphState } from './graph-state.types';
+
 /**
  * Plain data shape for a token collection (use for API responses).
  */
@@ -33,6 +35,8 @@ export interface ITokenCollection {
   figmaFileId: string | null;
   githubRepo: string | null;
   githubBranch: string | null;
+  // Graph canvas state (composable nodes, edges, legacy generators) keyed by group id
+  graphState: CollectionGraphState | null;
 }
 
 /**
@@ -58,4 +62,4 @@ export type CreateTokenCollectionInput = Omit<ITokenCollection, '_id' | 'created
 /**
  * Shape for updating an existing collection.
  */
-export type UpdateTokenCollectionInput = Partial<Pick<ITokenCollection, 'name' | 'tokens' | 'sourceMetadata' | 'description' | 'tags' | 'figmaToken' | 'figmaFileId' | 'githubRepo' | 'githubBranch'>>;
+export type UpdateTokenCollectionInput = Partial<Pick<ITokenCollection, 'name' | 'tokens' | 'sourceMetadata' | 'description' | 'tags' | 'figmaToken' | 'figmaFileId' | 'githubRepo' | 'githubBranch' | 'graphState'>>;

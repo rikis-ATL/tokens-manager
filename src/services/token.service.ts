@@ -445,7 +445,7 @@ export class TokenService {
       processGroup(group);
     }
 
-    return output;
+    return globalNamespace ? { [globalNamespace]: output } : output;
   }
 
   /**

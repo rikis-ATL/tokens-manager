@@ -23,7 +23,7 @@ The user can also rename the collection from the database.
 The user can also duplicate the collection from the database.
 
 
-3. Collection Management
+3. Collection Management:
 Display a grid page of all collections form the database
 This page also aloows us to create a new collection in the database.
 Each collectiosn is displayed as a card in the grid. Each card linkks to the collection's page.
@@ -39,4 +39,43 @@ Collection content -  tokens/config/settings
 Each collection should have its own config and sync settings.
 Form selectiosn for config and setting need to be saved to the database.
 
+
+
+
+#Refactor token generation form: 
+
+##Goal: Allow for subgroups in the token groups listForm content
+Move empty name only groups into the sidebar list.The form only displayed groups with tokens.All groups can be accessed via the 
+
+### groups list
+See Example from http://localhost:3000/collections/69a0213b42f9fe4cfc19c568/
+
+Groups list should be displayed as a tree structure.
+The tree structure should be displayed as a list of groups.
+The list tiem names shoud be interpreted from the group.name property.
+DOnt display full json file names if found in the group.name property.
+Display only the group name.
+
+E.g brands/brand2/color.json
+Display as Color
+Note that the tree structure should be:
+Brand2
+  colors
+    color - this is the group name
+
+
+
+### Form content
+In this collection the main content displays
+- Level 0 light - in groups list already
+- Level 1 collar - move to groups list
+- Level 2 Brand - 2 tokens
+…
+
+
+### Breadcrumbs
+Use the groups depth and name to display the breadcrumbs.
+E.g brand2/colors/color
+Note that the breadcrumbs should be displayed as a list of links.
+THe links operate as per the groups list.
 

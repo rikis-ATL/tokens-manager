@@ -28,6 +28,7 @@ const tokenCollectionSchema = new Schema<TokenCollectionDoc>(
     figmaFileId:    { type: String, default: null },
     githubRepo:     { type: String, default: null },
     githubBranch:   { type: String, default: null },
+    graphState:     { type: Schema.Types.Mixed, default: null },
   },
   {
     timestamps: true,  // auto createdAt / updatedAt

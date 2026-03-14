@@ -28,6 +28,7 @@ export async function GET(
         figmaFileId: (doc.figmaFileId as string | null | undefined) ?? null,
         githubRepo: (doc.githubRepo as string | null | undefined) ?? null,
         githubBranch: (doc.githubBranch as string | null | undefined) ?? null,
+        graphState: (doc.graphState as Record<string, unknown> | null | undefined) ?? null,
       },
     });
   } catch (error) {
@@ -55,7 +56,8 @@ export async function PUT(
       body.figmaToken === undefined &&
       body.figmaFileId === undefined &&
       body.githubRepo === undefined &&
-      body.githubBranch === undefined
+      body.githubBranch === undefined &&
+      body.graphState === undefined
     ) {
       return NextResponse.json({ error: 'Nothing to update' }, { status: 400 });
     }

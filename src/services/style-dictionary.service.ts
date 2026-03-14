@@ -103,8 +103,12 @@ function mergeGlobalsIntoBrands(
 function normalizeTokens(obj: Record<string, unknown>): Record<string, unknown> {
   const result: Record<string, unknown> = {};
   for (const [key, val] of Object.entries(obj)) {
-    if (key === 'value') {
-      result['$value'] = val;
+    if (key === 'value' || key === '$value') {
+      // Strip .value suffix from SD reference strings (e.g. {token.color.base.blue.200.value} → {token.color.base.blue.200})
+      const normalized = (typeof val === 'string' && val.startsWith('{') && val.endsWith('}'))
+        ? val.replace(/\.value\}$/, '}')
+        : val;
+      result['$value'] = normalized;
     } else if (key === 'type') {
       result['$type'] = val;
     } else if (val && typeof val === 'object' && !Array.isArray(val)) {
