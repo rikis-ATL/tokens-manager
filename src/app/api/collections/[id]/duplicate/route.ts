@@ -1,48 +1,40 @@
 import { NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import TokenCollection from '@/lib/db/models/TokenCollection';
+import { getRepository } from '@/lib/db/get-repository';
 
 export async function POST(
   _request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    await dbConnect();
-
-    const source = await TokenCollection.findById(params.id).lean();
+    const repo = await getRepository();
+    const source = await repo.findById(params.id);
 
     if (!source) {
       return NextResponse.json({ error: 'Collection not found' }, { status: 404 });
     }
 
-    // Determine a unique name for the copy
-    const baseCopyName = `${source.name as string} (copy)`;
-    const existingCopy = await TokenCollection.findOne({ name: baseCopyName }).lean();
+    const baseCopyName = `${source.name} (copy)`;
+    const existingCopy = await repo.findByName(baseCopyName);
     const copyName = existingCopy
-      ? `${source.name as string} (copy ${Date.now()})`
+      ? `${source.name} (copy ${Date.now()})`
       : baseCopyName;
 
-    const newDoc = await TokenCollection.create({
+    const newDoc = await repo.create({
       name: copyName,
       tokens: source.tokens,
-      sourceMetadata: (source.sourceMetadata as Record<string, unknown> | null | undefined) ?? null,
-      description: (source.description as string | null | undefined) ?? null,
-      tags: (source.tags as string[] | undefined) ?? [],
-      figmaToken: (source.figmaToken as string | null | undefined) ?? null,
-      figmaFileId: (source.figmaFileId as string | null | undefined) ?? null,
-      githubRepo: (source.githubRepo as string | null | undefined) ?? null,
-      githubBranch: (source.githubBranch as string | null | undefined) ?? null,
-      userId: (source.userId as string | null | undefined) ?? null,
+      sourceMetadata: source.sourceMetadata ?? null,
+      description: source.description ?? null,
+      tags: source.tags ?? [],
+      figmaToken: source.figmaToken ?? null,
+      figmaFileId: source.figmaFileId ?? null,
+      githubRepo: source.githubRepo ?? null,
+      githubBranch: source.githubBranch ?? null,
+      userId: source.userId ?? null,
     });
 
     return NextResponse.json(
-      {
-        collection: {
-          _id: newDoc._id.toString(),
-          name: newDoc.name,
-        },
-      },
-      { status: 201 }
+      { collection: { _id: newDoc._id, name: newDoc.name } },
+      { status: 201 },
     );
   } catch (error) {
     console.error('[POST /api/collections/[id]/duplicate]', error);

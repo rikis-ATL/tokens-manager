@@ -4,7 +4,7 @@ import { memo } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import { Waves } from 'lucide-react';
 import {
-  NodeWrapper, NodeHeader, Row, NativeSelect, NumberInput,
+  NodeWrapper, NodeHeader, Row, RowHandle, NativeSelect, NumberInput,
   PreviewSection, HANDLE_NUMBER, HANDLE_ARRAY,
 } from './nodeShared';
 import type { ComposableNodeData, HarmonicConfig } from '@/types/graph-nodes.types';
@@ -21,15 +21,14 @@ const RATIOS = [
   { value: 2.000, label: 'Octave     ×2.000' },
 ];
 
-// Visual indicator for a field that has a connected override
-function ConnectedDot({ connected }: { connected: boolean }) {
-  return connected ? (
-    <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-400 ml-1 flex-shrink-0" />
-  ) : null;
+/** Blue dot shown in row label when that handle has an active connection */
+function Dot({ on }: { on: boolean }) {
+  return on ? <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-400 ml-1 flex-shrink-0" /> : null;
 }
 
 function HarmonicSeriesNodeComponent({ data }: NodeProps) {
-  const { nodeId, config, inputs, outputs, onConfigChange } = data as unknown as ComposableNodeData;
+  const { nodeId, config, inputs, outputs, onConfigChange, onDeleteNode } =
+    data as unknown as ComposableNodeData;
   const cfg = config as HarmonicConfig;
 
   const update = (partial: Partial<HarmonicConfig>) =>
@@ -50,10 +49,13 @@ function HarmonicSeriesNodeComponent({ data }: NodeProps) {
         title="Harmonic Series"
         badge={`${total} values`}
         headerClass="bg-violet-50 border-violet-200 text-violet-700"
+        onDelete={onDeleteNode ? () => onDeleteNode(nodeId) : undefined}
       />
       <div className="px-3 py-2 space-y-1.5 nodrag">
-        {/* Base — overridable via handle */}
-        <Row label={<span className="flex items-center">Base<ConnectedDot connected={hasBase} /></span> as unknown as string}>
+        <Row
+          label={<span className="flex items-center">Base<Dot on={hasBase} /></span>}
+          handle={<RowHandle id="base" className={HANDLE_NUMBER} title="base (number)" />}
+        >
           <NumberInput
             value={hasBase ? Number(inputs['base']) : cfg.base}
             onChange={v => update({ base: v })}
@@ -63,8 +65,10 @@ function HarmonicSeriesNodeComponent({ data }: NodeProps) {
           />
         </Row>
 
-        {/* Steps down — overridable */}
-        <Row label={<span className="flex items-center">Steps ↓<ConnectedDot connected={hasStepsDown} /></span> as unknown as string}>
+        <Row
+          label={<span className="flex items-center">Steps ↓<Dot on={hasStepsDown} /></span>}
+          handle={<RowHandle id="stepsDown" className={HANDLE_NUMBER} title="stepsDown (number)" />}
+        >
           <NumberInput
             value={hasStepsDown ? Math.round(Number(inputs['stepsDown'])) : cfg.stepsDown}
             onChange={v => update({ stepsDown: Math.max(0, v) })}
@@ -74,8 +78,10 @@ function HarmonicSeriesNodeComponent({ data }: NodeProps) {
           />
         </Row>
 
-        {/* Steps up — overridable */}
-        <Row label={<span className="flex items-center">Steps ↑<ConnectedDot connected={hasStepsUp} /></span> as unknown as string}>
+        <Row
+          label={<span className="flex items-center">Steps ↑<Dot on={hasStepsUp} /></span>}
+          handle={<RowHandle id="stepsUp" className={HANDLE_NUMBER} title="stepsUp (number)" />}
+        >
           <NumberInput
             value={hasStepsUp ? Math.round(Number(inputs['stepsUp'])) : cfg.stepsUp}
             onChange={v => update({ stepsUp: Math.max(0, v) })}
@@ -85,12 +91,10 @@ function HarmonicSeriesNodeComponent({ data }: NodeProps) {
           />
         </Row>
 
-        {/* Notes (derived) */}
         <Row label="Notes">
           <span className="text-[11px] text-gray-500 font-mono">{total}</span>
         </Row>
 
-        {/* Ratio — config only, no handle */}
         <Row label="Ratio">
           <NativeSelect
             value={cfg.ratio}
@@ -99,8 +103,10 @@ function HarmonicSeriesNodeComponent({ data }: NodeProps) {
           />
         </Row>
 
-        {/* Precision — overridable */}
-        <Row label={<span className="flex items-center">Precision<ConnectedDot connected={hasPrecision} /></span> as unknown as string}>
+        <Row
+          label={<span className="flex items-center">Precision<Dot on={hasPrecision} /></span>}
+          handle={<RowHandle id="precision" className={HANDLE_NUMBER} title="precision (number)" />}
+        >
           <NumberInput
             value={hasPrecision ? Math.round(Number(inputs['precision'])) : cfg.precision}
             onChange={v => update({ precision: Math.max(0, Math.min(8, v)) })}
@@ -112,28 +118,29 @@ function HarmonicSeriesNodeComponent({ data }: NodeProps) {
 
         {series.length > 0 && (
           <PreviewSection>
-            <div className="flex flex-wrap gap-1">
-              {series.slice(0, 9).map((n, i) => (
-                <span key={i} className="text-[10px] font-mono bg-violet-50 text-violet-700 rounded px-1">
-                  {n}
-                </span>
-              ))}
-              {series.length > 9 && (
-                <span className="text-[10px] text-gray-400">+{series.length - 9} more</span>
-              )}
-            </div>
+            <Row
+              label="Output"
+              handle={<RowHandle id="series" type="source" side="right" className={HANDLE_ARRAY} title="series (number[])" />}
+            >
+              <div className="flex flex-wrap gap-1">
+                {series.slice(0, 9).map((n, i) => (
+                  <span key={i} className="text-[10px] font-mono bg-violet-50 text-violet-700 rounded px-1">
+                    {n}
+                  </span>
+                ))}
+                {series.length > 9 && (
+                  <span className="text-[10px] text-gray-400">+{series.length - 9} more</span>
+                )}
+              </div>
+            </Row>
           </PreviewSection>
         )}
+
+        {/* Output handle when preview is hidden */}
+        {series.length === 0 && (
+          <Handle type="source" id="series" position={Position.Right} title="series (number[])" className={HANDLE_ARRAY} />
+        )}
       </div>
-
-      {/* Input handles — left side, evenly spaced */}
-      <Handle type="target" id="base"      position={Position.Left} style={{ top: '26%' }} title="base (number)"      className={HANDLE_NUMBER} />
-      <Handle type="target" id="stepsDown" position={Position.Left} style={{ top: '40%' }} title="stepsDown (number)" className={HANDLE_NUMBER} />
-      <Handle type="target" id="stepsUp"   position={Position.Left} style={{ top: '54%' }} title="stepsUp (number)"   className={HANDLE_NUMBER} />
-      <Handle type="target" id="precision" position={Position.Left} style={{ top: '68%' }} title="precision (number)" className={HANDLE_NUMBER} />
-
-      {/* Output handle — series array */}
-      <Handle type="source" id="series" position={Position.Right} title="series (number[])" className={HANDLE_ARRAY} />
     </NodeWrapper>
   );
 }

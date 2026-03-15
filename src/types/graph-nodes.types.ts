@@ -2,6 +2,16 @@
 
 export type PortValue = number | string | number[] | string[] | null;
 
+// Re-export generator types needed by the composable system
+export type {
+  GeneratorSpecificConfig,
+  ColorGeneratorConfig,
+  DimensionGeneratorConfig,
+  NamingPattern,
+} from './generator.types';
+import type { GeneratorSpecificConfig, NamingPattern } from './generator.types';
+import type { TokenType } from './token.types';
+
 // ── Flat token — minimal shape passed to nodes for the source-token picker ───
 
 export interface FlatToken {
@@ -70,7 +80,8 @@ export type MathOp =
   | 'floor'
   | 'ceil'
   | 'clamp'
-  | 'colorConvert';
+  | 'colorConvert'
+  | 'hslCompose';
 
 export type CssColorFormat = 'hex' | 'rgb' | 'hsl' | 'oklch';
 
@@ -82,8 +93,32 @@ export interface MathConfig {
   clampMax: number;
   colorFrom: CssColorFormat;
   colorTo: CssColorFormat;
+  hslH: number;       // hslCompose: default hue (0–360)
+  hslS: number;       // hslCompose: default saturation % (0–100)
   precision: number;
   suffix: string;     // e.g. 'rem', 'px' — appended to result
+}
+
+// ── Color Palette node ────────────────────────────────────────────────────────
+
+export type PaletteNaming = '100-900' | '50-950' | 'custom';
+
+export interface PaletteSecondary {
+  id: string;    // stable React key
+  name: string;  // step label e.g. "50", "950", "accent"
+  color: string; // hex color value
+}
+
+export interface PaletteConfig {
+  kind: 'palette';
+  name: string;                // palette label — passed as 'name' output for TokenOutput
+  baseColor: string;           // fallback base color (CSS hex) when no input is wired
+  minLightness: number;        // lightest step L% (e.g. 95)
+  maxLightness: number;        // darkest step L% (e.g. 10)
+  naming: PaletteNaming;       // step naming scheme
+  customNames: string;         // CSV string of custom step names
+  format: CssColorFormat;      // output format: hex | rgb | hsl | oklch
+  secondaryColors: PaletteSecondary[]; // extra accent/override colors
 }
 
 // ── Token Output node ─────────────────────────────────────────────────────────
@@ -97,14 +132,26 @@ export interface TokenOutputConfig {
   outputTarget: TokenOutputTarget;
 }
 
+// ── Generator node — composable wrapper around the legacy GeneratorConfig ──────
+
+export interface GeneratorNodeConfig {
+  kind: 'generator';
+  type: TokenType;          // token type (color, dimension, fontSize …)
+  count: number;            // number of tokens to generate
+  naming: NamingPattern;    // naming pattern for output steps
+  config: GeneratorSpecificConfig;  // color or dimension specific config
+}
+
 // ── Union ─────────────────────────────────────────────────────────────────────
 
 export type ComposableNodeConfig =
   | ConstantConfig
   | HarmonicConfig
+  | PaletteConfig
   | ArrayConfig
   | MathConfig
-  | TokenOutputConfig;
+  | TokenOutputConfig
+  | GeneratorNodeConfig;
 
 // ── Node data passed via React Flow data prop ─────────────────────────────────
 
@@ -115,6 +162,7 @@ export interface ComposableNodeData {
   outputs: Record<string, PortValue>;  // computed by this node's evaluator
   onConfigChange: (nodeId: string, config: ComposableNodeConfig) => void;
   onGenerate?: (nodeId: string) => void;
+  onDeleteNode?: (nodeId: string) => void;
   namespace?: string;      // global collection namespace — prepended to output token names
   allTokens?: FlatToken[]; // all tokens in the collection for the source picker
   allGroups?: FlatGroup[]; // all groups in the collection for the destination picker

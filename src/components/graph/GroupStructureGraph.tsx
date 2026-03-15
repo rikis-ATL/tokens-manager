@@ -7,6 +7,7 @@ import {
   Background,
   BackgroundVariant,
   MiniMap,
+  ConnectionLineType,
   useNodesState,
   useEdgesState,
   type Node,
@@ -19,7 +20,7 @@ import { DeletableEdge } from './edges/DeletableEdge';
 
 import {
   Plus,
-  Palette, Ruler, Type, Circle, Minus, AlignJustify, Disc, Bold,
+  Palette, Zap,
   Hash, Waves, List, Calculator, Tag,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -33,21 +34,19 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 import { buildGroupGraph } from '@/lib/tokenGroupToGraph';
-import { buildGeneratedTokens, defaultColorConfig, defaultDimensionConfig } from '@/lib/tokenGenerators';
 import { evaluateGraph } from '@/lib/graphEvaluator';
 
 import { GroupNode } from './nodes/GroupNode';
 import type { GroupNodeData } from './nodes/GroupNode';
-import { GeneratorNode } from './nodes/GeneratorNode';
-import type { GeneratorNodeData } from './nodes/GeneratorNode';
 import { ConstantNode }       from './nodes/ConstantNode';
 import { HarmonicSeriesNode } from './nodes/HarmonicSeriesNode';
 import { ArrayNode }          from './nodes/ArrayNode';
 import { MathNode }           from './nodes/MathNode';
+import { PaletteNode }        from './nodes/PaletteNode';
 import { TokenOutputNode }    from './nodes/TokenOutputNode';
+import { GeneratorNode }      from './nodes/GeneratorNode';
 
 import type { TokenGroup, GeneratedToken, TokenType } from '@/types';
-import type { GeneratorConfig } from '@/types/generator.types';
 import { GENERATOR_CATEGORIES } from '@/types/generator.types';
 import type {
   ComposableNodeConfig,
@@ -56,31 +55,17 @@ import type {
   TokenOutputConfig,
   ArrayConfig,
   ConstantConfig,
+  GeneratorNodeConfig,
   PortValue,
   ArrayInputMode,
   FlatToken,
   FlatGroup,
 } from '@/types/graph-nodes.types';
+
 import type { GraphGroupState, PersistedEdge } from '@/types/graph-state.types';
 import { generateId } from '@/utils';
 
 // ── Static lookup maps ────────────────────────────────────────────────────────
-
-const KIND_BADGE: Record<string, string> = {
-  color:     'bg-pink-50 text-pink-700 border border-pink-200',
-  dimension: 'bg-sky-50 text-sky-700 border border-sky-200',
-};
-
-const TYPE_ICONS: Record<string, React.ReactNode> = {
-  color:        <Palette size={12} />,
-  dimension:    <Ruler size={12} />,
-  fontSize:     <Type size={12} />,
-  borderRadius: <Circle size={12} />,
-  borderWidth:  <Minus size={12} />,
-  lineHeight:   <AlignJustify size={12} />,
-  opacity:      <Disc size={12} />,
-  fontWeight:   <Bold size={12} />,
-};
 
 const COMPOSABLE_BADGE: Record<string, string> = {
   constant:    'bg-slate-50 text-slate-700 border border-slate-200',
@@ -88,6 +73,8 @@ const COMPOSABLE_BADGE: Record<string, string> = {
   array:       'bg-sky-50 text-sky-700 border border-sky-200',
   math:        'bg-amber-50 text-amber-700 border border-amber-200',
   tokenOutput: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+  generator:   'bg-indigo-50 text-indigo-700 border border-indigo-200',
+  palette:     'bg-rose-50 text-rose-700 border border-rose-200',
 };
 
 const COMPOSABLE_NODES: {
@@ -100,6 +87,8 @@ const COMPOSABLE_NODES: {
   { kind: 'harmonic',    label: 'Harmonic Series', desc: 'Geometric progression',      icon: <Waves size={12} /> },
   { kind: 'array',       label: 'Array',           desc: 'Format values with units',   icon: <List size={12} /> },
   { kind: 'math',        label: 'Math',            desc: 'Arithmetic & color convert', icon: <Calculator size={12} /> },
+  { kind: 'palette',     label: 'Color Palette',   desc: 'Generate a color scale',     icon: <Palette size={12} /> },
+  { kind: 'generator',   label: 'Generator',       desc: 'Color or dimension scale',   icon: <Zap size={12} /> },
   { kind: 'tokenOutput', label: 'Token Output',    desc: 'Create token group entries', icon: <Tag size={12} /> },
 ];
 
@@ -108,7 +97,9 @@ const KIND_TO_NODE_TYPE: Record<ComposableNodeConfig['kind'], string> = {
   harmonic:    'composableHarmonic',
   array:       'composableArray',
   math:        'composableMath',
+  palette:     'composablePalette',
   tokenOutput: 'composableTokenOutput',
+  generator:   'composableGenerator',
 };
 
 // Approximate rendered width per node type (used for neighbour placement)
@@ -117,18 +108,20 @@ const NODE_WIDTHS: Record<string, number> = {
   composableHarmonic:    252,
   composableArray:       230,
   composableMath:        240,
+  composablePalette:     290,
   composableTokenOutput: 260,
-  generatorNode:         280,
+  composableGenerator:   290,
   groupNode:             200,
 };
 
 const NODE_TYPES = {
   groupNode:             GroupNode,
-  generatorNode:         GeneratorNode,
+  composableGenerator:   GeneratorNode,
   composableConstant:    ConstantNode,
   composableHarmonic:    HarmonicSeriesNode,
   composableArray:       ArrayNode,
   composableMath:        MathNode,
+  composablePalette:     PaletteNode,
   composableTokenOutput: TokenOutputNode,
 } as const;
 
@@ -156,49 +149,31 @@ function defaultComposableConfig(kind: ComposableNodeConfig['kind']): Composable
         destGroupId: '',
       };
     case 'math':
-      return { kind: 'math', operation: 'multiply', operand: 16, clampMin: 0, clampMax: 100, colorFrom: 'hex', colorTo: 'hsl', precision: 2, suffix: '' };
+      return { kind: 'math', operation: 'multiply', operand: 16, clampMin: 0, clampMax: 100, colorFrom: 'hex', colorTo: 'hsl', hslH: 220, hslS: 80, precision: 2, suffix: '' };
+    case 'palette':
+      return { kind: 'palette', name: '', baseColor: '#6366f1', minLightness: 95, maxLightness: 10, naming: '100-900', customNames: '', format: 'hex', secondaryColors: [] };
     case 'tokenOutput':
       return { kind: 'tokenOutput', namePrefix: '', tokenType: 'dimension', outputTarget: 'currentGroup' };
+    case 'generator':
+      return {
+        kind: 'generator',
+        type: 'color',
+        count: 9,
+        naming: 'step-100',
+        config: {
+          kind: 'color',
+          format: 'hsl',
+          channel: 'lightness',
+          baseHue: 210,
+          baseSaturation: 80,
+          minChannel: 10,
+          maxChannel: 90,
+          distribution: 'linear',
+        },
+      };
   }
 }
 
-// ── Legacy generator node builder ─────────────────────────────────────────────
-
-function buildGeneratorNodes(
-  generators: GeneratorConfig[],
-  rootGroupNodeId: string,
-  rootX: number,
-  rootY: number,
-  onConfigChange: (id: string, config: GeneratorConfig) => void,
-  onGenerate: (config: GeneratorConfig) => void,
-): { nodes: Node[]; edges: Edge[] } {
-  const nodes: Node[] = [];
-  const edges: Edge[] = [];
-  const GEN_NODE_H = 360, GEN_GAP = 24;
-
-  generators.forEach((gen, i) => {
-    const nodeId = `gen-${gen.id}`;
-    const nodeData: GeneratorNodeData = { config: gen, onConfigChange, onGenerate };
-    nodes.push({
-      id: nodeId,
-      type: 'generatorNode',
-      position: { x: rootX + 240, y: rootY + i * (GEN_NODE_H + GEN_GAP) },
-      data: nodeData as unknown as Record<string, unknown>,
-      draggable: true,
-    });
-    edges.push({
-      id: `edge-group-${gen.id}`,
-      source: rootGroupNodeId,
-      sourceHandle: 'generator-out',
-      target: nodeId,
-      type: 'smoothstep',
-      style: { stroke: '#818cf8', strokeWidth: 1.5, strokeDasharray: '4 3' },
-      animated: true,
-    });
-  });
-
-  return { nodes, edges };
-}
 
 // ── Main component ────────────────────────────────────────────────────────────
 
@@ -213,11 +188,6 @@ interface GroupStructureGraphProps {
 }
 
 export function GroupStructureGraph({ group, namespace, allTokens, allGroups, initialGraphState, onBulkAddTokens, onGraphStateChange }: GroupStructureGraphProps) {
-
-  // ── Generator state ──────────────────────────────────────────────────────
-  const [generators, setGenerators] = useState<GeneratorConfig[]>(
-    () => initialGraphState?.generators ?? [],
-  );
 
   // ── Composable node state ────────────────────────────────────────────────
   const [composableNodeMetas, setComposableNodeMetas] = useState<Map<string, ComposableNodeMeta>>(
@@ -255,6 +225,15 @@ export function GroupStructureGraph({ group, namespace, allTokens, allGroups, in
     setLastFocusedWidth(NODE_WIDTHS[node.type ?? ''] ?? 260);
   }, []);
 
+  const handleDeleteComposableNode = useCallback((nodeId: string) => {
+    setComposableNodeMetas(prev => {
+      const next = new Map(prev);
+      next.delete(nodeId);
+      return next;
+    });
+    setComposableEdges(prev => prev.filter(e => e.source !== nodeId && e.target !== nodeId));
+  }, []);
+
   // ── Graph evaluation ─────────────────────────────────────────────────────
   useEffect(() => {
     if (composableNodeMetas.size === 0) { setNodeValues(new Map()); return; }
@@ -277,8 +256,8 @@ export function GroupStructureGraph({ group, namespace, allTokens, allGroups, in
       target: e.target,
       targetHandle: e.targetHandle ?? null,
     }));
-    currentStateRef.current = { nodes, edges, generators };
-  }, [composableNodeMetas, composableEdges, generators]);
+    currentStateRef.current = { nodes, edges, generators: [] };
+  }, [composableNodeMetas, composableEdges]);
 
   // Stable ref so the unmount cleanup never captures a stale callback.
   const onGraphStateChangeRef = useRef(onGraphStateChange);
@@ -293,7 +272,7 @@ export function GroupStructureGraph({ group, namespace, allTokens, allGroups, in
       onGraphStateChangeRef.current?.(currentStateRef.current);
     }, 300);
     return () => { if (graphStateTimerRef.current) clearTimeout(graphStateTimerRef.current); };
-  }, [composableNodeMetas, composableEdges, generators]);
+  }, [composableNodeMetas, composableEdges]);
 
   // ── Flush immediately on unmount (group navigation) ──────────────────────
   // This guarantees the parent has the latest state before key remount.
@@ -304,29 +283,6 @@ export function GroupStructureGraph({ group, namespace, allTokens, allGroups, in
     };
   }, []);
 
-  // ── Generator callbacks ──────────────────────────────────────────────────
-  const handleAddGenerator = useCallback((type: TokenType) => {
-    const category = GENERATOR_CATEGORIES.find(c => c.type === type);
-    const specificConfig = category?.kind === 'color' ? defaultColorConfig() : defaultDimensionConfig();
-    setGenerators(prev => ([...prev, {
-      id: generateId(),
-      groupId: group.id,
-      label: `${category?.label ?? type} Generator ${prev.length + 1}`,
-      type,
-      count: 9,
-      naming: 'step-100',
-      config: specificConfig,
-    }]));
-  }, [group.id]);
-
-  const handleConfigChange = useCallback((id: string, updated: GeneratorConfig) => {
-    setGenerators(prev => prev.map(g => g.id === id ? updated : g));
-  }, []);
-
-  const handleGenerate = useCallback((config: GeneratorConfig) => {
-    const tokens = buildGeneratedTokens(config, group.path ?? group.name);
-    onBulkAddTokens?.(config.groupId, tokens);
-  }, [group, onBulkAddTokens]);
 
   // ── Composable node callbacks ────────────────────────────────────────────
   const handleAddComposableNode = useCallback((kind: ComposableNodeConfig['kind']) => {
@@ -426,6 +382,24 @@ export function GroupStructureGraph({ group, namespace, allTokens, allGroups, in
         description: 'Array token saved from Array node',
       };
       onBulkAddTokens?.(targetGroupId, [token]);
+      return;
+    }
+
+    // GeneratorNode — "Add to Group" button adds generated tokens directly
+    if (meta?.config.kind === 'generator') {
+      const cfg = meta.config as GeneratorNodeConfig;
+      const evaluated = nodeValues.get(nodeId);
+      const values = evaluated?.outputs['values'] as string[] | undefined;
+      const names  = evaluated?.outputs['names']  as string[] | undefined;
+      if (!values || !names || values.length === 0) return;
+      const tokens: GeneratedToken[] = values.map((v, i) => ({
+        id:          `${group.id}/${nodeId}/${i}-${generateId()}`,
+        path:        names[i] ?? String(i + 1),
+        value:       v,
+        type:        cfg.type as TokenType,
+        description: 'Generated by Generator node',
+      }));
+      onBulkAddTokens?.(group.id, tokens);
       return;
     }
 
@@ -537,12 +511,6 @@ export function GroupStructureGraph({ group, namespace, allTokens, allGroups, in
     };
   }), [rawGroupNodes, rootNodeId, groupNodePendingTokens, handleApplyGroupTokens]);
 
-  const { nodes: genNodes, edges: genEdges } = useMemo(
-    () => buildGeneratorNodes(generators, rootNodeId, rootX, rootY, handleConfigChange, handleGenerate),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [generators, rootNodeId, rootX, rootY],
-  );
-
   const composableReactFlowNodes = useMemo<Node[]>(() => {
     const result: Node[] = [];
     composableNodeMetas.forEach((meta, id) => {
@@ -554,6 +522,7 @@ export function GroupStructureGraph({ group, namespace, allTokens, allGroups, in
         outputs: evaluated?.outputs ?? {},
         onConfigChange: handleComposableConfigChange,
         onGenerate:     handleComposableGenerate,
+        onDeleteNode:   handleDeleteComposableNode,
         namespace,
         allTokens,
         allGroups,
@@ -570,8 +539,8 @@ export function GroupStructureGraph({ group, namespace, allTokens, allGroups, in
   }, [composableNodeMetas, nodeValues, handleComposableConfigChange, handleComposableGenerate, namespace, allTokens, allGroups]);
 
   const allNodes = useMemo(
-    () => [...groupNodes, ...genNodes, ...composableReactFlowNodes],
-    [groupNodes, genNodes, composableReactFlowNodes],
+    () => [...groupNodes, ...composableReactFlowNodes],
+    [groupNodes, composableReactFlowNodes],
   );
 
   // Inject the onDelete callback into every composable edge at render time so
@@ -587,8 +556,8 @@ export function GroupStructureGraph({ group, namespace, allTokens, allGroups, in
   );
 
   const allEdges = useMemo(
-    () => [...groupEdges, ...genEdges, ...composableEdgesWithDelete],
-    [groupEdges, genEdges, composableEdgesWithDelete],
+    () => [...groupEdges, ...composableEdgesWithDelete],
+    [groupEdges, composableEdgesWithDelete],
   );
 
   // ── React Flow state ─────────────────────────────────────────────────────
@@ -648,32 +617,8 @@ export function GroupStructureGraph({ group, namespace, allTokens, allGroups, in
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-
-            {/* Legacy generator nodes */}
             <DropdownMenuLabel className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">
-              Generator
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {GENERATOR_CATEGORIES.map(cat => (
-              <DropdownMenuItem
-                key={cat.type}
-                className="gap-2.5 cursor-pointer"
-                onClick={() => handleAddGenerator(cat.type)}
-              >
-                <span className={`flex items-center justify-center w-5 h-5 rounded text-[10px] flex-shrink-0 ${KIND_BADGE[cat.kind]}`}>
-                  {TYPE_ICONS[cat.type]}
-                </span>
-                <div className="flex flex-col">
-                  <span className="text-xs font-medium">{cat.label}</span>
-                  <span className="text-[10px] text-gray-400 capitalize">{cat.kind} scale</span>
-                </div>
-              </DropdownMenuItem>
-            ))}
-
-            {/* Composable nodes */}
-            <DropdownMenuSeparator className="my-1" />
-            <DropdownMenuLabel className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">
-              Composable
+              Add Node
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             {COMPOSABLE_NODES.map(c => (
@@ -706,6 +651,7 @@ export function GroupStructureGraph({ group, namespace, allTokens, allGroups, in
           onNodeClick={handleNodeClick}
           nodeTypes={NODE_TYPES}
           edgeTypes={EDGE_TYPES}
+          connectionLineType={ConnectionLineType.Bezier}
           fitView
           fitViewOptions={{ padding: 0.25 }}
           minZoom={0.2}
@@ -716,7 +662,6 @@ export function GroupStructureGraph({ group, namespace, allTokens, allGroups, in
           <Controls showInteractive={false} />
           <MiniMap
             nodeColor={n => {
-              if (n.type === 'generatorNode') return '#818cf8';
               if (n.type?.startsWith('composable')) return '#a78bfa';
               return n.selected ? '#6366f1' : '#e2e8f0';
             }}

@@ -12,8 +12,12 @@ import type {
   ArrayConfig,
   MathConfig,
   TokenOutputConfig,
+  PaletteConfig,
+  GeneratorNodeConfig,
   CssColorFormat,
 } from '@/types/graph-nodes.types';
+import { previewGeneratedTokens } from './tokenGenerators';
+import type { GeneratorConfig, ColorGeneratorConfig, DimensionGeneratorConfig } from '@/types/generator.types';
 
 // ── Math helpers ──────────────────────────────────────────────────────────────
 
@@ -153,7 +157,17 @@ function computeHarmonicSeries(
 
 // ── Node evaluators ───────────────────────────────────────────────────────────
 
-function evalConstant(config: ConstantConfig): Record<string, PortValue> {
+function evalConstant(
+  config: ConstantConfig,
+  inputs: Record<string, PortValue>,
+): Record<string, PortValue> {
+  // Wired input takes full priority — the node acts as a named relay
+  const wired = inputs['value'];
+  if (wired != null) {
+    if (Array.isArray(wired)) return { output: wired as string[] };
+    return { output: wired };
+  }
+
   if (config.valueType === 'number') {
     const n = parseFloat(config.value);
     return { output: isNaN(n) ? 0 : n };
@@ -251,6 +265,19 @@ function evalMath(
     return { result: convertCssColor(colorStr, config.colorFrom, config.colorTo) };
   }
 
+  if (config.operation === 'hslCompose') {
+    // a = lightness (number or number[])
+    // inputs['hslH'] = hue override, inputs['hslS'] = saturation override
+    const H = typeof inputs['hslH'] === 'number' ? inputs['hslH'] : config.hslH;
+    const S = typeof inputs['hslS'] === 'number' ? inputs['hslS'] : config.hslS;
+    const compose = (l: number) => `hsl(${Math.round(H)}, ${Math.round(S)}%, ${Math.round(l)}%)`;
+    if (Array.isArray(a)) {
+      return { result: (a as (number | string)[]).map(n => compose(typeof n === 'number' ? n : parseFloat(String(n)))) as string[] };
+    }
+    if (typeof a === 'number') return { result: compose(a) };
+    return { result: null };
+  }
+
   // Resolve wired operand overrides from Constant nodes
   const bInput        = inputs['b'];
   const clampMinInput = inputs['clampMin'];
@@ -285,28 +312,154 @@ function evalTokenOutput(
   inputs: Record<string, PortValue>,
   namespace?: string,
 ): Record<string, PortValue> {
-  // Accept string[] or number[] from the array port
+  // ── Name segments ────────────────────────────────────────────────────────
+  // namePrefix = typed category prefix (e.g. "color")
+  // wiredName  = dynamic name from a wired Const / Palette.name (e.g. "red")
+  // Together they produce: namespace-prefix-wiredName-step
+  const prefix    = config.namePrefix?.trim() || '';
+  const wiredName = ((inputs['name'] as string | null) ?? '').trim();
+  // subgroupName is the combination of prefix + wiredName (used for subgroup creation)
+  const subgroupName = [prefix, wiredName].filter(Boolean).join('-') || namespace || '';
+
+  // Step names from wired 'names' port (e.g. Palette.names: ['100','200',...])
+  const rawNames = inputs['names'];
+  const stepNames: string[] | null =
+    Array.isArray(rawNames) && (rawNames as unknown[]).length > 0
+      ? (rawNames as (string | number)[]).map(String)
+      : null;
+
+  // Build a token name from all segments; step is either from stepNames[] or the value itself
+  const makeName = (v: string, step?: string) => {
+    const suffix = step ?? v;
+    const parts = [namespace, prefix, wiredName, suffix].filter(Boolean);
+    return parts.join('-') || suffix;
+  };
+
   const rawValues = inputs['values'];
+
+  // ── Single-token mode: a scalar (number | string) is wired to 'values' ────
+  if (rawValues != null && !Array.isArray(rawValues)) {
+    const parts = [namespace, prefix, wiredName].filter(Boolean);
+    const tokenName = parts.join('-') || 'token';
+    return {
+      count: 1,
+      tokenData: JSON.stringify([{ name: tokenName, value: rawValues }]),
+      subgroupName,
+    };
+  }
+
+  // ── Array mode ────────────────────────────────────────────────────────────
   const values: string[] = Array.isArray(rawValues)
     ? (rawValues as (string | number)[]).map(v => String(v))
     : [];
 
-  // Name: connected const takes priority, then config field, then namespace fallback
-  const nameInput     = (inputs['name'] as string | null) ?? config.namePrefix;
-  const effectiveName = nameInput || namespace || '';
-
-  // Token name segments — omit empty parts to avoid double dashes
-  const makeName = (v: string) => {
-    const parts = [namespace, effectiveName, v].filter(Boolean);
-    return parts.join('-');
-  };
-
   const tokenData = JSON.stringify(
-    values.map(v => ({ name: makeName(v), value: v })),
+    values.map((v, i) => ({
+      name: makeName(v, stepNames?.[i]),
+      value: v,
+    })),
   );
 
-  // effectiveName is the resolved name segment (used as the subgroup name when outputTarget='subgroup')
-  return { count: values.length, tokenData, subgroupName: effectiveName || namespace || '' };
+  return { count: values.length, tokenData, subgroupName };
+}
+
+// ── Color Palette evaluator ───────────────────────────────────────────────────
+
+function evalPalette(
+  config: PaletteConfig,
+  inputs: Record<string, PortValue>,
+): Record<string, PortValue> {
+  // Resolve base color — prefer wired string input, then config field, then fallback indigo
+  const baseColorInput = typeof inputs['baseColor'] === 'string'
+    ? inputs['baseColor']
+    : (config.baseColor?.trim() || '#6366f1');
+
+  // Parse base color to HSL so we can adjust only lightness
+  let H = 234, S = 89;
+  const rgb = parseHex(baseColorInput) ?? parseRgb(baseColorInput) ?? parseHslToRgb(baseColorInput);
+  if (rgb) {
+    const [h, s] = rgbToHsl(...rgb);
+    H = h;
+    S = s;
+  }
+
+  // Determine primary step names — wired array overrides naming setting
+  let stepNames: string[];
+  const wiredNames = inputs['names'];
+  if (Array.isArray(wiredNames) && wiredNames.length > 0) {
+    stepNames = (wiredNames as (string | number)[]).map(String);
+  } else if (config.naming === '50-950') {
+    stepNames = ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950'];
+  } else if (config.naming === 'custom') {
+    stepNames = config.customNames.split(',').map(s => s.trim()).filter(Boolean);
+    if (!stepNames.length) stepNames = ['100', '200', '300', '400', '500', '600', '700', '800', '900'];
+  } else {
+    stepNames = ['100', '200', '300', '400', '500', '600', '700', '800', '900'];
+  }
+
+  const n = stepNames.length;
+
+  // Lightness values — wired array takes priority over internal min→max interpolation
+  const wiredL = inputs['lightness'];
+  const hasWiredL = Array.isArray(wiredL) && (wiredL as unknown[]).length > 0;
+
+  let lightnessValues: number[];
+  if (hasWiredL) {
+    lightnessValues = (wiredL as (number | string)[]).map(v =>
+      Math.max(0, Math.min(100, typeof v === 'number' ? v : parseFloat(String(v)))),
+    );
+    // Re-derive step names to match the wired lightness count when no names are wired
+    if (!Array.isArray(wiredNames) || !(wiredNames as unknown[]).length) {
+      const wiredCount = lightnessValues.length;
+      if (config.naming === '50-950' && wiredCount === 11) {
+        stepNames = ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950'];
+      } else if (config.naming === 'custom') {
+        // keep the already-parsed customNames; pad or trim to match
+        while (stepNames.length < wiredCount) stepNames.push(String(stepNames.length + 1));
+        stepNames = stepNames.slice(0, wiredCount);
+      } else {
+        // '100-900' or when wired count differs: auto-number from 100
+        stepNames = Array.from({ length: wiredCount }, (_, i) => String((i + 1) * 100));
+      }
+    }
+  } else {
+    const count = stepNames.length;
+    lightnessValues = stepNames.map((_, i) => {
+      const t = count === 1 ? 0.5 : i / (count - 1);
+      return config.minLightness + (config.maxLightness - config.minLightness) * t;
+    });
+  }
+
+  // Generate primary scale
+  const primaryColors = lightnessValues.map(L => {
+    const [r, g, b] = hslToRgb(H, S, Math.max(0, Math.min(100, L)));
+    return rgbToFormat(r, g, b, config.format);
+  });
+
+  // Merge primary + secondary entries, sorted by numeric step value
+  type Entry = { name: string; color: string; sortKey: number };
+
+  const primaryEntries: Entry[] = stepNames.map((name, i) => ({
+    name,
+    color: primaryColors[i],
+    sortKey: parseInt(name) || 10000 + i,
+  }));
+
+  const secondaryEntries: Entry[] = config.secondaryColors
+    .filter(s => s.name.trim() && s.color.trim())
+    .map((s, i) => ({
+      name: s.name.trim(),
+      color: s.color,
+      sortKey: parseInt(s.name) || 20000 + i,
+    }));
+
+  const all = [...primaryEntries, ...secondaryEntries].sort((a, b) => a.sortKey - b.sortKey);
+
+  return {
+    values: all.map(e => e.color) as string[],
+    names:  all.map(e => e.name)  as string[],
+    name:   config.name ?? '',
+  };
 }
 
 export function evaluateNode(
@@ -314,13 +467,73 @@ export function evaluateNode(
   inputs: Record<string, PortValue>,
 ): Record<string, PortValue> {
   switch (config.kind) {
-    case 'constant':    return evalConstant(config);
+    case 'constant':    return evalConstant(config, inputs);
     case 'harmonic':    return evalHarmonic(config, inputs);
     case 'array':       return evalArray(config, inputs);
     case 'math':        return evalMath(config, inputs);
+    case 'palette':     return evalPalette(config, inputs);
     case 'tokenOutput': return evalTokenOutput(config, inputs);
+    case 'generator':   return evalGenerator(config, inputs);
     default:            return {};
   }
+}
+
+// ── Generator node evaluator ──────────────────────────────────────────────────
+
+function evalGenerator(
+  config: GeneratorNodeConfig,
+  inputs: Record<string, PortValue>,
+): Record<string, PortValue> {
+  // Build a synthetic GeneratorConfig so we can reuse previewGeneratedTokens
+  let specificConfig = { ...config.config };
+
+  // ── Wired overrides ───────────────────────────────────────────────────────
+  const wiredBaseValue = inputs['baseValue'];  // number — overrides numeric base
+  const wiredBaseColor = inputs['baseColor'];  // string — overrides color hue/sat
+
+  if (specificConfig.kind === 'color') {
+    const col = { ...specificConfig } as ColorGeneratorConfig;
+    if (typeof wiredBaseColor === 'string') {
+      // Parse any CSS color string to extract HSL
+      const rgb =
+        parseHex(wiredBaseColor) ??
+        parseRgb(wiredBaseColor) ??
+        parseHslToRgb(wiredBaseColor);
+      if (rgb) {
+        const [h, s] = rgbToHsl(rgb[0], rgb[1], rgb[2]);
+        col.baseHue = Math.round(h);
+        col.baseSaturation = Math.round(s);
+      }
+    }
+    if (typeof wiredBaseValue === 'number') {
+      col.baseHue = Math.max(0, Math.min(360, wiredBaseValue));
+    }
+    specificConfig = col;
+  } else if (specificConfig.kind === 'dimension') {
+    const dim = { ...specificConfig } as DimensionGeneratorConfig;
+    if (typeof wiredBaseValue === 'number') {
+      dim.modularBase = wiredBaseValue;
+      dim.baseValue   = wiredBaseValue;
+      dim.minValue    = wiredBaseValue;
+    }
+    specificConfig = dim;
+  }
+
+  const syntheticConfig: GeneratorConfig = {
+    id:      'eval',
+    groupId: '',
+    label:   'Generator',
+    type:    config.type,
+    count:   config.count,
+    naming:  config.naming,
+    config:  specificConfig,
+  };
+
+  const previews = previewGeneratedTokens(syntheticConfig);
+  const values = previews.map(p => p.value) as string[];
+  const names  = previews.map(p => p.name)  as string[];
+
+  return { values, names, count: previews.length };
 }
 
 // ── Topological sort ──────────────────────────────────────────────────────────

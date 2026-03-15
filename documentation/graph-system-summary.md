@@ -305,4 +305,4 @@ Result: `size-100: 0.64rem`, `size-200: 0.8rem`, `size-300: 1rem`, `size-400: 1.
 - **No node deletion UI**: Composable nodes cannot currently be deleted from the graph canvas. Needs a delete button or keyboard shortcut wired to `setComposableNodeMetas`.
 - **No edge labels**: Port names are only shown via `title` attributes (hover tooltips). Visual port labels would improve discoverability.
 - **`HarmonicSeriesNode` Row label typing workaround**: The `Row` component expects `label: string` but the node passes JSX (for the blue dot indicator). This compiles but TypeScript casts it as `unknown as string` — a minor type hack.
-- **Array Constant + source token**: Array-type constants do not support linking to a source token (the modal's source tab is hidden). Could be extended to support array-valued tokens.
+- **Array Constant + source token**: Array-type constants do not support linking to a source token (the modal's source tab is hidden). Could be extended to support array-valued tokens. Also allow array nodes to plug into const source input.

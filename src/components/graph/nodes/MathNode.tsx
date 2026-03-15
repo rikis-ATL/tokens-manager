@@ -2,9 +2,10 @@
 
 import { memo } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
+// Position kept for fallback Handle usage
 import { Calculator } from 'lucide-react';
 import {
-  NodeWrapper, NodeHeader, Row, NativeSelect, NumberInput, TextInput,
+  NodeWrapper, NodeHeader, Row, RowHandle, NativeSelect, NumberInput, TextInput,
   PreviewSection, HANDLE_NUMBER, HANDLE_ARRAY, HANDLE_OUT,
 } from './nodeShared';
 import type { ComposableNodeData, MathConfig, MathOp, CssColorFormat } from '@/types/graph-nodes.types';
@@ -19,6 +20,7 @@ const OPERATIONS: { value: MathOp; label: string }[] = [
   { value: 'ceil',         label: 'Ceil' },
   { value: 'clamp',        label: 'Clamp (min/max)' },
   { value: 'colorConvert', label: 'Color Convert' },
+  { value: 'hslCompose',   label: 'HSL Compose' },
 ];
 
 const COLOR_FORMATS: { value: CssColorFormat; label: string }[] = [
@@ -30,41 +32,33 @@ const COLOR_FORMATS: { value: CssColorFormat; label: string }[] = [
 
 const BINARY_OPS: MathOp[] = ['multiply', 'divide', 'add', 'subtract'];
 
-// Small blue dot shown next to a label when its handle is wired
-function ConnectedDot({ connected }: { connected: boolean }) {
-  return connected ? (
-    <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-400 ml-1 flex-shrink-0" />
-  ) : null;
+function Dot({ on }: { on: boolean }) {
+  return on ? <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-400 ml-1 flex-shrink-0" /> : null;
 }
 
 function MathNodeComponent({ data }: NodeProps) {
-  const { nodeId, config, inputs, outputs, onConfigChange } = data as unknown as ComposableNodeData;
+  const { nodeId, config, inputs, outputs, onConfigChange, onDeleteNode } =
+    data as unknown as ComposableNodeData;
   const cfg = config as MathConfig;
 
   const update = (partial: Partial<MathConfig>) =>
     onConfigChange(nodeId, { ...cfg, ...partial });
 
-  const isBinary = BINARY_OPS.includes(cfg.operation);
-  const isClamp  = cfg.operation === 'clamp';
-  const isColor  = cfg.operation === 'colorConvert';
+  const isBinary  = BINARY_OPS.includes(cfg.operation);
+  const isClamp   = cfg.operation === 'clamp';
+  const isColor   = cfg.operation === 'colorConvert';
+  const isHslComp = cfg.operation === 'hslCompose';
 
-  // Wired const overrides
   const hasB        = inputs['b']        != null;
   const hasClampMin = inputs['clampMin'] != null;
   const hasClampMax = inputs['clampMax'] != null;
+  const hasHslH     = inputs['hslH']     != null;
+  const hasHslS     = inputs['hslS']     != null;
 
   const result = outputs['result'];
   const previewItems: string[] = Array.isArray(result)
     ? (result as (string | number)[]).slice(0, 6).map(String)
     : result != null ? [String(result)] : [];
-
-  // Compute handle vertical positions based on visible rows
-  // a is always present; b / clampMin / clampMax depend on operation
-  const handlePositions = (() => {
-    if (isBinary) return { a: '30%', b: '52%' };
-    if (isClamp)  return { a: '26%', clampMin: '48%', clampMax: '66%' };
-    return { a: '50%' }; // round / floor / ceil / colorConvert
-  })();
 
   return (
     <NodeWrapper borderColor="border-amber-300" width={240}>
@@ -73,6 +67,7 @@ function MathNodeComponent({ data }: NodeProps) {
         title="Math"
         badge={cfg.operation}
         headerClass="bg-amber-50 border-amber-200 text-amber-700"
+        onDelete={onDeleteNode ? () => onDeleteNode(nodeId) : undefined}
       />
       <div className="px-3 py-2 space-y-1.5 nodrag">
         <Row label="Operation">
@@ -83,9 +78,20 @@ function MathNodeComponent({ data }: NodeProps) {
           />
         </Row>
 
-        {/* Binary operand — overridable via b handle */}
+        {/* Input A — always present */}
+        <Row
+          label={<span className="text-[10px] text-gray-400">{isHslComp ? 'Lightness L' : 'Input A'}</span>}
+          handle={<RowHandle id="a" className={HANDLE_ARRAY} title={isHslComp ? 'a — lightness L (number | number[])' : 'a (number | array | color)'} />}
+        >
+          <span className="text-[10px] text-gray-300 italic">← wire input</span>
+        </Row>
+
+        {/* Binary operand B */}
         {isBinary && (
-          <Row label={<span className="flex items-center">Operand B<ConnectedDot connected={hasB} /></span> as unknown as string}>
+          <Row
+            label={<span className="flex items-center">Operand B<Dot on={hasB} /></span>}
+            handle={<RowHandle id="b" className={HANDLE_NUMBER} title="b — operand (connect a Constant)" />}
+          >
             <NumberInput
               value={hasB ? Number(inputs['b']) : cfg.operand}
               onChange={v => update({ operand: v })}
@@ -95,10 +101,13 @@ function MathNodeComponent({ data }: NodeProps) {
           </Row>
         )}
 
-        {/* Clamp — both ends overridable via handles */}
+        {/* Clamp bounds */}
         {isClamp && (
           <>
-            <Row label={<span className="flex items-center">Min<ConnectedDot connected={hasClampMin} /></span> as unknown as string}>
+            <Row
+              label={<span className="flex items-center">Min<Dot on={hasClampMin} /></span>}
+              handle={<RowHandle id="clampMin" className={HANDLE_NUMBER} title="clamp min" />}
+            >
               <NumberInput
                 value={hasClampMin ? Number(inputs['clampMin']) : cfg.clampMin}
                 onChange={v => update({ clampMin: v })}
@@ -106,7 +115,10 @@ function MathNodeComponent({ data }: NodeProps) {
                 className={hasClampMin ? 'border-blue-300 bg-blue-50' : ''}
               />
             </Row>
-            <Row label={<span className="flex items-center">Max<ConnectedDot connected={hasClampMax} /></span> as unknown as string}>
+            <Row
+              label={<span className="flex items-center">Max<Dot on={hasClampMax} /></span>}
+              handle={<RowHandle id="clampMax" className={HANDLE_NUMBER} title="clamp max" />}
+            >
               <NumberInput
                 value={hasClampMax ? Number(inputs['clampMax']) : cfg.clampMax}
                 onChange={v => update({ clampMax: v })}
@@ -117,6 +129,7 @@ function MathNodeComponent({ data }: NodeProps) {
           </>
         )}
 
+        {/* Color convert formats */}
         {isColor && (
           <>
             <Row label="From">
@@ -136,14 +149,42 @@ function MathNodeComponent({ data }: NodeProps) {
           </>
         )}
 
-        {!isColor && (
+        {/* HSL Compose: fixed H and S overrides */}
+        {isHslComp && (
+          <>
+            <Row
+              label={<span className="flex items-center">Hue H<Dot on={hasHslH} /></span>}
+              handle={<RowHandle id="hslH" className={HANDLE_NUMBER} title="hslH — hue override (connect a Constant)" />}
+            >
+              <NumberInput
+                value={hasHslH ? Number(inputs['hslH']) : cfg.hslH}
+                onChange={v => update({ hslH: Math.max(0, Math.min(360, v)) })}
+                min={0} max={360} step={1}
+                className={hasHslH ? 'border-blue-300 bg-blue-50' : ''}
+              />
+            </Row>
+            <Row
+              label={<span className="flex items-center">Sat S %<Dot on={hasHslS} /></span>}
+              handle={<RowHandle id="hslS" className={HANDLE_NUMBER} title="hslS — saturation override (connect a Constant)" />}
+            >
+              <NumberInput
+                value={hasHslS ? Number(inputs['hslS']) : cfg.hslS}
+                onChange={v => update({ hslS: Math.max(0, Math.min(100, v)) })}
+                min={0} max={100} step={1}
+                className={hasHslS ? 'border-blue-300 bg-blue-50' : ''}
+              />
+            </Row>
+          </>
+        )}
+
+        {/* Precision + suffix (scalar ops only) */}
+        {!isColor && !isHslComp && (
           <>
             <Row label="Precision">
               <NumberInput
                 value={cfg.precision}
                 onChange={v => update({ precision: Math.max(0, Math.min(8, v)) })}
-                min={0}
-                max={8}
+                min={0} max={8}
               />
             </Row>
             <Row label="Suffix">
@@ -158,74 +199,29 @@ function MathNodeComponent({ data }: NodeProps) {
 
         {previewItems.length > 0 && (
           <PreviewSection>
-            <div className="flex flex-wrap gap-1">
-              {previewItems.map((v, i) => (
-                <span key={i} className="text-[10px] font-mono bg-amber-50 text-amber-700 rounded px-1">
-                  {v}
-                </span>
-              ))}
-              {Array.isArray(result) && result.length > 6 && (
-                <span className="text-[10px] text-gray-400">+{result.length - 6} more</span>
-              )}
-            </div>
+            <Row
+              label="Result"
+              handle={<RowHandle id="result" type="source" side="right" className={HANDLE_OUT} title="result" />}
+            >
+              <div className="flex flex-wrap gap-1">
+                {previewItems.map((v, i) => (
+                  <span key={i} className="text-[10px] font-mono bg-amber-50 text-amber-700 rounded px-1">
+                    {v}
+                  </span>
+                ))}
+                {Array.isArray(result) && result.length > 6 && (
+                  <span className="text-[10px] text-gray-400">+{result.length - 6} more</span>
+                )}
+              </div>
+            </Row>
           </PreviewSection>
         )}
+
+        {/* Result output when preview is empty */}
+        {previewItems.length === 0 && (
+          <Handle type="source" id="result" position={Position.Right} title="result" className={HANDLE_OUT} />
+        )}
       </div>
-
-      {/* ── Input handles (left) ── */}
-
-      {/* a — always present: number | array | color string */}
-      <Handle
-        type="target"
-        id="a"
-        position={Position.Left}
-        style={{ top: handlePositions.a }}
-        title="a (number | array | color)"
-        className={HANDLE_ARRAY}
-      />
-
-      {/* b — operand override for binary ops */}
-      {isBinary && (
-        <Handle
-          type="target"
-          id="b"
-          position={Position.Left}
-          style={{ top: handlePositions.b }}
-          title="b — operand (connect a Constant)"
-          className={HANDLE_NUMBER}
-        />
-      )}
-
-      {/* clampMin / clampMax overrides */}
-      {isClamp && (
-        <>
-          <Handle
-            type="target"
-            id="clampMin"
-            position={Position.Left}
-            style={{ top: (handlePositions as { clampMin: string }).clampMin }}
-            title="clamp min (connect a Constant)"
-            className={HANDLE_NUMBER}
-          />
-          <Handle
-            type="target"
-            id="clampMax"
-            position={Position.Left}
-            style={{ top: (handlePositions as { clampMax: string }).clampMax }}
-            title="clamp max (connect a Constant)"
-            className={HANDLE_NUMBER}
-          />
-        </>
-      )}
-
-      {/* Output */}
-      <Handle
-        type="source"
-        id="result"
-        position={Position.Right}
-        title="result"
-        className={HANDLE_OUT}
-      />
     </NodeWrapper>
   );
 }

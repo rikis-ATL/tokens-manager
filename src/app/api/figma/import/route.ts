@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import TokenCollection from '@/lib/db/models/TokenCollection';
+import { getRepository } from '@/lib/db/get-repository';
 
 // -------------------------------------------------------------------
 // Figma type helpers
@@ -165,10 +164,10 @@ export async function POST(request: NextRequest) {
     tokensByMode[mode.name] = modeTokens;
   }
 
-  // 4. Save to MongoDB
+  // 4. Save to database
   try {
-    await dbConnect();
-    const saved = await TokenCollection.create({
+    const repo = await getRepository();
+    const saved = await repo.create({
       name: collectionName,
       tokens: tokensByMode,
       sourceMetadata: {
@@ -183,11 +182,11 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(
-      { collection: { _id: saved._id.toString(), name: saved.name } },
+      { collection: { _id: saved._id, name: saved.name } },
       { status: 201 }
     );
   } catch (error) {
-    console.error('[POST /api/figma/import] MongoDB error:', error);
+    console.error('[POST /api/figma/import] Database error:', error);
     return NextResponse.json({ error: 'Failed to save collection' }, { status: 500 });
   }
 }

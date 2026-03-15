@@ -58,20 +58,43 @@ export function ConstantNodeModal({
     }
   }, [open]);
 
+  const isArrayType = cfg.valueType === 'array';
+
+  // For array-type constants, only offer tokens whose value is a JSON array.
+  const eligibleTokens = useMemo(() => {
+    if (!isArrayType) return allTokens;
+    return allTokens.filter(t => {
+      try { const v = JSON.parse(t.value); return Array.isArray(v); }
+      catch { return false; }
+    });
+  }, [allTokens, isArrayType]);
+
   const filtered = useMemo(() => {
-    if (!allTokens.length) return [];
-    if (!query.trim()) return allTokens.slice(0, 50);
+    if (!eligibleTokens.length) return [];
+    if (!query.trim()) return eligibleTokens.slice(0, 50);
     const q = query.toLowerCase();
-    return allTokens
+    return eligibleTokens
       .filter(t =>
         t.path.toLowerCase().includes(q) ||
         t.value.toLowerCase().includes(q) ||
         t.type.toLowerCase().includes(q),
       )
       .slice(0, 50);
-  }, [allTokens, query]);
+  }, [eligibleTokens, query]);
 
   const handleSelectToken = (t: FlatToken) => {
+    // Array token: parse JSON, populate arrayValues
+    if (isArrayType) {
+      try {
+        const parsed = JSON.parse(t.value);
+        if (Array.isArray(parsed)) {
+          onUpdate({ arrayValues: parsed.map(String), sourceTokenPath: t.path });
+          setQuery('');
+          return;
+        }
+      } catch { /* fall through */ }
+    }
+    // Scalar token: set value + sourceTokenPath
     const numVal = parseFloat(t.value);
     const isNum = !isNaN(numVal) && String(numVal) === t.value.trim();
     onUpdate({
@@ -197,7 +220,7 @@ export function ConstantNodeModal({
 
             {filtered.length > 0 && (
               <div className="px-4 py-2 border-t border-gray-100 bg-gray-50 text-[11px] text-gray-400">
-                {filtered.length}{allTokens.length > 50 && query ? '+' : ''} of {allTokens.length} tokens
+                {filtered.length}{eligibleTokens.length > 50 && query ? '+' : ''} of {eligibleTokens.length} token{eligibleTokens.length !== 1 ? 's' : ''}{isArrayType ? ' (array)' : ''}
               </div>
             )}
           </div>

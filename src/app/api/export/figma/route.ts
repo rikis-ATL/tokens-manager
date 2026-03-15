@@ -35,21 +35,17 @@ export async function POST(request: NextRequest) {
 
     const responseData = await response.json();
 
-    // Update MongoDB collection's sourceMetadata to record Figma as upstream
+    // Update collection's sourceMetadata to record Figma as upstream
     if (mongoCollectionId) {
       try {
-        const { default: dbConnect } = await import('@/lib/mongodb');
-        const { default: TokenCollection } = await import('@/lib/db/models/TokenCollection');
-        await dbConnect();
-        await TokenCollection.findByIdAndUpdate(mongoCollectionId, {
-          $set: {
-            'sourceMetadata.type': 'figma',
-            'sourceMetadata.figmaFileKey': fileKey,
-            'sourceMetadata.figmaCollectionId': collectionId || null,
-          },
+        const { getRepository } = await import('@/lib/db/get-repository');
+        const repo = await getRepository();
+        await repo.updateSourceMetadata(mongoCollectionId, {
+          type: 'figma',
+          figmaFileKey: fileKey,
+          figmaCollectionId: collectionId || null,
         });
       } catch (e) {
-        // Non-fatal: log but don't fail the export response
         console.error('Failed to update sourceMetadata after Figma export:', e);
       }
     }

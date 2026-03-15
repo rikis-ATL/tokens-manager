@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import TokenCollection from '@/lib/db/models/TokenCollection';
+import { getRepository } from '@/lib/db/get-repository';
 import type { UpdateTokenCollectionInput } from '@/types/collection.types';
 
 export async function GET(
@@ -8,9 +7,8 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    await dbConnect();
-
-    const doc = await TokenCollection.findById(params.id).lean();
+    const repo = await getRepository();
+    const doc = await repo.findById(params.id);
 
     if (!doc) {
       return NextResponse.json({ error: 'Collection not found' }, { status: 404 });
@@ -18,17 +16,17 @@ export async function GET(
 
     return NextResponse.json({
       collection: {
-        _id: doc._id.toString(),
-        name: doc.name as string,
+        _id: doc._id,
+        name: doc.name,
         tokens: doc.tokens,
-        sourceMetadata: (doc.sourceMetadata as Record<string, unknown> | null | undefined) ?? null,
-        description: (doc.description as string | null | undefined) ?? null,
-        tags: (doc.tags as string[] | undefined) ?? [],
-        figmaToken: (doc.figmaToken as string | null | undefined) ?? null,
-        figmaFileId: (doc.figmaFileId as string | null | undefined) ?? null,
-        githubRepo: (doc.githubRepo as string | null | undefined) ?? null,
-        githubBranch: (doc.githubBranch as string | null | undefined) ?? null,
-        graphState: (doc.graphState as Record<string, unknown> | null | undefined) ?? null,
+        sourceMetadata: doc.sourceMetadata ?? null,
+        description: doc.description ?? null,
+        tags: doc.tags ?? [],
+        figmaToken: doc.figmaToken ?? null,
+        figmaFileId: doc.figmaFileId ?? null,
+        githubRepo: doc.githubRepo ?? null,
+        githubBranch: doc.githubBranch ?? null,
+        graphState: doc.graphState ?? null,
       },
     });
   } catch (error) {
@@ -42,11 +40,8 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    await dbConnect();
-
     const body = await request.json() as UpdateTokenCollectionInput;
 
-    // If body is empty (all fields undefined), return 400
     if (
       body.name === undefined &&
       body.tokens === undefined &&
@@ -62,11 +57,8 @@ export async function PUT(
       return NextResponse.json({ error: 'Nothing to update' }, { status: 400 });
     }
 
-    const doc = await TokenCollection.findByIdAndUpdate(
-      params.id,
-      { $set: body },
-      { new: true, runValidators: true }
-    ).lean();
+    const repo = await getRepository();
+    const doc = await repo.update(params.id, body);
 
     if (!doc) {
       return NextResponse.json({ error: 'Collection not found' }, { status: 404 });
@@ -74,13 +66,13 @@ export async function PUT(
 
     return NextResponse.json({
       collection: {
-        _id: doc._id.toString(),
-        name: doc.name as string,
+        _id: doc._id,
+        name: doc.name,
         tokens: doc.tokens,
         sourceMetadata: doc.sourceMetadata,
         userId: doc.userId,
-        createdAt: (doc.createdAt as Date).toISOString(),
-        updatedAt: (doc.updatedAt as Date).toISOString(),
+        createdAt: doc.createdAt,
+        updatedAt: doc.updatedAt,
       },
     });
   } catch (error) {
@@ -94,11 +86,10 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    await dbConnect();
+    const repo = await getRepository();
+    const deleted = await repo.delete(params.id);
 
-    const doc = await TokenCollection.findByIdAndDelete(params.id).lean();
-
-    if (!doc) {
+    if (!deleted) {
       return NextResponse.json({ error: 'Collection not found' }, { status: 404 });
     }
 

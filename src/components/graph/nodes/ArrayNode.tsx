@@ -19,7 +19,7 @@ const UNITS: { value: ArrayUnit; label: string }[] = [
 ];
 
 function ArrayNodeComponent({ data }: NodeProps) {
-  const { nodeId, config, inputs, outputs, onConfigChange, onGenerate, allGroups } = data as unknown as ComposableNodeData;
+  const { nodeId, config, inputs, outputs, onConfigChange, onGenerate, onDeleteNode, allGroups } = data as unknown as ComposableNodeData;
   const cfg = config as ArrayConfig;
 
   const update = useCallback(
@@ -84,6 +84,7 @@ function ArrayNodeComponent({ data }: NodeProps) {
         title="Array"
         badge={`${values.length} items`}
         headerClass="bg-sky-50 border-sky-200 text-sky-700"
+        onDelete={onDeleteNode ? () => onDeleteNode(nodeId) : undefined}
       />
       <div className="px-3 py-2 space-y-1.5 nodrag">
 
