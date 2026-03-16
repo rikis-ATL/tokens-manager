@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getRepository } from '@/lib/db/get-repository';
-import type { CollectionCardData } from '@/types/collection.types';
+import type { CollectionCardData, ISourceMetadata } from '@/types/collection.types';
 
 export async function GET() {
   try {
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     const body = await request.json() as {
       name?: string;
       tokens?: Record<string, unknown>;
-      sourceMetadata?: { repo: string | null; branch: string | null; path: string | null } | null;
+      sourceMetadata?: ISourceMetadata | null;
     };
 
     if (!body.name || body.name.trim() === '') {

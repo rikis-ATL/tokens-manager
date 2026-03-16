@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import mongoose from 'mongoose';
+import mongoose, { Connection } from 'mongoose';
 import type { DatabaseConnectionStatus, DatabaseProvider } from '@/types/database.types';
 
 export async function POST(request: NextRequest) {
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
 }
 
 async function testMongo(body: { connectionUri?: string; provider?: DatabaseProvider }) {
-  let testConnection: typeof mongoose | null = null;
+  let testConnection: Connection | null = null;
 
   try {
     const uri = body.connectionUri;
