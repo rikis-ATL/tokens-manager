@@ -70,6 +70,20 @@ interface TokenTableRowProps {
   parseValue: (raw: string, type: TokenType) => unknown;
 }
 
+/** Upsert incoming tokens into an existing list, matching by path. Updates value/type of
+ *  existing tokens and appends any that are new. */
+function upsertTokensByPath(existing: GeneratedToken[], incoming: GeneratedToken[]): GeneratedToken[] {
+  const result = existing.map(t => {
+    const match = incoming.find(n => n.path === t.path);
+    return match ? { ...t, value: match.value, type: match.type, description: match.description ?? t.description } : t;
+  });
+  const existingPaths = new Set(existing.map(t => t.path));
+  for (const token of incoming) {
+    if (!existingPaths.has(token.path)) result.push(token);
+  }
+  return result;
+}
+
 function TokenTableRow({
   token, group, tokenGroups, selectedTokenId, isExpanded,
   onTokenSelect, onUpdateToken, onDeleteToken, onToggleExpansion,
@@ -612,10 +626,21 @@ export function TokenGeneratorForm({
     const { groupId, tokens, subgroupName } = pendingBulkInsert;
 
     if (subgroupName) {
-      // Create a new child group under groupId and place the tokens inside it
-      const insertSubgroup = (groups: TokenGroup[]): TokenGroup[] =>
+      // Upsert: update existing child group with same name, or create new one
+      const upsertSubgroup = (groups: TokenGroup[]): TokenGroup[] =>
         groups.map(g => {
           if (g.id === groupId) {
+            const existingChild = g.children?.find(c => c.name === subgroupName);
+            if (existingChild) {
+              const upsertedTokens = upsertTokensByPath(existingChild.tokens, tokens);
+              return {
+                ...g,
+                children: (g.children ?? []).map(c =>
+                  c.name === subgroupName ? { ...c, tokens: upsertedTokens } : c
+                ),
+                expanded: true,
+              };
+            }
             const newChild: TokenGroup = {
               id: generateId(),
               name: subgroupName,
@@ -627,18 +652,18 @@ export function TokenGeneratorForm({
             };
             return { ...g, children: [...(g.children ?? []), newChild], expanded: true };
           }
-          if (g.children?.length) return { ...g, children: insertSubgroup(g.children) };
+          if (g.children?.length) return { ...g, children: upsertSubgroup(g.children) };
           return g;
         });
-      setTokenGroups(prev => insertSubgroup(prev));
+      setTokenGroups(prev => upsertSubgroup(prev));
     } else {
-      const insertIntoGroup = (groups: TokenGroup[]): TokenGroup[] =>
+      const upsertIntoGroup = (groups: TokenGroup[]): TokenGroup[] =>
         groups.map(group => {
-          if (group.id === groupId) return { ...group, tokens: [...group.tokens, ...tokens] };
-          if (group.children?.length) return { ...group, children: insertIntoGroup(group.children) };
+          if (group.id === groupId) return { ...group, tokens: upsertTokensByPath(group.tokens, tokens) };
+          if (group.children?.length) return { ...group, children: upsertIntoGroup(group.children) };
           return group;
         });
-      setTokenGroups(prev => insertIntoGroup(prev));
+      setTokenGroups(prev => upsertIntoGroup(prev));
     }
 
     setIsDirty(true);

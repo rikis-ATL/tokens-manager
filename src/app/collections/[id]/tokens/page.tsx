@@ -443,6 +443,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
                   selectedToken={selectedToken}
                   onBulkAddTokens={(groupId, tokens, subgroupName) => setPendingBulkInsert({ groupId, tokens, subgroupName })}
                   graphStateMap={graphStateMap}
+                  graphStateLoaded={!loading}
                   onGraphStateChange={handleGraphStateChange}
                   namespace={globalNamespace}
                   allTokens={allFlatTokens}

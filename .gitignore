@@ -16,6 +16,7 @@
 .env.local
 **/.env.local
 **/token-manager-*/.env.local
+env.local
 
 # Yarn files
 **/yarn.lock

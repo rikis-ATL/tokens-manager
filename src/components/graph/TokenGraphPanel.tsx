@@ -14,6 +14,8 @@ interface TokenGraphPanelProps {
   selectedToken: { token: GeneratedToken; groupPath: string } | null;
   onBulkAddTokens?: (groupId: string, tokens: GeneratedToken[], subgroupName?: string) => void;
   graphStateMap?: CollectionGraphState;
+  /** True once the collection's persisted graph state has been loaded from the server */
+  graphStateLoaded?: boolean;
   onGraphStateChange?: (groupId: string, state: GraphGroupState) => void;
   namespace?: string;
   allTokens?: FlatToken[];
@@ -38,6 +40,7 @@ export function TokenGraphPanel({
   selectedToken,
   onBulkAddTokens,
   graphStateMap,
+  graphStateLoaded,
   onGraphStateChange,
   namespace,
   allTokens,
@@ -73,7 +76,7 @@ export function TokenGraphPanel({
     return (
       <div className="flex flex-col h-full">
         <GroupStructureGraph
-          key={selectedGroup.id}
+          key={`${selectedGroup.id}-${graphStateLoaded ? '1' : '0'}`}
           group={selectedGroup}
           namespace={namespace}
           allTokens={allTokens}
