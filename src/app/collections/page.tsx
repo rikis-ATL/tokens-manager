@@ -4,9 +4,9 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { PlusCircle } from 'lucide-react';
 import type { CollectionCardData } from '@/types/collection.types';
-import { CollectionCard } from '@/components/CollectionCard';
-import { DeleteCollectionDialog } from '@/components/DeleteCollectionDialog';
-import { NewCollectionDialog } from '@/components/NewCollectionDialog';
+import { CollectionCard } from '@/components/collections/CollectionCard';
+import { DeleteCollectionDialog } from '@/components/collections/DeleteCollectionDialog';
+import { NewCollectionDialog } from '@/components/collections/NewCollectionDialog';
 import { Button } from '@/components/ui/button';
 
 export default function CollectionsPage() {

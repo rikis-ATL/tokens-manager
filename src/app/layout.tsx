@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import "@xyflow/react/dist/style.css";
-import { LayoutShell } from "@/components/LayoutShell";
+import { LayoutShell } from "@/components/layout/LayoutShell";
 
 const inter = Inter({
   subsets: ["latin"],

@@ -1,4 +1,4 @@
-import { CollectionLayoutClient } from '@/components/CollectionLayoutClient';
+import { CollectionLayoutClient } from '@/components/collections/CollectionLayoutClient';
 
 export default function CollectionLayout({
   children,

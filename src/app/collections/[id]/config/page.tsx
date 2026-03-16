@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { BuildTokensPanel } from '@/components/BuildTokensPanel';
+import { BuildTokensPanel } from '@/components/dev/BuildTokensPanel';
 
 interface ConfigPageProps {
   params: { id: string };
