@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Info, Save } from 'lucide-react';
+import { Info, MoreHorizontal, Save } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ToastNotification } from '@/components/ToastNotification';
 import { SaveCollectionDialog } from '@/components/SaveCollectionDialog';
-import { TokenGeneratorFormNew } from '@/components/TokenGeneratorFormNew';
+import { TokenGeneratorForm } from '@/components/TokenGeneratorForm';
 import { TokenGeneratorDocs } from '@/components/TokenGeneratorDocs';
 import { SourceContextBar } from '@/components/SourceContextBar';
 import { ImportFromFigmaDialog } from '@/components/ImportFromFigmaDialog';
@@ -38,6 +39,8 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   const [saveAsDialogOpen, setSaveAsDialogOpen] = useState(false);
   const [isSavingAs, setIsSavingAs] = useState(false);
   const [importFigmaOpen, setImportFigmaOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [renameOpen, setRenameOpen] = useState(false);
   const [selectedSourceMetadata, setSelectedSourceMetadata] = useState<ISourceMetadata | null>(null);
   const [generateTabTokens, setGenerateTabTokens] = useState<Record<string, unknown> | null>(null);
   const [graphStateMap, setGraphStateMap] = useState<CollectionGraphState>({});
@@ -271,32 +274,8 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       {/* Actions bar */}
-      <div className="flex items-center gap-3 flex-wrap border-b border-gray-200 bg-white px-6 py-3 flex-shrink-0">
-        <Button
-          size="sm"
-          onClick={handleSave}
-          disabled={isSaving}
-          className="gap-1.5"
-        >
-          <Save size={14} />
-          {isSaving ? 'Saving…' : 'Save'}
-        </Button>
-        <Button variant="outline" size="sm" onClick={() => setSaveAsDialogOpen(true)}>
-          Save As
-        </Button>
-        <Button variant="outline" size="sm" onClick={() => setImportFigmaOpen(true)}>
-          Import from Figma
-        </Button>
-        <CollectionActions
-          selectedId={id}
-          selectedName={collectionName}
-          collections={[{ _id: id, name: collectionName }]}
-          onDeleted={handleDeleted}
-          onRenamed={handleRenamed}
-          onDuplicated={handleDuplicated}
-          onError={(msg) => setToast({ message: msg, type: 'error' })}
-        />
-        <div className="h-4 border-l border-gray-200 mx-1" />
+      <div className="flex items-center gap-2 border-b border-gray-200 bg-white px-6 py-3 flex-shrink-0">
+        {/* Namespace — left */}
         <label className="text-sm text-gray-600 whitespace-nowrap">Namespace:</label>
         <Input
           value={globalNamespace}
@@ -304,10 +283,64 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
           className="w-32 h-8 text-sm"
           placeholder="e.g. token"
         />
-        <Button variant="ghost" size="sm" onClick={() => setGuideOpen(true)} title="Generator Guide">
-          <Info size={16} />
+
+        {/* Spacer */}
+        <div className="flex-1" />
+
+        {/* More actions dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="px-2">
+              <MoreHorizontal size={16} />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => setSaveAsDialogOpen(true)}>
+              Save As
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setImportFigmaOpen(true)}>
+              Import from Figma
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => setRenameOpen(true)}>
+              Rename
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => setDeleteOpen(true)}
+              className="text-red-600 focus:text-red-600 focus:bg-red-50"
+            >
+              Delete
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => setGuideOpen(true)}>
+              <Info size={14} className="mr-2" />
+              Generator Guide
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        {/* Primary action */}
+        <Button size="sm" onClick={handleSave} disabled={isSaving} className="gap-1.5">
+          <Save size={14} />
+          {isSaving ? 'Saving…' : 'Save'}
         </Button>
       </div>
+
+      {/* Dialogs driven by the dropdown */}
+      <CollectionActions
+        selectedId={id}
+        selectedName={collectionName}
+        collections={[{ _id: id, name: collectionName }]}
+        onDeleted={handleDeleted}
+        onRenamed={handleRenamed}
+        onDuplicated={handleDuplicated}
+        onError={(msg) => setToast({ message: msg, type: 'error' })}
+        deleteOpen={deleteOpen}
+        onDeleteOpenChange={setDeleteOpen}
+        renameOpen={renameOpen}
+        onRenameOpenChange={setRenameOpen}
+      />
 
       <SourceContextBar sourceMetadata={selectedSourceMetadata} />
 
@@ -372,7 +405,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
             {/* Form panel */}
             <ResizablePanel defaultSize="60%" minSize="25%">
               <main className="h-full overflow-y-auto p-6">
-                <TokenGeneratorFormNew
+                <TokenGeneratorForm
                   key={id}
                   githubConfig={null}
                   onTokensChange={handleTokensChange}
