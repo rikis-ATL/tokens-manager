@@ -1,3 +1,16 @@
+---
+gsd_state_version: 1.0
+milestone: v1.2
+milestone_name: Token Groups Tree
+status: unknown
+last_updated: "2026-03-16T02:22:20.485Z"
+progress:
+  total_phases: 6
+  completed_phases: 4
+  total_plans: 23
+  completed_plans: 19
+---
+
 # Project State
 
 ## Project Reference
@@ -5,16 +18,16 @@
 See: .planning/PROJECT.md (updated 2026-03-12)
 
 **Core value:** Token collections are always available and editable — accessible via collection-scoped URLs, with per-collection Figma/GitHub config persisted to MongoDB, full CRUD from a card grid, and Figma import/export integrated.
-**Current focus:** v1.2 — Phase 6: Selection, Breadcrumbs, Content Scoping
+**Current focus:** v1.2 — Phase 8: Clean Code
 
 ## Current Position
 
-Phase: 6 of 7 (Selection, Breadcrumbs, Content Scoping)
-Plan: 3 of 3 in current phase
-Status: 06-03 complete — Phase 6 fully complete, human-verified in browser
-Last activity: 2026-03-13 — Phase 6 Plan 03 complete (GroupBreadcrumb wired, content scoping, empty state)
+Phase: 8 of 8 (Clean Code)
+Plan: 1 of N in current phase
+Status: 08-01 complete — dead code removed, form renamed
+Last activity: 2026-03-16 — Phase 8 Plan 01 complete (TokenGeneratorFormNew renamed, legacy routes deleted)
 
-Progress: [████░░░░░░] 40% (v1.2)
+Progress: [████████░░] 80% (v1.2)
 
 ## Performance Metrics
 
@@ -31,6 +44,8 @@ Progress: [████░░░░░░] 40% (v1.2)
 | 6. Selection + Breadcrumbs | 3 | ~12 min | ~4 min |
 
 *Updated after each plan completion*
+| Phase 08-clean-code P01 | 1 | 2 tasks | 8 files |
+| Phase 08-clean-code P02 | 8 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -57,6 +72,9 @@ All decisions logged in PROJECT.md Key Decisions table.
 - [06-02]: GroupBreadcrumb display labels derived from last segment of parseGroupPath(group.name) — consistent with TokenGroupTree FlatNode.displayLabel
 - [06-03]: Recursive group resolution in TokenGeneratorFormNew: fast path for top-level, findGroupById fallback for nested nodes
 - [06-03]: Empty state checks found.tokens.length === 0 regardless of children — parent-only groups show "No tokens in this group"
+- [Phase 08-clean-code]: TokenGeneratorFormNew renamed to TokenGeneratorForm; legacy routes generate/settings/configuration deleted
+- [Phase 08-clean-code]: AtuiDevTest replaced with shadcn Button sandbox — stencil loader module path not exported by package
+- [Phase 08-clean-code]: handleTokensChange uses tokens ?? {} to handle null from onTokensChange, keeping downstream state non-null
 
 ### Pending Todos
 
@@ -68,6 +86,6 @@ None — Phase 5 complete. Blocker resolved: onGroupsChange now emits full Token
 
 ## Session Continuity
 
-Last session: 2026-03-13
-Stopped at: Completed 06-03-PLAN.md (GroupBreadcrumb wiring, content scoping, empty state) — Phase 6 complete, human-verified
+Last session: 2026-03-16
+Stopped at: Completed 08-01-PLAN.md (dead code removal, form rename)
 Resume file: None

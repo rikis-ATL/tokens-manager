@@ -26,8 +26,8 @@
 
 ## Phase 8 Requirements (Clean Code)
 
-- [ ] **CLEAN-01**: Dead form component `TokenGeneratorForm.tsx` (legacy) deleted; `TokenGeneratorFormNew.tsx` renamed to `TokenGeneratorForm.tsx`; all import sites updated
-- [ ] **CLEAN-02**: Legacy app routes (`/generate`, `/settings`, `/configuration`) deleted; `collections.tsx` audited and cleaned up
+- [x] **CLEAN-01**: Dead form component `TokenGeneratorForm.tsx` (legacy) deleted; `TokenGeneratorFormNew.tsx` renamed to `TokenGeneratorForm.tsx`; all import sites updated
+- [x] **CLEAN-02**: Legacy app routes (`/generate`, `/settings`, `/configuration`) deleted; `collections.tsx` audited and cleaned up
 - [ ] **CLEAN-03**: All TypeScript errors fixed with no suppressors (`@ts-ignore`, `as any`); `AtuiDevTest.tsx` migrated from broken ATUI stencil loader to shadcn
 - [ ] **CLEAN-04**: Components reorganized into feature domain subdirectories (`collections/`, `tokens/`, `layout/`, `figma/`, `github/`, `dev/`) each with `index.ts` barrel exports; `collectionHeader.tsx` renamed to `CollectionHeader.tsx`
 - [ ] **CLEAN-05**: `src/utils/` functions are pure and framework-agnostic (no React/Next.js imports); `get-repository.ts` documented as live factory entry point
@@ -60,8 +60,8 @@
 | TREE-04 | Phase 7 | Pending |
 | CONT-02 | Phase 7 | Pending |
 | CONT-03 | Phase 7 | Pending |
-| CLEAN-01 | Phase 8 | Pending |
-| CLEAN-02 | Phase 8 | Pending |
+| CLEAN-01 | Phase 8 | Complete |
+| CLEAN-02 | Phase 8 | Complete |
 | CLEAN-03 | Phase 8 | Pending |
 | CLEAN-04 | Phase 8 | Pending |
 | CLEAN-05 | Phase 8 | Pending |
