@@ -27,7 +27,7 @@ import {
 
 
 // Import services and types
-import { githubService, tokenService, fileService } from '../services';
+import { githubService, tokenService, fileService } from '../../services';
 import {
   GeneratedToken,
   TokenGroup,
@@ -36,7 +36,7 @@ import {
   TOKEN_TYPES,
   ToastMessage,
   LoadingState
-} from '../types';
+} from '../../types';
 import {
   generateId,
   buildFullPath,
@@ -46,8 +46,8 @@ import {
   getValuePlaceholder,
   validateTokenPath,
   validateTokenValue
-} from '../utils';
-import { createToast, createLoadingState } from '../utils';
+} from '../../utils';
+import { createToast, createLoadingState } from '../../utils';
 
 // ─── TokenTableRow ─────────────────────────────────────────────────────────────
 

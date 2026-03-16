@@ -1,5 +1,5 @@
 import React from 'react';
-import { LoadingState } from '../types';
+import { LoadingState } from '../../types';
 
 interface LoadingIndicatorProps {
   loadingState: LoadingState;

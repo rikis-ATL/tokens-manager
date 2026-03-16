@@ -1,5 +1,5 @@
 import React from 'react';
-import { ToastMessage } from '../types';
+import { ToastMessage } from '../../types';
 
 interface ToastNotificationProps {
   toast: ToastMessage | null;
