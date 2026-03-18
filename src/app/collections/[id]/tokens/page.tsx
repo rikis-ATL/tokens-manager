@@ -18,10 +18,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import type { ToastMessage, TokenGroup, GeneratedToken } from '@/types';
 import type { ISourceMetadata } from '@/types/collection.types';
 import type { CollectionGraphState, GraphGroupState } from '@/types/graph-state.types';
 import type { FlatToken, FlatGroup } from '@/types/graph-nodes.types';
+import type { ITheme } from '@/types/theme.types';
 
 interface TokensPageProps {
   params: { id: string };
@@ -54,6 +56,8 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   // Token groups master panel state
   const [globalNamespace, setGlobalNamespace] = useState('token');
   const [masterGroups, setMasterGroups] = useState<TokenGroup[]>([]);
+  const [themes, setThemes] = useState<ITheme[]>([]);
+  const [activeThemeId, setActiveThemeId] = useState<string | null>(null);
 
   // Flat token list used by ConstantNode's source-token picker
   const allFlatTokens = useMemo<FlatToken[]>(() => {
@@ -88,6 +92,25 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     for (const group of masterGroups) traverseGroups(group, '');
     return result;
   }, [masterGroups]);
+  // Filtered group tree based on active theme (Disabled groups hidden)
+  const filteredGroups = useMemo(() => {
+    if (!activeThemeId) return masterGroups;
+    const activeTheme = themes.find(t => t.id === activeThemeId);
+    if (!activeTheme) return masterGroups;
+    function filterGroups(groups: TokenGroup[]): TokenGroup[] {
+      return groups
+        .filter(g => {
+          const state = activeTheme!.groups[g.id] ?? 'disabled';
+          return state !== 'disabled';
+        })
+        .map(g => ({
+          ...g,
+          children: g.children ? filterGroups(g.children) : undefined,
+        }));
+    }
+    return filterGroups(masterGroups);
+  }, [masterGroups, activeThemeId, themes]);
+
   const [selectedGroupId, setSelectedGroupId] = useState('');
   const [selectedToken, setSelectedToken] = useState<{ token: GeneratedToken; groupPath: string } | null>(null);
   const [pendingNewGroup, setPendingNewGroup] = useState<string | null>(null);
@@ -135,6 +158,14 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       const gs = (col.graphState ?? {}) as CollectionGraphState;
       setGraphStateMap(gs);
       graphStateMapRef.current = gs;
+      // Load themes for the theme selector
+      const themesRes = await fetch(`/api/collections/${id}/themes`, {
+        signal: abortControllerRef.current?.signal,
+      });
+      if (themesRes.ok) {
+        const themesData = await themesRes.json();
+        setThemes(themesData.themes ?? []);
+      }
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') return;
       setToast({ message: 'Failed to load collection', type: 'error' });
@@ -302,6 +333,27 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
           placeholder="e.g. token"
         />
 
+        {/* Theme selector */}
+        {themes.length > 0 && (
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-600 whitespace-nowrap">Theme:</label>
+            <Select
+              value={activeThemeId ?? '__all__'}
+              onValueChange={(v) => setActiveThemeId(v === '__all__' ? null : v)}
+            >
+              <SelectTrigger className="w-36 h-8 text-sm">
+                <SelectValue placeholder="All groups" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all__">All groups</SelectItem>
+                {themes.map(t => (
+                  <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
         {/* Spacer */}
         <div className="flex-1" />
 
@@ -388,7 +440,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
             /* Expanded full tree */
             <div className="flex flex-col h-full" onClick={e => e.stopPropagation()}>
               <TokenGroupTree
-                groups={masterGroups}
+                groups={filteredGroups}
                 selectedGroupId={selectedGroupId}
                 onGroupSelect={(id) => { setSelectedGroupId(id); setSelectedToken(null); }}
                 onAddGroup={() => setIsAddingGroup(true)}
