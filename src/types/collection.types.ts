@@ -15,6 +15,7 @@ export interface ISourceMetadata {
 }
 
 import type { CollectionGraphState } from './graph-state.types';
+import type { ITheme } from './theme.types';
 
 /**
  * Plain data shape for a token collection (use for API responses).
@@ -37,6 +38,8 @@ export interface ITokenCollection {
   githubBranch: string | null;
   // Graph canvas state (composable nodes, edges, legacy generators) keyed by group id
   graphState: CollectionGraphState | null;
+  // Themes — named configurations that assign group states (disabled/enabled/source)
+  themes: ITheme[];
 }
 
 /**
@@ -62,4 +65,4 @@ export type CreateTokenCollectionInput = Omit<ITokenCollection, '_id' | 'created
 /**
  * Shape for updating an existing collection.
  */
-export type UpdateTokenCollectionInput = Partial<Pick<ITokenCollection, 'name' | 'tokens' | 'sourceMetadata' | 'description' | 'tags' | 'figmaToken' | 'figmaFileId' | 'githubRepo' | 'githubBranch' | 'graphState'>>;
+export type UpdateTokenCollectionInput = Partial<Pick<ITokenCollection, 'name' | 'tokens' | 'sourceMetadata' | 'description' | 'tags' | 'figmaToken' | 'figmaFileId' | 'githubRepo' | 'githubBranch' | 'graphState' | 'themes'>>;

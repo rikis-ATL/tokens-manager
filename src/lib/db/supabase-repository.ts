@@ -1,5 +1,6 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import type { UpdateTokenCollectionInput, ISourceMetadata } from '@/types/collection.types';
+import type { ITheme } from '@/types/theme.types';
 import type { CollectionDoc, CreateCollectionInput, ICollectionRepository } from './repository';
 import { readDbConfig } from '@/lib/db-config';
 
@@ -18,6 +19,7 @@ interface SupabaseRow {
   github_repo: string | null;
   github_branch: string | null;
   graph_state: Record<string, unknown> | null;
+  themes: ITheme[] | null;
   created_at: string;
   updated_at: string;
 }
@@ -36,6 +38,7 @@ function rowToDoc(row: SupabaseRow): CollectionDoc {
     githubRepo: row.github_repo ?? null,
     githubBranch: row.github_branch ?? null,
     graphState: (row.graph_state as CollectionDoc['graphState']) ?? null,
+    themes: row.themes ?? [],
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -68,6 +71,7 @@ function toUpdateRow(data: UpdateTokenCollectionInput) {
   if (data.githubRepo !== undefined) row.github_repo = data.githubRepo;
   if (data.githubBranch !== undefined) row.github_branch = data.githubBranch;
   if (data.graphState !== undefined) row.graph_state = data.graphState;
+  if (data.themes !== undefined) row.themes = data.themes;
   return row;
 }
 

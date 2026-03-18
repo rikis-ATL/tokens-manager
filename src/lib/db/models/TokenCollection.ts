@@ -29,6 +29,7 @@ const tokenCollectionSchema = new Schema<TokenCollectionDoc>(
     githubRepo:     { type: String, default: null },
     githubBranch:   { type: String, default: null },
     graphState:     { type: Schema.Types.Mixed, default: null },
+    themes:         { type: Schema.Types.Mixed, default: [] },
   },
   {
     timestamps: true,  // auto createdAt / updatedAt
