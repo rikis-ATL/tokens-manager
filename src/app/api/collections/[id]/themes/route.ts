@@ -58,9 +58,9 @@ export async function POST(
     }
     const groupIds = flattenAllGroups(groupTree).map(g => g.id);
 
-    // Determine default state: first theme → 'enabled', subsequent themes → 'disabled'
     const existingThemes = (collection.themes as ITheme[]) ?? [];
-    const defaultState = existingThemes.length === 0 ? 'enabled' : 'disabled';
+    void existingThemes; // unused after removing first/subsequent distinction
+    const defaultState = 'enabled';
 
     const theme: ITheme = {
       id: crypto.randomUUID(),
