@@ -11,6 +11,8 @@ import type {
   HarmonicConfig,
   ArrayConfig,
   MathConfig,
+  ColorConvertConfig,
+  A11yContrastConfig,
   TokenOutputConfig,
   PaletteConfig,
   GeneratorNodeConfig,
@@ -133,6 +135,37 @@ export function convertCssColor(value: string, from: CssColorFormat, to: CssColo
   const rgb = parseToRgb(value, from);
   if (!rgb) return value;
   return rgbToFormat(...rgb, to);
+}
+
+// ── WCAG contrast helpers ─────────────────────────────────────────────────────
+
+/** Parse any CSS color string to RGB, trying all known formats. */
+function parseCssToRgb(value: string): [number, number, number] | null {
+  return parseHex(value) ?? parseRgb(value) ?? parseHslToRgb(value) ?? null;
+}
+
+/** WCAG 2.1 relative luminance from sRGB 0–255 values. */
+function relativeLuminance(r: number, g: number, b: number): number {
+  const lin = (c: number) => {
+    const s = c / 255;
+    return s <= 0.04045 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+  };
+  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+}
+
+/** WCAG 2.1 contrast ratio between two luminance values. */
+function contrastRatio(l1: number, l2: number): number {
+  const lighter = Math.max(l1, l2);
+  const darker  = Math.min(l1, l2);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+/** Return WCAG level string for a given ratio. */
+function wcagLevel(ratio: number): string {
+  if (ratio >= 7)   return 'AAA';
+  if (ratio >= 4.5) return 'AA';
+  if (ratio >= 3)   return 'AA Large';
+  return 'Fail';
 }
 
 // ── Harmonic series ───────────────────────────────────────────────────────────
@@ -258,25 +291,6 @@ function evalMath(
   inputs: Record<string, PortValue>,
 ): Record<string, PortValue> {
   const a = inputs['a'];
-
-  if (config.operation === 'colorConvert') {
-    const colorStr = typeof a === 'string' ? a : null;
-    if (!colorStr) return { result: null };
-    return { result: convertCssColor(colorStr, config.colorFrom, config.colorTo) };
-  }
-
-  if (config.operation === 'hslCompose') {
-    // a = lightness (number or number[])
-    // inputs['hslH'] = hue override, inputs['hslS'] = saturation override
-    const H = typeof inputs['hslH'] === 'number' ? inputs['hslH'] : config.hslH;
-    const S = typeof inputs['hslS'] === 'number' ? inputs['hslS'] : config.hslS;
-    const compose = (l: number) => `hsl(${Math.round(H)}, ${Math.round(S)}%, ${Math.round(l)}%)`;
-    if (Array.isArray(a)) {
-      return { result: (a as (number | string)[]).map(n => compose(typeof n === 'number' ? n : parseFloat(String(n)))) as string[] };
-    }
-    if (typeof a === 'number') return { result: compose(a) };
-    return { result: null };
-  }
 
   // Resolve wired operand overrides from Constant nodes
   const bInput        = inputs['b'];
@@ -462,19 +476,79 @@ function evalPalette(
   };
 }
 
+// ── Color Convert evaluator ───────────────────────────────────────────────────
+
+function evalColorConvert(
+  config: ColorConvertConfig,
+  inputs: Record<string, PortValue>,
+): Record<string, PortValue> {
+  if (config.mode === 'hslCompose') {
+    const L = inputs['lightness'];
+    const H = typeof inputs['hue']        === 'number' ? inputs['hue']        : config.hue;
+    const S = typeof inputs['saturation'] === 'number' ? inputs['saturation'] : config.saturation;
+    const compose = (l: number): string => {
+      const [r, g, b] = hslToRgb(H, S, Math.max(0, Math.min(100, l)));
+      return rgbToFormat(r, g, b, config.format);
+    };
+    if (Array.isArray(L)) {
+      return { result: (L as (number | string)[]).map(n => compose(typeof n === 'number' ? n : parseFloat(String(n)))) as string[] };
+    }
+    if (typeof L === 'number') return { result: compose(L) };
+    return { result: null };
+  }
+  // convert mode
+  const colorInput = inputs['color'];
+  if (Array.isArray(colorInput)) {
+    return { result: (colorInput as string[]).map(v => convertCssColor(String(v), config.colorFrom, config.colorTo)) as string[] };
+  }
+  if (typeof colorInput === 'string') {
+    return { result: convertCssColor(colorInput, config.colorFrom, config.colorTo) };
+  }
+  return { result: null };
+}
+
+// ── A11y Contrast evaluator ───────────────────────────────────────────────────
+
+function evalA11yContrast(
+  config: A11yContrastConfig,
+  inputs: Record<string, PortValue>,
+): Record<string, PortValue> {
+  const fgStr = (inputs['foreground'] as string | null) ?? config.foreground;
+  const bgStr = (inputs['background'] as string | null) ?? config.background;
+
+  const fgRgb = parseCssToRgb(fgStr);
+  const bgRgb = parseCssToRgb(bgStr);
+
+  if (!fgRgb || !bgRgb) return { ratio: null, level: 'unknown', passesAA: 0, passesAAA: 0 };
+
+  const fgL   = relativeLuminance(...fgRgb);
+  const bgL   = relativeLuminance(...bgRgb);
+  const ratio = roundTo(contrastRatio(fgL, bgL), 2);
+  const level = wcagLevel(ratio);
+
+  return {
+    ratio,
+    level,
+    passesAA:  ratio >= 4.5 ? 1 : 0,
+    passesAAA: ratio >= 7   ? 1 : 0,
+  };
+}
+
 export function evaluateNode(
   config: ComposableNodeConfig,
   inputs: Record<string, PortValue>,
 ): Record<string, PortValue> {
   switch (config.kind) {
-    case 'constant':    return evalConstant(config, inputs);
-    case 'harmonic':    return evalHarmonic(config, inputs);
-    case 'array':       return evalArray(config, inputs);
-    case 'math':        return evalMath(config, inputs);
-    case 'palette':     return evalPalette(config, inputs);
-    case 'tokenOutput': return evalTokenOutput(config, inputs);
-    case 'generator':   return evalGenerator(config, inputs);
-    default:            return {};
+    case 'constant':     return evalConstant(config, inputs);
+    case 'harmonic':     return evalHarmonic(config, inputs);
+    case 'array':        return evalArray(config, inputs);
+    case 'math':         return evalMath(config, inputs);
+    case 'colorConvert': return evalColorConvert(config, inputs);
+    case 'a11yContrast': return evalA11yContrast(config, inputs);
+    case 'palette':      return evalPalette(config, inputs);
+    case 'tokenOutput':  return evalTokenOutput(config, inputs);
+    case 'generator':    return evalGenerator(config, inputs);
+    default:             return {};
   }
 }
 

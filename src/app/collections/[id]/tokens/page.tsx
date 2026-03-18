@@ -45,9 +45,11 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   const [generateTabTokens, setGenerateTabTokens] = useState<Record<string, unknown> | null>(null);
   const [graphStateMap, setGraphStateMap] = useState<CollectionGraphState>({});
 
-  // Keep a ref so the Ctrl+S handler always reads the latest state without a stale closure
-  const graphStateMapRef = useRef<CollectionGraphState>({});
-  const generateTabTokensRef = useRef<Record<string, unknown> | null>(null);
+  // Keep refs so keyboard shortcut / auto-save always reads the latest state
+  const graphStateMapRef        = useRef<CollectionGraphState>({});
+  const generateTabTokensRef    = useRef<Record<string, unknown> | null>(null);
+  const rawCollectionTokensRef  = useRef<Record<string, unknown> | null>(null);
+  const graphAutoSaveTimerRef   = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Token groups master panel state
   const [globalNamespace, setGlobalNamespace] = useState('token');
@@ -106,7 +108,10 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
 
   useEffect(() => {
     loadCollection();
-    return () => { abortControllerRef.current?.abort(); };
+    return () => {
+      abortControllerRef.current?.abort();
+      if (graphAutoSaveTimerRef.current) clearTimeout(graphAutoSaveTimerRef.current);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
@@ -124,6 +129,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       const rawTokens = (col.tokens ?? {}) as Record<string, unknown>;
       setCollectionName(col.name ?? '');
       setRawCollectionTokens(rawTokens);
+      rawCollectionTokensRef.current = rawTokens;
       setSelectedSourceMetadata(col.sourceMetadata ?? null);
       // Load persisted graph state
       const gs = (col.graphState ?? {}) as CollectionGraphState;
@@ -200,7 +206,19 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       graphStateMapRef.current = next;
       return next;
     });
-  }, []);
+
+    // Debounced auto-save — fires 1.5 s after the last change so that
+    // graph nodes are persisted even if the user never clicks Save.
+    if (graphAutoSaveTimerRef.current) clearTimeout(graphAutoSaveTimerRef.current);
+    graphAutoSaveTimerRef.current = setTimeout(() => {
+      const tokens = generateTabTokensRef.current ?? rawCollectionTokensRef.current ?? {};
+      fetch(`/api/collections/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tokens, graphState: graphStateMapRef.current }),
+      }).catch(() => {/* silent — user can still manually save */});
+    }, 1500);
+  }, [id]);
 
   // ── Primary save: persist tokens + graph state to current collection ────
   const handleSave = useCallback(async () => {

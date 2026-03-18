@@ -2,32 +2,22 @@
 
 import { memo } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
-// Position kept for fallback Handle usage
 import { Calculator } from 'lucide-react';
 import {
   NodeWrapper, NodeHeader, Row, RowHandle, NativeSelect, NumberInput, TextInput,
   PreviewSection, HANDLE_NUMBER, HANDLE_ARRAY, HANDLE_OUT,
 } from './nodeShared';
-import type { ComposableNodeData, MathConfig, MathOp, CssColorFormat } from '@/types/graph-nodes.types';
+import type { ComposableNodeData, MathConfig, MathOp } from '@/types/graph-nodes.types';
 
 const OPERATIONS: { value: MathOp; label: string }[] = [
-  { value: 'multiply',     label: 'Multiply (× B)' },
-  { value: 'divide',       label: 'Divide (÷ B)' },
-  { value: 'add',          label: 'Add (+ B)' },
-  { value: 'subtract',     label: 'Subtract (− B)' },
-  { value: 'round',        label: 'Round' },
-  { value: 'floor',        label: 'Floor' },
-  { value: 'ceil',         label: 'Ceil' },
-  { value: 'clamp',        label: 'Clamp (min/max)' },
-  { value: 'colorConvert', label: 'Color Convert' },
-  { value: 'hslCompose',   label: 'HSL Compose' },
-];
-
-const COLOR_FORMATS: { value: CssColorFormat; label: string }[] = [
-  { value: 'hex',   label: 'HEX' },
-  { value: 'rgb',   label: 'RGB' },
-  { value: 'hsl',   label: 'HSL' },
-  { value: 'oklch', label: 'OKLCH' },
+  { value: 'multiply', label: 'Multiply (× B)' },
+  { value: 'divide',   label: 'Divide (÷ B)' },
+  { value: 'add',      label: 'Add (+ B)' },
+  { value: 'subtract', label: 'Subtract (− B)' },
+  { value: 'round',    label: 'Round' },
+  { value: 'floor',    label: 'Floor' },
+  { value: 'ceil',     label: 'Ceil' },
+  { value: 'clamp',    label: 'Clamp (min/max)' },
 ];
 
 const BINARY_OPS: MathOp[] = ['multiply', 'divide', 'add', 'subtract'];
@@ -46,14 +36,10 @@ function MathNodeComponent({ data }: NodeProps) {
 
   const isBinary  = BINARY_OPS.includes(cfg.operation);
   const isClamp   = cfg.operation === 'clamp';
-  const isColor   = cfg.operation === 'colorConvert';
-  const isHslComp = cfg.operation === 'hslCompose';
 
   const hasB        = inputs['b']        != null;
   const hasClampMin = inputs['clampMin'] != null;
   const hasClampMax = inputs['clampMax'] != null;
-  const hasHslH     = inputs['hslH']     != null;
-  const hasHslS     = inputs['hslS']     != null;
 
   const result = outputs['result'];
   const previewItems: string[] = Array.isArray(result)
@@ -80,8 +66,8 @@ function MathNodeComponent({ data }: NodeProps) {
 
         {/* Input A — always present */}
         <Row
-          label={<span className="text-[10px] text-gray-400">{isHslComp ? 'Lightness L' : 'Input A'}</span>}
-          handle={<RowHandle id="a" className={HANDLE_ARRAY} title={isHslComp ? 'a — lightness L (number | number[])' : 'a (number | array | color)'} />}
+          label="Input A"
+          handle={<RowHandle id="a" className={HANDLE_ARRAY} title="a (number | array)" />}
         >
           <span className="text-[10px] text-gray-300 italic">← wire input</span>
         </Row>
@@ -129,73 +115,20 @@ function MathNodeComponent({ data }: NodeProps) {
           </>
         )}
 
-        {/* Color convert formats */}
-        {isColor && (
-          <>
-            <Row label="From">
-              <NativeSelect
-                value={cfg.colorFrom}
-                onChange={v => update({ colorFrom: v as CssColorFormat })}
-                options={COLOR_FORMATS}
-              />
-            </Row>
-            <Row label="To">
-              <NativeSelect
-                value={cfg.colorTo}
-                onChange={v => update({ colorTo: v as CssColorFormat })}
-                options={COLOR_FORMATS}
-              />
-            </Row>
-          </>
-        )}
-
-        {/* HSL Compose: fixed H and S overrides */}
-        {isHslComp && (
-          <>
-            <Row
-              label={<span className="flex items-center">Hue H<Dot on={hasHslH} /></span>}
-              handle={<RowHandle id="hslH" className={HANDLE_NUMBER} title="hslH — hue override (connect a Constant)" />}
-            >
-              <NumberInput
-                value={hasHslH ? Number(inputs['hslH']) : cfg.hslH}
-                onChange={v => update({ hslH: Math.max(0, Math.min(360, v)) })}
-                min={0} max={360} step={1}
-                className={hasHslH ? 'border-blue-300 bg-blue-50' : ''}
-              />
-            </Row>
-            <Row
-              label={<span className="flex items-center">Sat S %<Dot on={hasHslS} /></span>}
-              handle={<RowHandle id="hslS" className={HANDLE_NUMBER} title="hslS — saturation override (connect a Constant)" />}
-            >
-              <NumberInput
-                value={hasHslS ? Number(inputs['hslS']) : cfg.hslS}
-                onChange={v => update({ hslS: Math.max(0, Math.min(100, v)) })}
-                min={0} max={100} step={1}
-                className={hasHslS ? 'border-blue-300 bg-blue-50' : ''}
-              />
-            </Row>
-          </>
-        )}
-
-        {/* Precision + suffix (scalar ops only) */}
-        {!isColor && !isHslComp && (
-          <>
-            <Row label="Precision">
-              <NumberInput
-                value={cfg.precision}
-                onChange={v => update({ precision: Math.max(0, Math.min(8, v)) })}
-                min={0} max={8}
-              />
-            </Row>
-            <Row label="Suffix">
-              <TextInput
-                value={cfg.suffix}
-                onChange={v => update({ suffix: v })}
-                placeholder="e.g. rem"
-              />
-            </Row>
-          </>
-        )}
+        <Row label="Precision">
+          <NumberInput
+            value={cfg.precision}
+            onChange={v => update({ precision: Math.max(0, Math.min(8, v)) })}
+            min={0} max={8}
+          />
+        </Row>
+        <Row label="Suffix">
+          <TextInput
+            value={cfg.suffix}
+            onChange={v => update({ suffix: v })}
+            placeholder="e.g. rem"
+          />
+        </Row>
 
         {previewItems.length > 0 && (
           <PreviewSection>
@@ -217,7 +150,6 @@ function MathNodeComponent({ data }: NodeProps) {
           </PreviewSection>
         )}
 
-        {/* Result output when preview is empty */}
         {previewItems.length === 0 && (
           <Handle type="source" id="result" position={Position.Right} title="result" className={HANDLE_OUT} />
         )}

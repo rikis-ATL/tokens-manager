@@ -79,24 +79,40 @@ export type MathOp =
   | 'round'
   | 'floor'
   | 'ceil'
-  | 'clamp'
-  | 'colorConvert'
-  | 'hslCompose';
+  | 'clamp';
 
 export type CssColorFormat = 'hex' | 'rgb' | 'hsl' | 'oklch';
 
 export interface MathConfig {
   kind: 'math';
   operation: MathOp;
-  operand: number;    // B value for binary ops
+  operand: number;
   clampMin: number;
   clampMax: number;
-  colorFrom: CssColorFormat;
-  colorTo: CssColorFormat;
-  hslH: number;       // hslCompose: default hue (0–360)
-  hslS: number;       // hslCompose: default saturation % (0–100)
   precision: number;
   suffix: string;     // e.g. 'rem', 'px' — appended to result
+}
+
+// ── Color Convert node ────────────────────────────────────────────────────────
+
+export type ColorConvertMode = 'convert' | 'hslCompose';
+
+export interface ColorConvertConfig {
+  kind: 'colorConvert';
+  mode: ColorConvertMode;
+  colorFrom: CssColorFormat;  // for 'convert' mode
+  colorTo:   CssColorFormat;  // for 'convert' mode
+  hue:        number;         // default hue 0–360 (hslCompose)
+  saturation: number;         // default saturation 0–100 (hslCompose)
+  format:     CssColorFormat; // output format (hslCompose)
+}
+
+// ── A11y Contrast node ────────────────────────────────────────────────────────
+
+export interface A11yContrastConfig {
+  kind: 'a11yContrast';
+  foreground: string;  // fallback foreground color (CSS color string)
+  background: string;  // fallback background color (CSS color string)
 }
 
 // ── Color Palette node ────────────────────────────────────────────────────────
@@ -150,6 +166,8 @@ export type ComposableNodeConfig =
   | PaletteConfig
   | ArrayConfig
   | MathConfig
+  | ColorConvertConfig
+  | A11yContrastConfig
   | TokenOutputConfig
   | GeneratorNodeConfig;
 

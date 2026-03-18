@@ -7,8 +7,14 @@ import { OrgHeader } from '@/components/layout/OrgHeader';
 import { OrgSidebar } from '@/components/layout/OrgSidebar';
 import { CollectionProvider } from '@/context/CollectionContext';
 
+function isCollectionRoute(pathname: string): boolean {
+  // /collections/[id]/... — inside a specific collection
+  return /^\/collections\/[^/]/.test(pathname);
+}
+
 function isOrgRoute(pathname: string): boolean {
-  return pathname.startsWith('/collections') || pathname === '/settings';
+  // Top-level org pages only
+  return pathname === '/collections' || pathname === '/settings';
 }
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
@@ -16,7 +22,10 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
 
   return (
     <CollectionProvider>
-      {isOrgRoute(pathname) ? (
+      {isCollectionRoute(pathname) ? (
+        // Collection pages own their full layout via CollectionLayoutClient
+        children
+      ) : isOrgRoute(pathname) ? (
         <div className="flex flex-col h-screen overflow-hidden bg-gray-50">
           <OrgHeader />
           <div className="flex flex-1 overflow-hidden">

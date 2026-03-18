@@ -20,7 +20,7 @@ import { DeletableEdge } from './edges/DeletableEdge';
 
 import {
   Plus,
-  Palette, Zap,
+  Palette, Zap, Eye, Pipette,
   Hash, Waves, List, Calculator, Tag,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -42,6 +42,8 @@ import { ConstantNode }       from './nodes/ConstantNode';
 import { HarmonicSeriesNode } from './nodes/HarmonicSeriesNode';
 import { ArrayNode }          from './nodes/ArrayNode';
 import { MathNode }           from './nodes/MathNode';
+import { ColorConvertNode }   from './nodes/ColorConvertNode';
+import { A11yContrastNode }   from './nodes/A11yContrastNode';
 import { PaletteNode }        from './nodes/PaletteNode';
 import { TokenOutputNode }    from './nodes/TokenOutputNode';
 import { GeneratorNode }      from './nodes/GeneratorNode';
@@ -68,13 +70,15 @@ import { generateId } from '@/utils';
 // ── Static lookup maps ────────────────────────────────────────────────────────
 
 const COMPOSABLE_BADGE: Record<string, string> = {
-  constant:    'bg-slate-50 text-slate-700 border border-slate-200',
-  harmonic:    'bg-violet-50 text-violet-700 border border-violet-200',
-  array:       'bg-sky-50 text-sky-700 border border-sky-200',
-  math:        'bg-amber-50 text-amber-700 border border-amber-200',
-  tokenOutput: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
-  generator:   'bg-indigo-50 text-indigo-700 border border-indigo-200',
-  palette:     'bg-rose-50 text-rose-700 border border-rose-200',
+  constant:     'bg-slate-50 text-slate-700 border border-slate-200',
+  harmonic:     'bg-violet-50 text-violet-700 border border-violet-200',
+  array:        'bg-sky-50 text-sky-700 border border-sky-200',
+  math:         'bg-amber-50 text-amber-700 border border-amber-200',
+  colorConvert: 'bg-pink-50 text-pink-700 border border-pink-200',
+  a11yContrast: 'bg-teal-50 text-teal-700 border border-teal-200',
+  tokenOutput:  'bg-emerald-50 text-emerald-700 border border-emerald-200',
+  generator:    'bg-indigo-50 text-indigo-700 border border-indigo-200',
+  palette:      'bg-rose-50 text-rose-700 border border-rose-200',
 };
 
 const COMPOSABLE_NODES: {
@@ -86,20 +90,24 @@ const COMPOSABLE_NODES: {
   { kind: 'constant',    label: 'Constant',       desc: 'Fixed number or string',     icon: <Hash size={12} /> },
   { kind: 'harmonic',    label: 'Harmonic Series', desc: 'Geometric progression',      icon: <Waves size={12} /> },
   { kind: 'array',       label: 'Array',           desc: 'Format values with units',   icon: <List size={12} /> },
-  { kind: 'math',        label: 'Math',            desc: 'Arithmetic & color convert', icon: <Calculator size={12} /> },
-  { kind: 'palette',     label: 'Color Palette',   desc: 'Generate a color scale',     icon: <Palette size={12} /> },
-  { kind: 'generator',   label: 'Generator',       desc: 'Color or dimension scale',   icon: <Zap size={12} /> },
-  { kind: 'tokenOutput', label: 'Token Output',    desc: 'Create token group entries', icon: <Tag size={12} /> },
+  { kind: 'math',         label: 'Math',            desc: 'Arithmetic operations',      icon: <Calculator size={12} /> },
+  { kind: 'colorConvert', label: 'Color Converter', desc: 'CSS color format conversion', icon: <Pipette size={12} /> },
+  { kind: 'a11yContrast', label: 'A11y Contrast',   desc: 'WCAG contrast checker',       icon: <Eye size={12} /> },
+  { kind: 'palette',      label: 'Color Palette',   desc: 'Generate a color scale',      icon: <Palette size={12} /> },
+  { kind: 'generator',    label: 'Generator',       desc: 'Color or dimension scale',    icon: <Zap size={12} /> },
+  { kind: 'tokenOutput',  label: 'Token Output',    desc: 'Create token group entries',  icon: <Tag size={12} /> },
 ];
 
 const KIND_TO_NODE_TYPE: Record<ComposableNodeConfig['kind'], string> = {
-  constant:    'composableConstant',
-  harmonic:    'composableHarmonic',
-  array:       'composableArray',
-  math:        'composableMath',
-  palette:     'composablePalette',
-  tokenOutput: 'composableTokenOutput',
-  generator:   'composableGenerator',
+  constant:     'composableConstant',
+  harmonic:     'composableHarmonic',
+  array:        'composableArray',
+  math:         'composableMath',
+  colorConvert: 'composableColorConvert',
+  a11yContrast: 'composableA11yContrast',
+  palette:      'composablePalette',
+  tokenOutput:  'composableTokenOutput',
+  generator:    'composableGenerator',
 };
 
 // Approximate rendered width per node type (used for neighbour placement)
@@ -108,6 +116,8 @@ const NODE_WIDTHS: Record<string, number> = {
   composableHarmonic:    252,
   composableArray:       230,
   composableMath:        240,
+  composableColorConvert: 252,
+  composableA11yContrast: 252,
   composablePalette:     290,
   composableTokenOutput: 260,
   composableGenerator:   290,
@@ -115,14 +125,16 @@ const NODE_WIDTHS: Record<string, number> = {
 };
 
 const NODE_TYPES = {
-  groupNode:             GroupNode,
-  composableGenerator:   GeneratorNode,
-  composableConstant:    ConstantNode,
-  composableHarmonic:    HarmonicSeriesNode,
-  composableArray:       ArrayNode,
-  composableMath:        MathNode,
-  composablePalette:     PaletteNode,
-  composableTokenOutput: TokenOutputNode,
+  groupNode:              GroupNode,
+  composableGenerator:    GeneratorNode,
+  composableConstant:     ConstantNode,
+  composableHarmonic:     HarmonicSeriesNode,
+  composableArray:        ArrayNode,
+  composableMath:         MathNode,
+  composableColorConvert: ColorConvertNode,
+  composableA11yContrast: A11yContrastNode,
+  composablePalette:      PaletteNode,
+  composableTokenOutput:  TokenOutputNode,
 } as const;
 
 const EDGE_TYPES = {
@@ -149,7 +161,11 @@ function defaultComposableConfig(kind: ComposableNodeConfig['kind']): Composable
         destGroupId: '',
       };
     case 'math':
-      return { kind: 'math', operation: 'multiply', operand: 16, clampMin: 0, clampMax: 100, colorFrom: 'hex', colorTo: 'hsl', hslH: 220, hslS: 80, precision: 2, suffix: '' };
+      return { kind: 'math', operation: 'multiply', operand: 16, clampMin: 0, clampMax: 100, precision: 2, suffix: '' };
+    case 'colorConvert':
+      return { kind: 'colorConvert', mode: 'convert', colorFrom: 'hex', colorTo: 'hsl', hue: 220, saturation: 80, format: 'hsl' };
+    case 'a11yContrast':
+      return { kind: 'a11yContrast', foreground: '#000000', background: '#ffffff' };
     case 'palette':
       return { kind: 'palette', name: '', baseColor: '#6366f1', minLightness: 95, maxLightness: 10, naming: '100-900', customNames: '', format: 'hex', secondaryColors: [] };
     case 'tokenOutput':
