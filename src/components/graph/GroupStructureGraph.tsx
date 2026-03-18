@@ -20,7 +20,7 @@ import { DeletableEdge } from './edges/DeletableEdge';
 
 import {
   Plus,
-  Palette, Zap, Eye, Pipette,
+  Palette, Zap, Eye, Pipette, Coins, Type,
   Hash, Waves, List, Calculator, Tag,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -44,6 +44,8 @@ import { ArrayNode }          from './nodes/ArrayNode';
 import { MathNode }           from './nodes/MathNode';
 import { ColorConvertNode }   from './nodes/ColorConvertNode';
 import { A11yContrastNode }   from './nodes/A11yContrastNode';
+import { TokenRefNode }       from './nodes/TokenRefNode';
+import { TypographyNode }     from './nodes/TypographyNode';
 import { PaletteNode }        from './nodes/PaletteNode';
 import { TokenOutputNode }    from './nodes/TokenOutputNode';
 import { GeneratorNode }      from './nodes/GeneratorNode';
@@ -76,6 +78,8 @@ const COMPOSABLE_BADGE: Record<string, string> = {
   math:         'bg-amber-50 text-amber-700 border border-amber-200',
   colorConvert: 'bg-pink-50 text-pink-700 border border-pink-200',
   a11yContrast: 'bg-teal-50 text-teal-700 border border-teal-200',
+  tokenRef:     'bg-orange-50 text-orange-700 border border-orange-200',
+  typography:   'bg-purple-50 text-purple-700 border border-purple-200',
   tokenOutput:  'bg-emerald-50 text-emerald-700 border border-emerald-200',
   generator:    'bg-indigo-50 text-indigo-700 border border-indigo-200',
   palette:      'bg-rose-50 text-rose-700 border border-rose-200',
@@ -93,6 +97,8 @@ const COMPOSABLE_NODES: {
   { kind: 'math',         label: 'Math',            desc: 'Arithmetic operations',      icon: <Calculator size={12} /> },
   { kind: 'colorConvert', label: 'Color Converter', desc: 'CSS color format conversion', icon: <Pipette size={12} /> },
   { kind: 'a11yContrast', label: 'A11y Contrast',   desc: 'WCAG contrast checker',       icon: <Eye size={12} /> },
+  { kind: 'tokenRef',     label: 'Token',           desc: 'Reference an existing token', icon: <Coins size={12} /> },
+  { kind: 'typography',   label: 'Typography',      desc: 'Composite font shorthand',    icon: <Type size={12} /> },
   { kind: 'palette',      label: 'Color Palette',   desc: 'Generate a color scale',      icon: <Palette size={12} /> },
   { kind: 'generator',    label: 'Generator',       desc: 'Color or dimension scale',    icon: <Zap size={12} /> },
   { kind: 'tokenOutput',  label: 'Token Output',    desc: 'Create token group entries',  icon: <Tag size={12} /> },
@@ -105,6 +111,8 @@ const KIND_TO_NODE_TYPE: Record<ComposableNodeConfig['kind'], string> = {
   math:         'composableMath',
   colorConvert: 'composableColorConvert',
   a11yContrast: 'composableA11yContrast',
+  tokenRef:     'composableTokenRef',
+  typography:   'composableTypography',
   palette:      'composablePalette',
   tokenOutput:  'composableTokenOutput',
   generator:    'composableGenerator',
@@ -118,7 +126,9 @@ const NODE_WIDTHS: Record<string, number> = {
   composableMath:        240,
   composableColorConvert: 252,
   composableA11yContrast: 252,
-  composablePalette:     290,
+  composableTokenRef:     240,
+  composableTypography:   268,
+  composablePalette:      290,
   composableTokenOutput: 260,
   composableGenerator:   290,
   groupNode:             200,
@@ -133,6 +143,8 @@ const NODE_TYPES = {
   composableMath:         MathNode,
   composableColorConvert: ColorConvertNode,
   composableA11yContrast: A11yContrastNode,
+  composableTokenRef:     TokenRefNode,
+  composableTypography:   TypographyNode,
   composablePalette:      PaletteNode,
   composableTokenOutput:  TokenOutputNode,
 } as const;
@@ -166,6 +178,10 @@ function defaultComposableConfig(kind: ComposableNodeConfig['kind']): Composable
       return { kind: 'colorConvert', mode: 'convert', colorFrom: 'hex', colorTo: 'hsl', hue: 220, saturation: 80, format: 'hsl' };
     case 'a11yContrast':
       return { kind: 'a11yContrast', foreground: '#000000', background: '#ffffff' };
+    case 'tokenRef':
+      return { kind: 'tokenRef', tokenPath: '', tokenValue: '', tokenType: '' };
+    case 'typography':
+      return { kind: 'typography', fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '1rem', lineHeight: '1.5', fontWeight: '400', letterSpacing: '', fontStyle: 'normal' };
     case 'palette':
       return { kind: 'palette', name: '', baseColor: '#6366f1', minLightness: 95, maxLightness: 10, naming: '100-900', customNames: '', format: 'hex', secondaryColors: [] };
     case 'tokenOutput':

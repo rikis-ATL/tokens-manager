@@ -137,6 +137,29 @@ export interface PaletteConfig {
   secondaryColors: PaletteSecondary[]; // extra accent/override colors
 }
 
+// ── Typography composite node ─────────────────────────────────────────────────
+
+export type FontStyle = 'normal' | 'italic' | 'oblique';
+
+export interface TypographyConfig {
+  kind:          'typography';
+  fontFamily:    string;
+  fontSize:      string;
+  lineHeight:    string;
+  fontWeight:    string;
+  letterSpacing: string;
+  fontStyle:     FontStyle;
+}
+
+// ── Token Reference node ──────────────────────────────────────────────────────
+
+export interface TokenRefConfig {
+  kind:        'tokenRef';
+  tokenPath:   string;   // dot-path e.g. "color.base.grey.900"
+  tokenValue:  string;   // resolved value snapshot
+  tokenType:   string;   // type hint e.g. "color", "dimension"
+}
+
 // ── Token Output node ─────────────────────────────────────────────────────────
 
 export type TokenOutputTarget = 'currentGroup' | 'subgroup';
@@ -168,6 +191,8 @@ export type ComposableNodeConfig =
   | MathConfig
   | ColorConvertConfig
   | A11yContrastConfig
+  | TokenRefConfig
+  | TypographyConfig
   | TokenOutputConfig
   | GeneratorNodeConfig;
 
