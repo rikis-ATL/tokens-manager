@@ -6,6 +6,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { PresetSelector } from './PresetSelector';
+import {
+  PALETTE_PRESETS,
+  TYPESCALE_PRESETS,
+  SPACING_PRESETS,
+  findPreset,
+  mergePresetTokens,
+} from '@/lib/presets';
 
 interface NewCollectionDialogProps {
   isOpen: boolean;
@@ -25,11 +33,35 @@ export function NewCollectionDialog({
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState('');
 
-  const handleClose = () => {
+  const [palettePresetId, setPalettePresetId] = useState('none');
+  const [typescalePresetId, setTypescalePresetId] = useState('none');
+  const [spacingPresetId, setSpacingPresetId] = useState('none');
+
+  const isDuplicating = !!duplicateSourceId;
+  const hasPresets = palettePresetId !== 'none' || typescalePresetId !== 'none' || spacingPresetId !== 'none';
+
+  const resetForm = () => {
     setName('');
     setDuplicateSourceId('');
     setError('');
+    setPalettePresetId('none');
+    setTypescalePresetId('none');
+    setSpacingPresetId('none');
+  };
+
+  const handleClose = () => {
+    resetForm();
     onClose();
+  };
+
+  const buildPresetTokens = (): Record<string, unknown> => {
+    const palette = palettePresetId !== 'none'
+      ? findPreset(PALETTE_PRESETS, palettePresetId) : undefined;
+    const typescale = typescalePresetId !== 'none'
+      ? findPreset(TYPESCALE_PRESETS, typescalePresetId) : undefined;
+    const spacing = spacingPresetId !== 'none'
+      ? findPreset(SPACING_PRESETS, spacingPresetId) : undefined;
+    return mergePresetTokens(palette, typescale, spacing);
   };
 
   const handleCreate = async () => {
@@ -41,8 +73,7 @@ export function NewCollectionDialog({
     setError('');
     setIsCreating(true);
     try {
-      if (duplicateSourceId) {
-        // Duplicate then rename
+      if (isDuplicating) {
         const dupRes = await fetch(`/api/collections/${duplicateSourceId}/duplicate`, {
           method: 'POST',
         });
@@ -53,7 +84,6 @@ export function NewCollectionDialog({
         const dupData = await dupRes.json();
         const newId = (dupData.collection ?? dupData)._id as string;
 
-        // Rename to user-provided name
         const renameRes = await fetch(`/api/collections/${newId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -66,11 +96,11 @@ export function NewCollectionDialog({
         handleClose();
         onCreated(newId);
       } else {
-        // Plain create
+        const tokens = buildPresetTokens();
         const res = await fetch('/api/collections', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: trimmedName, tokens: {} }),
+          body: JSON.stringify({ name: trimmedName, tokens }),
         });
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
@@ -91,7 +121,7 @@ export function NewCollectionDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) handleClose(); }}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>New Collection</DialogTitle>
         </DialogHeader>
@@ -129,12 +159,49 @@ export function NewCollectionDialog({
                   ))}
                 </SelectContent>
               </Select>
-              {duplicateSourceId && (
+              {isDuplicating && (
                 <p className="text-xs text-gray-500">
                   Will duplicate the selected collection and rename it.
                 </p>
               )}
             </div>
+          )}
+
+          {!isDuplicating && (
+            <>
+              <div className="border-t pt-3">
+                <p className="text-sm font-medium text-gray-700 mb-3">
+                  Design system presets
+                  <span className="font-normal text-gray-500 ml-1">(optional)</span>
+                </p>
+                <div className="space-y-3">
+                  <PresetSelector
+                    label="Palette"
+                    presets={PALETTE_PRESETS}
+                    value={palettePresetId}
+                    onValueChange={setPalettePresetId}
+                  />
+                  <PresetSelector
+                    label="Typescale"
+                    presets={TYPESCALE_PRESETS}
+                    value={typescalePresetId}
+                    onValueChange={setTypescalePresetId}
+                  />
+                  <PresetSelector
+                    label="Spacing"
+                    presets={SPACING_PRESETS}
+                    value={spacingPresetId}
+                    onValueChange={setSpacingPresetId}
+                  />
+                </div>
+              </div>
+
+              {hasPresets && (
+                <p className="text-xs text-gray-500 italic">
+                  Selected presets will populate the collection with W3C design tokens.
+                </p>
+              )}
+            </>
           )}
         </div>
 
