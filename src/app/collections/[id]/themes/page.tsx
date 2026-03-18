@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { ThemeList, ThemeGroupMatrix } from '@/components/themes';
 import { ToastNotification } from '@/components/layout/ToastNotification';
+import { tokenService } from '@/services/token.service';
 import type { ITheme, ThemeGroupState } from '@/types/theme.types';
 import type { TokenGroup, ToastMessage } from '@/types';
 
@@ -46,18 +47,20 @@ export default function CollectionThemesPage({ params }: ThemesPageProps) {
         if (!colRes.ok) throw new Error('Failed to load collection');
         const colData = await colRes.json();
         const col = colData.collection ?? colData;
-        const tokens = (col.tokens ?? {}) as Record<string, unknown>;
+        const rawTokens = (col.tokens ?? {}) as Record<string, unknown>;
 
-        // Derive flat top-level groups from token keys
-        const groups: TokenGroup[] = Object.entries(tokens)
-          .filter(([k, v]) => !k.startsWith('$') && typeof v === 'object' && v !== null)
-          .map(([k]) => ({
-            id: k,
-            name: k,
-            tokens: [],
-            level: 0,
-          }));
-        setMasterGroups(groups);
+        // Parse tokens using the same service as the Tokens page — strips namespace
+        // wrapper (Structure B) and returns path-based group IDs (e.g. "colors", "colors/brand")
+        const { groups: groupTree } = tokenService.processImportedTokens(rawTokens, '');
+        function flattenAllGroups(gs: TokenGroup[]): TokenGroup[] {
+          const result: TokenGroup[] = [];
+          for (const g of gs) {
+            result.push(g);
+            if (g.children?.length) result.push(...flattenAllGroups(g.children));
+          }
+          return result;
+        }
+        setMasterGroups(flattenAllGroups(groupTree));
       } catch {
         setToast({ message: 'Failed to load themes', type: 'error' });
       } finally {

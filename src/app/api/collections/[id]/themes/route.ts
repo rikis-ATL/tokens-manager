@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { getRepository } from '@/lib/db/get-repository';
 import dbConnect from '@/lib/mongodb';
 import TokenCollection from '@/lib/db/models/TokenCollection';
+import { tokenService } from '@/services/token.service';
+import type { TokenGroup } from '@/types';
 import type { ITheme } from '@/types/theme.types';
 
 export async function GET(
@@ -41,11 +43,20 @@ export async function POST(
       return NextResponse.json({ error: 'Collection not found' }, { status: 404 });
     }
 
-    // Extract top-level group keys: keys of tokens that are objects and not $-prefixed
+    // Derive all group IDs using the same service as the Tokens page — strips namespace
+    // wrapper and returns path-based IDs (e.g. "colors", "colors/brand") that match
+    // the group IDs the token tree uses when filtering.
     const rawTokens = (collection.tokens as Record<string, unknown>) ?? {};
-    const groupIds = Object.keys(rawTokens).filter(
-      (key) => !key.startsWith('$') && typeof rawTokens[key] === 'object' && rawTokens[key] !== null
-    );
+    const { groups: groupTree } = tokenService.processImportedTokens(rawTokens, '');
+    function flattenAllGroups(gs: TokenGroup[]): TokenGroup[] {
+      const result: TokenGroup[] = [];
+      for (const g of gs) {
+        result.push(g);
+        if (g.children?.length) result.push(...flattenAllGroups(g.children));
+      }
+      return result;
+    }
+    const groupIds = flattenAllGroups(groupTree).map(g => g.id);
 
     // Determine default state: first theme → 'enabled', subsequent themes → 'disabled'
     const existingThemes = (collection.themes as ITheme[]) ?? [];
