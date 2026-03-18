@@ -23,9 +23,9 @@ See: .planning/PROJECT.md (updated 2026-03-12)
 ## Current Position
 
 Phase: 9 of 9 (Add Tokens Modes)
-Plan: 2 of 4 in current phase (complete)
-Status: 09-02 complete — Themes page UI with ThemeList, ThemeGroupMatrix, and /collections/[id]/themes route delivered
-Last activity: 2026-03-19 — Phase 9 Plan 02 complete (Themes page, ThemeList, ThemeGroupMatrix components)
+Plan: 3 of 4 in current phase (complete)
+Status: 09-03 complete — Themes nav item in CollectionSidebar and theme selector on Tokens page with group tree filtering delivered
+Last activity: 2026-03-19 — Phase 9 Plan 03 complete (Themes nav item, theme selector dropdown, filteredGroups)
 
 Progress: [██████████] 100% (v1.2) | Phase 9 in progress (1/4 plans)
 
@@ -50,6 +50,7 @@ Progress: [██████████] 100% (v1.2) | Phase 9 in progress (1/
 | Phase 08-clean-code P04 | 8 | 2 tasks | 4 files |
 | Phase 09-add-tokens-modes P01 | 7 min | 2 tasks | 7 files |
 | Phase 09-add-tokens-modes P02 | 2 min | 2 tasks | 4 files |
+| Phase 09-add-tokens-modes P03 | 2 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -91,6 +92,7 @@ All decisions logged in PROJECT.md Key Decisions table.
 - [09-02]: Group list for matrix derived from top-level token keys (non-$ object entries) — avoids duplicating TokenGeneratorForm group parsing logic
 - [09-02]: handleStateChange uses optimistic update + revert on error for snappy UI
 - [09-02]: ThemeList inline add flow: isAdding boolean, input ref auto-focused, Enter/blur confirms, Escape cancels
+- [Phase 09-add-tokens-modes]: [09-03]: Themes nav uses Layers icon inserted between Tokens and Config nav items; filteredGroups defaults to masterGroups when no theme active; groups without explicit state entry default to disabled
 
 ### Pending Todos
 
@@ -103,5 +105,5 @@ None — Phase 5 complete. Blocker resolved: onGroupsChange now emits full Token
 ## Session Continuity
 
 Last session: 2026-03-19
-Stopped at: Completed 09-02-PLAN.md — Themes page UI delivered (ThemeList, ThemeGroupMatrix, /collections/[id]/themes route); ready for 09-03
+Stopped at: Completed 09-03-PLAN.md — Themes nav item and token page theme selector with group tree filtering delivered; ready for 09-04
 Resume file: None
