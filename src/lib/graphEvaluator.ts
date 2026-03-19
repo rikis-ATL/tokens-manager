@@ -14,11 +14,13 @@ import type {
   ColorConvertConfig,
   A11yContrastConfig,
   TokenOutputConfig,
+  JsonConfig,
   PaletteConfig,
   GeneratorNodeConfig,
   CssColorFormat,
 } from '@/types/graph-nodes.types';
 import { previewGeneratedTokens } from './tokenGenerators';
+import { parseArrayToValues } from './jsonTokenParser';
 import type { GeneratorConfig, ColorGeneratorConfig, DimensionGeneratorConfig } from '@/types/generator.types';
 
 // ── Math helpers ──────────────────────────────────────────────────────────────
@@ -238,10 +240,16 @@ function evalArray(
       typeof n === 'number' ? n : parseFloat(String(n)),
     );
     const formatted = nums.map(n => {
-      if (config.unit === 'none') return String(n);
+      if (config.unit === 'none' || config.unit === 'color') return String(n);
       return `${roundTo(n, config.precision)}${config.unit}`;
     });
     return { values: formatted };
+  }
+
+  // Array mode: paste array literal (comments stripped) — supports colors, strings, numbers
+  if (config.inputMode === 'array') {
+    const values = parseArrayToValues(config.rawArray ?? '');
+    return { values };
   }
 
   // No wired series — use configured values
@@ -250,8 +258,8 @@ function evalArray(
       ? config.listValues.filter(s => s.trim() !== '')
       : config.staticValues.split(',').map(s => s.trim()).filter(Boolean);
 
-  // Raw (none) unit: keep values as-is strings, no numeric parsing needed
-  if (config.unit === 'none') {
+  // Raw (none) or color: keep values as-is, no numeric parsing
+  if (config.unit === 'none' || config.unit === 'color') {
     return { values: rawStrings };
   }
 
@@ -331,7 +339,8 @@ function evalTokenOutput(
   // wiredName  = dynamic name from a wired Const / Palette.name (e.g. "red")
   // Together they produce: namespace-prefix-wiredName-step
   const prefix    = config.namePrefix?.trim() || '';
-  const wiredName = ((inputs['name'] as string | null) ?? '').trim();
+  const rawName = inputs['name'];
+  const wiredName = (typeof rawName === 'string' ? rawName : rawName != null ? String(rawName) : '').trim();
   // subgroupName is the combination of prefix + wiredName (used for subgroup creation)
   const subgroupName = [prefix, wiredName].filter(Boolean).join('-') || namespace || '';
 
@@ -375,6 +384,29 @@ function evalTokenOutput(
   );
 
   return { count: values.length, tokenData, subgroupName };
+}
+
+// ── Json node evaluator ───────────────────────────────────────────────────────
+
+function evalJson(config: JsonConfig): Record<string, PortValue> {
+  const pairs = config.parsedTokens ?? [];
+  const prefix = config.namePrefix?.trim() || '';
+  const subgroupName = prefix || '';
+  const values = pairs.map(p => p.value);
+
+  const tokenData = JSON.stringify(
+    pairs.map(({ name, value }) => ({
+      name: prefix ? `${prefix}.${name}` : name,
+      value,
+    })),
+  );
+
+  return {
+    count: pairs.length,
+    tokenData,
+    subgroupName,
+    values,
+  };
 }
 
 // ── Color Palette evaluator ───────────────────────────────────────────────────
@@ -547,7 +579,8 @@ export function evaluateNode(
     case 'a11yContrast': return evalA11yContrast(config, inputs);
     case 'palette':      return evalPalette(config, inputs);
     case 'tokenOutput':  return evalTokenOutput(config, inputs);
-    case 'generator':    return evalGenerator(config, inputs);
+    case 'json':        return evalJson(config);
+    case 'generator':   return evalGenerator(config, inputs);
     default:             return {};
   }
 }

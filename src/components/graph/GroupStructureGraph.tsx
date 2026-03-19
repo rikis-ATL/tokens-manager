@@ -21,7 +21,7 @@ import { DeletableEdge } from './edges/DeletableEdge';
 import {
   Plus,
   Palette, Zap, Eye, Pipette, Coins, Type,
-  Hash, Waves, List, Calculator, Tag,
+  Hash, Waves, List, Calculator, Tag, FileJson,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -48,6 +48,7 @@ import { TokenRefNode }       from './nodes/TokenRefNode';
 import { TypographyNode }     from './nodes/TypographyNode';
 import { PaletteNode }        from './nodes/PaletteNode';
 import { TokenOutputNode }    from './nodes/TokenOutputNode';
+import { JsonNode }           from './nodes/JsonNode';
 import { GeneratorNode }      from './nodes/GeneratorNode';
 
 import type { TokenGroup, GeneratedToken, TokenType } from '@/types';
@@ -57,6 +58,7 @@ import type {
   ComposableNodeMeta,
   ComposableNodeData,
   TokenOutputConfig,
+  JsonConfig,
   ArrayConfig,
   ConstantConfig,
   GeneratorNodeConfig,
@@ -81,6 +83,7 @@ const COMPOSABLE_BADGE: Record<string, string> = {
   tokenRef:     'bg-orange-50 text-orange-700 border border-orange-200',
   typography:   'bg-purple-50 text-purple-700 border border-purple-200',
   tokenOutput:  'bg-emerald-50 text-emerald-700 border border-emerald-200',
+  json:         'bg-amber-50 text-amber-700 border border-amber-200',
   generator:    'bg-indigo-50 text-indigo-700 border border-indigo-200',
   palette:      'bg-rose-50 text-rose-700 border border-rose-200',
 };
@@ -102,6 +105,7 @@ const COMPOSABLE_NODES: {
   { kind: 'palette',      label: 'Color Palette',   desc: 'Generate a color scale',      icon: <Palette size={12} /> },
   { kind: 'generator',    label: 'Generator',       desc: 'Color or dimension scale',    icon: <Zap size={12} /> },
   { kind: 'tokenOutput',  label: 'Token Output',    desc: 'Create token group entries',  icon: <Tag size={12} /> },
+  { kind: 'json',         label: 'Json',            desc: 'Upload JSON file as token source', icon: <FileJson size={12} /> },
 ];
 
 const KIND_TO_NODE_TYPE: Record<ComposableNodeConfig['kind'], string> = {
@@ -115,6 +119,7 @@ const KIND_TO_NODE_TYPE: Record<ComposableNodeConfig['kind'], string> = {
   typography:   'composableTypography',
   palette:      'composablePalette',
   tokenOutput:  'composableTokenOutput',
+  json:         'composableJson',
   generator:    'composableGenerator',
 };
 
@@ -130,6 +135,7 @@ const NODE_WIDTHS: Record<string, number> = {
   composableTypography:   268,
   composablePalette:      290,
   composableTokenOutput: 260,
+  composableJson:        268,
   composableGenerator:   290,
   groupNode:             200,
 };
@@ -147,6 +153,7 @@ const NODE_TYPES = {
   composableTypography:   TypographyNode,
   composablePalette:      PaletteNode,
   composableTokenOutput:  TokenOutputNode,
+  composableJson:         JsonNode,
 } as const;
 
 const EDGE_TYPES = {
@@ -169,6 +176,7 @@ function defaultComposableConfig(kind: ComposableNodeConfig['kind']): Composable
         inputMode: 'csv' as ArrayInputMode,
         staticValues: '1, 2, 4, 8, 16',
         listValues: ['1', '2', '4', '8', '16'],
+        rawArray: '',
         tokenName: '',
         destGroupId: '',
       };
@@ -186,6 +194,8 @@ function defaultComposableConfig(kind: ComposableNodeConfig['kind']): Composable
       return { kind: 'palette', name: '', baseColor: '#6366f1', minLightness: 95, maxLightness: 10, naming: '100-900', customNames: '', format: 'hex', secondaryColors: [] };
     case 'tokenOutput':
       return { kind: 'tokenOutput', namePrefix: '', tokenType: 'dimension', outputTarget: 'currentGroup' };
+    case 'json':
+      return { kind: 'json', namePrefix: '', tokenType: 'string', outputTarget: 'currentGroup', parsedTokens: [] };
     case 'generator':
       return {
         kind: 'generator',
@@ -338,22 +348,23 @@ export function GroupStructureGraph({ group, namespace, allTokens, allGroups, in
     });
   }, []);
 
-  // Build tokens from a TokenOutputNode's evaluated state
+  // Build tokens from TokenOutputNode or JsonNode evaluated state
   const buildTokensFromNode = useCallback((nodeId: string): GeneratedToken[] => {
     const evaluated = nodeValues.get(nodeId);
     const meta = composableNodeMetas.get(nodeId);
-    if (!meta || meta.config.kind !== 'tokenOutput') return [];
-    const cfg = meta.config as TokenOutputConfig;
+    if (!meta || (meta.config.kind !== 'tokenOutput' && meta.config.kind !== 'json')) return [];
+    const cfg = meta.config as TokenOutputConfig | JsonConfig;
     const tokenDataStr = evaluated?.outputs['tokenData'];
     if (typeof tokenDataStr !== 'string') return [];
     try {
       const pairs: { name: string; value: string }[] = JSON.parse(tokenDataStr);
+      const sourceLabel = meta.config.kind === 'json' ? 'Json node' : 'Token Output node';
       return pairs.map((t, i) => ({
         id: `${group.id}/${nodeId}/${i}-${generateId()}`,
         path: t.name,
         value: t.value,
         type: cfg.tokenType as TokenType,
-        description: `Generated by Token Output node${cfg.outputTarget === 'subgroup' ? ` (sub-group: ${cfg.namePrefix})` : ''}`,
+        description: `Generated by ${sourceLabel}${cfg.outputTarget === 'subgroup' ? ` (sub-group: ${cfg.namePrefix})` : ''}`,
       }));
     } catch {
       return [];
@@ -452,6 +463,32 @@ export function GroupStructureGraph({ group, namespace, allTokens, allGroups, in
           value: t.value,
           type: cfg.tokenType as TokenType,
           description: `Generated by Token Output node`,
+        }));
+        if (sgTokens.length > 0) onBulkAddTokens?.(group.id, sgTokens, sgName);
+        return;
+      }
+
+      const tokens = buildTokensFromNode(nodeId);
+      if (tokens.length > 0) onBulkAddTokens?.(group.id, tokens);
+      return;
+    }
+
+    // JsonNode
+    if (meta?.config.kind === 'json') {
+      const cfg = meta.config as JsonConfig;
+      const evaluated = nodeValues.get(nodeId);
+
+      if (cfg.outputTarget === 'subgroup') {
+        const tokenDataStr = evaluated?.outputs['tokenData'];
+        if (typeof tokenDataStr !== 'string') return;
+        const pairs: { name: string; value: string }[] = JSON.parse(tokenDataStr);
+        const sgName = (evaluated?.outputs['subgroupName'] as string | null) || cfg.namePrefix || 'imported';
+        const sgTokens = pairs.map((t, i) => ({
+          id: `${group.id}/${nodeId}/${i}-${generateId()}`,
+          path: t.name,
+          value: t.value,
+          type: cfg.tokenType as TokenType,
+          description: 'Generated by Json node',
         }));
         if (sgTokens.length > 0) onBulkAddTokens?.(group.id, sgTokens, sgName);
         return;

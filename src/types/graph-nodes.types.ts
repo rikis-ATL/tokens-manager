@@ -55,18 +55,19 @@ export interface HarmonicConfig {
 
 // ── Array (format) node ───────────────────────────────────────────────────────
 
-export type ArrayUnit = 'none' | 'rem' | 'px' | 'em' | '%';
-export type ArrayInputMode = 'csv' | 'list';
+export type ArrayUnit = 'none' | 'color' | 'rem' | 'px' | 'em' | '%';
+export type ArrayInputMode = 'csv' | 'list' | 'array';
 
 export interface ArrayConfig {
   kind: 'array';
   unit: ArrayUnit;
   precision: number;
-  inputMode: ArrayInputMode; // 'csv' = single comma-sep field, 'list' = individual fields
-  staticValues: string;      // csv mode fallback
-  listValues: string[];      // list mode values
-  tokenName: string;         // optional: save array as a single token with this name
-  destGroupId: string;       // target group id when saving
+  inputMode: ArrayInputMode; // 'csv' | 'list' | 'array' (paste array literal)
+  staticValues: string;      // csv mode
+  listValues: string[];      // list mode
+  rawArray: string;          // array mode: paste array literal (comments stripped)
+  tokenName: string;
+  destGroupId: string;
 }
 
 // ── Math node ─────────────────────────────────────────────────────────────────
@@ -171,6 +172,16 @@ export interface TokenOutputConfig {
   outputTarget: TokenOutputTarget;
 }
 
+// ── Json node — upload JSON file as token source ───────────────────────────────
+
+export interface JsonConfig {
+  kind: 'json';
+  namePrefix: string;
+  tokenType: string;
+  outputTarget: TokenOutputTarget;
+  parsedTokens: { name: string; value: string }[];
+}
+
 // ── Generator node — composable wrapper around the legacy GeneratorConfig ──────
 
 export interface GeneratorNodeConfig {
@@ -194,6 +205,7 @@ export type ComposableNodeConfig =
   | TokenRefConfig
   | TypographyConfig
   | TokenOutputConfig
+  | JsonConfig
   | GeneratorNodeConfig;
 
 // ── Node data passed via React Flow data prop ─────────────────────────────────

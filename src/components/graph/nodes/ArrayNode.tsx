@@ -10,12 +10,13 @@ import {
 import { SaveAsTokenDialog } from './SaveAsTokenDialog';
 import type { ComposableNodeData, ArrayConfig, ArrayUnit, ArrayInputMode } from '@/types/graph-nodes.types';
 
-const UNITS: { value: ArrayUnit; label: string }[] = [
-  { value: 'none', label: 'None (raw)' },
-  { value: 'rem',  label: 'rem' },
-  { value: 'px',   label: 'px' },
-  { value: 'em',   label: 'em' },
-  { value: '%',    label: '%' },
+const TYPES: { value: ArrayUnit; label: string }[] = [
+  { value: 'none',  label: 'None (raw)' },
+  { value: 'color', label: 'Color' },
+  { value: 'rem',   label: 'rem' },
+  { value: 'px',    label: 'px' },
+  { value: 'em',    label: 'em' },
+  { value: '%',     label: '%' },
 ];
 
 function ArrayNodeComponent({ data }: NodeProps) {
@@ -31,7 +32,7 @@ function ArrayNodeComponent({ data }: NodeProps) {
 
   const values = (outputs['values'] as string[] | null) ?? [];
   const hasInputSeries = Array.isArray(inputs['series']) && (inputs['series'] as unknown[]).length > 0;
-  const isRaw = cfg.unit === 'none';
+  const isRaw = cfg.unit === 'none' || cfg.unit === 'color';
   const currentGroupId = allGroups?.[0]?.id ?? '';
 
   const previewLines = values.length > 0
@@ -63,12 +64,12 @@ function ArrayNodeComponent({ data }: NodeProps) {
   const switchMode = useCallback(
     (mode: ArrayInputMode) => {
       if (mode === 'list' && cfg.inputMode === 'csv') {
-        // Parse csv into list items
         const items = cfg.staticValues.split(',').map(s => s.trim()).filter(Boolean);
         update({ inputMode: 'list', listValues: items.length ? items : [''] });
       } else if (mode === 'csv' && cfg.inputMode === 'list') {
-        // Collapse list into csv
         update({ inputMode: 'csv', staticValues: (cfg.listValues ?? []).join(', ') });
+      } else if (mode === 'array' && cfg.inputMode !== 'array') {
+        update({ inputMode: 'array', rawArray: cfg.rawArray ?? '' });
       } else {
         update({ inputMode: mode });
       }
@@ -88,17 +89,17 @@ function ArrayNodeComponent({ data }: NodeProps) {
       />
       <div className="px-3 py-2 space-y-1.5 nodrag">
 
-        {/* Unit + mode toggle */}
-        <Row label="Unit">
+        {/* Type + mode toggle */}
+        <Row label="Type">
           <div className="flex gap-1">
             <NativeSelect
               value={cfg.unit}
               onChange={v => update({ unit: v as ArrayUnit })}
-              options={UNITS}
+              options={TYPES}
             />
             {/* CSV / List toggle */}
             <div className="flex rounded border border-gray-200 overflow-hidden flex-shrink-0">
-              {(['csv', 'list'] as ArrayInputMode[]).map(m => (
+              {(['csv', 'list', 'array'] as ArrayInputMode[]).map(m => (
                 <button
                   key={m}
                   className={`nodrag px-1.5 text-[10px] font-medium transition-colors ${
@@ -107,7 +108,7 @@ function ArrayNodeComponent({ data }: NodeProps) {
                       : 'bg-white text-gray-500 hover:bg-gray-50'
                   }`}
                   onClick={() => switchMode(m)}
-                  title={m === 'csv' ? 'Comma-separated' : 'Individual fields'}
+                  title={m === 'csv' ? 'Comma-separated' : m === 'list' ? 'Individual fields' : 'Paste array (comments stripped)'}
                 >
                   {m}
                 </button>
@@ -131,12 +132,24 @@ function ArrayNodeComponent({ data }: NodeProps) {
         {/* Values input — only shown when no series wired in */}
         {!hasInputSeries && (
           <>
-            {cfg.inputMode === 'csv' ? (
+            {cfg.inputMode === 'array' ? (
+              <div className="space-y-1">
+                <div className="text-[10px] text-gray-400 uppercase tracking-wide">Paste array</div>
+                <textarea
+                  value={cfg.rawArray ?? ''}
+                  onChange={e => update({ rawArray: e.target.value })}
+                  placeholder={'[\n  "#BBDEFB",\n  "#90CAF9",\n  ...\n]'}
+                  className="nodrag w-full text-[10px] font-mono bg-gray-50 border border-gray-200 rounded px-1.5 py-1 text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-sky-300 resize-none"
+                  rows={4}
+                />
+                <div className="text-[9px] text-gray-400">Comments stripped. Use for colors, strings, numbers.</div>
+              </div>
+            ) : cfg.inputMode === 'csv' ? (
               <Row label="Values">
                 <TextInput
                   value={cfg.staticValues}
                   onChange={v => update({ staticValues: v })}
-                  placeholder="1, 2, 4, 8, 16"
+                  placeholder={cfg.unit === 'color' ? '#333333,#444444,#555555' : '1, 2, 4, 8, 16 or #BBDEFB, #90CAF9'}
                 />
               </Row>
             ) : (
