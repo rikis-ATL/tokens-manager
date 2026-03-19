@@ -24,7 +24,21 @@ import type { ISourceMetadata } from '@/types/collection.types';
 import type { CollectionGraphState, GraphGroupState } from '@/types/graph-state.types';
 import type { FlatToken, FlatGroup } from '@/types/graph-nodes.types';
 import type { ITheme } from '@/types/theme.types';
-import { getAllGroups } from '@/utils';
+import { getAllGroups, findGroupById } from '@/utils';
+
+/** Pure helper: update a single token value within a recursive group tree */
+function updateGroupToken(group: TokenGroup, targetGroupId: string, tokenId: string, value: string): TokenGroup {
+  if (group.id === targetGroupId) {
+    return {
+      ...group,
+      tokens: group.tokens.map(t => t.id === tokenId ? { ...t, value } : t),
+    };
+  }
+  return {
+    ...group,
+    children: group.children?.map(child => updateGroupToken(child, targetGroupId, tokenId, value)),
+  };
+}
 
 interface TokensPageProps {
   params: { id: string };
@@ -356,6 +370,32 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     }, 400);
   }, [id, activeThemeId]);
 
+  // ── Derive active group state (enabled / source / disabled) ────────────
+  const activeGroupState = useMemo<'enabled' | 'source' | 'disabled' | null>(() => {
+    if (!activeThemeId || !selectedGroupId) return null;
+    const theme = themes.find(t => t.id === activeThemeId);
+    if (!theme) return null;
+    return (theme.groups[selectedGroupId] ?? 'disabled') as 'enabled' | 'source' | 'disabled';
+  }, [activeThemeId, selectedGroupId, themes]);
+
+  const isThemeReadOnly = activeGroupState === 'source';
+
+  // ── Find master collection value for a token by groupId + tokenPath ─────
+  const findMasterValue = useCallback((groupId: string, tokenPath: string): string | undefined => {
+    const group = findGroupById(masterGroups, groupId);
+    const token = group?.tokens.find(t => t.path === tokenPath);
+    return token !== undefined ? String(token.value ?? '') : undefined;
+  }, [masterGroups]);
+
+  // ── Reset a theme token to its collection-default value ─────────────────
+  const handleResetToDefault = useCallback((groupId: string, tokenId: string, masterValue: string) => {
+    if (!activeThemeId) return;
+    const updatedTokens = activeThemeTokens.map(g =>
+      updateGroupToken(g, groupId, tokenId, masterValue)
+    );
+    handleThemeTokenChange(updatedTokens);
+  }, [activeThemeId, activeThemeTokens, handleThemeTokenChange]);
+
   const confirmAddGroup = () => {
     const name = newGroupName.trim();
     if (!name) return;
@@ -550,6 +590,11 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
                   onBulkInsertProcessed={() => setPendingBulkInsert(null)}
                   pendingGroupAction={pendingGroupAction}
                   onGroupActionProcessed={() => setPendingGroupAction(null)}
+                  themeTokens={activeThemeId ? activeThemeTokens : undefined}
+                  onThemeTokensChange={activeThemeId ? handleThemeTokenChange : undefined}
+                  isReadOnly={isThemeReadOnly}
+                  findMasterValue={activeThemeId ? findMasterValue : undefined}
+                  onResetToDefault={activeThemeId && !isThemeReadOnly ? handleResetToDefault : undefined}
                 />
               </main>
             </ResizablePanel>
