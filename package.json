@@ -13,6 +13,7 @@
     "start": "next start",
     "lint": "eslint",
     "seed": "DOTENV_CONFIG_PATH=.env.local npx ts-node --transpile-only -r dotenv/config --project tsconfig.scripts.json scripts/seed.ts",
+    "migrate:themes": "DOTENV_CONFIG_PATH=.env.local npx ts-node --transpile-only -r dotenv/config --project tsconfig.scripts.json scripts/migrate-theme-tokens.ts",
     "dev:stencil": "yarn workspace token-manager-stencil dev",
     "build:stencil": "yarn workspace token-manager-stencil build",
     "start:stencil": "yarn workspace token-manager-stencil start",
