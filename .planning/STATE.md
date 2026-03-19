@@ -1,7 +1,7 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.4
-milestone_name: TBD
+milestone_name: Theme Token Sets
 status: planning
 last_updated: "2026-03-19T00:00:00Z"
 progress:
@@ -18,13 +18,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Token collections are always available and editable: stored in MongoDB, accessible via collection-scoped URLs, with per-collection Figma/GitHub config, full CRUD from the collections grid, Figma import/export fully integrated, and a Themes system for filtering active token groups.
-**Current focus:** Planning next milestone (v1.4) — run `/gsd:new-milestone`
+**Current focus:** v1.4 Theme Token Sets — defining requirements
 
 ## Current Position
 
-Phase: — (between milestones)
-Status: v1.3 shipped — all 9 plans complete; full Themes feature delivered and verified e2e
-Last activity: 2026-03-19 — v1.3 milestone archived
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-19 — Milestone v1.4 started
 
 Progress: [██████████] 100% (v1.3 complete)
 

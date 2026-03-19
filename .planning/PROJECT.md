@@ -53,12 +53,26 @@ Token collections are always available and editable: stored in MongoDB, accessib
 - ✓ Theme selector on Tokens page filters the group tree to show only Enabled/Source groups — v1.3
 - ✓ First new theme defaults all groups to Enabled; subsequent themes default to Disabled — v1.3
 
+## Current Milestone: v1.4 Theme Token Sets
+
+**Goal:** Themes become actual token value sets — each theme embeds a full copy of token data, group states control edit permissions, inline editing on the Tokens page writes to the active theme, and export is theme-aware.
+
+**Target features:**
+- Theme data model extended: each theme embeds full token groups as a value set (1:1 copy on creation)
+- Group state matrix semantics: Enabled = per-theme editable, Source = always uses collection default (read-only), Disabled = not shown
+- Inline token value editing on Tokens page when an Enabled group is active under a selected theme
+- Theme-aware export: choose which theme to export on Config page; SD (single or multi-file) and Figma Variables JSON with modes
+
 ### Active
 
-- [ ] Tree nodes can be expanded and collapsed (expand/collapse toggle per node)
-- [ ] User can add a new group from the tree sidebar (as a child of any node, or at root level)
-- [ ] User can add tokens to the currently selected group
-- [ ] User can edit token values inline in the currently selected group
+- [ ] Each theme stores a full copy of all token groups and values embedded in the theme document
+- [ ] Theme creation initializes embedded token data as a 1:1 copy of the collection's current tokens
+- [ ] Theme group states control edit permissions: Enabled = editable per-theme, Source = read-only (uses collection default), Disabled = hidden
+- [ ] User can edit token values inline on the Tokens page when an Enabled group is selected under an active theme
+- [ ] Changes to Enabled group token values under an active theme are saved to that theme's embedded token data
+- [ ] User can select which theme (or collection default) to export on the Config page
+- [ ] Style Dictionary export generates theme-aware token output for the selected theme
+- [ ] Figma Variables export includes each enabled theme as a mode
 
 ### Out of Scope
 
@@ -132,4 +146,4 @@ Token collections are always available and editable: stored in MongoDB, accessib
 | filteredGroups falls back to masterGroups when no theme active | Preserves "all groups" default; no empty state when theme deselected | ✓ Good — seamless UX |
 
 ---
-*Last updated: 2026-03-19 after v1.3 milestone*
+*Last updated: 2026-03-19 after v1.4 milestone start*
