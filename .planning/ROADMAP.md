@@ -6,7 +6,7 @@
 - ✅ **v1.1 shadcn UI** — Phases 1-4 (shipped 2026-03-12)
 - ✅ **v1.2 Token Groups Tree** — Phases 5-6 (shipped 2026-03-13; Phase 7 Mutations deferred)
 - ✅ **v1.3 Add Tokens Modes** — Phases 8-9 (shipped 2026-03-19)
-- 📋 **v1.4** — next milestone (TBD)
+- 🚧 **v1.4 Theme Token Sets** — Phases 10-12 (in progress)
 
 ## Phases
 
@@ -58,14 +58,66 @@ See: `.planning/milestones/v1.3-ROADMAP.md` for archived roadmap details.
 
 </details>
 
-### 📋 v1.4 (Planned)
+### 🚧 v1.4 Theme Token Sets (In Progress)
 
-*Define with `/gsd:new-milestone`*
+**Milestone Goal:** Themes become actual token value sets — each theme embeds a full copy of token data, group states control edit permissions, inline editing on the Tokens page writes to the active theme's embedded data, and export is theme-aware.
 
-Likely scope (from deferred items):
-- [ ] Phase 7: Mutations — Add group from tree, add/edit tokens inline in selected group (TREE-04, TREE-05, CONT-02, CONT-03)
+- [ ] **Phase 10: Data Model Foundation** — Extend ITheme with embedded tokens, deep-copy on creation, migration script, theme count guard
+- [ ] **Phase 11: Inline Token Editing UI** — PATCH API endpoint + ThemeTokenEditor component, group-state-aware save routing, override indicator
+- [ ] **Phase 12: Theme-Aware Export** — Config page theme selector, SD export uses theme tokens, Figma export generates one mode per enabled theme
+
+## Phase Details
+
+### Phase 10: Data Model Foundation
+**Goal**: Themes store their own embedded token data, making every subsequent v1.4 feature possible
+**Depends on**: Phase 9 (themes CRUD API and ITheme type exist)
+**Requirements**: THEME-01, THEME-02, THEME-03, THEME-04
+**Success Criteria** (what must be TRUE):
+  1. Creating a new theme causes the theme document in MongoDB to contain a full copy of all the collection's current token groups and values
+  2. A one-time migration script runs against MongoDB and seeds `tokens` on all pre-existing theme documents that lack the field
+  3. Attempting to create an 11th theme on a collection returns an error; the UI surfaces it and the theme is not created
+  4. All code reading `theme.tokens` handles the `undefined` case without crashing (pre-migration guard)
+**Plans**: TBD
+
+Plans:
+- [ ] 10-01: TBD
+- [ ] 10-02: TBD
+
+### Phase 11: Inline Token Editing UI
+**Goal**: Users can edit token values inline on the Tokens page when an Enabled group is active under a selected theme, and changes persist to that theme's embedded token data
+**Depends on**: Phase 10
+**Requirements**: EDIT-01, EDIT-02, EDIT-03, EDIT-04
+**Success Criteria** (what must be TRUE):
+  1. When a theme is active and the selected group is Enabled, token value fields are editable inputs; edits are saved to that theme's token data (not the master collection)
+  2. When a theme is active and the selected group is Source, token values are read-only and display the collection-default values
+  3. When a theme is active and the selected group is Disabled, the group does not appear in the tree
+  4. Token cells where the active theme's value differs from the collection default show a visible override indicator
+  5. PATCH `/api/collections/[id]/themes/[themeId]/tokens` accepts full token replacement using whole-array `$set`; Source-group writes are rejected with 422
+**Plans**: TBD
+
+Plans:
+- [ ] 11-01: TBD
+- [ ] 11-02: TBD
+- [ ] 11-03: TBD
+
+### Phase 12: Theme-Aware Export
+**Goal**: Export is targeted at a specific theme or the collection default, and Figma export represents each enabled theme as a variable mode
+**Depends on**: Phase 10
+**Requirements**: EXPORT-01, EXPORT-02, EXPORT-03
+**Success Criteria** (what must be TRUE):
+  1. The Config page has a theme selector control; user can choose "Collection default" or any named theme as the export target
+  2. Triggering a Style Dictionary build with a theme selected produces token output that uses the theme's values for Enabled groups and the collection-default values for Source groups
+  3. Triggering a Figma Variables export produces a payload where each enabled theme in the collection becomes a distinct variable mode
+**Plans**: TBD
+
+Plans:
+- [ ] 12-01: TBD
+- [ ] 12-02: TBD
 
 ## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 10 → 11 → 12
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -85,3 +137,6 @@ Likely scope (from deferred items):
 | 7. Mutations | v1.4 | 0/TBD | Deferred | - |
 | 8. Clean Code | v1.3 | 5/5 | Complete | 2026-03-16 |
 | 9. Add Tokens Modes | v1.3 | 4/4 | Complete | 2026-03-19 |
+| 10. Data Model Foundation | v1.4 | 0/TBD | Not started | - |
+| 11. Inline Token Editing UI | v1.4 | 0/TBD | Not started | - |
+| 12. Theme-Aware Export | v1.4 | 0/TBD | Not started | - |
