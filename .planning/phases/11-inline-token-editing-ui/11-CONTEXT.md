@@ -23,9 +23,10 @@ A "Default" theme always exists and is always selected — editing in Default mo
 
 ### Default Theme Behavior
 - There is always a selected theme — no "no-theme" state
-- "Default" theme = editing the master collection directly (existing behavior)
-- Default theme is always first in the dropdown and auto-selected on page load
-- All token fields are editable in Default mode (same as current behavior)
+- "Default" option in the dropdown = the **Source** state — master collection tokens, editable directly
+- Default is always first in the dropdown and auto-selected on page load
+- All token fields are editable in Default/Source mode (this is the existing token editing behavior)
+- Named themes (dark, light, etc.) are layered on top of the Source defaults
 
 ### Theme Switching
 - Switching themes keeps context — if the current group is Enabled in the new theme, stay on it; if not (Disabled/unavailable), fall back to first available Enabled group
