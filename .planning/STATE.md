@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Token collections are always available and editable: stored in MongoDB, accessible via collection-scoped URLs, with per-collection Figma/GitHub config, full CRUD from the collections grid, Figma import/export fully integrated, and a Themes system for filtering active token groups.
-**Current focus:** v1.4 Theme Token Sets — Phase 11 plan 02 complete
+**Current focus:** v1.4 Theme Token Sets — Phase 11 complete; Phase 12 next
 
 ## Current Position
 
-Phase: 11 of 12 (Inline Token Editing UI)
-Plan: 02 complete
+Phase: 11 of 12 (Inline Token Editing UI) — COMPLETE
+Plan: 03 complete (all plans done)
 Status: In progress
-Last activity: 2026-03-20 — 11-02 complete: theme selector Default label, activeThemeTokens state, handleThemeChange group fallback, debounced PATCH auto-save
+Last activity: 2026-03-20 — 11-03 complete: TokenTableRow isReadOnly + RotateCcw reset button; themeTokens overlay wired in tokens/page.tsx; all 6 human-verify scenarios approved
 
-Progress: [████░░░░░░] ~40% (4 plans complete)
+Progress: [█████░░░░░] ~50% (5 plans complete)
 
 ## Performance Metrics
 
@@ -74,7 +74,7 @@ Key decisions relevant to v1.4:
 - [Phase 11-inline-token-editing-ui]: Root-level source-group guard only (not recursive) — theme.groups maps root-level group IDs; children governed by parent
 - [Phase 11-02]: activeThemeTokens uses JSON.parse/stringify deep copy — sufficient for plain TokenGroup data objects
 - [Phase 11-02]: handleThemeTokenChange is silent on fetch error — mirrors existing graph auto-save pattern
-- [Phase 11-inline-token-editing-ui]: themeTokens overlay (not state replacement) in TokenGeneratorForm keeps master collection clean; updateToken routes through onThemeTokensChange when overlay active
+- [Phase 11-inline-token-editing-ui]: themeTokens overlay (not state replacement) in TokenGeneratorForm keeps master collection clean; updateToken routes through onThemeTokensChange when overlay active; switching themes or turning off theme resets to master without any state cleanup
 - [Phase 11-inline-token-editing-ui]: updateGroupToken is a pure recursive helper outside component; handleResetToDefault maps activeThemeTokens through it then calls handleThemeTokenChange
 
 ### Pending Todos
@@ -89,5 +89,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-20
-Stopped at: Completed 11-02-PLAN.md — theme selector Default label, activeThemeTokens state, handleThemeChange group fallback, debounced PATCH auto-save
+Stopped at: Completed 11-03-PLAN.md — TokenTableRow isReadOnly + RotateCcw reset button; themeTokens overlay; all 6 human-verify scenarios approved; Phase 11 complete
 Resume file: None
