@@ -53,15 +53,18 @@ export function ThemeList({
     }
   };
 
+  const atLimit = themes.length >= 10;
+
   return (
     <div className="flex flex-col h-full">
       {/* Section header */}
       <div className="px-3 py-2 border-b border-gray-200 flex items-center justify-between flex-shrink-0">
         <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Themes</span>
         <button
-          onClick={() => setIsAdding(true)}
-          className="text-gray-400 hover:text-gray-700 text-base leading-none px-1"
-          title="Add theme"
+          onClick={() => !atLimit && setIsAdding(true)}
+          disabled={atLimit}
+          title={atLimit ? 'Maximum 10 themes per collection' : 'Add theme'}
+          className="text-gray-400 hover:text-gray-700 text-base leading-none px-1 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <Plus size={14} />
         </button>
