@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Info, MoreHorizontal, Save } from 'lucide-react';
+import { Info, MoreHorizontal, RotateCcw, Save } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ToastNotification } from '@/components/layout/ToastNotification';
 import { SaveCollectionDialog } from '@/components/collections/SaveCollectionDialog';
@@ -24,6 +24,7 @@ import type { ISourceMetadata } from '@/types/collection.types';
 import type { CollectionGraphState, GraphGroupState } from '@/types/graph-state.types';
 import type { FlatToken, FlatGroup } from '@/types/graph-nodes.types';
 import type { ITheme } from '@/types/theme.types';
+import { getAllGroups } from '@/utils';
 
 interface TokensPageProps {
   params: { id: string };
@@ -58,6 +59,10 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   const [masterGroups, setMasterGroups] = useState<TokenGroup[]>([]);
   const [themes, setThemes] = useState<ITheme[]>([]);
   const [activeThemeId, setActiveThemeId] = useState<string | null>(null);
+
+  // Theme-mode editable token copy and auto-save timer
+  const [activeThemeTokens, setActiveThemeTokens] = useState<TokenGroup[]>([]);
+  const themeTokenSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Flat token list used by ConstantNode's source-token picker
   const allFlatTokens = useMemo<FlatToken[]>(() => {
@@ -134,6 +139,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     return () => {
       abortControllerRef.current?.abort();
       if (graphAutoSaveTimerRef.current) clearTimeout(graphAutoSaveTimerRef.current);
+      if (themeTokenSaveTimerRef.current) clearTimeout(themeTokenSaveTimerRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
@@ -303,6 +309,52 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     setPendingNewGroup(null);
     setSelectedGroupId(group.id);
   }, []);
+
+  // ── Sync activeThemeTokens when activeThemeId or themes changes ─────────
+  useEffect(() => {
+    if (!activeThemeId) {
+      setActiveThemeTokens([]);
+      return;
+    }
+    const theme = themes.find(t => t.id === activeThemeId);
+    setActiveThemeTokens(theme ? JSON.parse(JSON.stringify(theme.tokens)) : []);
+  }, [activeThemeId, themes]);
+
+  // ── Theme selector change with group fallback ───────────────────────────
+  const handleThemeChange = useCallback((newThemeId: string | null) => {
+    setActiveThemeId(newThemeId);
+    if (!newThemeId) return; // Default — master groups, keep current selected group
+    const newTheme = themes.find(t => t.id === newThemeId);
+    if (!newTheme) return;
+    // Fall back to first enabled group if current is disabled or not set
+    const currentState = selectedGroupId
+      ? (newTheme.groups[selectedGroupId] ?? 'disabled')
+      : 'disabled';
+    if (currentState === 'disabled' || !selectedGroupId) {
+      const allGroupsList = getAllGroups(masterGroups);
+      const firstEnabled = allGroupsList.find(g => newTheme.groups[g.id] === 'enabled');
+      setSelectedGroupId(firstEnabled?.id ?? '');
+    }
+    // If 'enabled' or 'source', stay on current group
+  }, [themes, selectedGroupId, masterGroups]);
+
+  // ── Theme token change with debounced PATCH auto-save ───────────────────
+  const handleThemeTokenChange = useCallback((updatedTokens: TokenGroup[]) => {
+    setActiveThemeTokens(updatedTokens);
+    if (!activeThemeId) return;
+    if (themeTokenSaveTimerRef.current) clearTimeout(themeTokenSaveTimerRef.current);
+    themeTokenSaveTimerRef.current = setTimeout(async () => {
+      try {
+        await fetch(`/api/collections/${id}/themes/${activeThemeId}/tokens`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tokens: updatedTokens }),
+        });
+      } catch {
+        // Silent — existing toast pattern; no disruptive error for auto-save
+      }
+    }, 400);
+  }, [id, activeThemeId]);
 
   const confirmAddGroup = () => {
     const name = newGroupName.trim();
