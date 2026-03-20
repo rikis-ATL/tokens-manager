@@ -23,9 +23,9 @@ See: .planning/PROJECT.md (updated 2026-03-19)
 ## Current Position
 
 Phase: 12 of 12 (Theme-Aware Export) — In progress
-Plan: 03 complete
+Plan: 04 complete (checkpoint — awaiting human verification)
 Status: In progress
-Last activity: 2026-03-20 — 12-03 complete: multi-mode Figma Variables export (variableModes + variableModeValues, one mode per theme)
+Last activity: 2026-03-20 — 12-04 checkpoint: human-verify gate for full Phase 12 theme-aware export flow
 
 Progress: [████████░░] ~80% (8 plans complete)
 
@@ -50,6 +50,7 @@ Progress: [████████░░] ~80% (8 plans complete)
 | Phase 12-theme-aware-export P01 | ~2 min | 2 tasks | 3 files |
 | Phase 12-theme-aware-export P02 | ~2 min | 2 tasks | 3 files |
 | Phase 12-theme-aware-export P03 | ~2 min | 1 tasks | 1 files |
+| Phase 12-theme-aware-export P04 | 1 | 0 tasks | 0 files |
 
 ## Accumulated Context
 
@@ -84,6 +85,7 @@ Key decisions relevant to v1.4:
 - [Phase 12-02]: Theme selector hidden when collection has no themes (themes.length > 0 guard); overflow-auto replaces overflow-hidden on right column
 - [Phase 12-03]: Route fetches themes from MongoDB itself using mongoCollectionId — no changes required in ExportToFigmaDialog caller
 - [Phase 12-03]: Figma export always includes ALL enabled themes as modes — ignores Config page theme selector entirely
+- [Phase 12-theme-aware-export]: Human verification gate for Phase 12 complete feature set — awaiting user sign-off on export flow
 
 ### Pending Todos
 
@@ -97,5 +99,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-20
-Stopped at: Completed 12-02-PLAN.md — config page theme selector, mergeThemeTokens wiring, BuildTokensPanel themeLabel prop, Figma Enterprise note
+Stopped at: Checkpoint 12-04 (human-verify) — dev server running at http://localhost:3000, awaiting user approval of full Phase 12 feature flow
 Resume file: None

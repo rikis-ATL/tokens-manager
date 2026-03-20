@@ -64,7 +64,7 @@ See: `.planning/milestones/v1.3-ROADMAP.md` for archived roadmap details.
 
 - [x] **Phase 10: Data Model Foundation** — Extend ITheme with embedded tokens, deep-copy on creation, migration script, theme count guard (completed 2026-03-19)
 - [x] **Phase 11: Inline Token Editing UI** — PATCH API endpoint + ThemeTokenEditor component, group-state-aware save routing, override indicator (completed 2026-03-19)
-- [ ] **Phase 12: Theme-Aware Export** — Config page theme selector, SD export uses theme tokens, Figma export generates one mode per enabled theme
+- [x] **Phase 12: Theme-Aware Export** — Config page theme selector, SD export uses theme tokens, Figma export generates one mode per enabled theme (completed 2026-03-20)
 
 ## Phase Details
 
@@ -141,4 +141,4 @@ Phases execute in numeric order: 10 → 11 → 12
 | 9. Add Tokens Modes | v1.3 | 4/4 | Complete | 2026-03-19 |
 | 10. Data Model Foundation | 2/2 | Complete    | 2026-03-19 | - |
 | 11. Inline Token Editing UI | 3/3 | Complete    | 2026-03-19 | - |
-| 12. Theme-Aware Export | 3/4 | In Progress|  | - |
+| 12. Theme-Aware Export | 4/4 | Complete   | 2026-03-20 | - |
