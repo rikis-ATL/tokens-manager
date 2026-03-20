@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Token collections are always available and editable: stored in MongoDB, accessible via collection-scoped URLs, with per-collection Figma/GitHub config, full CRUD from the collections grid, Figma import/export fully integrated, and a Themes system for filtering active token groups.
-**Current focus:** Phase 13 Groups Ordering Drag and Drop — Plan 02 complete
+**Current focus:** Phase 13 Groups Ordering Drag and Drop — Plan 03 at checkpoint (human verification)
 
 ## Current Position
 
 Phase: 13 of 13 (Groups Ordering Drag and Drop) — In Progress
-Plan: 02 complete — TokenGroupTree refactored with DndContext + SortableContext + DragOverlay; onGroupsReordered callback wired
+Plan: 03 at checkpoint — handleGroupsReordered wired with applyGroupMove+themes, undo stack, and debounced PUT persist; awaiting human verification
 Status: In Progress
-Last activity: 2026-03-20 — 13-02 complete; TokenGroupTree DnD UI delivered
+Last activity: 2026-03-20 — 13-03 Task 1 complete; checkpoint:human-verify reached
 
-Progress: [██░░░] Plan 02/N complete
+Progress: [███░░] Plan 03/N at checkpoint
 
 ## Performance Metrics
 
@@ -53,6 +53,7 @@ Progress: [██░░░] Plan 02/N complete
 | Phase 12-theme-aware-export P04 | 1 | 0 tasks | 0 files |
 | Phase 13-groups-ordering-drag-and-drop P01 | ~3 min | 2 tasks | 3 files |
 | Phase 13-groups-ordering-drag-and-drop P02 | ~1 min | 1 tasks | 1 files |
+| Phase 13-groups-ordering-drag-and-drop P03 | ~5 min | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -95,6 +96,10 @@ Key decisions relevant to v1.4:
 - [Phase 13-02]: DndContext placed inside overflow-y-auto div — DragOverlay portal renders at body level so ghost is never clipped by sidebar overflow
 - [Phase 13-02]: applyGroupMove called without themes in TokenGroupTree — theme sync delegated to page (Plan 03)
 - [Phase 13-02]: Local FlatNode + flattenTree removed from TokenGroupTree — @/utils/groupMove is canonical source
+- [Phase 13-03]: _newGroupsFromTree parameter intentionally unused in page handler — page re-derives from masterGroups + activeId + overId + themes; leading underscore signals intent
+- [Phase 13-03]: nonDefaultThemes excludes __default__ from applyGroupMove — synthetic theme rebuilt from masterGroups, not stored in MongoDB
+- [Phase 13-03]: Undo stack via useRef (not useState) — no re-renders from stack mutations; max 20 steps
+- [Phase 13-03]: Two-call pattern: TokenGroupTree calls applyGroupMove without themes (optimistic UI), page re-calls with themes (authoritative cascade)
 
 ### Pending Todos
 
@@ -108,5 +113,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-20
-Stopped at: Phase 13 plan 02 complete — TokenGroupTree refactored with DndContext + SortableContext + DragOverlay
+Stopped at: Phase 13 plan 03 — checkpoint:human-verify; Task 1 complete (handleGroupsReordered + undo + persist wired)
 Resume file: None
