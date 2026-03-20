@@ -13,7 +13,7 @@ import {
   type DragOverEvent,
   type DragCancelEvent,
 } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { SortableContext } from '@dnd-kit/sortable';
 import { Plus } from 'lucide-react';
 import { TokenGroup } from '@/types';
 import { applyGroupMove, flattenTree, type FlatNode, type DropMode } from '@/utils/groupMove';
@@ -143,7 +143,7 @@ export function TokenGroupTree({
           onDragEnd={handleDragEnd}
           onDragCancel={handleDragCancel}
         >
-          <SortableContext items={sortedIds} strategy={verticalListSortingStrategy}>
+          <SortableContext items={sortedIds} strategy={() => null}>
             {flatNodes.map(node => (
               <SortableGroupRow
                 key={node.group.id}
