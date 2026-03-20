@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { FlatNode } from '@/utils/groupMove';
+import { type FlatNode, type DropMode } from '@/utils/groupMove';
 
 // ---------------------------------------------------------------------------
 // Props
@@ -26,7 +26,7 @@ interface SortableGroupRowProps {
   onRenameGroup?: (groupId: string, newLabel: string) => void;
   isDragOverlay?: boolean;
   /** Drop intent for THIS row when it is the active over-target. Null when not targeted. */
-  dropIntent?: 'into' | 'before' | null;
+  dropIntent?: DropMode | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -253,10 +253,20 @@ function SortableRowInner({
     <div
       ref={setNodeRef}
       style={style}
-      className={`${rowClassName(node, isSelected)} ${dropIntoRing}`}
+      className={`relative ${rowClassName(node, isSelected)} ${dropIntoRing}`}
       {...attributes}
       onClick={e => { e.stopPropagation(); if (!isEditing) onSelect(node.group.id); }}
     >
+      {/* Insertion line — top (before) */}
+      {dropIntent === 'before' && (
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-blue-500 rounded-full z-10 pointer-events-none" />
+      )}
+
+      {/* Insertion line — bottom (after) */}
+      {dropIntent === 'after' && (
+        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 rounded-full z-10 pointer-events-none" />
+      )}
+
       {/* Drag handle — hidden while editing */}
       <button
         {...(isEditing ? {} : listeners)}

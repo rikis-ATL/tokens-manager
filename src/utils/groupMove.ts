@@ -84,21 +84,29 @@ export interface ApplyGroupMoveResult {
   themes: ITheme[];
 }
 
+export type DropMode = 'before' | 'after' | 'into';
+
 /**
  * Apply a drag-and-drop group move with full cascade:
  * - Sibling reorder: reorders children arrays and syncs theme snapshots.
  * - Reparenting: rewrites group IDs, token IDs, alias paths, and theme maps.
  *
- * @param dropInto When true, insert `active` as the last child of `over`
- *                 instead of inserting before `over` as a sibling.
+ * @param dropMode Controls placement:
+ *   - 'before'  Insert `active` as sibling immediately before `over`.
+ *   - 'after'   Insert `active` as sibling immediately after `over`.
+ *   - 'into'    Insert `active` as the last child of `over`.
  */
 export function applyGroupMove(
   groups: TokenGroup[],
   activeId: string,
   overId: string,
   themes: ITheme[] = [],
-  dropInto = false
+  dropMode: DropMode | boolean = 'before'
 ): ApplyGroupMoveResult {
+  // Accept legacy boolean for backwards compatibility ('true' = 'into')
+  const resolvedMode: DropMode =
+    dropMode === true ? 'into' : dropMode === false ? 'before' : dropMode;
+
   const flatNodes = flattenTree(groups);
 
   const activeIndex = flatNodes.findIndex(n => n.group.id === activeId);
@@ -112,11 +120,11 @@ export function applyGroupMove(
   const overNode = flatNodes[overIndex];
 
   // Guard: cannot drop into self or into one of its own descendants
-  if (dropInto && isDescendantOrSelf(activeId, overId, flatNodes)) {
+  if (resolvedMode === 'into' && isDescendantOrSelf(activeId, overId, flatNodes)) {
     return { groups, themes };
   }
 
-  if (dropInto) {
+  if (resolvedMode === 'into') {
     return applyDropInto(groups, themes, flatNodes, activeIndex, activeNode, overNode);
   }
 
@@ -126,11 +134,21 @@ export function applyGroupMove(
   // Remove active node from flat list
   const updatedFlat = flatNodes.filter((_, i) => i !== activeIndex);
 
-  // Find over item's new position in the updated list
+  // Determine insertion point based on drop mode
   const newOverIndex = updatedFlat.findIndex(n => n.group.id === overId);
-  const insertAt = newOverIndex === -1 ? updatedFlat.length : newOverIndex;
 
-  // Insert active node before the over node (same-level sibling)
+  let insertAt: number;
+  if (resolvedMode === 'after') {
+    // Insert after the over node — skip past its entire subtree so we land
+    // as the next sibling rather than between the over node and its children.
+    const lastDescIdx = findLastDescendantIndex(updatedFlat, overId, newOverIndex === -1 ? 0 : newOverIndex);
+    insertAt = lastDescIdx + 1;
+  } else {
+    // 'before': insert before the over node
+    insertAt = newOverIndex === -1 ? updatedFlat.length : newOverIndex;
+  }
+
+  // Insert active node as same-level sibling of the over node
   const movedNode: FlatNode = {
     ...activeNode,
     parentId: newParentId,

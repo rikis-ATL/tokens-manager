@@ -16,7 +16,7 @@ import {
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Plus } from 'lucide-react';
 import { TokenGroup } from '@/types';
-import { applyGroupMove, flattenTree, type FlatNode } from '@/utils/groupMove';
+import { applyGroupMove, flattenTree, type FlatNode, type DropMode } from '@/utils/groupMove';
 import { SortableGroupRow } from '@/components/tokens/SortableGroupRow';
 
 // ---------------------------------------------------------------------------
@@ -25,7 +25,7 @@ import { SortableGroupRow } from '@/components/tokens/SortableGroupRow';
 
 interface DropIntent {
   id: string;
-  intent: 'into' | 'before';
+  intent: DropMode;
 }
 
 interface TokenGroupTreeProps {
@@ -36,7 +36,7 @@ interface TokenGroupTreeProps {
   onAddGroup?: () => void;
   onDeleteGroup?: (groupId: string) => void;
   onAddSubGroup?: (parentGroupId: string) => void;
-  onGroupsReordered?: (newGroups: TokenGroup[], activeId: string, overId: string, dropInto: boolean) => void;
+  onGroupsReordered?: (newGroups: TokenGroup[], activeId: string, overId: string, dropMode: DropMode) => void;
   onRenameGroup?: (groupId: string, newLabel: string) => void;
 }
 
@@ -81,11 +81,18 @@ export function TokenGroupTree({
     }
 
     const activeCenterY = activeRect.top + activeRect.height / 2;
-    const midStart = overRect.top + overRect.height * 0.3;
-    const midEnd = overRect.top + overRect.height * 0.7;
+    const zoneTop = overRect.top + overRect.height * 0.3;
+    const zoneBottom = overRect.top + overRect.height * 0.7;
 
-    const intent: DropIntent['intent'] =
-      activeCenterY >= midStart && activeCenterY <= midEnd ? 'into' : 'before';
+    let intent: DropMode;
+    if (activeCenterY < zoneTop) {
+      intent = 'before';
+    } else if (activeCenterY > zoneBottom) {
+      intent = 'after';
+    } else {
+      intent = 'into';
+    }
+
     setDropIntent({ id: String(over.id), intent });
   }
 
@@ -96,9 +103,10 @@ export function TokenGroupTree({
     if (!over || active.id === over.id) return;
     const activeId = String(active.id);
     const overId = String(over.id);
-    const isDropInto = currentIntent?.id === overId && currentIntent.intent === 'into';
-    const { groups: newGroups } = applyGroupMove(groups, activeId, overId, [], isDropInto);
-    onGroupsReordered?.(newGroups, activeId, overId, isDropInto);
+    const dropMode: DropMode =
+      currentIntent?.id === overId ? currentIntent.intent : 'before';
+    const { groups: newGroups } = applyGroupMove(groups, activeId, overId, [], dropMode);
+    onGroupsReordered?.(newGroups, activeId, overId, dropMode);
   }
 
   function handleDragCancel(_event: DragCancelEvent) {
@@ -145,9 +153,7 @@ export function TokenGroupTree({
                 onDeleteGroup={onDeleteGroup}
                 onAddSubGroup={onAddSubGroup}
                 onRenameGroup={onRenameGroup}
-                dropIntent={
-                  dropIntent?.id === node.group.id ? dropIntent.intent : null
-                }
+                dropIntent={dropIntent?.id === node.group.id ? dropIntent.intent : null}
               />
             ))}
           </SortableContext>
