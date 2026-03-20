@@ -25,7 +25,7 @@ interface TokenGroupTreeProps {
   onAddGroup?: () => void;
   onDeleteGroup?: (groupId: string) => void;
   onAddSubGroup?: (parentGroupId: string) => void;
-  onGroupsReordered?: (newGroups: TokenGroup[]) => void;
+  onGroupsReordered?: (newGroups: TokenGroup[], activeId: string, overId: string) => void;
 }
 
 export function TokenGroupTree({
@@ -55,8 +55,10 @@ export function TokenGroupTree({
   function handleDragEnd({ active, over }: DragEndEvent) {
     setActiveNode(null);
     if (!over || active.id === over.id) return;
-    const { groups: newGroups } = applyGroupMove(groups, String(active.id), String(over.id));
-    onGroupsReordered?.(newGroups);
+    const activeId = String(active.id);
+    const overId = String(over.id);
+    const { groups: newGroups } = applyGroupMove(groups, activeId, overId);
+    onGroupsReordered?.(newGroups, activeId, overId);
   }
 
   return (
