@@ -142,6 +142,7 @@ Phases execute in numeric order: 10 → 11 → 12
 | 10. Data Model Foundation | 2/2 | Complete    | 2026-03-19 | - |
 | 11. Inline Token Editing UI | 3/3 | Complete    | 2026-03-19 | - |
 | 12. Theme-Aware Export | 4/4 | Complete    | 2026-03-20 | - |
+| 13. Groups Ordering Drag and Drop | 3/3 | Complete    | 2026-03-21 | - |
 
 ### Phase 13: Groups Ordering Drag and Drop
 
@@ -151,6 +152,6 @@ Phases execute in numeric order: 10 → 11 → 12
 **Plans:** 3/3 plans complete
 
 Plans:
-- [ ] 13-01-PLAN.md — Install @dnd-kit packages + applyGroupMove cascade utility + SortableGroupRow component
-- [ ] 13-02-PLAN.md — Refactor TokenGroupTree with DndContext, SortableContext, DragOverlay
-- [ ] 13-03-PLAN.md — Page wiring: handleGroupsReordered + undo stack + MongoDB persist + human verify
+- [x] 13-01-PLAN.md — Install @dnd-kit packages + applyGroupMove cascade utility + SortableGroupRow component
+- [x] 13-02-PLAN.md — Refactor TokenGroupTree with DndContext, SortableContext, DragOverlay
+- [x] 13-03-PLAN.md — Page wiring: handleGroupsReordered + undo stack + MongoDB persist + human verify

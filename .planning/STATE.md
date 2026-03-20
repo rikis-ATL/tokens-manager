@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Theme Token Sets
 status: complete
-last_updated: "2026-03-20T10:47:00Z"
+last_updated: "2026-03-21T00:00:00Z"
 progress:
   total_phases: 3
   completed_phases: 0
@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Token collections are always available and editable: stored in MongoDB, accessible via collection-scoped URLs, with per-collection Figma/GitHub config, full CRUD from the collections grid, Figma import/export fully integrated, and a Themes system for filtering active token groups.
-**Current focus:** Phase 13 Groups Ordering Drag and Drop — Plan 03 at checkpoint (human verification)
+**Current focus:** Phase 13 Groups Ordering Drag and Drop — COMPLETE
 
 ## Current Position
 
-Phase: 13 of 13 (Groups Ordering Drag and Drop) — In Progress
-Plan: 03 at checkpoint — handleGroupsReordered wired with applyGroupMove+themes, undo stack, and debounced PUT persist; awaiting human verification
-Status: In Progress
-Last activity: 2026-03-20 — 13-03 Task 1 complete; checkpoint:human-verify reached
+Phase: 13 of 13 (Groups Ordering Drag and Drop) — Complete
+Plan: 03 complete — all tasks done, human verification approved
+Status: Complete
+Last activity: 2026-03-21 — 13-03 Task 2 human verification approved; Phase 13 complete
 
-Progress: [███░░] Plan 03/N at checkpoint
+Progress: [█████] Phase 13 complete (3/3 plans done)
 
 ## Performance Metrics
 
@@ -53,7 +53,7 @@ Progress: [███░░] Plan 03/N at checkpoint
 | Phase 12-theme-aware-export P04 | 1 | 0 tasks | 0 files |
 | Phase 13-groups-ordering-drag-and-drop P01 | ~3 min | 2 tasks | 3 files |
 | Phase 13-groups-ordering-drag-and-drop P02 | ~1 min | 1 tasks | 1 files |
-| Phase 13-groups-ordering-drag-and-drop P03 | ~5 min | 1 tasks | 2 files |
+| Phase 13-groups-ordering-drag-and-drop P03 | ~10min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -100,6 +100,7 @@ Key decisions relevant to v1.4:
 - [Phase 13-03]: nonDefaultThemes excludes __default__ from applyGroupMove — synthetic theme rebuilt from masterGroups, not stored in MongoDB
 - [Phase 13-03]: Undo stack via useRef (not useState) — no re-renders from stack mutations; max 20 steps
 - [Phase 13-03]: Two-call pattern: TokenGroupTree calls applyGroupMove without themes (optimistic UI), page re-calls with themes (authoritative cascade)
+- [Phase 13-groups-ordering-drag-and-drop]: Human verification gate for Phase 13 complete drag-and-drop feature set — all 8 scenarios approved by user on 2026-03-21
 
 ### Pending Todos
 
@@ -112,6 +113,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-20
-Stopped at: Phase 13 plan 03 — checkpoint:human-verify; Task 1 complete (handleGroupsReordered + undo + persist wired)
+Last session: 2026-03-21
+Stopped at: Completed Phase 13 plan 03 — human verification approved; Phase 13 Groups Ordering Drag and Drop complete
 Resume file: None
