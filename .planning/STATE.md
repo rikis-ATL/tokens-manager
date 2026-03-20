@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Theme Token Sets
 status: in_progress
-last_updated: "2026-03-20T05:30:00Z"
+last_updated: "2026-03-20T05:31:00Z"
 progress:
   total_phases: 3
   completed_phases: 0
@@ -48,6 +48,7 @@ Progress: [████████░░] ~80% (8 plans complete)
 | Phase 11-inline-token-editing-ui P02 | 3 | 2 tasks | 1 files |
 | Phase 11-inline-token-editing-ui P03 | 5 | 2 tasks | 2 files |
 | Phase 12-theme-aware-export P01 | ~2 min | 2 tasks | 3 files |
+| Phase 12-theme-aware-export P02 | ~2 min | 2 tasks | 3 files |
 | Phase 12-theme-aware-export P03 | ~2 min | 1 tasks | 1 files |
 
 ## Accumulated Context
@@ -80,6 +81,7 @@ Key decisions relevant to v1.4:
 - [Phase 11-inline-token-editing-ui]: updateGroupToken is a pure recursive helper outside component; handleResetToDefault maps activeThemeTokens through it then calls handleThemeTokenChange
 - [Phase 12-01]: mergeThemeTokens is a pure helper — merge is done before calling the route; route only reads themeLabel for comment injection (style-dictionary.service.ts stays pure)
 - [Phase 12-01]: COMMENT_FORMATS covers css/scss/less/js/ts only — JSON format excluded (JSON spec forbids comments)
+- [Phase 12-02]: Theme selector hidden when collection has no themes (themes.length > 0 guard); overflow-auto replaces overflow-hidden on right column
 - [Phase 12-03]: Route fetches themes from MongoDB itself using mongoCollectionId — no changes required in ExportToFigmaDialog caller
 - [Phase 12-03]: Figma export always includes ALL enabled themes as modes — ignores Config page theme selector entirely
 
@@ -95,5 +97,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-20
-Stopped at: Completed 12-03-PLAN.md — multi-mode Figma Variables export; variableModes + variableModeValues payload; one mode per theme
+Stopped at: Completed 12-02-PLAN.md — config page theme selector, mergeThemeTokens wiring, BuildTokensPanel themeLabel prop, Figma Enterprise note
 Resume file: None

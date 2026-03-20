@@ -23,7 +23,7 @@ Requirements for milestone v1.4 — Theme Token Sets. Phases start at Phase 10.
 
 ### Export
 
-- [ ] **EXPORT-01**: User can select which theme (or collection default) to target for export on the Config page
+- [x] **EXPORT-01**: User can select which theme (or collection default) to target for export on the Config page
 - [ ] **EXPORT-02**: Style Dictionary export uses the selected theme's token values for the active export
 - [x] **EXPORT-03**: Figma Variables export generates one mode per enabled theme in the collection
 
@@ -65,7 +65,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EDIT-02 | Phase 11 | Complete |
 | EDIT-03 | Phase 11 | Complete |
 | EDIT-04 | Phase 11 | Complete |
-| EXPORT-01 | Phase 12 | Pending |
+| EXPORT-01 | Phase 12 | Complete |
 | EXPORT-02 | Phase 12 | Pending |
 | EXPORT-03 | Phase 12 | Complete |
 
