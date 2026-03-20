@@ -88,12 +88,16 @@ export interface ApplyGroupMoveResult {
  * Apply a drag-and-drop group move with full cascade:
  * - Sibling reorder: reorders children arrays and syncs theme snapshots.
  * - Reparenting: rewrites group IDs, token IDs, alias paths, and theme maps.
+ *
+ * @param dropInto When true, insert `active` as the last child of `over`
+ *                 instead of inserting before `over` as a sibling.
  */
 export function applyGroupMove(
   groups: TokenGroup[],
   activeId: string,
   overId: string,
-  themes: ITheme[] = []
+  themes: ITheme[] = [],
+  dropInto = false
 ): ApplyGroupMoveResult {
   const flatNodes = flattenTree(groups);
 
@@ -106,6 +110,15 @@ export function applyGroupMove(
 
   const activeNode = flatNodes[activeIndex];
   const overNode = flatNodes[overIndex];
+
+  // Guard: cannot drop into self or into one of its own descendants
+  if (dropInto && isDescendantOrSelf(activeId, overId, flatNodes)) {
+    return { groups, themes };
+  }
+
+  if (dropInto) {
+    return applyDropInto(groups, themes, flatNodes, activeIndex, activeNode, overNode);
+  }
 
   const newParentId = overNode.parentId;
   const isReparenting = activeNode.parentId !== newParentId;
@@ -138,17 +151,139 @@ export function applyGroupMove(
     return { groups: newGroups, themes: syncedThemes };
   }
 
-  // ---- Reparenting cascade ----
+  return applyReparentingCascade(updatedFlat, groups, themes, activeNode, newParentId);
+}
 
-  // Build intermediate tree to locate the moved group node
+// ---------------------------------------------------------------------------
+// Private helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Return true if `candidateId` is `activeId` or any descendant of `activeId`
+ * in the flat node list. Used to prevent cyclic reparenting.
+ */
+function isDescendantOrSelf(
+  activeId: string,
+  candidateId: string,
+  flatNodes: FlatNode[]
+): boolean {
+  if (candidateId === activeId) return true;
+  let current = flatNodes.find(n => n.group.id === candidateId);
+  while (current) {
+    if (current.parentId === activeId) return true;
+    current = current.parentId
+      ? flatNodes.find(n => n.group.id === current!.parentId)
+      : undefined;
+  }
+  return false;
+}
+
+/**
+ * Handle the "drop into" case: insert active as the last child of the over node.
+ * Reuses the full reparenting cascade (ID rewrite, alias rewrite, theme sync).
+ */
+function applyDropInto(
+  groups: TokenGroup[],
+  themes: ITheme[],
+  flatNodes: FlatNode[],
+  activeIndex: number,
+  activeNode: FlatNode,
+  overNode: FlatNode
+): ApplyGroupMoveResult {
+  const overId = overNode.group.id;
+  const newParentId = overId;
+
+  // Remove active node from flat list
+  const updatedFlat = flatNodes.filter((_, i) => i !== activeIndex);
+
+  // Find the last descendant of overNode in the updated flat list to insert after
+  const overFlatIndex = updatedFlat.findIndex(n => n.group.id === overId);
+  const insertAt = findLastDescendantIndex(updatedFlat, overId, overFlatIndex) + 1;
+
+  const movedNode: FlatNode = {
+    ...activeNode,
+    parentId: newParentId,
+    depth: overNode.depth + 1,
+  };
+  updatedFlat.splice(insertAt, 0, movedNode);
+
+  recomputeSiblingIndices(updatedFlat);
+
+  const isReparenting = activeNode.parentId !== newParentId;
+
+  if (!isReparenting) {
+    const newGroups = buildTreeFromFlat(updatedFlat);
+    const syncedThemes = themes.map(theme => ({
+      ...theme,
+      tokens: syncThemeTokenOrder(theme.tokens, newGroups),
+    }));
+    return { groups: newGroups, themes: syncedThemes };
+  }
+
+  return applyReparentingCascade(updatedFlat, groups, themes, activeNode, newParentId);
+}
+
+/**
+ * Find the flat index of the last node that is a descendant of the node at
+ * `startIndex` (identified by `parentId === overId` or deeper ancestry).
+ * Returns `startIndex` if the over node has no descendants.
+ */
+function findLastDescendantIndex(
+  flat: FlatNode[],
+  overId: string,
+  startIndex: number
+): number {
+  let lastIndex = startIndex;
+  for (let i = startIndex + 1; i < flat.length; i++) {
+    if (isInSubtree(flat[i], overId, flat)) {
+      lastIndex = i;
+    } else {
+      break;
+    }
+  }
+  return lastIndex;
+}
+
+/**
+ * Return true if `node` is within the subtree rooted at `rootId`.
+ */
+function isInSubtree(node: FlatNode, rootId: string, flat: FlatNode[]): boolean {
+  let current: FlatNode | undefined = node;
+  while (current?.parentId) {
+    if (current.parentId === rootId) return true;
+    current = flat.find(n => n.group.id === current!.parentId);
+  }
+  return false;
+}
+
+/**
+ * Run the ID-rewrite, alias-rewrite, and theme-sync cascade after a reparent.
+ * Extracted so both sibling-reparent and drop-into paths share the same logic.
+ */
+function applyReparentingCascade(
+  updatedFlat: FlatNode[],
+  originalGroups: TokenGroup[],
+  themes: ITheme[],
+  activeNode: FlatNode,
+  newParentId: string | null
+): ApplyGroupMoveResult {
+  const activeId = activeNode.group.id;
+
   const intermediateGroups = buildTreeFromFlat(updatedFlat);
 
   const segments = parseGroupPath(activeNode.group.name);
-  const leafName = (segments[segments.length - 1] ?? activeNode.group.name).toLowerCase().replace(/\s+/g, '-');
+  const leafName = (segments[segments.length - 1] ?? activeNode.group.name)
+    .toLowerCase()
+    .replace(/\s+/g, '-');
 
   const oldSlashPrefix = activeNode.group.id;
   const rawNewPrefix = newParentId ? `${newParentId}/${leafName}` : leafName;
-  const newSlashPrefix = resolveCollisionFreeId(intermediateGroups, newParentId, leafName, rawNewPrefix);
+  const newSlashPrefix = resolveCollisionFreeId(
+    intermediateGroups,
+    newParentId,
+    leafName,
+    rawNewPrefix
+  );
 
   const movedGroup = findGroupInTree(intermediateGroups, activeId);
   if (!movedGroup) {
@@ -156,8 +291,6 @@ export function applyGroupMove(
   }
 
   const rewrittenMoved = rewriteSubtreeIds(movedGroup, oldSlashPrefix, newSlashPrefix);
-
-  // Replace moved group in tree with the rewritten version
   const groupsWithRewrite = replaceGroupInTree(intermediateGroups, activeId, rewrittenMoved);
 
   const oldDotPrefix = oldSlashPrefix.replaceAll('/', '.');
@@ -174,10 +307,6 @@ export function applyGroupMove(
 
   return { groups: finalGroups, themes: updatedThemes };
 }
-
-// ---------------------------------------------------------------------------
-// Private helpers
-// ---------------------------------------------------------------------------
 
 /**
  * Recompute the `index` field for each node within its sibling group.

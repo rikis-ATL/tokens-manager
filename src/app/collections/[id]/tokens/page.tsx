@@ -294,6 +294,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     _newGroupsFromTree: TokenGroup[],
     activeId: string,
     overId: string,
+    dropInto = false,
   ) => {
     // Push current state to undo stack before mutating
     undoStackRef.current = [
@@ -311,6 +312,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       activeId,
       overId,
       nonDefaultThemes,
+      dropInto,
     );
 
     // Update React state

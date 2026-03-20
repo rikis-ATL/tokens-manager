@@ -10,12 +10,23 @@ import {
   useSensors,
   type DragStartEvent,
   type DragEndEvent,
+  type DragOverEvent,
+  type DragCancelEvent,
 } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Plus } from 'lucide-react';
 import { TokenGroup } from '@/types';
 import { applyGroupMove, flattenTree, type FlatNode } from '@/utils/groupMove';
 import { SortableGroupRow } from '@/components/tokens/SortableGroupRow';
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+interface DropIntent {
+  id: string;
+  intent: 'into' | 'before';
+}
 
 interface TokenGroupTreeProps {
   groups: TokenGroup[];
@@ -25,7 +36,7 @@ interface TokenGroupTreeProps {
   onAddGroup?: () => void;
   onDeleteGroup?: (groupId: string) => void;
   onAddSubGroup?: (parentGroupId: string) => void;
-  onGroupsReordered?: (newGroups: TokenGroup[], activeId: string, overId: string) => void;
+  onGroupsReordered?: (newGroups: TokenGroup[], activeId: string, overId: string, dropInto: boolean) => void;
   onRenameGroup?: (groupId: string, newLabel: string) => void;
 }
 
@@ -41,6 +52,7 @@ export function TokenGroupTree({
   onRenameGroup,
 }: TokenGroupTreeProps) {
   const [activeNode, setActiveNode] = useState<FlatNode | null>(null);
+  const [dropIntent, setDropIntent] = useState<DropIntent | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
@@ -52,15 +64,46 @@ export function TokenGroupTree({
   function handleDragStart({ active }: DragStartEvent) {
     const found = flatNodes.find(n => n.group.id === active.id);
     setActiveNode(found ?? null);
+    setDropIntent(null);
+  }
+
+  function handleDragOver({ active, over }: DragOverEvent) {
+    if (!over || active.id === over.id) {
+      setDropIntent(null);
+      return;
+    }
+
+    const overRect = over.rect;
+    const activeRect = active.rect.current?.translated;
+    if (!activeRect || !overRect) {
+      setDropIntent(null);
+      return;
+    }
+
+    const activeCenterY = activeRect.top + activeRect.height / 2;
+    const midStart = overRect.top + overRect.height * 0.3;
+    const midEnd = overRect.top + overRect.height * 0.7;
+
+    const intent: DropIntent['intent'] =
+      activeCenterY >= midStart && activeCenterY <= midEnd ? 'into' : 'before';
+    setDropIntent({ id: String(over.id), intent });
   }
 
   function handleDragEnd({ active, over }: DragEndEvent) {
+    const currentIntent = dropIntent;
     setActiveNode(null);
+    setDropIntent(null);
     if (!over || active.id === over.id) return;
     const activeId = String(active.id);
     const overId = String(over.id);
-    const { groups: newGroups } = applyGroupMove(groups, activeId, overId);
-    onGroupsReordered?.(newGroups, activeId, overId);
+    const isDropInto = currentIntent?.id === overId && currentIntent.intent === 'into';
+    const { groups: newGroups } = applyGroupMove(groups, activeId, overId, [], isDropInto);
+    onGroupsReordered?.(newGroups, activeId, overId, isDropInto);
+  }
+
+  function handleDragCancel(_event: DragCancelEvent) {
+    setActiveNode(null);
+    setDropIntent(null);
   }
 
   return (
@@ -88,7 +131,9 @@ export function TokenGroupTree({
           sensors={sensors}
           collisionDetection={closestCenter}
           onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
+          onDragCancel={handleDragCancel}
         >
           <SortableContext items={sortedIds} strategy={verticalListSortingStrategy}>
             {flatNodes.map(node => (
@@ -100,6 +145,9 @@ export function TokenGroupTree({
                 onDeleteGroup={onDeleteGroup}
                 onAddSubGroup={onAddSubGroup}
                 onRenameGroup={onRenameGroup}
+                dropIntent={
+                  dropIntent?.id === node.group.id ? dropIntent.intent : null
+                }
               />
             ))}
           </SortableContext>

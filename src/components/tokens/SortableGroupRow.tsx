@@ -25,6 +25,8 @@ interface SortableGroupRowProps {
   onAddSubGroup?: (parentGroupId: string) => void;
   onRenameGroup?: (groupId: string, newLabel: string) => void;
   isDragOverlay?: boolean;
+  /** Drop intent for THIS row when it is the active over-target. Null when not targeted. */
+  dropIntent?: 'into' | 'before' | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -173,8 +175,9 @@ export function SortableGroupRow({
   onAddSubGroup,
   onRenameGroup,
   isDragOverlay = false,
+  dropIntent,
 }: SortableGroupRowProps) {
-  // Static overlay version — no sortable hooks, no transform
+  // Static overlay version — no sortable hooks, no transform, no ring
   if (isDragOverlay) {
     return (
       <div
@@ -194,6 +197,7 @@ export function SortableGroupRow({
     onDeleteGroup={onDeleteGroup}
     onAddSubGroup={onAddSubGroup}
     onRenameGroup={onRenameGroup}
+    dropIntent={dropIntent}
   />;
 }
 
@@ -205,6 +209,7 @@ function SortableRowInner({
   onDeleteGroup,
   onAddSubGroup,
   onRenameGroup,
+  dropIntent,
 }: Omit<SortableGroupRowProps, 'isDragOverlay'>) {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState('');
@@ -242,11 +247,13 @@ function SortableRowInner({
     setIsEditing(false);
   }
 
+  const dropIntoRing = dropIntent === 'into' ? 'ring-2 ring-inset ring-blue-400 rounded' : '';
+
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={rowClassName(node, isSelected)}
+      className={`${rowClassName(node, isSelected)} ${dropIntoRing}`}
       {...attributes}
       onClick={e => { e.stopPropagation(); if (!isEditing) onSelect(node.group.id); }}
     >
