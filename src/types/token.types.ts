@@ -223,4 +223,5 @@ export interface BuildTokensRequest {
   tokens: Record<string, unknown>;   // raw token JSON from MongoDB or generator form
   namespace: string;                  // e.g. "token" — used as CSS variable prefix
   collectionName: string;             // used for ZIP filename
+  themeLabel?: string;                // optional; if present, injected as comment header in code formats
 }
