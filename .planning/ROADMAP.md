@@ -142,7 +142,7 @@ Phases execute in numeric order: 10 → 11 → 12
 | 10. Data Model Foundation | 2/2 | Complete    | 2026-03-19 | - |
 | 11. Inline Token Editing UI | 3/3 | Complete    | 2026-03-19 | - |
 | 12. Theme-Aware Export | 4/4 | Complete    | 2026-03-20 | - |
-| 13. Groups Ordering Drag and Drop | 3/3 | Complete    | 2026-03-21 | - |
+| 13. Groups Ordering Drag and Drop | 3/3 | Complete    | 2026-03-20 | - |
 
 ### Phase 13: Groups Ordering Drag and Drop
 
