@@ -108,11 +108,13 @@ Plans:
   1. The Config page has a theme selector control; user can choose "Collection default" or any named theme as the export target
   2. Triggering a Style Dictionary build with a theme selected produces token output that uses the theme's values for Enabled groups and the collection-default values for Source groups
   3. Triggering a Figma Variables export produces a payload where each enabled theme in the collection becomes a distinct variable mode
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 12-01: TBD
-- [ ] 12-02: TBD
+- [ ] 12-01-PLAN.md — themeTokenMerge helper + BuildTokensRequest.themeLabel extension + SD build comment injection
+- [ ] 12-02-PLAN.md — Config page theme fetch + "Export theme:" selector + BuildTokensPanel themeLabel wiring + Figma Enterprise note
+- [ ] 12-03-PLAN.md — Figma export route rewrite: multi-mode payload (variableModes + variableModeValues)
+- [ ] 12-04-PLAN.md — Human verify: theme selector, SD comment header, Figma Enterprise note
 
 ## Progress
 
