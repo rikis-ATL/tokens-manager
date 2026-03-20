@@ -9,6 +9,7 @@ interface BuildTokensPanelProps {
   tokens: Record<string, unknown> | null;
   namespace: string;
   collectionName: string;
+  themeLabel?: string;
 }
 
 const FORMAT_LABELS: Record<string, string> = {
@@ -27,6 +28,7 @@ export function BuildTokensPanel({
   tokens,
   namespace,
   collectionName,
+  themeLabel,
 }: BuildTokensPanelProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,7 +48,7 @@ export function BuildTokensPanel({
       const res = await fetch('/api/build-tokens', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tokens, namespace, collectionName }),
+        body: JSON.stringify({ tokens, namespace, collectionName, ...(themeLabel ? { themeLabel } : {}) }),
       });
 
       if (!res.ok) {
@@ -67,7 +69,7 @@ export function BuildTokensPanel({
     } finally {
       setLoading(false);
     }
-  }, [tokens, namespace, collectionName]);
+  }, [tokens, namespace, collectionName, themeLabel]);
 
   // Auto-run build when tokens change
   useEffect(() => {
@@ -80,7 +82,7 @@ export function BuildTokensPanel({
       setActiveBrand('');
       setActiveFormat('css');
     }
-  }, [tokens]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [tokens, themeLabel]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Reset activeBrand when format tab changes (pick first brand in new format)
   const handleFormatChange = (fmt: Format) => {

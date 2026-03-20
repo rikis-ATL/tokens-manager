@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { BuildTokensPanel } from '@/components/dev/BuildTokensPanel';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import type { ITheme } from '@/types/theme.types';
+import { mergeThemeTokens } from '@/lib/themeTokenMerge';
 
 interface ConfigPageProps {
   params: { id: string };
@@ -12,8 +15,11 @@ export default function CollectionConfigPage({ params }: ConfigPageProps) {
   const [collectionName, setCollectionName] = useState('');
   const [namespace, setNamespace] = useState('token');
   const [tokens, setTokens] = useState<Record<string, unknown> | null>(null);
+  const [themes, setThemes] = useState<ITheme[]>([]);
+  const [selectedThemeId, setSelectedThemeId] = useState<string>('__default__');
 
   useEffect(() => {
+    // Fetch collection data
     fetch(`/api/collections/${id}`)
       .then(res => {
         if (!res.ok) throw new Error('Failed to fetch collection');
@@ -28,7 +34,22 @@ export default function CollectionConfigPage({ params }: ConfigPageProps) {
       .catch(() => {
         setTokens(null);
       });
+
+    // Fetch themes in parallel
+    fetch(`/api/collections/${id}/themes`)
+      .then(res => res.ok ? res.json() : { themes: [] })
+      .then((data: { themes?: ITheme[] }) => {
+        setThemes(data.themes ?? []);
+      })
+      .catch(() => setThemes([]));
   }, [id]);
+
+  // Derive merged tokens and theme label from current selection
+  const selectedTheme = themes.find(t => t.id === selectedThemeId) ?? null;
+  const themeLabel = selectedTheme ? selectedTheme.name : undefined;
+  const mergedTokens = selectedTheme && tokens && namespace
+    ? mergeThemeTokens(tokens, selectedTheme, namespace)
+    : tokens;
 
   return (
     <div className="px-6 py-6">
@@ -51,11 +72,31 @@ export default function CollectionConfigPage({ params }: ConfigPageProps) {
         </div>
 
         {/* Right column — Build output panel */}
-        <div className="border rounded-lg bg-white overflow-hidden flex flex-col">
+        <div className="border rounded-lg bg-white overflow-auto flex flex-col">
+          {themes.length > 0 && (
+            <div className="flex items-center gap-2 mb-3 px-4 pt-4">
+              <span className="text-sm text-gray-600 whitespace-nowrap">Export theme:</span>
+              <Select
+                value={selectedThemeId}
+                onValueChange={(v) => setSelectedThemeId(v)}
+              >
+                <SelectTrigger className="h-8 text-sm w-44">
+                  <SelectValue placeholder="Collection default" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__default__">Collection default</SelectItem>
+                  {themes.map(t => (
+                    <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <BuildTokensPanel
-            tokens={tokens}
+            tokens={mergedTokens}
             namespace={namespace}
             collectionName={collectionName}
+            themeLabel={themeLabel}
           />
         </div>
       </div>
