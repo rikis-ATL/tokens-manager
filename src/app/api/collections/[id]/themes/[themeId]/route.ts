@@ -2,50 +2,65 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import TokenCollection from '@/lib/db/models/TokenCollection';
 import type { ITheme, ThemeGroupState } from '@/types/theme.types';
+import type { CollectionGraphState } from '@/types/graph-state.types';
 
 export async function PUT(
   request: Request,
   { params }: { params: { id: string; themeId: string } }
 ) {
   try {
-    const body = await request.json() as { name?: string; groups?: Record<string, ThemeGroupState> };
+    const body = await request.json() as {
+      name?: string;
+      groups?: Record<string, ThemeGroupState>;
+      graphState?: CollectionGraphState | null;
+    };
 
-    if (body.name === undefined && body.groups === undefined) {
+    if (body.name === undefined && body.groups === undefined && body.graphState === undefined) {
       return NextResponse.json({ error: 'Nothing to update' }, { status: 400 });
     }
 
     await dbConnect();
 
-    // Build the $set update — only include fields present in the body
-    const setFields: Record<string, unknown> = {};
+    // Fetch the full document first — positional $set ('themes.$.field') is unreliable
+    // on Schema.Types.Mixed arrays (Mongoose #14595, #12530). Use whole-array $set instead.
+    const collection = await TokenCollection.findById(params.id).lean() as Record<string, unknown> | null;
+
+    if (!collection) {
+      return NextResponse.json({ error: 'Collection or theme not found' }, { status: 404 });
+    }
+
+    const themes = (collection.themes as Array<Record<string, unknown>>) ?? [];
+    const themeIndex = themes.findIndex((t) => (t.id as string) === params.themeId);
+
+    if (themeIndex === -1) {
+      return NextResponse.json({ error: 'Collection or theme not found' }, { status: 404 });
+    }
+
     if (body.name !== undefined) {
       if (typeof body.name !== 'string' || body.name.trim() === '') {
         return NextResponse.json({ error: 'name must be a non-empty string' }, { status: 400 });
       }
-      setFields['themes.$.name'] = body.name.trim();
-    }
-    if (body.groups !== undefined) {
-      setFields['themes.$.groups'] = body.groups;
     }
 
-    const updated = await TokenCollection.findOneAndUpdate(
-      { _id: params.id, 'themes.id': params.themeId },
-      { $set: setFields },
-      { new: true }
-    ).lean() as Record<string, unknown> | null;
+    const updatedTheme: Record<string, unknown> = {
+      ...themes[themeIndex],
+      ...(body.name !== undefined ? { name: body.name.trim() } : {}),
+      ...(body.groups !== undefined ? { groups: body.groups } : {}),
+      ...(body.graphState !== undefined ? { graphState: body.graphState } : {}),
+    };
 
-    if (!updated) {
-      return NextResponse.json({ error: 'Collection or theme not found' }, { status: 404 });
-    }
+    const updatedThemes = [
+      ...themes.slice(0, themeIndex),
+      updatedTheme,
+      ...themes.slice(themeIndex + 1),
+    ];
 
-    const themes = (updated.themes as ITheme[]) ?? [];
-    const theme = themes.find((t) => t.id === params.themeId) ?? null;
+    await TokenCollection.findByIdAndUpdate(
+      params.id,
+      { $set: { themes: updatedThemes } }
+    ).lean();
 
-    if (!theme) {
-      return NextResponse.json({ error: 'Theme not found after update' }, { status: 404 });
-    }
-
-    return NextResponse.json({ theme });
+    return NextResponse.json({ theme: updatedTheme as unknown as ITheme });
   } catch (error) {
     console.error('[PUT /api/collections/[id]/themes/[themeId]]', error);
     return NextResponse.json({ error: 'Failed to update theme' }, { status: 500 });
@@ -62,7 +77,7 @@ export async function DELETE(
     const updated = await TokenCollection.findByIdAndUpdate(
       params.id,
       { $pull: { themes: { id: params.themeId } } },
-      { new: true }
+      { returnDocument: 'after' }
     ).lean();
 
     if (!updated) {

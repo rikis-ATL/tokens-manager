@@ -226,7 +226,7 @@ interface GroupStructureGraphProps {
   allGroups?: FlatGroup[];
   initialGraphState?: GraphGroupState;
   onBulkAddTokens?: (groupId: string, tokens: GeneratedToken[], subgroupName?: string) => void;
-  onGraphStateChange?: (state: GraphGroupState) => void;
+  onGraphStateChange?: (state: GraphGroupState, options?: { flushImmediate?: boolean }) => void;
 }
 
 export function GroupStructureGraph({ group, namespace, allTokens, allGroups, initialGraphState, onBulkAddTokens, onGraphStateChange }: GroupStructureGraphProps) {
@@ -245,9 +245,9 @@ export function GroupStructureGraph({ group, namespace, allTokens, allGroups, in
     () => (initialGraphState?.edges ?? []).map((e: PersistedEdge) => ({
       id: e.id,
       source: e.source,
-      sourceHandle: e.sourceHandle,
+      sourceHandle: e.sourceHandle ?? undefined,
       target: e.target,
-      targetHandle: e.targetHandle,
+      targetHandle: e.targetHandle ?? undefined,
       type: 'deletable',
       style: { stroke: '#a78bfa', strokeWidth: 1.5 },
       animated: false,
@@ -316,12 +316,12 @@ export function GroupStructureGraph({ group, namespace, allTokens, allGroups, in
     return () => { if (graphStateTimerRef.current) clearTimeout(graphStateTimerRef.current); };
   }, [composableNodeMetas, composableEdges]);
 
-  // ── Flush immediately on unmount (group navigation) ──────────────────────
-  // This guarantees the parent has the latest state before key remount.
+  // ── Flush immediately on unmount (theme/group switch) ───────────────────
+  // Ensures parent saves current theme's graph state before loading another.
   useEffect(() => {
     return () => {
       if (graphStateTimerRef.current) clearTimeout(graphStateTimerRef.current);
-      onGraphStateChangeRef.current?.(currentStateRef.current);
+      onGraphStateChangeRef.current?.(currentStateRef.current, { flushImmediate: true });
     };
   }, []);
 

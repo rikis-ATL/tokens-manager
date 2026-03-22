@@ -371,11 +371,6 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   // Persist graph state to the correct theme (per theme > group)
   const persistGraphState = useCallback((gs: CollectionGraphState) => {
     const themeId = activeThemeIdRef.current;
-    // #region agent log
-    const _grp = Object.values(gs)[0];
-    const _sv = _grp && typeof _grp==='object' && _grp.nodes ? Object.values(_grp.nodes)[0]?.config?.value : undefined;
-    fetch('http://127.0.0.1:7904/ingest/42ab2957-6639-4a7b-8f90-226fafaea52f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6eabf0'},body:JSON.stringify({sessionId:'6eabf0',location:'tokens/page.tsx:persistGraphState',message:'Persisting graph state',data:{themeId,target:themeId&&themeId!==DEFAULT_THEME_ID?'theme':'collection',sampleValue:_sv},timestamp:Date.now(),hypothesisId:'C'})}).catch(()=>{});
-    // #endregion
     if (themeId && themeId !== DEFAULT_THEME_ID) {
       return fetch(`/api/collections/${id}/themes/${themeId}`, {
         method: 'PUT',
@@ -401,11 +396,6 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   }, [id]);
 
   const handleGraphStateChange = useCallback((groupId: string, state: GraphGroupState, flushImmediate?: boolean) => {
-    // #region agent log
-    const _tid = activeThemeIdRef.current;
-    const _sv = Object.values(state?.nodes??{})[0]?.config?.value;
-    fetch('http://127.0.0.1:7904/ingest/42ab2957-6639-4a7b-8f90-226fafaea52f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6eabf0'},body:JSON.stringify({sessionId:'6eabf0',location:'tokens/page.tsx:handleGraphStateChange',message:'Graph state change',data:{groupId,activeThemeIdRef:_tid,flushImmediate,sampleValue:_sv},timestamp:Date.now(),hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
     const next = { ...graphStateMapRef.current, [groupId]: state };
     graphStateMapRef.current = next;
     setGraphStateMap(next);
@@ -549,14 +539,10 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   // ── Sync graphStateMap when activeThemeId changes (per theme > group) ───
   // Each theme has its own graph state per group; never mix themes (like tokens table).
   useEffect(() => {
-    // #region agent log
-    const _dbg = () => { fetch('http://127.0.0.1:7904/ingest/42ab2957-6639-4a7b-8f90-226fafaea52f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6eabf0'},body:JSON.stringify({sessionId:'6eabf0',location:'tokens/page.tsx:sync-effect',message:'Sync effect ran',data:{activeThemeId,source:!activeThemeId?'none':activeThemeId===DEFAULT_THEME_ID?'collection':'theme',themeIds:themes.map(t=>t.id),groupIdsInGs:Object.keys(activeThemeId===DEFAULT_THEME_ID?collectionGraphState:(themes.find(t=>t.id===activeThemeId)?.graphState??{})||{})},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{}); };
-    // #endregion
     if (!activeThemeId) {
       const gs = collectionGraphState;
       setGraphStateMap(gs);
       graphStateMapRef.current = gs;
-      _dbg();
       return;
     }
     const theme = themes.find(t => t.id === activeThemeId);
@@ -566,7 +552,6 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       : (theme?.graphState ?? {})) as CollectionGraphState;
     setGraphStateMap(gs);
     graphStateMapRef.current = gs;
-    _dbg();
   }, [activeThemeId, themes, collectionGraphState]);
 
   // ── Sync activeThemeTokens when activeThemeId or themes changes ─────────
@@ -581,13 +566,16 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
 
   // ── Theme selector change with group fallback ───────────────────────────
   const handleThemeChange = useCallback((newThemeId: string) => {
-    // #region agent log
-    const _theme = themes.find(t => t.id === newThemeId);
-    const _gs = newThemeId === DEFAULT_THEME_ID ? collectionGraphState : (_theme?.graphState ?? {});
-    fetch('http://127.0.0.1:7904/ingest/42ab2957-6639-4a7b-8f90-226fafaea52f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6eabf0'},body:JSON.stringify({sessionId:'6eabf0',location:'tokens/page.tsx:handleThemeChange',message:'Theme change (BEFORE setState)',data:{newThemeId,wouldSyncGs:!!_gs,groupIds:Object.keys(_gs)},timestamp:Date.now(),hypothesisId:'E'})}).catch(()=>{});
-    // #endregion
-    setActiveThemeId(newThemeId);
+    // Sync graphStateMap BEFORE setActiveThemeId so the next render passes correct initialGraphState
+    // to GroupStructureGraph. The sync effect runs after render; without this, the new graph would
+    // mount with the previous theme's graph.
     const newTheme = themes.find(t => t.id === newThemeId);
+    const gs = (newThemeId === DEFAULT_THEME_ID
+      ? collectionGraphState
+      : (newTheme?.graphState ?? {})) as CollectionGraphState;
+    setGraphStateMap(gs);
+    graphStateMapRef.current = gs;
+    setActiveThemeId(newThemeId);
     if (!newTheme) return;
     const currentState = selectedGroupId
       ? (newTheme.groups[selectedGroupId] ?? 'disabled')
@@ -597,7 +585,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       const firstEnabled = allGroupsList.find(g => newTheme.groups[g.id] === 'enabled');
       setSelectedGroupId(firstEnabled?.id ?? '');
     }
-  }, [themes, selectedGroupId, masterGroups]);
+  }, [themes, selectedGroupId, masterGroups, collectionGraphState]);
 
   // ── Theme token change with debounced PATCH auto-save ───────────────────
   const handleThemeTokenChange = useCallback((updatedTokens: TokenGroup[]) => {
@@ -905,8 +893,8 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
                   onBulkInsertProcessed={() => setPendingBulkInsert(null)}
                   pendingGroupAction={pendingGroupAction}
                   onGroupActionProcessed={() => setPendingGroupAction(null)}
-                  themeTokens={activeThemeId ? activeThemeTokens : undefined}
-                  onThemeTokensChange={activeThemeId ? handleThemeTokenChange : undefined}
+                  themeTokens={activeThemeId && activeThemeId !== DEFAULT_THEME_ID ? activeThemeTokens : undefined}
+                  onThemeTokensChange={activeThemeId && activeThemeId !== DEFAULT_THEME_ID ? handleThemeTokenChange : undefined}
                   isReadOnly={isThemeReadOnly}
                   findMasterValue={activeThemeId && activeThemeId !== DEFAULT_THEME_ID ? findMasterValue : undefined}
                   onResetToDefault={activeThemeId && activeThemeId !== DEFAULT_THEME_ID && !isThemeReadOnly ? handleResetToDefault : undefined}

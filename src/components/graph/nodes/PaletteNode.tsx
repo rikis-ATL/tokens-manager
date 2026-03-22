@@ -8,6 +8,7 @@ import {
   NodeWrapper, NodeHeader, Row, RowHandle, NativeSelect, NumberInput, TextInput,
   HANDLE_STRING, HANDLE_ARRAY, HANDLE_NUMBER,
 } from './nodeShared';
+import { PALETTE_PRESETS, getPaletteFamilies } from '@/lib/presets';
 import type {
   ComposableNodeData,
   PaletteConfig,
@@ -92,6 +93,25 @@ function PaletteNodeComponent({ data }: NodeProps) {
   const update = (partial: Partial<PaletteConfig>) =>
     onConfigChange(nodeId, { ...cfg, ...partial });
 
+  const presetId = cfg.presetId ?? 'none';
+  const presetFamily = cfg.presetFamily ?? '';
+  const families = presetId && presetId !== 'none' ? getPaletteFamilies(presetId) : [];
+  const usePreset = presetId && presetId !== 'none' && presetFamily && families.some((f) => f.id === presetFamily);
+
+  const handlePresetChange = (id: string) => {
+    if (id === 'none') {
+      update({ presetId: undefined, presetFamily: undefined });
+    } else {
+      const nextFamilies = getPaletteFamilies(id);
+      const firstFamily = nextFamilies[0]?.id ?? '';
+      update({ presetId: id, presetFamily: firstFamily });
+    }
+  };
+
+  const handlePresetFamilyChange = (familyId: string) => {
+    update({ presetFamily: familyId });
+  };
+
   // ── Local base color state for instant color-picker feedback ─────────────
   // Keeps the preview live while the user drags the picker, without waiting
   // for the full graph re-evaluation cycle.
@@ -147,6 +167,34 @@ function PaletteNodeComponent({ data }: NodeProps) {
 
       <div className="px-3 py-2 space-y-1.5 nodrag">
 
+        {/* Preset — design system palette to load (optional) */}
+        <Row label="Preset">
+          <NativeSelect
+            value={presetId}
+            onChange={handlePresetChange}
+            options={[
+              { value: 'none', label: 'None (generate)' },
+              ...PALETTE_PRESETS.map((p) => ({ value: p.id, label: p.name })),
+            ]}
+          />
+        </Row>
+
+        {presetId !== 'none' && families.length > 0 && (
+          <Row label="Family">
+            <NativeSelect
+              value={presetFamily}
+              onChange={handlePresetFamilyChange}
+              options={families.map((f) => ({ value: f.id, label: f.label }))}
+            />
+          </Row>
+        )}
+
+        {usePreset && (
+          <p className="text-[9px] text-rose-600 italic px-0.5">
+            Using preset colors — generation settings ignored
+          </p>
+        )}
+
         {/* Name — output handle on the right aligns with this row */}
         <Row
           label="Name"
@@ -155,142 +203,146 @@ function PaletteNodeComponent({ data }: NodeProps) {
           <TextInput
             value={cfg.name}
             onChange={v => update({ name: v })}
-            placeholder="e.g. brand, neutral"
+            placeholder={usePreset ? presetFamily : 'e.g. brand, neutral'}
           />
         </Row>
 
-        {/* Base color — input handle on the left aligns with this row */}
-        <Row
-          label={<span className="flex items-center">Base color<Dot on={hasBaseColor} /></span>}
-          handle={<RowHandle id="baseColor" className={HANDLE_STRING} title="baseColor (string) — wire a Constant to override" />}
-        >
-          <div className={`flex items-center gap-1.5 ${hasBaseColor ? 'opacity-50' : ''}`}>
-            <label className="flex-shrink-0 cursor-pointer relative w-6 h-5">
-              <div
-                className="w-6 h-5 rounded border border-gray-200"
-                style={{ backgroundColor: effectiveBaseColor }}
+        {!usePreset && (
+          <>
+            {/* Base color — input handle on the left aligns with this row */}
+            <Row
+              label={<span className="flex items-center">Base color<Dot on={hasBaseColor} /></span>}
+              handle={<RowHandle id="baseColor" className={HANDLE_STRING} title="baseColor (string) — wire a Constant to override" />}
+            >
+              <div className={`flex items-center gap-1.5 ${hasBaseColor ? 'opacity-50' : ''}`}>
+                <label className="flex-shrink-0 cursor-pointer relative w-6 h-5">
+                  <div
+                    className="w-6 h-5 rounded border border-gray-200"
+                    style={{ backgroundColor: effectiveBaseColor }}
+                  />
+                  <input
+                    type="color"
+                    value={effectiveBaseColor.startsWith('#') ? effectiveBaseColor : '#6366f1'}
+                    onChange={e => handleBaseColorChange(e.target.value)}
+                    disabled={hasBaseColor}
+                    className="absolute inset-0 opacity-0 w-full h-full cursor-pointer disabled:cursor-not-allowed"
+                  />
+                </label>
+                <TextInput
+                  value={hasBaseColor ? (inputs['baseColor'] as string) : liveBaseColor}
+                  onChange={v => handleBaseColorChange(v)}
+                  placeholder="#hex or hsl(…)"
+                  className={hasBaseColor ? 'border-green-300 bg-green-50' : ''}
+                />
+              </div>
+            </Row>
+
+            {/* ── Min / Max lightness — hidden when lightness array is wired ── */}
+            <Row
+              label={<span className="flex items-center">Min L %<Dot on={hasLightness} /></span>}
+              handle={<RowHandle id="lightness" className={`${HANDLE_ARRAY} ${hasLightness ? '!bg-violet-500' : ''}`} title="lightness (number[]) — L% values; overrides min/max when wired" />}
+            >
+              <NumberInput
+                value={cfg.minLightness}
+                onChange={v => update({ minLightness: Math.max(0, Math.min(100, v)) })}
+                min={0} max={100} step={1}
+                className={hasLightness ? 'opacity-40' : ''}
               />
-              <input
-                type="color"
-                value={effectiveBaseColor.startsWith('#') ? effectiveBaseColor : '#6366f1'}
-                onChange={e => handleBaseColorChange(e.target.value)}
-                disabled={hasBaseColor}
-                className="absolute inset-0 opacity-0 w-full h-full cursor-pointer disabled:cursor-not-allowed"
+            </Row>
+
+            <Row label="Max L %">
+              <NumberInput
+                value={cfg.maxLightness}
+                onChange={v => update({ maxLightness: Math.max(0, Math.min(100, v)) })}
+                min={0} max={100} step={1}
+                className={hasLightness ? 'opacity-40' : ''}
               />
-            </label>
-            <TextInput
-              value={hasBaseColor ? (inputs['baseColor'] as string) : liveBaseColor}
-              onChange={v => handleBaseColorChange(v)}
-              placeholder="#hex or hsl(…)"
-              className={hasBaseColor ? 'border-green-300 bg-green-50' : ''}
-            />
-          </div>
-        </Row>
+            </Row>
 
-        {/* ── Min / Max lightness — hidden when lightness array is wired ── */}
-        <Row
-          label={<span className="flex items-center">Min L %<Dot on={hasLightness} /></span>}
-          handle={<RowHandle id="lightness" className={`${HANDLE_ARRAY} ${hasLightness ? '!bg-violet-500' : ''}`} title="lightness (number[]) — L% values; overrides min/max when wired" />}
-        >
-          <NumberInput
-            value={cfg.minLightness}
-            onChange={v => update({ minLightness: Math.max(0, Math.min(100, v)) })}
-            min={0} max={100} step={1}
-            className={hasLightness ? 'opacity-40' : ''}
-          />
-        </Row>
+            {hasLightness && (
+              <div className="text-[9px] text-blue-500 italic px-0.5">
+                ↳ Lightness overridden ({(inputs['lightness'] as unknown[]).length} values)
+              </div>
+            )}
 
-        <Row label="Max L %">
-          <NumberInput
-            value={cfg.maxLightness}
-            onChange={v => update({ maxLightness: Math.max(0, Math.min(100, v)) })}
-            min={0} max={100} step={1}
-            className={hasLightness ? 'opacity-40' : ''}
-          />
-        </Row>
+            {/* Step naming */}
+            <Row
+              label={<span className="flex items-center">Steps<Dot on={hasNamesInput} /></span>}
+              handle={<RowHandle id="names" className={`${HANDLE_ARRAY} ${hasNamesInput ? '!bg-violet-500' : ''}`} title="names (string[]) — custom step names array" />}
+            >
+              <NativeSelect
+                value={cfg.naming}
+                onChange={v => update({ naming: v as PaletteNaming })}
+                options={NAMING_OPTIONS}
+              />
+            </Row>
 
-        {hasLightness && (
-          <div className="text-[9px] text-blue-500 italic px-0.5">
-            ↳ Lightness overridden ({(inputs['lightness'] as unknown[]).length} values)
-          </div>
-        )}
-
-        {/* Step naming */}
-        <Row
-          label={<span className="flex items-center">Steps<Dot on={hasNamesInput} /></span>}
-          handle={<RowHandle id="names" className={`${HANDLE_ARRAY} ${hasNamesInput ? '!bg-violet-500' : ''}`} title="names (string[]) — custom step names array" />}
-        >
-          <NativeSelect
-            value={cfg.naming}
-            onChange={v => update({ naming: v as PaletteNaming })}
-            options={NAMING_OPTIONS}
-          />
-        </Row>
-
-        {/* Custom step names list — only when 'custom' naming is selected and no array is wired */}
-        {cfg.naming === 'custom' && !hasNamesInput && (
-          <div className="space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Custom steps</span>
-              <button
-                onClick={() => {
-                  const steps = cfg.customNames ? cfg.customNames.split(',').map(s => s.trim()).filter(Boolean) : [];
-                  update({ customNames: [...steps, ''].join(', ') });
-                }}
-                className="flex items-center gap-0.5 text-[10px] text-gray-400 hover:text-violet-500 transition-colors"
-              >
-                <Plus size={9} /> Add
-              </button>
-            </div>
-            {(() => {
-              const steps = cfg.customNames ? cfg.customNames.split(',').map(s => s.trim()) : [];
-              if (steps.length === 0) {
-                return (
-                  <p className="text-[10px] text-gray-300 italic">No steps — click Add or type below</p>
-                );
-              }
-              return steps.map((step, i) => (
-                <div key={i} className="flex items-center gap-1">
-                  <div className="flex-1 min-w-0">
-                    <TextInput
-                      value={step}
-                      onChange={v => {
-                        const next = [...steps];
-                        next[i] = v;
-                        update({ customNames: next.join(', ') });
-                      }}
-                      placeholder={`step ${i + 1}`}
-                    />
-                  </div>
+            {/* Custom step names list — only when 'custom' naming is selected and no array is wired */}
+            {cfg.naming === 'custom' && !hasNamesInput && (
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Custom steps</span>
                   <button
                     onClick={() => {
-                      const next = steps.filter((_, j) => j !== i);
-                      update({ customNames: next.join(', ') });
+                      const steps = cfg.customNames ? cfg.customNames.split(',').map(s => s.trim()).filter(Boolean) : [];
+                      update({ customNames: [...steps, ''].join(', ') });
                     }}
-                    className="flex-shrink-0 p-0.5 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                    className="flex items-center gap-0.5 text-[10px] text-gray-400 hover:text-violet-500 transition-colors"
                   >
-                    <X size={10} />
+                    <Plus size={9} /> Add
                   </button>
                 </div>
-              ));
-            })()}
-          </div>
-        )}
+                {(() => {
+                  const steps = cfg.customNames ? cfg.customNames.split(',').map(s => s.trim()) : [];
+                  if (steps.length === 0) {
+                    return (
+                      <p className="text-[10px] text-gray-300 italic">No steps — click Add or type below</p>
+                    );
+                  }
+                  return steps.map((step, i) => (
+                    <div key={i} className="flex items-center gap-1">
+                      <div className="flex-1 min-w-0">
+                        <TextInput
+                          value={step}
+                          onChange={v => {
+                            const next = [...steps];
+                            next[i] = v;
+                            update({ customNames: next.join(', ') });
+                          }}
+                          placeholder={`step ${i + 1}`}
+                        />
+                      </div>
+                      <button
+                        onClick={() => {
+                          const next = steps.filter((_, j) => j !== i);
+                          update({ customNames: next.join(', ') });
+                        }}
+                        className="flex-shrink-0 p-0.5 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                      >
+                        <X size={10} />
+                      </button>
+                    </div>
+                  ));
+                })()}
+              </div>
+            )}
 
-        {hasNamesInput && (
-          <div className="text-[9px] text-blue-500 italic px-0.5">
-            ↳ Step names overridden by connected array
-          </div>
-        )}
+            {hasNamesInput && (
+              <div className="text-[9px] text-blue-500 italic px-0.5">
+                ↳ Step names overridden by connected array
+              </div>
+            )}
 
-        {/* Format */}
-        <Row label="Format">
-          <NativeSelect
-            value={cfg.format}
-            onChange={v => update({ format: v as CssColorFormat })}
-            options={FORMAT_OPTIONS}
-          />
-        </Row>
+            {/* Format */}
+            <Row label="Format">
+              <NativeSelect
+                value={cfg.format}
+                onChange={v => update({ format: v as CssColorFormat })}
+                options={FORMAT_OPTIONS}
+              />
+            </Row>
+          </>
+        )}
 
         {/* ── Preview ─────────────────────────────────────────────────── */}
         {colors.length > 0 ? (
@@ -353,33 +405,35 @@ function PaletteNodeComponent({ data }: NodeProps) {
           </Row>
         </div>
 
-        {/* ── Accent / secondary colors ───────────────────────────────── */}
-        <div className="pt-1.5 border-t border-gray-100 space-y-1">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">
-              Accent colors
-            </span>
-            <button
-              onClick={addSecondary}
-              className="flex items-center gap-0.5 text-[10px] text-gray-400 hover:text-rose-500 transition-colors"
-            >
-              <Plus size={9} /> Add
-            </button>
+        {/* ── Accent / secondary colors (only when generating, not using preset) ───────────────────────────────── */}
+        {!usePreset && (
+          <div className="pt-1.5 border-t border-gray-100 space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">
+                Accent colors
+              </span>
+              <button
+                onClick={addSecondary}
+                className="flex items-center gap-0.5 text-[10px] text-gray-400 hover:text-rose-500 transition-colors"
+              >
+                <Plus size={9} /> Add
+              </button>
+            </div>
+
+            {cfg.secondaryColors.length === 0 && (
+              <p className="text-[10px] text-gray-300 italic">None — add accent shades (e.g. 50, 950)</p>
+            )}
+
+            {cfg.secondaryColors.map(s => (
+              <SecondaryRow
+                key={s.id}
+                entry={s}
+                onUpdate={p => updateSecondary(s.id, p)}
+                onRemove={() => removeSecondary(s.id)}
+              />
+            ))}
           </div>
-
-          {cfg.secondaryColors.length === 0 && (
-            <p className="text-[10px] text-gray-300 italic">None — add accent shades (e.g. 50, 950)</p>
-          )}
-
-          {cfg.secondaryColors.map(s => (
-            <SecondaryRow
-              key={s.id}
-              entry={s}
-              onUpdate={p => updateSecondary(s.id, p)}
-              onRemove={() => removeSecondary(s.id)}
-            />
-          ))}
-        </div>
+        )}
       </div>
 
     </NodeWrapper>

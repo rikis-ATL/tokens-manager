@@ -22,6 +22,7 @@ import type {
 import { previewGeneratedTokens } from './tokenGenerators';
 import { parseArrayToValues } from './jsonTokenParser';
 import type { GeneratorConfig, ColorGeneratorConfig, DimensionGeneratorConfig } from '@/types/generator.types';
+import { getPaletteFamilyColors } from '@/lib/presets';
 
 // ── Math helpers ──────────────────────────────────────────────────────────────
 
@@ -415,6 +416,18 @@ function evalPalette(
   config: PaletteConfig,
   inputs: Record<string, PortValue>,
 ): Record<string, PortValue> {
+  // Preset mode — output design system colors when presetId + presetFamily are set
+  if (config.presetId && config.presetFamily) {
+    const presetColors = getPaletteFamilyColors(config.presetId, config.presetFamily);
+    if (presetColors) {
+      return {
+        values: presetColors.values as string[],
+        names: presetColors.names as string[],
+        name: config.name ?? config.presetFamily,
+      };
+    }
+  }
+
   // Resolve base color — prefer wired string input, then config field, then fallback indigo
   const baseColorInput = typeof inputs['baseColor'] === 'string'
     ? inputs['baseColor']

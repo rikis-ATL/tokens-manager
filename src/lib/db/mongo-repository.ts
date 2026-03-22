@@ -22,6 +22,7 @@ function toDoc(raw: Record<string, unknown>): CollectionDoc {
     themes: ((raw.themes as Array<Record<string, unknown>>) ?? []).map((t) => ({
       ...t,
       tokens: (t.tokens as TokenGroup[]) ?? [],
+      graphState: (t.graphState as ITheme['graphState']) ?? {},
     })) as ITheme[],
     createdAt: (raw.createdAt as Date).toISOString(),
     updatedAt: (raw.updatedAt as Date).toISOString(),
@@ -73,7 +74,7 @@ export class MongoCollectionRepository implements ICollectionRepository {
     const doc = await TokenCollection.findByIdAndUpdate(
       id,
       { $set: data },
-      { new: true, runValidators: true },
+      { returnDocument: 'after', runValidators: true },
     ).lean();
     return doc ? toDoc(doc as unknown as Record<string, unknown>) : null;
   }

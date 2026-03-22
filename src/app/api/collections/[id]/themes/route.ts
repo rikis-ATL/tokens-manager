@@ -5,6 +5,8 @@ import TokenCollection from '@/lib/db/models/TokenCollection';
 import { tokenService } from '@/services/token.service';
 import type { TokenGroup } from '@/types';
 import type { ITheme } from '@/types/theme.types';
+import type { CollectionGraphState } from '@/types/graph-state.types';
+import { remapGraphStateForTheme } from '@/lib/graphStateRemap';
 
 export async function GET(
   _request: Request,
@@ -69,17 +71,27 @@ export async function POST(
 
     const defaultState = 'enabled';
 
+    // Inherit graph state from collection default (deep clone) and remap node IDs
+    // so each theme has unique graph nodes (themes are separate entities; groups linked by source)
+    const collectionGraphState = (collection.graphState ?? {}) as CollectionGraphState;
+    const themeId = crypto.randomUUID();
+    const graphState = remapGraphStateForTheme(
+      JSON.parse(JSON.stringify(collectionGraphState)),
+      themeId
+    );
+
     const theme: ITheme = {
-      id: crypto.randomUUID(),
+      id: themeId,
       name: body.name.trim(),
       groups: Object.fromEntries(groupIds.map((gid) => [gid, defaultState])),
       tokens: groupTree,  // full tree snapshot — not the flat list
+      graphState,
     };
 
     const updated = await TokenCollection.findByIdAndUpdate(
       params.id,
       { $push: { themes: theme } },
-      { new: true }
+      { returnDocument: 'after' }
     ).lean();
 
     if (!updated) {

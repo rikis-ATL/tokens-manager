@@ -136,6 +136,9 @@ export interface PaletteConfig {
   customNames: string;         // CSV string of custom step names
   format: CssColorFormat;      // output format: hex | rgb | hsl | oklch
   secondaryColors: PaletteSecondary[]; // extra accent/override colors
+  /** Design system preset — when set, outputs preset colors instead of generating */
+  presetId?: string;
+  presetFamily?: string;
 }
 
 // ── Typography composite node ─────────────────────────────────────────────────

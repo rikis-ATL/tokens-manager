@@ -1,7 +1,7 @@
 # Token Graph System — Current State Summary
 
 > **Purpose of this document**: Context for continuing graph feature development in a new chat session.
-> Last updated: 2026-03-14
+> Last updated: 2026-03-19
 
 ---
 
@@ -10,6 +10,26 @@
 The token graph system is a React Flow–based visual node editor embedded inside the token collection page. It allows users to **compose pipelines of nodes** that generate design token values and push them into token groups.
 
 The graph lives in the right-hand split pane of the tokens page (`src/app/collections/[id]/tokens/page.tsx`) and is rendered by `TokenGraphPanel` → `GroupStructureGraph`.
+
+---
+
+## Graph State Per Theme and Per Group
+
+Graph state is **isolated per theme and per group**, matching how the tokens table works:
+
+| Scope | Storage |
+|-------|---------|
+| Default (collection) | `collection.graphState` — `Record<groupId, GraphGroupState>` |
+| Theme 1 | `theme1.graphState` — each group has its own graph |
+| Theme 2 | `theme2.graphState` — independent from Theme 1 |
+
+- **Group IDs** are shared (e.g. `"colors"`, `"typography"`).
+- **Node IDs** are unique per theme; `remapGraphStateForTheme()` rewrites IDs when creating themes.
+- **GroupStructureGraph** uses `key={group.id}-{activeThemeId}` so it remounts on theme change.
+- **Unmount flush**: On theme/group switch, the graph flushes with `flushImmediate: true` so the current theme's state is saved before loading another theme's state.
+- **Custom themes** never fall back to collection graph state; they use only `theme.graphState` (or `{}` if empty).
+
+See `documentation/themes-and-graph-data-model.md` for full data model details.
 
 ---
 
@@ -212,7 +232,7 @@ setNodes(prev => {
 
 **Fit view**: No automatic fit-view on node add (removed — was causing focus loss). Use the built-in Controls fit-view button (bottom-left of canvas).
 
-**Graph state persistence per group**: Each group's graph state is serialised to `graphStateMap: CollectionGraphState` in `page.tsx`. On unmount, `GroupStructureGraph` synchronously flushes the latest state via a `useEffect` cleanup (bypassing the debounce timer) so navigation away and back preserves the graph.
+**Graph state persistence per theme and per group**: Each theme has its own `graphState: Record<groupId, GraphGroupState>`. The tokens page syncs `graphStateMap` from the active theme (or collection for default). On unmount, `GroupStructureGraph` flushes with `flushImmediate: true` so the current theme's state is saved before switching. Debounced auto-save uses `activeThemeIdRef` to persist to the correct theme.
 
 **Edge deletion**: All composable edges use `type: 'deletable'` (custom `DeletableEdge`). Hovering an edge reveals a `×` button. The `onDelete` callback is injected via a memo so it doesn't stale-close over old state.
 

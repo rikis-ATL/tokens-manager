@@ -69,6 +69,7 @@ interface TokenTableRowProps {
   getFullPath: (group: TokenGroup, tokenPath: string) => string;
   parseValue: (raw: string, type: TokenType) => unknown;
   isReadOnly?: boolean;
+  isPathLocked?: boolean;
   masterValue?: string;
   onResetToDefault?: (groupId: string, tokenId: string, masterValue: string) => void;
 }
@@ -91,7 +92,7 @@ function TokenTableRow({
   token, group, tokenGroups, selectedTokenId, isExpanded,
   onTokenSelect, onUpdateToken, onDeleteToken, onToggleExpansion,
   onUpdateAttribute, onRemoveAttribute, resolveRef, getFullPath, parseValue,
-  isReadOnly, masterValue, onResetToDefault,
+  isReadOnly, isPathLocked, masterValue, onResetToDefault,
 }: TokenTableRowProps) {
   const [editingField, setEditingField] = useState<string | null>(null);
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
@@ -125,7 +126,7 @@ function TokenTableRow({
       >
         {/* Name */}
         <td className="px-0 py-0 border-r border-gray-100 w-[180px]">
-          {editingField === 'path' ? (
+          {!isPathLocked && editingField === 'path' ? (
             <Input
               autoFocus
               value={token.path}
@@ -137,8 +138,8 @@ function TokenTableRow({
             />
           ) : (
             <div
-              className={`h-9 flex items-center px-4 font-mono text-sm text-gray-700 ${isReadOnly ? 'cursor-default' : 'cursor-text'}`}
-              onClick={isReadOnly ? undefined : enterEdit('path')}
+              className={`h-9 flex items-center px-4 font-mono text-sm text-gray-700 ${isReadOnly || isPathLocked ? 'cursor-default' : 'cursor-text'}`}
+              onClick={isReadOnly || isPathLocked ? undefined : enterEdit('path')}
             >
               <span className="truncate">{token.path || <span className="text-gray-300">—</span>}</span>
             </div>
@@ -292,9 +293,10 @@ function TokenTableRow({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-6 w-6 p-0 text-gray-400 hover:text-red-600"
+                className="h-6 w-6 p-0 text-gray-400 hover:text-red-600 disabled:opacity-50 disabled:pointer-events-none"
                 onClick={e => { e.stopPropagation(); onDeleteToken(group.id, token.id); }}
-                title="Delete token"
+                disabled={isReadOnly}
+                title={isReadOnly ? 'Source group — read only' : 'Delete token'}
               >
                 <Trash2 size={12} />
               </Button>
@@ -384,6 +386,12 @@ interface TokenGeneratorFormProps {
   isReadOnly?: boolean;
   findMasterValue?: (groupId: string, tokenPath: string) => string | undefined;
   onResetToDefault?: (groupId: string, tokenId: string, masterValue: string) => void;
+  /** Reset entire group to source: delete tokens not in source, reset values */
+  onResetGroupToSource?: (groupId: string) => void;
+  /** Whether a group is in source mode (read-only, no reset) */
+  isGroupSource?: (groupId: string) => boolean;
+  /** When theme is active and graph token names differ from default */
+  tokenNameMismatch?: { inThemeNotDefault: string[]; inDefaultNotTheme: string[] } | null;
 }
 
 export function TokenGeneratorForm({
@@ -410,6 +418,9 @@ export function TokenGeneratorForm({
   isReadOnly,
   findMasterValue,
   onResetToDefault,
+  onResetGroupToSource,
+  isGroupSource,
+  tokenNameMismatch,
 }: TokenGeneratorFormProps) {
   const [tokenGroups, setTokenGroups] = useState<TokenGroup[]>([
     { id: '1', name: 'colors', tokens: [], level: 0, expanded: true }
@@ -437,6 +448,7 @@ export function TokenGeneratorForm({
   // Expose live token state to parent via onTokensChange
   useEffect(() => {
     if (!onTokensChange) return;
+    if (themeTokens && themeTokens.length > 0) return; // Theme mode: don't push tokenGroups to parent
     const collectionName = loadedCollection?.name ?? '';
     if (tokenGroups.length === 0) {
       onTokensChange(null, globalNamespace, collectionName);
@@ -454,7 +466,7 @@ export function TokenGeneratorForm({
     const rawJson = tokenService.generateStyleDictionaryOutput(tokenGroups, globalNamespace);
     onTokensChange(rawJson as Record<string, unknown>, globalNamespace, collectionName);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tokenGroups, globalNamespace, loadedCollection]);
+  }, [tokenGroups, globalNamespace, loadedCollection, themeTokens]);
 
   // Auto-load a collection when the parent passes a new one (e.g. user selects from shared header)
   useEffect(() => {
@@ -755,6 +767,7 @@ export function TokenGeneratorForm({
   };
 
   const addToken = (groupId: string) => {
+    if (isReadOnly) return; // Source group: read-only
     const newToken: GeneratedToken = {
       id: generateId(),
       path: '',
@@ -776,12 +789,22 @@ export function TokenGeneratorForm({
       });
     };
 
-    setTokenGroups(updateGroup(tokenGroups));
-    setIsDirty(true);
+    const groupInTheme = themeTokens && onThemeTokensChange &&
+      (themeTokens.some(g => g.id === groupId) || !!findGroupById(themeTokens, groupId));
+    if (groupInTheme) {
+      onThemeTokensChange!(updateGroup(themeTokens!));
+    } else {
+      setTokenGroups(updateGroup(tokenGroups));
+      setIsDirty(true);
+    }
   };
 
 
   const updateToken = (groupId: string, tokenId: string, field: keyof GeneratedToken, value: any) => {
+    const groupInTheme = themeTokens && onThemeTokensChange &&
+      (themeTokens.some(g => g.id === groupId) || !!findGroupById(themeTokens, groupId));
+    if (groupInTheme && field === 'path') return; // Theme mode: token names locked
+
     const applyUpdate = (groups: TokenGroup[]): TokenGroup[] => {
       return groups.map(group => {
         if (group.id === groupId) {
@@ -799,9 +822,8 @@ export function TokenGeneratorForm({
       });
     };
 
-    // When theme mode is active, route edits to theme tokens instead of master collection
-    if (themeTokens && themeTokens.length > 0 && onThemeTokensChange) {
-      onThemeTokensChange(applyUpdate(themeTokens));
+    if (groupInTheme) {
+      onThemeTokensChange!(applyUpdate(themeTokens!));
     } else {
       setTokenGroups(applyUpdate(tokenGroups));
       setIsDirty(true);
@@ -841,8 +863,14 @@ export function TokenGeneratorForm({
       });
     };
 
-    setTokenGroups(updateGroup(tokenGroups));
-    setIsDirty(true);
+    const groupInTheme = themeTokens && onThemeTokensChange &&
+      (themeTokens.some(g => g.id === groupId) || !!findGroupById(themeTokens, groupId));
+    if (groupInTheme) {
+      onThemeTokensChange!(updateGroup(themeTokens!));
+    } else {
+      setTokenGroups(updateGroup(tokenGroups));
+      setIsDirty(true);
+    }
   };
 
   const removeTokenAttribute = (groupId: string, tokenId: string, key: string) => {
@@ -870,11 +898,18 @@ export function TokenGeneratorForm({
       });
     };
 
-    setTokenGroups(updateGroup(tokenGroups));
-    setIsDirty(true);
+    const groupInTheme = themeTokens && onThemeTokensChange &&
+      (themeTokens.some(g => g.id === groupId) || !!findGroupById(themeTokens, groupId));
+    if (groupInTheme) {
+      onThemeTokensChange!(updateGroup(themeTokens!));
+    } else {
+      setTokenGroups(updateGroup(tokenGroups));
+      setIsDirty(true);
+    }
   };
 
   const deleteToken = (groupId: string, tokenId: string) => {
+    if (isReadOnly) return; // Source group: read-only
     const updateGroup = (groups: TokenGroup[]): TokenGroup[] => {
       return groups.map(group => {
         if (group.id === groupId) {
@@ -887,8 +922,14 @@ export function TokenGeneratorForm({
       });
     };
 
-    setTokenGroups(updateGroup(tokenGroups));
-    setIsDirty(true);
+    const groupInTheme = themeTokens && onThemeTokensChange &&
+      (themeTokens.some(g => g.id === groupId) || !!findGroupById(themeTokens, groupId));
+    if (groupInTheme) {
+      onThemeTokensChange!(updateGroup(themeTokens!));
+    } else {
+      setTokenGroups(updateGroup(tokenGroups));
+      setIsDirty(true);
+    }
   };
 
   const generateTokenSet = () => {
@@ -1126,6 +1167,18 @@ export function TokenGeneratorForm({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-44">
+                  {onResetGroupToSource && !isGroupSource?.(group.id) && (
+                    <>
+                      <DropdownMenuItem
+                        onClick={() => onResetGroupToSource(group.id)}
+                        className="text-amber-700 focus:text-amber-800"
+                      >
+                        <RotateCcw size={14} className="mr-2" />
+                        Reset to source
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
                   <DropdownMenuItem onClick={() => addSubGroup(group.id)}>
                     + Add Sub-group
                   </DropdownMenuItem>
@@ -1172,6 +1225,7 @@ export function TokenGeneratorForm({
                       getFullPath={buildTokenPath}
                       parseValue={parseTokenValue}
                       isReadOnly={isReadOnly}
+                      isPathLocked={Boolean(themeTokens)}
                       masterValue={findMasterValue?.(group.id, token.path)}
                       onResetToDefault={onResetToDefault}
                     />
@@ -1187,7 +1241,9 @@ export function TokenGeneratorForm({
               variant="ghost"
               size="sm"
               onClick={() => addToken(group.id)}
-              className="text-xs font-medium text-blue-600 hover:text-blue-800 h-auto p-0"
+              disabled={isReadOnly}
+              className="text-xs font-medium text-blue-600 hover:text-blue-800 h-auto p-0 disabled:opacity-50 disabled:pointer-events-none"
+              title={isReadOnly ? 'Source group — read only' : undefined}
             >
               + Add Token
             </Button>
@@ -1317,19 +1373,40 @@ export function TokenGeneratorForm({
         </div>
       ) : (
         <>
-          {/* Render selected group — use themeTokens as source when in theme mode */}
+          {/* Token name mismatch warning when theme graph differs from default */}
+          {tokenNameMismatch && (tokenNameMismatch.inThemeNotDefault.length > 0 || tokenNameMismatch.inDefaultNotTheme.length > 0) && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              <span className="font-medium">Token names differ from default.</span>
+              <span className="ml-1">Theme graph produces different token paths than the default collection.</span>
+              {tokenNameMismatch.inThemeNotDefault.length > 0 && (
+                <p className="mt-1 text-xs">In theme only: {tokenNameMismatch.inThemeNotDefault.slice(0, 5).join(', ')}
+                  {tokenNameMismatch.inThemeNotDefault.length > 5 && ` +${tokenNameMismatch.inThemeNotDefault.length - 5} more`}
+                </p>
+              )}
+              {tokenNameMismatch.inDefaultNotTheme.length > 0 && (
+                <p className="mt-1 text-xs">In default only: {tokenNameMismatch.inDefaultNotTheme.slice(0, 5).join(', ')}
+                  {tokenNameMismatch.inDefaultNotTheme.length > 5 && ` +${tokenNameMismatch.inDefaultNotTheme.length - 5} more`}
+                </p>
+              )}
+            </div>
+          )}
+          {/* Render selected group — prefer themeTokens when group exists (keeps render+write in sync); fall back to tokenGroups */}
           {(() => {
             const sourceGroups = (themeTokens && themeTokens.length > 0) ? themeTokens : tokenGroups;
-            const topLevel = sourceGroups.find(g => g.id === selectedGroupId);
+            const topLevel = sourceGroups.find(g => g.id === selectedGroupId)
+                          ?? tokenGroups.find(g => g.id === selectedGroupId);
             if (topLevel) return renderGroup(topLevel);
-            const found = findGroupById(sourceGroups, selectedGroupId);
+            const found = findGroupById(sourceGroups, selectedGroupId)
+                       ?? findGroupById(tokenGroups, selectedGroupId);
             return found ? renderGroup(found) : null;
           })()}
           {/* No tokens empty state */}
           {(() => {
             const sourceGroups = (themeTokens && themeTokens.length > 0) ? themeTokens : tokenGroups;
             const found = findGroupById(sourceGroups, selectedGroupId)
-                       ?? sourceGroups.find(g => g.id === selectedGroupId);
+                       ?? sourceGroups.find(g => g.id === selectedGroupId)
+                       ?? findGroupById(tokenGroups, selectedGroupId)
+                       ?? tokenGroups.find(g => g.id === selectedGroupId);
             if (found && found.tokens.length === 0) {
               return <p className="p-6 text-sm text-gray-400 text-center">No tokens in this group</p>;
             }

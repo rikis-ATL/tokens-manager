@@ -14,13 +14,13 @@ interface TokenGraphPanelProps {
   selectedToken: { token: GeneratedToken; groupPath: string } | null;
   onBulkAddTokens?: (groupId: string, tokens: GeneratedToken[], subgroupName?: string) => void;
   graphStateMap?: CollectionGraphState;
-  /** True once the collection's persisted graph state has been loaded from the server */
-  graphStateLoaded?: boolean;
-  onGraphStateChange?: (groupId: string, state: GraphGroupState) => void;
+  onGraphStateChange?: (groupId: string, state: GraphGroupState, flushImmediate?: boolean) => void;
   namespace?: string;
   allTokens?: FlatToken[];
   /** Flat group list for the destination-group picker inside nodes */
   flatGroups?: FlatGroup[];
+  /** Active theme ID — ensures graph remounts when switching themes (each theme has unique nodes) */
+  activeThemeId?: string | null;
 }
 
 function findGroupById(groups: TokenGroup[], id: string): TokenGroup | null {
@@ -40,11 +40,11 @@ export function TokenGraphPanel({
   selectedToken,
   onBulkAddTokens,
   graphStateMap,
-  graphStateLoaded,
   onGraphStateChange,
   namespace,
   allTokens,
   flatGroups,
+  activeThemeId,
 }: TokenGraphPanelProps) {
   const selectedGroup = selectedGroupId ? findGroupById(allGroups, selectedGroupId) : null;
 
@@ -76,7 +76,7 @@ export function TokenGraphPanel({
     return (
       <div className="flex flex-col h-full">
         <GroupStructureGraph
-          key={`${selectedGroup.id}-${graphStateLoaded ? '1' : '0'}`}
+          key={`${selectedGroup.id}-${activeThemeId ?? 'default'}`}
           group={selectedGroup}
           namespace={namespace}
           allTokens={allTokens}
@@ -85,7 +85,7 @@ export function TokenGraphPanel({
           onBulkAddTokens={onBulkAddTokens}
           onGraphStateChange={
             onGraphStateChange
-              ? (state) => onGraphStateChange(selectedGroup.id, state)
+              ? (state, options) => onGraphStateChange(selectedGroup.id, state, options?.flushImmediate)
               : undefined
           }
         />
