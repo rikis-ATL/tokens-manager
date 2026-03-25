@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { Sun, Moon } from 'lucide-react';
 import { BuildTokensPanel } from '@/components/dev/BuildTokensPanel';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import type { ITheme } from '@/types/theme.types';
+import type { ITheme, ColorMode } from '@/types/theme.types';
 import { mergeThemeTokens } from '@/lib/themeTokenMerge';
 
 interface ConfigPageProps {
@@ -51,6 +52,18 @@ export default function CollectionConfigPage({ params }: ConfigPageProps) {
     ? mergeThemeTokens(tokens, selectedTheme, namespace)
     : tokens;
 
+  // Detect dark token set for combined output:
+  // - When 'Collection default' is selected: find any dark theme in the collection and use it as darkTokens
+  // - When a specific theme is selected: no combined output (single-theme export)
+  const darkTheme = useMemo(() => {
+    if (selectedThemeId !== '__default__') return null;
+    return themes.find(t => (t.colorMode ?? 'light') === 'dark') ?? null;
+  }, [selectedThemeId, themes]);
+
+  const darkTokens = darkTheme && tokens && namespace
+    ? mergeThemeTokens(tokens, darkTheme, namespace)
+    : undefined;
+
   return (
     <div className="px-6 py-6">
       <h1 className="text-lg font-semibold text-gray-900 mb-6">
@@ -97,6 +110,7 @@ export default function CollectionConfigPage({ params }: ConfigPageProps) {
             namespace={namespace}
             collectionName={collectionName}
             themeLabel={themeLabel}
+            darkTokens={darkTokens}
           />
         </div>
       </div>

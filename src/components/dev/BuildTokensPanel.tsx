@@ -10,6 +10,7 @@ interface BuildTokensPanelProps {
   namespace: string;
   collectionName: string;
   themeLabel?: string;
+  darkTokens?: Record<string, unknown> | null;
 }
 
 const FORMAT_LABELS: Record<string, string> = {
@@ -29,6 +30,7 @@ export function BuildTokensPanel({
   namespace,
   collectionName,
   themeLabel,
+  darkTokens,
 }: BuildTokensPanelProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,7 +50,7 @@ export function BuildTokensPanel({
       const res = await fetch('/api/build-tokens', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tokens, namespace, collectionName, ...(themeLabel ? { themeLabel } : {}) }),
+        body: JSON.stringify({ tokens, namespace, collectionName, ...(themeLabel ? { themeLabel } : {}), ...(darkTokens ? { darkTokens } : {}) }),
       });
 
       if (!res.ok) {
@@ -69,7 +71,7 @@ export function BuildTokensPanel({
     } finally {
       setLoading(false);
     }
-  }, [tokens, namespace, collectionName, themeLabel]);
+  }, [tokens, namespace, collectionName, themeLabel, darkTokens]);
 
   // Auto-run build when tokens change
   useEffect(() => {
@@ -82,7 +84,7 @@ export function BuildTokensPanel({
       setActiveBrand('');
       setActiveFormat('css');
     }
-  }, [tokens, themeLabel]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [tokens, themeLabel, darkTokens]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Reset activeBrand when format tab changes (pick first brand in new format)
   const handleFormatChange = (fmt: Format) => {

@@ -19,6 +19,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       tokens: body.tokens,
       namespace: body.namespace ?? 'token',
       collectionName: body.collectionName,
+      darkTokens: body.darkTokens,  // NEW — pass through when present
     });
 
     // Inject comment header into code formats when themeLabel is provided
