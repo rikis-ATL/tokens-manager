@@ -65,6 +65,7 @@ Progress: [█████] Phase 13 complete (3/3 plans done)
 - v1.3 (Phases 8-9): Clean code + Add Tokens Modes (Themes feature)
 - v1.4 (Phases 10-12): Theme Token Sets — themes become actual value stores
 - Phase 13 added: groups ordering drag and drop
+- Phase 14 added: dark mode support
 
 ### Decisions
 
