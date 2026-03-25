@@ -307,7 +307,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   // ── Keep refs in sync so keyboard shortcut reads fresh values ──────────
   const handleTokensChange = useCallback((tokens: Record<string, unknown> | null, _namespace: string, _collectionName: string) => {
     setGenerateTabTokens(tokens ?? {});
-    generateTabTokensRef.current = tokens ?? {};
+    generateTabTokensRef.current = tokens;
   }, []);
 
   // ── Group drag-and-drop reorder handler ────────────────────────────────
@@ -397,6 +397,8 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
         }
       }).catch(() => {/* silent */});
     }
+    // Guard: if neither source is ready (page still loading), skip to avoid wiping DB with {}
+    if (generateTabTokensRef.current === null && rawCollectionTokensRef.current === null) return;
     const tokens = generateTabTokensRef.current ?? rawCollectionTokensRef.current ?? {};
     return fetch(`/api/collections/${id}`, {
       method: 'PUT',
