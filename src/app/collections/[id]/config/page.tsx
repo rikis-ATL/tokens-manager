@@ -11,6 +11,23 @@ interface ConfigPageProps {
   params: { id: string };
 }
 
+function ColorModeBadge({ colorMode }: { colorMode: ColorMode }) {
+  if (colorMode === 'dark') {
+    return (
+      <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[10px] bg-slate-100 text-slate-600 flex-shrink-0">
+        <Moon size={9} />
+        Dark
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[10px] bg-amber-50 text-amber-700 flex-shrink-0">
+      <Sun size={9} />
+      Light
+    </span>
+  );
+}
+
 export default function CollectionConfigPage({ params }: ConfigPageProps) {
   const { id } = params;
   const [collectionName, setCollectionName] = useState('');
@@ -99,7 +116,12 @@ export default function CollectionConfigPage({ params }: ConfigPageProps) {
                 <SelectContent>
                   <SelectItem value="__default__">Collection default</SelectItem>
                   {themes.map(t => (
-                    <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                    <SelectItem key={t.id} value={t.id}>
+                      <span className="flex items-center gap-1.5">
+                        {t.name}
+                        <ColorModeBadge colorMode={(t.colorMode ?? 'light') as ColorMode} />
+                      </span>
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { ThemeList, ThemeGroupMatrix } from '@/components/themes';
 import { ToastNotification } from '@/components/layout/ToastNotification';
 import { tokenService } from '@/services/token.service';
-import type { ITheme, ThemeGroupState } from '@/types/theme.types';
+import type { ITheme, ThemeGroupState, ColorMode } from '@/types/theme.types';
 import type { TokenGroup, ToastMessage } from '@/types';
 
 interface ThemesPageProps {
@@ -71,12 +71,12 @@ export default function CollectionThemesPage({ params }: ThemesPageProps) {
     load();
   }, [id]);
 
-  const handleAddTheme = async (name: string) => {
+  const handleAddTheme = async (name: string, colorMode: ColorMode) => {
     try {
       const res = await fetch(`/api/collections/${id}/themes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name, colorMode }),
       });
       if (!res.ok) throw new Error('Failed to create theme');
       const data = await res.json();
@@ -106,6 +106,27 @@ export default function CollectionThemesPage({ params }: ThemesPageProps) {
       });
     } catch {
       setToast({ message: 'Failed to delete theme', type: 'error' });
+    }
+  };
+
+  const handleColorModeChange = async (themeId: string, colorMode: ColorMode) => {
+    // Optimistic update
+    setThemes(prev => prev.map(t => t.id === themeId ? { ...t, colorMode } : t));
+    try {
+      const res = await fetch(`/api/collections/${id}/themes/${themeId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ colorMode }),
+      });
+      if (!res.ok) throw new Error('Failed to update color mode');
+    } catch {
+      // Revert optimistic update
+      setThemes(prev => prev.map(t =>
+        t.id === themeId
+          ? { ...t, colorMode: colorMode === 'dark' ? 'light' : 'dark' }
+          : t
+      ));
+      setToast({ message: 'Failed to update color mode', type: 'error' });
     }
   };
 
@@ -168,6 +189,7 @@ export default function CollectionThemesPage({ params }: ThemesPageProps) {
             onSelect={setSelectedThemeId}
             onAdd={handleAddTheme}
             onDelete={handleDeleteTheme}
+            onColorModeChange={handleColorModeChange}
           />
         </aside>
 
