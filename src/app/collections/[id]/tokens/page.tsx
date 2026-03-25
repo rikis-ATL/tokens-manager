@@ -215,6 +215,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       // #endregion
 
       setCollectionName(col.name ?? '');
+      if (col.namespace) setGlobalNamespace(col.namespace);
       setRawCollectionTokens(rawTokens);
       rawCollectionTokensRef.current = rawTokens;
       setSelectedSourceMetadata(col.sourceMetadata ?? null);
@@ -224,7 +225,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       setGraphStateMap(gs);
       graphStateMapRef.current = gs;
       // Always parse collection tokens into masterGroups
-      const { groups: defaultGroups } = tokenService.processImportedTokens(rawTokens, '');
+      const { groups: defaultGroups } = tokenService.processImportedTokens(rawTokens, col.namespace ?? '');
       setMasterGroups(defaultGroups);
 
       // #region agent log
@@ -305,10 +306,10 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   };
 
   // ── Keep refs in sync so keyboard shortcut reads fresh values ──────────
-  const handleTokensChange = useCallback((tokens: Record<string, unknown> | null, _namespace: string, _collectionName: string) => {
+  const handleTokensChange = useCallback((tokens: Record<string, unknown> | null, namespace: string, _collectionName: string) => {
     setGenerateTabTokens(tokens ?? {});
-    // Fix: Only set ref if tokens is not null - prevents overwriting DB with empty object
     generateTabTokensRef.current = tokens;
+    if (namespace) setGlobalNamespace(namespace);
   }, []);
 
   // ── Group drag-and-drop reorder handler ────────────────────────────────
@@ -348,7 +349,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
         await fetch(`/api/collections/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ tokens: rawTokens, themes: updatedThemes }),
+          body: JSON.stringify({ tokens: rawTokens, namespace: globalNamespace, themes: updatedThemes }),
         });
         rawCollectionTokensRef.current = rawTokens as Record<string, unknown>;
         setRawCollectionTokens(rawTokens as Record<string, unknown>);
@@ -375,7 +376,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       await fetch(`/api/collections/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tokens: rawTokens, themes: updatedThemes }),
+        body: JSON.stringify({ tokens: rawTokens, namespace: globalNamespace, themes: updatedThemes }),
       });
       rawCollectionTokensRef.current = rawTokens as Record<string, unknown>;
       setRawCollectionTokens(rawTokens as Record<string, unknown>);
@@ -458,6 +459,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             tokens: tokensPayload,
+            namespace: globalNamespace,
             graphState: gs,
           }),
         });
@@ -473,7 +475,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     } finally {
       setIsSaving(false);
     }
-  }, [id, rawCollectionTokens, activeThemeId]);
+  }, [id, rawCollectionTokens, activeThemeId, globalNamespace]);
 
   // ── Ctrl / Cmd + S and Ctrl / Cmd + Z keyboard shortcuts ──────────────
   useEffect(() => {

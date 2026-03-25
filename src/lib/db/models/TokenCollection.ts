@@ -19,6 +19,7 @@ const sourceMetadataSchema = new Schema(
 const tokenCollectionSchema = new Schema<TokenCollectionDoc>(
   {
     name:           { type: String, required: true, trim: true },
+    namespace:      { type: String, default: 'token' },
     tokens:         { type: Schema.Types.Mixed, required: true },
     sourceMetadata: { type: sourceMetadataSchema, default: null },
     userId:         { type: String, default: null, index: true },

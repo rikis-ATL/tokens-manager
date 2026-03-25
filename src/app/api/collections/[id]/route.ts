@@ -18,6 +18,7 @@ export async function GET(
       collection: {
         _id: doc._id,
         name: doc.name,
+        namespace: doc.namespace ?? 'token',
         tokens: doc.tokens,
         sourceMetadata: doc.sourceMetadata ?? null,
         description: doc.description ?? null,
@@ -44,6 +45,7 @@ export async function PUT(
 
     if (
       body.name === undefined &&
+      body.namespace === undefined &&
       body.tokens === undefined &&
       body.sourceMetadata === undefined &&
       body.description === undefined &&

@@ -23,6 +23,7 @@ import type { ITheme } from './theme.types';
 export interface ITokenCollection {
   _id: string;            // MongoDB ObjectId as string
   name: string;           // User-defined collection name (free text)
+  namespace: string;      // CSS variable namespace prefix (e.g. "token")
   tokens: Record<string, unknown>;  // Raw token JSON — W3C Design Token spec object
   sourceMetadata: ISourceMetadata | null;  // GitHub provenance, nullable
   userId: string | null;  // Reserved for multi-user; null in v1
@@ -65,4 +66,4 @@ export type CreateTokenCollectionInput = Omit<ITokenCollection, '_id' | 'created
 /**
  * Shape for updating an existing collection.
  */
-export type UpdateTokenCollectionInput = Partial<Pick<ITokenCollection, 'name' | 'tokens' | 'sourceMetadata' | 'description' | 'tags' | 'figmaToken' | 'figmaFileId' | 'githubRepo' | 'githubBranch' | 'graphState' | 'themes'>>;
+export type UpdateTokenCollectionInput = Partial<Pick<ITokenCollection, 'name' | 'namespace' | 'tokens' | 'sourceMetadata' | 'description' | 'tags' | 'figmaToken' | 'figmaFileId' | 'githubRepo' | 'githubBranch' | 'graphState' | 'themes'>>;
