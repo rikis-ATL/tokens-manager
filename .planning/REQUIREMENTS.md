@@ -35,7 +35,7 @@ Requirements for Phase 14 — Dark Mode Support.
 
 - [x] **DARK-01**: Every theme (including the default/master) carries a `colorMode: "light" | "dark"` field. The default/master is always `"light"`. Custom themes have a user-settable colorMode.
 - [x] **DARK-02**: Theme creation API (POST) accepts `colorMode` in the request body (defaults to `"light"`). Theme update API (PUT) accepts `colorMode` as a patchable field.
-- [ ] **DARK-03**: Theme UI shows a colorMode badge (sun for light, moon for dark) on each theme item. Create Theme dialog includes a light/dark selector. Existing themes can have their colorMode toggled via a settings action.
+- [x] **DARK-03**: Theme UI shows a colorMode badge (sun for light, moon for dark) on each theme item. Create Theme dialog includes a light/dark selector. Existing themes can have their colorMode toggled via a settings action.
 - [x] **DARK-04**: CSS/SCSS/LESS build output combines light tokens in `:root {}` and dark tokens in `[data-color-mode="dark"] {}` in a single file when both light and dark themes exist in the collection.
 - [x] **DARK-05**: Figma Variables export groups themes by group structure: themes with the same group structure and different colorModes are exported as "Light" and "Dark" modes in one Figma variable collection.
 - [ ] **DARK-06**: All Phase 14 features verified working end-to-end: badge display, create dialog, colorMode toggle, combined CSS export, JS/TS dark namespace export, Figma mode grouping.
