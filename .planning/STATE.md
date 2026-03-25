@@ -57,6 +57,7 @@ Progress: [████] Phase 14 in progress (4/4 plans done)
 | Phase 14-dark-mode-support P01 | ~2 min | 2 tasks | 3 files |
 | Phase 14-dark-mode-support P04 | ~3 min | 1 tasks | 1 files |
 | Phase 14-dark-mode-support P03 | 3 | 2 tasks | 5 files |
+| Phase 14-dark-mode-support P05 | 5min | 2 tasks | 0 files |
 
 ## Accumulated Context
 
@@ -114,6 +115,7 @@ Key decisions relevant to v1.4:
 - [Phase 14-03]: JS/TS dark exports use namespace-prefix approach (Dark) — SD flat model doesn't support nested objects; namespace-prefix is standard SD multi-mode pattern
 - [Phase 14-03]: JSON format omits dark tokens — JSON spec forbids comments; no dark block structure needed
 - [Phase 14-03]: darkTokens derived only when selectedThemeId === '__default__'; single-theme exports unchanged for specific theme selection
+- [Phase 14-dark-mode-support]: Phase 14 human verification gate — all 7 scenarios approved by user on 2026-03-26
 
 ### Pending Todos
 
