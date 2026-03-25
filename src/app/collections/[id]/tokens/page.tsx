@@ -890,7 +890,6 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
                   key={`${id}-${activeThemeId ?? 'default'}`}
                   githubConfig={null}
                   onTokensChange={handleTokensChange}
-                  groups={activeThemeId ? undefined : masterGroups}
                   namespace={globalNamespace}
                   onNamespaceChange={setGlobalNamespace}
                   onGroupsChange={activeThemeId ? undefined : handleGroupsChange}
