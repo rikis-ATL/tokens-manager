@@ -224,4 +224,7 @@ export interface BuildTokensRequest {
   namespace: string;                  // e.g. "token" — used as CSS variable prefix
   collectionName: string;             // used for ZIP filename
   themeLabel?: string;                // optional; if present, injected as comment header in code formats
+  // Phase 14 additions:
+  darkTokens?: Record<string, unknown>;  // dark token set; when present, combined output is produced
+  colorMode?: 'light' | 'dark' | 'combined';  // 'combined' when darkTokens is provided
 }

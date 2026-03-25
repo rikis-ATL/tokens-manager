@@ -241,6 +241,70 @@ async function buildBrandTokens(
 }
 
 /**
+ * Build combined light+dark output for CSS, SCSS, LESS, JS, and TS formats.
+ *
+ * CSS/SCSS/LESS strategy: run SD for each token set separately, then post-process:
+ *   - Light output: unchanged (:root { ... })
+ *   - Dark output: replace ':root {' with '[data-color-mode="dark"] {'
+ *   - Combined: lightContent + '\n\n' + darkContent
+ *
+ * JS/TS strategy: run SD for dark tokens with '${namespace}Dark' namespace prefix,
+ * producing differently-named exports (e.g. TokenDarkColorPrimary), then concatenate.
+ *
+ * JSON format: not combined — dark tokens are omitted from JSON (JSON format excluded
+ * per existing COMMENT_FORMATS pattern; no comments, no dark block needed).
+ *
+ * Safety: if ':root {' is not found in dark SD output, log a warning and wrap manually.
+ */
+async function buildCombinedOutput(
+  lightTokens: Record<string, unknown>,
+  darkTokens: Record<string, unknown>,
+  namespace: string,
+  brand: string
+): Promise<Map<Format, string>> {
+  const results = new Map<Format, string>();
+
+  // Build both token sets
+  const lightMap = await buildBrandTokens(lightTokens, namespace, brand);
+  const darkMap  = await buildBrandTokens(darkTokens, `${namespace}Dark`, `${brand}-dark`);
+
+  const CSS_FORMATS: Format[] = ['css', 'scss', 'less'];
+  const JS_FORMATS:  Format[] = ['js', 'ts'];
+
+  // CSS/SCSS/LESS: replace :root { with [data-color-mode="dark"] { in dark output
+  for (const fmt of CSS_FORMATS) {
+    const lightContent = lightMap.get(fmt) ?? '';
+    const rawDark = darkMap.get(fmt) ?? '';
+
+    const darkSelector = '[data-color-mode="dark"]';
+    let darkContent: string;
+
+    if (rawDark.includes(':root {')) {
+      darkContent = rawDark.replace(':root {', `${darkSelector} {`);
+    } else {
+      // Safety fallback: SD output changed format — wrap manually
+      console.warn(`[buildCombinedOutput] Expected ':root {' in ${fmt} dark output but not found. Wrapping manually.`);
+      darkContent = `${darkSelector} {\n${rawDark}\n}`;
+    }
+
+    results.set(fmt, `${lightContent}\n\n${darkContent}`);
+  }
+
+  // JS/TS: namespace prefix approach — light uses 'namespace', dark uses 'namespaceDark'
+  // Results in: TokenColorPrimary = "..." (light) + TokenDarkColorPrimary = "..." (dark)
+  for (const fmt of JS_FORMATS) {
+    const lightContent = lightMap.get(fmt) ?? '';
+    const darkContent  = darkMap.get(fmt) ?? '';
+    results.set(fmt, `${lightContent}\n\n/* Dark mode tokens */\n${darkContent}`);
+  }
+
+  // JSON: pass through light only (JSON spec forbids comments; no dark block structure)
+  results.set('json', lightMap.get('json') ?? '');
+
+  return results;
+}
+
+/**
  * Main export: build all formats for all brands from raw token JSON.
  *
  * GLOBALS MERGING: globals tokens are merged into every non-globals brand so each
@@ -248,7 +312,7 @@ async function buildBrandTokens(
  * emitted as a separate output file when non-globals brands exist.
  */
 export async function buildTokens(request: BuildTokensRequest): Promise<BuildTokensResult> {
-  const { tokens, namespace, collectionName } = request;
+  const { tokens, namespace, collectionName, darkTokens } = request;
 
   const rawBrands = detectBrands(tokens);
 
@@ -264,7 +328,22 @@ export async function buildTokens(request: BuildTokensRequest): Promise<BuildTok
 
   // Build each brand
   for (const { brand, tokens: brandTokens } of brands) {
-    const builtFormats = await buildBrandTokens(brandTokens, namespace, brand);
+    let builtFormats: Map<Format, string>;
+
+    if (darkTokens) {
+      // Combined light+dark output: detect dark brands the same way
+      const rawDarkBrands = detectBrands(darkTokens);
+      const darkBrands = mergeGlobalsIntoBrands(rawDarkBrands);
+      // Match by brand name; fall back to first dark brand if no name match
+      const darkBrand = darkBrands.find(b => b.brand === brand) ?? darkBrands[0];
+      if (darkBrand) {
+        builtFormats = await buildCombinedOutput(brandTokens, darkBrand.tokens, namespace, brand);
+      } else {
+        builtFormats = await buildBrandTokens(brandTokens, namespace, brand);
+      }
+    } else {
+      builtFormats = await buildBrandTokens(brandTokens, namespace, brand);
+    }
 
     for (const fmt of FORMATS) {
       const content = builtFormats.get(fmt) ?? '';
