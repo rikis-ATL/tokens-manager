@@ -56,6 +56,7 @@ Progress: [████] Phase 14 in progress (4/4 plans done)
 | Phase 13-groups-ordering-drag-and-drop P03 | ~10min | 2 tasks | 2 files |
 | Phase 14-dark-mode-support P01 | ~2 min | 2 tasks | 3 files |
 | Phase 14-dark-mode-support P04 | ~3 min | 1 tasks | 1 files |
+| Phase 14-dark-mode-support P03 | 3 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -110,6 +111,9 @@ Key decisions relevant to v1.4:
 - [Phase 14-04]: buildMultiModePayload uses first pair with both light+dark as primary — multiple pairs with different group structures not yet multi-collection (Figma API limitation)
 - [Phase 14-04]: buildSingleModePayload extracted from Phase 12 loop — formalized as named fallback for collections without paired themes
 - [Phase 14-04]: theme.colorMode ?? 'light' defensive fallback in pairThemesByColorMode — backward compat with existing DB documents lacking colorMode
+- [Phase 14-03]: JS/TS dark exports use namespace-prefix approach (Dark) — SD flat model doesn't support nested objects; namespace-prefix is standard SD multi-mode pattern
+- [Phase 14-03]: JSON format omits dark tokens — JSON spec forbids comments; no dark block structure needed
+- [Phase 14-03]: darkTokens derived only when selectedThemeId === '__default__'; single-theme exports unchanged for specific theme selection
 
 ### Pending Todos
 
