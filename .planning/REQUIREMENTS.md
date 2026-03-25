@@ -27,6 +27,19 @@ Requirements for milestone v1.4 — Theme Token Sets. Phases start at Phase 10.
 - [x] **EXPORT-02**: Style Dictionary export uses the selected theme's token values for the active export
 - [x] **EXPORT-03**: Figma Variables export generates one mode per enabled theme in the collection
 
+## Phase 14 Requirements
+
+Requirements for Phase 14 — Dark Mode Support.
+
+### Dark Mode
+
+- [ ] **DARK-01**: Every theme (including the default/master) carries a `colorMode: "light" | "dark"` field. The default/master is always `"light"`. Custom themes have a user-settable colorMode.
+- [ ] **DARK-02**: Theme creation API (POST) accepts `colorMode` in the request body (defaults to `"light"`). Theme update API (PUT) accepts `colorMode` as a patchable field.
+- [ ] **DARK-03**: Theme UI shows a colorMode badge (sun for light, moon for dark) on each theme item. Create Theme dialog includes a light/dark selector. Existing themes can have their colorMode toggled via a settings action.
+- [ ] **DARK-04**: CSS/SCSS/LESS build output combines light tokens in `:root {}` and dark tokens in `[data-color-mode="dark"] {}` in a single file when both light and dark themes exist in the collection.
+- [ ] **DARK-05**: Figma Variables export groups themes by group structure: themes with the same group structure and different colorModes are exported as "Light" and "Dark" modes in one Figma variable collection.
+- [ ] **DARK-06**: All Phase 14 features verified working end-to-end: badge display, create dialog, colorMode toggle, combined CSS export, JS/TS dark namespace export, Figma mode grouping.
+
 ## Future Requirements
 
 ### Token Mutations (deferred from v1.2 Phase 7)
@@ -68,12 +81,19 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EXPORT-01 | Phase 12 | Complete |
 | EXPORT-02 | Phase 12 | Complete |
 | EXPORT-03 | Phase 12 | Complete |
+| DARK-01 | Phase 14 | Planned |
+| DARK-02 | Phase 14 | Planned |
+| DARK-03 | Phase 14 | Planned |
+| DARK-04 | Phase 14 | Planned |
+| DARK-05 | Phase 14 | Planned |
+| DARK-06 | Phase 14 | Planned |
 
 **Coverage:**
 - v1.4 requirements: 11 total
-- Mapped to phases: 11
+- Phase 14 requirements: 6 total
+- Mapped to phases: 17
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-20*
-*Last updated: 2026-03-20 — traceability confirmed during roadmap creation*
+*Last updated: 2026-03-25 — Phase 14 dark mode requirements added*
