@@ -52,6 +52,8 @@ Token collections are always available and editable: stored in MongoDB, accessib
 - ✓ Themes page is accessible via a Themes nav tab in the collection sidebar — v1.3
 - ✓ Theme selector on Tokens page filters the group tree to show only Enabled/Source groups — v1.3
 - ✓ First new theme defaults all groups to Enabled; subsequent themes default to Disabled — v1.3
+- ✓ Visual graph editor (React Flow) for composing token-generation pipelines per group — v1.2+
+- ✓ Graph state persisted per theme and per group; themes have isolated graph state — v1.4
 
 ## Current Milestone: v1.4 Theme Token Sets
 
@@ -95,10 +97,23 @@ Token collections are always available and editable: stored in MongoDB, accessib
 - **Brownfield:** Existing tool with GitHub import/export; MongoDB layer added in v1.0; UI modernized and routing restructured in v1.1
 - **Monorepo:** Yarn 3 workspaces; Angular, Stencil, Vite variants exist but are out of scope (excluded from root tsconfig)
 - **Token format:** W3C Design Token Specification; two structure variants
-- **Architecture:** API routes in `src/app/api/`; Mongoose models in `src/lib/db/models/`; UI components in `src/components/[domain]/`; shadcn primitives in `src/components/ui/`; collection-scoped routes in `src/app/collections/[id]/`; Themes API at `src/app/api/collections/[id]/themes/`
+- **Architecture:** API routes in `src/app/api/`; Mongoose models in `src/lib/db/models/`; UI components in `src/components/[domain]/`; shadcn primitives in `src/components/ui/`; graph components in `src/components/graph/`; collection-scoped routes in `src/app/collections/[id]/`; Themes API at `src/app/api/collections/[id]/themes/`
 - **Angular parity doc:** `.planning/ANGULAR_PARITY.md` documents all new API routes and UI patterns for future Angular port
 - **Refactor backlog:** `.planning/phases/08-clean-code/REFACTOR-SUGGESTIONS.md` — out-of-scope ideas from Phase 8 SRP audit
+- **Clean code ruleset:** `.planning/codebase/CLEAN-CODE.md` — SOLID, separation of concerns, function/component size; baked into CONVENTIONS, ARCHITECTURE, STRUCTURE
 - **Build:** Zero TypeScript errors; `yarn build` passes cleanly
+
+## Graph Design
+
+The Tokens page includes a **visual graph editor** (React Flow) in the right-hand split pane. Users compose pipelines of nodes (Constant, Harmonic, Array, Math, TokenOutput, etc.) that generate design token values and push them into token groups.
+
+**Per-theme, per-group isolation:** Graph state is stored per theme and per group, matching the tokens table:
+- **Default:** `collection.graphState` — `Record<groupId, GraphGroupState>`
+- **Custom themes:** `theme.graphState` — each theme has its own graph per group; node IDs remapped on theme creation via `remapGraphStateForTheme()`
+
+**Key components:** `TokenGraphPanel` → `GroupStructureGraph` (key includes `activeThemeId` so it remounts on theme change). Unmount flush with `flushImmediate: true` saves the current theme's state before switching. Debounced auto-save persists to the correct theme via `activeThemeIdRef`.
+
+**Documentation:** `documentation/graph-system-summary.md`, `documentation/themes-and-graph-data-model.md`, `documentation/graph-architecture.md`
 
 ## Constraints
 
@@ -144,6 +159,8 @@ Token collections are always available and editable: stored in MongoDB, accessib
 | tokenService for path-based group IDs | Canonical group key derivation consistent across all theme operations | ✓ Good — fixed in 09-04; prevents key mismatch bugs |
 | Themes nav item: Layers icon between Tokens and Config | Visual metaphor for themes/modes; consistent nav ordering | ✓ Good — clean sidebar layout |
 | filteredGroups falls back to masterGroups when no theme active | Preserves "all groups" default; no empty state when theme deselected | ✓ Good — seamless UX |
+| Graph state per theme and per group | Matches tokens table isolation; each theme has its own graph nodes and state | ✓ Good — `remapGraphStateForTheme()` on theme creation; flush on unmount |
+| GroupStructureGraph key includes activeThemeId | Ensures remount on theme switch; unmount flush saves before sync loads next theme | ✓ Good — no cross-theme state leakage |
 
 ---
 *Last updated: 2026-03-19 after v1.4 milestone start*

@@ -1,6 +1,19 @@
 # Architecture
 
-**Analysis Date:** 2026-02-25
+**Analysis Date:** 2026-02-25  
+**Clean Code Alignment:** 2026-03-19
+
+## Clean Code Alignment
+
+Architecture follows **separation of concerns** and **SOLID** (see `CLEAN-CODE.md`):
+
+- **Presentation** → Components only render and delegate; no business logic
+- **API/Route** → Thin handlers; delegate to services
+- **Service** → Business logic, external integrations
+- **Utility** → Pure helpers; no framework imports
+- **Types** → Shared contracts; no implementation
+
+When adding code, place it in the correct layer. Extract logic from components to utils/services when it grows.
 
 ## Pattern Overview
 

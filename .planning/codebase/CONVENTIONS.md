@@ -1,6 +1,58 @@
 # Coding Conventions
 
-**Analysis Date:** 2026-02-25
+**Analysis Date:** 2026-02-25  
+**Clean Code Standards:** 2026-03-19
+
+## Clean Code Standards (Ruleset)
+
+All new and modified code MUST follow these standards. These are baked into the codebase ruleset.
+
+### SOLID Principles
+
+| Principle | Rule | Application |
+|-----------|------|-------------|
+| **S**ingle Responsibility | Each function/component does one thing | Break large handlers into smaller functions; extract non-rendering logic to utils/services |
+| **O**pen/Closed | Extend via composition, not modification | Prefer props/callbacks over patching; use strategy pattern for variants |
+| **L**iskov Substitution | Subtypes behave as base types | Interfaces and implementations must honor contracts |
+| **I**nterface Segregation | Narrow, focused interfaces | Avoid god objects; split large props into smaller interfaces |
+| **D**ependency Inversion | Depend on abstractions | Inject dependencies; avoid hard-coded service imports in components |
+
+### Separation of Concerns
+
+- **Components**: Rendering and user interaction only. No business logic, no direct API calls.
+- **Services**: Business logic, external API calls, data transformation.
+- **Utils**: Pure functions, no side effects, no React/Next.js imports. Framework-agnostic.
+- **API routes**: Request/response handling; delegate to services.
+
+When a function exceeds ~30 lines or handles multiple concerns, extract smaller functions with single responsibilities.
+
+### Function Design
+
+- **Target size**: 5–30 lines for most functions; complex algorithms may use private helpers.
+- **Parameters**: Prefer ≤4; use an options object for more.
+- **Return early**: Use guard clauses; avoid deep nesting.
+- **Naming**: Verb + noun for actions (`validateToken`, `formatFileSize`); noun for data (`tokenGroups`).
+
+### Component Design
+
+- **Target size**: <300 lines; extract subcomponents or hooks when larger.
+- **State**: Localize state; lift only when shared. Prefer `useCallback`/`useMemo` for stable refs.
+- **Props**: Keep interfaces narrow; avoid prop drilling beyond 2 levels.
+
+### Anti-Patterns to Avoid
+
+- `any` type — use proper interfaces or `unknown` with type guards
+- Inline business logic in components — extract to utils/services
+- Duplicate logic — DRY; create shared helpers
+- Magic numbers/strings — use named constants
+- Deep nesting — flatten with early returns or extract functions
+
+### Reference
+
+- `.planning/milestones/v1.3-phases/08-clean-code/` — Phase 8 SRP audit and REFACTOR-SUGGESTIONS
+- `CLAUDE.md` — AI assistant context (includes SOLID reminder)
+
+---
 
 ## Naming Patterns
 

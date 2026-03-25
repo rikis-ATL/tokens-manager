@@ -175,6 +175,8 @@
 
 ## Where to Add New Code
 
+**Clean code rule:** Place logic in the correct layer (see `CLEAN-CODE.md`). Extract to utils/services when functions exceed ~30 lines or components exceed ~300 lines.
+
 **New Feature (Token Processing Enhancement):**
 - Primary logic: `src/services/token.service.ts` - Add methods to TokenService class
 - Filesystem operations: `src/utils/tokenUpdater.ts` - Add helper methods
@@ -221,10 +223,11 @@
 - Contains: Compiled pages, server functions, static assets
 
 **.planning/codebase:**
-- Purpose: GSD mapping documents (this file and related analysis)
+- Purpose: GSD mapping documents and codebase rulesets (this file and related analysis)
 - Generated: Yes (by GSD tool)
 - Committed: Yes (markdown files)
-- Contains: ARCHITECTURE.md, STRUCTURE.md, CONVENTIONS.md, TESTING.md, STACK.md, INTEGRATIONS.md, CONCERNS.md
+- Contains: ARCHITECTURE.md, STRUCTURE.md, CONVENTIONS.md, CLEAN-CODE.md, TESTING.md, STACK.md, INTEGRATIONS.md, CONCERNS.md
+- **CLEAN-CODE.md** is the canonical clean code ruleset; CONVENTIONS.md includes a summary
 
 **tokens/ (symlink):**
 - Purpose: Design token files - this is a symlink to external design-tokens repository

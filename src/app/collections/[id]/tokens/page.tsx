@@ -307,6 +307,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   // ── Keep refs in sync so keyboard shortcut reads fresh values ──────────
   const handleTokensChange = useCallback((tokens: Record<string, unknown> | null, _namespace: string, _collectionName: string) => {
     setGenerateTabTokens(tokens ?? {});
+    // Fix: Only set ref if tokens is not null - prevents overwriting DB with empty object
     generateTabTokensRef.current = tokens;
   }, []);
 
@@ -399,7 +400,10 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     }
     // Guard: if neither source is ready (page still loading), skip to avoid wiping DB with {}
     if (generateTabTokensRef.current === null && rawCollectionTokensRef.current === null) return;
-    const tokens = generateTabTokensRef.current ?? rawCollectionTokensRef.current ?? {};
+    // Fix: Only use generateTabTokensRef if it has actual content, otherwise fall back to rawCollectionTokensRef
+    const tokens = (generateTabTokensRef.current && Object.keys(generateTabTokensRef.current).length > 0)
+      ? generateTabTokensRef.current
+      : (rawCollectionTokensRef.current ?? {});
     return fetch(`/api/collections/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -889,6 +893,11 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
                 <TokenGeneratorForm
                   key={`${id}-${activeThemeId ?? 'default'}`}
                   githubConfig={null}
+                  collectionToLoad={!activeThemeId && rawCollectionTokens ? { 
+                    id, 
+                    name: collectionName, 
+                    tokens: rawCollectionTokens 
+                  } : null}
                   onTokensChange={handleTokensChange}
                   namespace={globalNamespace}
                   onNamespaceChange={setGlobalNamespace}
