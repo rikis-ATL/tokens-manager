@@ -731,21 +731,27 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
-      {/* Actions bar */}
-      <div className="flex items-center gap-2 border-b border-gray-200 bg-white px-6 py-3 flex-shrink-0">
-        {/* Namespace — left */}
-        <label className="text-sm text-gray-600 whitespace-nowrap">Namespace:</label>
-        <Input
-          value={globalNamespace}
-          onChange={(e) => setGlobalNamespace(e.target.value)}
-          className="w-32 h-8 text-sm"
-          placeholder="e.g. token"
-        />
 
-        {/* Theme selector — shown only when custom themes exist */}
+      <header className="p-6 flex justify-between">
+        <h1 className="text-xl">{collectionName}</h1>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-black whitespace-nowrap">Namespace:</label>
+          <Input
+              value={globalNamespace}
+              onChange={(e) => setGlobalNamespace(e.target.value)}
+              className="w-32 h-8 text-sm"
+              placeholder="e.g. token"
+          />
+        </div>
+
+      </header>
+
+      <div className="flex items-center gap-2 border-b border-gray-200 px-6 py-3 flex-shrink-0">
+
         {themes.length > 0 && (
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-600 whitespace-nowrap">Theme:</label>
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-gray-600 whitespace-nowrap">Theme:</label>
             <Select
               key={activeThemeId ?? '__default__'}
               value={activeThemeId ?? '__default__'}

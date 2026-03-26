@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { CollectionSidebar } from '@/components/collections/CollectionSidebar';
+import { OrgHeader } from '@/components/layout/OrgHeader';
 
 interface CollectionLayoutClientProps {
   id: string;
@@ -27,11 +28,14 @@ export function CollectionLayoutClient({ id, children }: CollectionLayoutClientP
   }, [id]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
-      <CollectionSidebar collectionId={id} collectionName={collectionName} />
-      <main className="flex-1 overflow-y-auto">
-        {children}
-      </main>
+    <div className="flex flex-col h-screen overflow-hidden bg-gray-50">
+      <OrgHeader />
+      <div className="flex flex-1 overflow-hidden">
+        <CollectionSidebar collectionId={id} collectionName={collectionName} />
+        <main className="flex-1 overflow-y-auto">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }

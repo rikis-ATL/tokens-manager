@@ -12,7 +12,7 @@ interface CollectionSidebarProps {
 
 export function CollectionSidebar({ collectionId, collectionName }: CollectionSidebarProps) {
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   const navItems = [
     { href: `/collections/${collectionId}/tokens`, label: 'Tokens', icon: Palette },
@@ -23,9 +23,8 @@ export function CollectionSidebar({ collectionId, collectionName }: CollectionSi
 
   return (
     <aside className={`h-full bg-white border-r border-gray-200 flex flex-col transition-all duration-200 flex-shrink-0 ${collapsed ? 'w-12' : 'w-[200px]'}`}>
-      {/* Top section */}
       <div className={`flex items-start border-b border-gray-100 flex-shrink-0 ${collapsed ? 'flex-col items-center py-3 gap-2' : 'px-4 py-4 justify-between'}`}>
-        {!collapsed && (
+{/*        {!collapsed && (
           <div className="flex-1 min-w-0">
             <Link href="/collections" className="block mb-2">
               <span className="text-gray-900 font-semibold text-sm tracking-wide">ATUI Tokens</span>
@@ -43,13 +42,13 @@ export function CollectionSidebar({ collectionId, collectionName }: CollectionSi
               {collectionName}
             </span>
           </div>
-        )}
+        )}*/}
 
-        {collapsed && (
+{/*        {collapsed && (
           <Link href="/collections" title="Collections" className="text-gray-400 hover:text-gray-700 transition-colors">
             <ChevronLeft size={16} />
           </Link>
-        )}
+        )}*/}
 
         <button
           onClick={() => setCollapsed(c => !c)}
