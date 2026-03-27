@@ -2,11 +2,11 @@
 
 ## What This Is
 
-A Next.js design token management tool for the Allied Telesis ATUI design system. It allows designers and developers to view, create, edit, and persist design tokens — importing from GitHub repositories and Figma, storing collections in MongoDB for durable access, and exporting to GitHub PRs, Figma, and multiple CSS/JS format files (CSS, SCSS, LESS, JS, TS, JSON). Collections are browseable in a card grid; each collection has scoped pages (Tokens, Themes, Config, Settings) with per-collection Figma/GitHub config persisted to MongoDB. The Tokens page shows all groups as a hierarchical tree with breadcrumb navigation and supports per-collection Themes to filter which groups are active.
+A Next.js design token management tool for the Allied Telesis ATUI design system. It allows designers and developers to view, create, edit, and persist design tokens — importing from GitHub repositories and Figma, storing collections in MongoDB for durable access, and exporting to GitHub PRs, Figma, and multiple CSS/JS format files (CSS, SCSS, LESS, JS, TS, JSON). Collections are browseable in a card grid; each collection has scoped pages (Tokens, Themes, Config, Settings) with per-collection Figma/GitHub config persisted to MongoDB. The Tokens page shows all groups as a draggable hierarchical tree with breadcrumb navigation. Themes are first-class token value sets: each theme embeds a full copy of token data, group states control per-theme edit permissions (Enabled/Source/Disabled), and the Tokens page routes inline edits to the active theme. Export targets a chosen theme; Figma export generates one variable mode per enabled theme. Each theme carries a colorMode (light/dark) for combined CSS and Figma mode-pair export. Multi-row bulk actions on the token table let users delete, move, change type, or rename tokens across selections.
 
 ## Core Value
 
-Token collections are always available and editable: stored in MongoDB, accessible via collection-scoped URLs, with per-collection Figma/GitHub config, full CRUD from the collections grid, Figma import/export fully integrated, and a Themes system for filtering active token groups.
+Token collections are always available and editable: stored in MongoDB, accessible via collection-scoped URLs, with per-collection Figma/GitHub config, full CRUD from the collections grid, Figma import/export fully integrated, and a Themes system where each theme is a complete token value set with per-group edit permissions, dark-mode awareness, and theme-targeted export.
 
 ## Requirements
 
@@ -54,27 +54,29 @@ Token collections are always available and editable: stored in MongoDB, accessib
 - ✓ First new theme defaults all groups to Enabled; subsequent themes default to Disabled — v1.3
 - ✓ Visual graph editor (React Flow) for composing token-generation pipelines per group — v1.2+
 - ✓ Graph state persisted per theme and per group; themes have isolated graph state — v1.4
-
-## Current Milestone: v1.4 Theme Token Sets
-
-**Goal:** Themes become actual token value sets — each theme embeds a full copy of token data, group states control edit permissions, inline editing on the Tokens page writes to the active theme, and export is theme-aware.
-
-**Target features:**
-- Theme data model extended: each theme embeds full token groups as a value set (1:1 copy on creation)
-- Group state matrix semantics: Enabled = per-theme editable, Source = always uses collection default (read-only), Disabled = not shown
-- Inline token value editing on Tokens page when an Enabled group is active under a selected theme
-- Theme-aware export: choose which theme to export on Config page; SD (single or multi-file) and Figma Variables JSON with modes
+- ✓ Each theme stores a full copy of all collection token groups embedded in the theme document — v1.4
+- ✓ Theme creation initializes embedded token data as a 1:1 deep copy of the collection's current tokens — v1.4
+- ✓ Theme creation enforces a maximum of 10 themes per collection to prevent MongoDB document overflow — v1.4
+- ✓ Enabled group tokens are editable inline on the Tokens page and saved to the active theme's data — v1.4
+- ✓ Source group tokens are read-only and always show the collection-default values — v1.4
+- ✓ Tokens whose values differ from the collection default show a visible override indicator — v1.4
+- ✓ User can select which theme (or collection default) to export on the Config page — v1.4
+- ✓ Style Dictionary export uses the selected theme's token values for the active export — v1.4
+- ✓ Figma Variables export generates one mode per enabled theme in the collection — v1.4
+- ✓ Groups in the sidebar tree are draggable to reorder siblings and reparent; drop order persists to MongoDB — v1.4
+- ✓ Drag-and-drop reorder updates all theme token snapshots and becomes canonical export sequence — v1.4
+- ✓ Every theme carries a colorMode (light/dark); colorMode is visible as a badge and configurable at creation — v1.4
+- ✓ CSS/SCSS/LESS export combines light tokens in `:root {}` and dark tokens in `[data-color-mode="dark"] {}` — v1.4
+- ✓ Figma Variables export pairs themes by colorMode: same group structure + different colorMode = one variable collection with Light and Dark modes — v1.4
+- ✓ Token table has always-visible checkbox column; header checkbox toggles all; shift-click for range selection — v1.4
+- ✓ Floating action bar appears when tokens are selected; supports bulk delete, move, change type, and prefix rename — v1.4
+- ✓ All bulk operations are undoable via Ctrl+Z as a single step; route through theme tokens when a theme is active — v1.4
 
 ### Active
 
-- [ ] Each theme stores a full copy of all token groups and values embedded in the theme document
-- [ ] Theme creation initializes embedded token data as a 1:1 copy of the collection's current tokens
-- [ ] Theme group states control edit permissions: Enabled = editable per-theme, Source = read-only (uses collection default), Disabled = hidden
-- [ ] User can edit token values inline on the Tokens page when an Enabled group is selected under an active theme
-- [ ] Changes to Enabled group token values under an active theme are saved to that theme's embedded token data
-- [ ] User can select which theme (or collection default) to export on the Config page
-- [ ] Style Dictionary export generates theme-aware token output for the selected theme
-- [ ] Figma Variables export includes each enabled theme as a mode
+- [ ] Tree nodes can be expanded and collapsed (expand/collapse toggle per node) — TREE-05
+- [ ] User can add a new group from the tree sidebar (child of any node, or at root level) — TREE-04
+- [ ] User can add tokens to the currently selected group inline — CONT-02
 
 ### Out of Scope
 
@@ -85,15 +87,21 @@ Token collections are always available and editable: stored in MongoDB, accessib
 - GitHub API caching — performance improvement, deferred
 - CORS / CSRF protection — localhost dev tool; security hardening deferred
 - ATUI Stencil components replacing shadcn/ui — integration pattern established in v1.1 but full replacement deferred
+- Theme inheritance chains — flat per-theme model covers current use case
+- Multi-dimensional theme permutation (mode × brand matrix) — needs sd-transforms permutateThemes + UX redesign; v2+
+- Real-time cross-theme diff view — analytical feature, not core authoring
+- Automatic propagation of master collection edits into themes — silent mutations are dangerous; resync must be explicit
+- Token alias resolution across theme boundaries — circular reference risk; SD resolves after merge
 
 ## Context
 
-- **Shipped:** v1.3 on 2026-03-19 — 2 phases (8-9), 9 plans, 86 source files changed
+- **Shipped:** v1.4 on 2026-03-27 — 6 phases (10-15), 21 plans, 8-day build
+- **Prior:** v1.3 on 2026-03-19 — 2 phases (8-9), 9 plans, 86 source files changed
 - **Prior:** v1.2 phases (5-6) on 2026-03-13 — tree sidebar + breadcrumbs shipped; Phase 7 (Mutations) deferred
 - **Prior:** v1.1 on 2026-03-12 — 4 phases, 16 plans, 4-day build
 - **Prior:** v1.0 on 2026-02-28 — 7 phases, 23 plans, 3-day build
-- **Codebase:** ~22,000 LOC TypeScript; Next.js 13.5.6 + Mongoose + Style Dictionary v5 + JSZip + shadcn/ui (Radix UI)
-- **Component structure:** Feature domain folders: `collections/`, `tokens/`, `layout/`, `figma/`, `github/`, `dev/` — each with `index.ts` barrel exports
+- **Codebase:** ~27,300 LOC TypeScript; Next.js 13.5.6 + Mongoose + Style Dictionary v5 + JSZip + shadcn/ui (Radix UI) + @dnd-kit/core
+- **Component structure:** Feature domain folders: `collections/`, `tokens/`, `layout/`, `figma/`, `github/`, `dev/` — each with `index.ts` barrel exports; new `src/utils/bulkTokenActions.ts` (pure, tested)
 - **Brownfield:** Existing tool with GitHub import/export; MongoDB layer added in v1.0; UI modernized and routing restructured in v1.1
 - **Monorepo:** Yarn 3 workspaces; Angular, Stencil, Vite variants exist but are out of scope (excluded from root tsconfig)
 - **Token format:** W3C Design Token Specification; two structure variants
@@ -101,7 +109,8 @@ Token collections are always available and editable: stored in MongoDB, accessib
 - **Angular parity doc:** `.planning/ANGULAR_PARITY.md` documents all new API routes and UI patterns for future Angular port
 - **Refactor backlog:** `.planning/phases/08-clean-code/REFACTOR-SUGGESTIONS.md` — out-of-scope ideas from Phase 8 SRP audit
 - **Clean code ruleset:** `.planning/codebase/CLEAN-CODE.md` — SOLID, separation of concerns, function/component size; baked into CONVENTIONS, ARCHITECTURE, STRUCTURE
-- **Build:** Zero TypeScript errors; `yarn build` passes cleanly
+- **Build:** Zero TypeScript errors (5 pre-existing in non-critical files); `yarn build` passes cleanly
+- **Known issues:** Figma Variables POST API requires Figma Enterprise plan — surfaced in export UI with note
 
 ## Graph Design
 
@@ -161,6 +170,26 @@ The Tokens page includes a **visual graph editor** (React Flow) in the right-han
 | filteredGroups falls back to masterGroups when no theme active | Preserves "all groups" default; no empty state when theme deselected | ✓ Good — seamless UX |
 | Graph state per theme and per group | Matches tokens table isolation; each theme has its own graph nodes and state | ✓ Good — `remapGraphStateForTheme()` on theme creation; flush on unmount |
 | GroupStructureGraph key includes activeThemeId | Ensures remount on theme switch; unmount flush saves before sync loads next theme | ✓ Good — no cross-theme state leakage |
+| Whole-array `$set: { themes: updatedArray }` for all theme mutations | Positional `$set` on Mixed-typed arrays is unreliable (Mongoose bugs #14595, #12530) | ✓ Good — reliable, no stale sub-document writes |
+| `ITheme.tokens` required (not optional) | Backward compat handled solely in `toDoc()` normalization with `?? []`; consuming code stays clean | ✓ Good — clear contract; no defensive nullchecks in consumers |
+| Theme count limit (max 10) at POST handler | HTTP 422 before BSON document size becomes a problem; UI surfaces it | ✓ Good — enforced at API level, UI guard redundant-but-friendly |
+| Store full `groupTree` as `theme.tokens` | Flat list from `flattenAllGroups` strips children hierarchy needed by Phase 11 | ✓ Good — tree structure preserved for all downstream consumers |
+| Cast `.lean()` result through `unknown` | TypeScript strict overlap check rejects direct cast from typed Mongoose document arrays | ✓ Good — pattern documented; standard workaround |
+| PATCH `/themes/[themeId]/tokens` whole-array `$set` | Simpler than positional update; source-group 422 guard at root level only | ✓ Good — root-level guard sufficient; children governed by parent |
+| mergeThemeTokens pure helper (not in route) | Merge done before calling SD build; route reads themeLabel for comment injection only | ✓ Good — style-dictionary.service.ts stays pure |
+| COMMENT_FORMATS excludes JSON | JSON spec forbids comments | ✓ Good — no comment injection in JSON output |
+| Figma export always includes ALL enabled themes as modes | Config page theme selector ignored for Figma; multi-mode is Figma's purpose | ✓ Good — correct semantics for Figma Variables |
+| applyGroupMove returns `{ groups, themes }` tuple | Callers receive updated tree and theme snapshots atomically | ✓ Good — no split-update bugs |
+| DndContext inside overflow-y-auto div | DragOverlay portal renders at body level so ghost is never clipped by sidebar overflow | ✓ Good — ghost displays correctly outside clipping ancestor |
+| colorMode non-optional on ITheme with `?? 'light'` at DB read sites | No migration script needed; backward compat at read | ✓ Good — existing themes get light by default without touching DB |
+| buildCombinedOutput: only first light+dark pair as primary for Figma | Multiple pairs with different group structures not yet multi-collection (Figma API limitation) | ⚠ Revisit — v2+ when Figma supports multiple collections per export call |
+| Dark JS/TS export uses namespace-prefix (e.g. `Dark`) | SD flat model doesn't support nested objects; namespace-prefix is standard SD multi-mode pattern | ✓ Good — consistent with Style Dictionary conventions |
+| resolveTokenPathConflict: candidate-2..10 then Date.now() fallback | Mirrors resolveCollisionFreeId from groupMove.ts; consistent collision resolution | ✓ Good — no duplicate path bugs in bulk rename |
+| Alias rewrite scoped to within-group tokens only | Cross-group alias rewrite is scope-creep; within-group covers 90% of cases | ✓ Good — clear, predictable behavior |
+| jest.config.ts with ts-jest CommonJS override | Next.js tsconfig `bundler` moduleResolution incompatible with Jest | ✓ Good — Jest + TypeScript path aliases work correctly |
+| Live prefix editing: base snapshot + original prefix frozen at focus | Always recompute from base — no compounding effect from per-keystroke mutation | ✓ Good — correct result at every keystroke; single Ctrl+Z undo |
+| BulkActionBar uses shadcn Menubar as container | Menubar visual style (bordered horizontal bar with shadow) suits floating action bar | ✓ Good — consistent with shadcn component system |
+| Prefix control: single input replacing add/remove buttons | Shows current common prefix; editing applies live; no preview list needed (table updates live) | ✓ Good — simpler, more direct UX |
 
 ---
-*Last updated: 2026-03-19 after v1.4 milestone start*
+*Last updated: 2026-03-28 after v1.4 milestone*

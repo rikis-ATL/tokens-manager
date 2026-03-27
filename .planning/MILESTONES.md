@@ -68,3 +68,23 @@ Deferred from v1.2 Phase 7 (Mutations) — never executed:
 
 ---
 
+
+## v1.4 Theme Token Sets (Shipped: 2026-03-27)
+
+**Phases completed:** 6 phases (10-15), 21 plans
+**Timeline:** 2026-03-19 → 2026-03-27 (8 days)
+**Codebase:** ~27,300 LOC TypeScript
+
+**Key accomplishments:**
+1. Themes embed full token snapshots — each theme holds a deep copy of all collection token groups; creation triggers the copy, a 10-theme cap enforced at the API prevents BSON overflow (Phase 10)
+2. Inline theme editing on Tokens page — Enabled groups are editable and route saves to the theme's embedded tokens; Source groups are read-only; Disabled groups hidden; override indicator on any differing value (Phase 11)
+3. Theme-aware Style Dictionary export — Config page theme selector; SD build uses theme values for Enabled groups and master values for Source groups; comment header identifies the theme (Phase 12)
+4. Figma multi-mode export — Figma Variables route generates one variable mode per enabled theme; each theme's merged token values populate the mode (Phase 12)
+5. Drag-and-drop group reordering — @dnd-kit sidebar tree with sibling reorder and reparent; drop order persists to MongoDB and cascades to all theme token snapshots; 20-step undo stack (Phase 13)
+6. Dark mode support — `colorMode` (light/dark) on every theme with badge UI; CSS/SCSS/LESS export combines light (`:root`) and dark (`[data-color-mode=dark]`) in one file; Figma export pairs Light+Dark themes as variable modes (Phase 14)
+7. Multi-row bulk actions — always-visible checkboxes, shift-click range, floating shadcn Menubar action bar; bulk delete/move/change-type/prefix with live prefix editing and single-step Ctrl+Z undo in both default and theme modes (Phase 15)
+
+**Delivered:** Themes are now first-class token value sets. Users can author per-theme token overrides inline on the Tokens page, export any theme through Style Dictionary, generate Figma variable modes per theme, drag-reorder groups, support light/dark color modes, and perform bulk token operations — all with full undo support.
+
+---
+
