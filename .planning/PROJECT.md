@@ -74,13 +74,55 @@ Token collections are always available and editable: stored in MongoDB, accessib
 
 ### Active
 
+<!-- v1.5 Org User Management -->
+- [ ] User can sign in with email and password — AUTH-01
+- [ ] Unauthenticated users are redirected to the sign-in page — AUTH-02
+- [ ] Signed-in session persists across browser refresh — AUTH-03
+- [ ] User can sign out from any page — AUTH-04
+- [ ] First user to complete registration is automatically granted the Admin role — AUTH-05
+- [ ] Superadmin account is configured via SUPER_ADMIN_EMAIL env var; always Admin, cannot be removed — AUTH-06
+- [ ] Admin can view a list of all org members with their roles and status — USER-01
+- [ ] Admin can invite a new user by entering their email address — USER-02
+- [ ] Invited user receives an email with a magic link to create their account — USER-03
+- [ ] Invited user can set display name and password during account setup — USER-04
+- [ ] Admin can change an existing user's org-level role (Admin / Editor / Viewer) — USER-05
+- [ ] Admin can remove a user from the org — USER-06
+- [ ] Pending invitations are visible in the Users list with expiry status — USER-07
+- [ ] Admin role grants full access — all collections, user management, create/delete, GitHub, Figma — PERM-01
+- [ ] Editor role grants read-write + create collections + GitHub push/pull + Figma push/pull — PERM-02
+- [ ] Viewer role grants read-only on all collections; no push/pull, no create — PERM-03
+- [ ] Admin can set a per-collection access override for any user — PERM-04
+- [ ] All existing MongoDB collections are owned by the first Admin — PERM-05
+- [ ] Permissions are available globally via a React context (no prop drilling) — PERM-06
+- [ ] All write controls are hidden/disabled for users without write permission — UI-01
+- [ ] Users without create-collection permission cannot access the new-collection flow — UI-02
+- [ ] Users without GitHub permission cannot access GitHub push/pull controls — UI-03
+- [ ] Users without Figma permission cannot access Figma push/pull controls — UI-04
+
+<!-- Deferred from v1.2/v1.3 -->
 - [ ] Tree nodes can be expanded and collapsed (expand/collapse toggle per node) — TREE-05
 - [ ] User can add a new group from the tree sidebar (child of any node, or at root level) — TREE-04
 - [ ] User can add tokens to the currently selected group inline — CONT-02
 
+## Current Milestone: v1.5 Org User Management
+
+**Goal:** Add authentication and org-level user management so multiple users can collaborate on token collections with role-based access control.
+
+**Target features:**
+- NextAuth.js email/password sessions and route protection
+- Email invite flow via Resend with magic-link account setup
+- Admin / Editor / Viewer roles with per-collection access override
+- Org Users admin page: invite, list, role-change, remove, pending invites
+- Global permissions React context for UI-level access control
+- Hardcoded superadmin via SUPER_ADMIN_EMAIL env var (lockout prevention)
+
 ### Out of Scope
 
-- Multi-user auth / per-user collections — single-user now; userId field in schema is ready for multi-user later
+- OAuth / SSO providers (Google, GitHub login) — email/password sufficient for v1.5
+- Per-permission toggles beyond named roles — roles cover current use case
+- Multi-org / tenant support — single org now; architecture allows future extension
+- User profile / avatar management — not core to current use case
+- Activity audit log — deferred; MongoDB timestamps provide basic trail
 - Real-time collaboration — no concurrent edit handling
 - Token versioning / history — deferred; MongoDB timestamps provide basic backup
 - Angular / Stencil / Vite workspaces — explicitly excluded; Angular port is a future milestone
@@ -192,4 +234,4 @@ The Tokens page includes a **visual graph editor** (React Flow) in the right-han
 | Prefix control: single input replacing add/remove buttons | Shows current common prefix; editing applies live; no preview list needed (table updates live) | ✓ Good — simpler, more direct UX |
 
 ---
-*Last updated: 2026-03-28 after v1.4 milestone*
+*Last updated: 2026-03-28 after v1.5 milestone start*

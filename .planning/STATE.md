@@ -1,33 +1,33 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.4
-milestone_name: Theme Token Sets
-status: complete
-last_updated: "2026-03-25T00:00:00Z"
+milestone: v1.5
+milestone_name: Org User Management
+status: defining_requirements
+last_updated: "2026-03-28T00:00:00Z"
 progress:
-  total_phases: 3
+  total_phases: 0
   completed_phases: 0
   total_plans: 0
-  completed_plans: 6
+  completed_plans: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-19)
+See: .planning/PROJECT.md (updated 2026-03-28)
 
-**Core value:** Token collections are always available and editable: stored in MongoDB, accessible via collection-scoped URLs, with per-collection Figma/GitHub config, full CRUD from the collections grid, Figma import/export fully integrated, and a Themes system for filtering active token groups.
-**Current focus:** Phase 15 Multi-Row Actions — Complete (human verification passed, all 12 scenarios approved)
+**Core value:** Token collections are always available and editable: stored in MongoDB, accessible via collection-scoped URLs, with per-collection Figma/GitHub config, full CRUD from the collections grid, Figma import/export fully integrated, and a Themes system where each theme is a complete token value set with per-group edit permissions, dark-mode awareness, and theme-targeted export.
+**Current focus:** Not started (defining requirements)
 
 ## Current Position
 
-Phase: 15 of 15 (Multi-Row Actions) — Complete
-Plan: 04 — Human verification passed (all 12 scenarios approved)
-Status: Complete
-Last activity: 2026-03-27 — 15-04 human verification approved by user; Phase 15 complete
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-28 — Milestone v1.5 started
 
-Progress: [██████████] Phase 15 complete (4/4 plans done)
+Progress: [░░░░░░░░░░] 0% — requirements defined, roadmap pending
 
 ## Performance Metrics
 
