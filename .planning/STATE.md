@@ -23,11 +23,11 @@ See: .planning/PROJECT.md (updated 2026-03-19)
 ## Current Position
 
 Phase: 15 of 15 (Multi-Row Actions) — In Progress
-Plan: 01 complete — bulkTokenActions pure utilities (TDD)
+Plan: 02 complete — BulkActionBar, DeleteConfirmDialog, GroupPickerModal UI components
 Status: In Progress
-Last activity: 2026-03-27 — 15-01 complete: six pure bulk-mutation helpers + Jest infrastructure
+Last activity: 2026-03-27 — 15-02 complete: three presentational bulk-action UI components
 
-Progress: [████] Phase 15 in progress (1/4 plans done)
+Progress: [████████] Phase 15 in progress (2/4 plans done)
 
 ## Performance Metrics
 
@@ -59,6 +59,7 @@ Progress: [████] Phase 15 in progress (1/4 plans done)
 | Phase 14-dark-mode-support P03 | 3 | 2 tasks | 5 files |
 | Phase 14-dark-mode-support P05 | 5min | 2 tasks | 0 files |
 | Phase 15-multi-row-actions P01 | ~3 min | 1 task (TDD) | 4 files |
+| Phase 15-multi-row-actions P02 | ~2 min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -121,6 +122,9 @@ Key decisions relevant to v1.4:
 - [Phase 15-01]: resolveTokenPathConflict mirrors resolveCollisionFreeId from groupMove.ts — candidate-2..candidate-10 then Date.now() fallback
 - [Phase 15-01]: Alias rewrite scoped to within-group tokens only — rewriteGroupAliases uses regex /.${oldPath}(?=})/g
 - [Phase 15-01]: jest.config.ts uses ts-jest with CommonJS module override — Next.js tsconfig bundler moduleResolution incompatible with Jest
+- [Phase 15-02]: BulkActionBar returns null (not hidden) when selectedCount=0 or isReadOnly — avoids DOM presence when not needed
+- [Phase 15-02]: removePrefixValue initialized from detectedPrefix when opening — handleOpenRemovePrefix sets state before showing input for correct pre-fill each time
+- [Phase 15-02]: GroupPickerModal uses flattenTree from groupMove.ts — canonical source (local flattenTree removed from TokenGroupTree in Phase 13-02)
 
 ### Pending Todos
 
@@ -134,5 +138,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-27
-Stopped at: Completed 15-01-PLAN.md — bulkTokenActions pure utilities (TDD, 35 tests pass)
+Stopped at: Completed 15-02-PLAN.md — BulkActionBar, DeleteConfirmDialog, GroupPickerModal UI components
 Resume file: None
