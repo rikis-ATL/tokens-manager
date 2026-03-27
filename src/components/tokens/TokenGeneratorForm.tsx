@@ -54,8 +54,15 @@ import {
   validateTokenValue,
   parseTokenValue,
   countTokensRecursive,
+  bulkDeleteTokens,
+  bulkMoveTokens,
+  bulkChangeType,
+  bulkAddPrefix,
+  bulkRemovePrefix,
+  detectCommonPrefix,
 } from "../../utils";
 import { createToast, createLoadingState } from "../../utils";
+import { BulkActionBar } from "./BulkActionBar";
 
 // ─── TokenTableRow ─────────────────────────────────────────────────────────────
 
@@ -92,6 +99,12 @@ interface TokenTableRowProps {
     tokenId: string,
     masterValue: string,
   ) => void;
+  /** Whether this row is in the multi-select set */
+  isMultiSelected?: boolean;
+  /** Index of this token in the active token array (for shift-range select) */
+  tokenIndex?: number;
+  /** Called when the row checkbox is clicked */
+  onMultiSelectClick?: (shiftKey: boolean, tokenIndex: number) => void;
 }
 
 /** Upsert incoming tokens into an existing list, matching by path. Updates value/type of
@@ -137,6 +150,9 @@ function TokenTableRow({
   isPathLocked,
   masterValue,
   onResetToDefault,
+  isMultiSelected,
+  tokenIndex,
+  onMultiSelectClick,
 }: TokenTableRowProps) {
   const [editingField, setEditingField] = useState<string | null>(null);
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
@@ -169,12 +185,30 @@ function TokenTableRow({
     <>
       <tr
         ref={trRef}
-        className={`transition-colors group/row ${isSelected ? "bg-blue-50 ring-1 ring-inset ring-blue-200" : "hover:bg-gray-50/60"}`}
+        className={`transition-colors group/row ${isMultiSelected ? "bg-blue-50 ring-1 ring-inset ring-blue-200" : isSelected ? "bg-blue-50 ring-1 ring-inset ring-blue-200" : "hover:bg-gray-50/60"}`}
         style={{ height: 36 }}
         onFocusCapture={() =>
           onTokenSelect?.(isSelected ? null : token, group.path ?? group.name)
         }
       >
+        {/* Multi-select checkbox */}
+        {!isReadOnly ? (
+          <td className="w-10 px-2 py-0 border-r border-gray-100" onClick={(e) => e.stopPropagation()}>
+            <input
+              type="checkbox"
+              checked={isMultiSelected ?? false}
+              onChange={() => { /* controlled via onClick to capture shiftKey */ }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onMultiSelectClick?.(e.shiftKey, tokenIndex ?? 0);
+              }}
+              className="accent-blue-500 w-4 h-4 cursor-pointer"
+              aria-label={`Select token ${token.path}`}
+            />
+          </td>
+        ) : (
+          <td className="w-10 border-r border-gray-100" />
+        )}
         {/* Name */}
         <td className="px-0 py-0 border-r border-gray-100 w-[180px]">
           {!isPathLocked && editingField === "path" ? (
@@ -500,7 +534,7 @@ interface TokenGeneratorFormProps {
     subgroupName?: string;
   } | null;
   onBulkInsertProcessed?: () => void;
-  pendingGroupAction?: { type: "delete" | "addSub"; groupId: string } | null;
+  pendingGroupAction?: { type: "delete" | "addSub"; groupId: string; name?: string } | null;
   onGroupActionProcessed?: () => void;
   themeTokens?: TokenGroup[];
   onThemeTokensChange?: (tokens: TokenGroup[]) => void;
@@ -524,6 +558,8 @@ interface TokenGeneratorFormProps {
   onPreviewJSON?: () => void;
   /** Callback for Download JSON action */
   onDownloadJSON?: () => void;
+  /** Called before a bulk mutation in non-theme mode; parent pushes snapshot to its undo stack */
+  onUndoSnapshot?: (groups: TokenGroup[]) => void;
 }
 
 export function TokenGeneratorForm({
@@ -555,6 +591,7 @@ export function TokenGeneratorForm({
   tokenNameMismatch,
   onPreviewJSON,
   onDownloadJSON,
+  onUndoSnapshot,
 }: TokenGeneratorFormProps) {
   const [tokenGroups, setTokenGroups] = useState<TokenGroup[]>([
     { id: "1", name: "colors", tokens: [], level: 0, expanded: true },
@@ -564,6 +601,12 @@ export function TokenGeneratorForm({
   const [newGroupName, setNewGroupName] = useState("");
   const [expandedTokens, setExpandedTokens] = useState<Set<string>>(new Set());
   const [globalNamespace, setGlobalNamespace] = useState("");
+
+  // Multi-row selection state
+  const [selectedTokenIds, setSelectedTokenIds] = useState<Set<string>>(new Set());
+  const lastSelectedIndexRef = useRef<number>(-1);
+  const tokenUndoStackRef = useRef<TokenGroup[][]>([]);
+  const MAX_BULK_UNDO = 20;
   const [loadingState, setLoadingState] = useState<LoadingState>(
     createLoadingState(false),
   );
@@ -628,6 +671,12 @@ export function TokenGeneratorForm({
       setGlobalNamespace(namespace);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [namespace]);
+
+  // Clear multi-row selection when the user navigates to a different group
+  useEffect(() => {
+    setSelectedTokenIds(new Set());
+    lastSelectedIndexRef.current = -1;
+  }, [selectedGroupId]);
 
   // Toast helper functions
   const showToast = (
@@ -841,7 +890,7 @@ export function TokenGeneratorForm({
     if (pendingGroupAction.type === "delete") {
       deleteTokenGroup(pendingGroupAction.groupId);
     } else if (pendingGroupAction.type === "addSub") {
-      addSubGroup(pendingGroupAction.groupId);
+      addSubGroup(pendingGroupAction.groupId, pendingGroupAction.name);
     }
     onGroupActionProcessed?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1118,13 +1167,13 @@ export function TokenGeneratorForm({
   // Use imported getValuePlaceholder utility function
 
   // Add a child group under an existing group
-  const addSubGroup = (parentGroupId: string) => {
+  const addSubGroup = (parentGroupId: string, name?: string) => {
     const insertChild = (groups: TokenGroup[]): TokenGroup[] =>
       groups.map((g) => {
         if (g.id === parentGroupId) {
           const newChild: TokenGroup = {
             id: generateId(),
-            name: "new-group",
+            name: name?.trim() || "new-group",
             tokens: [],
             level: g.level + 1,
             parent: parentGroupId,
@@ -1145,10 +1194,114 @@ export function TokenGeneratorForm({
     setIsDirty(true);
   };
 
+  // ─── Bulk action handler factory ───────────────────────────────────────────
+  const applyBulkMutation = useCallback(
+    (mutate: (groups: TokenGroup[]) => TokenGroup[]) => {
+      const isThemeMode = !!(themeTokens && onThemeTokensChange);
+      const currentGroups = isThemeMode ? themeTokens! : tokenGroups;
+
+      // Push snapshot BEFORE mutation so undo restores pre-mutation state
+      const snapshot = currentGroups;
+      if (isThemeMode) {
+        tokenUndoStackRef.current = [snapshot, ...tokenUndoStackRef.current.slice(0, MAX_BULK_UNDO - 1)];
+      } else {
+        tokenUndoStackRef.current = [snapshot, ...tokenUndoStackRef.current.slice(0, MAX_BULK_UNDO - 1)];
+        onUndoSnapshot?.(snapshot);
+      }
+
+      const updated = mutate(currentGroups);
+      if (isThemeMode) {
+        onThemeTokensChange!(updated);
+      } else {
+        setTokenGroups(updated);
+        setIsDirty(true);
+      }
+      setSelectedTokenIds(new Set());
+      lastSelectedIndexRef.current = -1;
+    },
+    [themeTokens, onThemeTokensChange, tokenGroups, onUndoSnapshot]
+  );
+
+  const handleBulkDelete = useCallback(() => {
+    if (!selectedGroupId) return;
+    applyBulkMutation(groups => bulkDeleteTokens(groups, selectedGroupId, selectedTokenIds));
+  }, [applyBulkMutation, selectedGroupId, selectedTokenIds]);
+
+  const handleBulkMove = useCallback((destGroupId: string) => {
+    if (!selectedGroupId) return;
+    applyBulkMutation(groups => bulkMoveTokens(groups, selectedGroupId, destGroupId, selectedTokenIds));
+  }, [applyBulkMutation, selectedGroupId, selectedTokenIds]);
+
+  const handleBulkChangeType = useCallback((newType: TokenType) => {
+    if (!selectedGroupId) return;
+    applyBulkMutation(groups => bulkChangeType(groups, selectedGroupId, selectedTokenIds, newType));
+  }, [applyBulkMutation, selectedGroupId, selectedTokenIds]);
+
+  const handleBulkAddPrefix = useCallback((prefix: string) => {
+    if (!selectedGroupId || !prefix) return;
+    applyBulkMutation(groups => bulkAddPrefix(groups, selectedGroupId, selectedTokenIds, prefix));
+  }, [applyBulkMutation, selectedGroupId, selectedTokenIds]);
+
+  const handleBulkRemovePrefix = useCallback((prefix: string) => {
+    if (!selectedGroupId || !prefix) return;
+    applyBulkMutation(groups => bulkRemovePrefix(groups, selectedGroupId, selectedTokenIds, prefix));
+  }, [applyBulkMutation, selectedGroupId, selectedTokenIds]);
+
+  // ─── Token range select handler ─────────────────────────────────────────────
+  const handleTokenMultiSelect = useCallback(
+    (tokenId: string, shiftKey: boolean, tokenIndex: number) => {
+      setSelectedTokenIds(prev => {
+        const next = new Set(prev);
+        if (shiftKey && lastSelectedIndexRef.current >= 0) {
+          const isThemeMode = !!(themeTokens && themeTokens.length > 0);
+          const activeGroups = isThemeMode ? themeTokens! : tokenGroups;
+          const activeGroup = findGroupById(activeGroups, selectedGroupId ?? '');
+          if (activeGroup) {
+            const start = Math.min(lastSelectedIndexRef.current, tokenIndex);
+            const end = Math.max(lastSelectedIndexRef.current, tokenIndex);
+            const shouldSelect = !prev.has(tokenId);
+            activeGroup.tokens.slice(start, end + 1).forEach(t => {
+              if (shouldSelect) next.add(t.id);
+              else next.delete(t.id);
+            });
+          }
+        } else {
+          if (next.has(tokenId)) next.delete(tokenId);
+          else next.add(tokenId);
+        }
+        lastSelectedIndexRef.current = tokenIndex;
+        return next;
+      });
+    },
+    [themeTokens, tokenGroups, selectedGroupId]
+  );
+
+  // ─── Ctrl+Z theme-mode bulk undo ────────────────────────────────────────────
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isUndo = (e.ctrlKey || e.metaKey) && e.key === 'z';
+      if (!isUndo) return;
+      if (tokenUndoStackRef.current.length === 0) return;
+      const isThemeMode = !!(themeTokens && onThemeTokensChange);
+      if (!isThemeMode) return; // non-theme undo is handled by page.tsx
+      e.preventDefault();
+      e.stopPropagation();
+      const [prev, ...rest] = tokenUndoStackRef.current;
+      tokenUndoStackRef.current = rest;
+      onThemeTokensChange!(prev);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [themeTokens, onThemeTokensChange]);
+
   // Recursive function to render nested groups
   const renderGroup = (group: TokenGroup) => {
     const hasChildren = group.children && group.children.length > 0;
     const hasTokens = group.tokens.length > 0;
+    // Prefer themeTokens when available — keeps render and write source in sync
+    const activeSourceGroups = themeTokens && themeTokens.length > 0 ? themeTokens : tokenGroups;
+    const activeGroup = findGroupById(activeSourceGroups, group.id) ?? group;
+    const activeGroupTokens = activeGroup.tokens;
 
     return (
       <div key={group.id} className="mb-4">
@@ -1213,9 +1366,51 @@ export function TokenGeneratorForm({
 
           {hasTokens && (
             <div className="overflow-x-auto">
+              {/* BulkActionBar — mounts above the table when tokens are selected */}
+              {selectedGroupId && !isReadOnly && (
+                <div className="px-2 pt-2">
+                  <BulkActionBar
+                    selectedCount={selectedTokenIds.size}
+                    selectedTokenPaths={
+                      [...selectedTokenIds]
+                        .map(id => activeGroupTokens.find(t => t.id === id)?.path ?? '')
+                        .filter(Boolean)
+                    }
+                    groups={tokenGroups}
+                    sourceGroupId={selectedGroupId}
+                    detectedPrefix={detectCommonPrefix(
+                      [...selectedTokenIds].map(id => activeGroupTokens.find(t => t.id === id)?.path ?? '').filter(Boolean)
+                    )}
+                    isReadOnly={!!isReadOnly}
+                    onDelete={handleBulkDelete}
+                    onMoveToGroup={handleBulkMove}
+                    onChangeType={handleBulkChangeType}
+                    onAddPrefix={handleBulkAddPrefix}
+                    onRemovePrefix={handleBulkRemovePrefix}
+                    onClearSelection={() => { setSelectedTokenIds(new Set()); lastSelectedIndexRef.current = -1; }}
+                  />
+                </div>
+              )}
               <table className="min-w-full border-collapse table-auto">
                 <thead className="border-b border-gray-200">
                   <tr>
+                    {/* Checkbox column header */}
+                    {!isReadOnly ? (
+                      <th className="w-10 px-2 py-2 border-r border-gray-100">
+                        <input
+                          type="checkbox"
+                          checked={activeGroupTokens.length > 0 && activeGroupTokens.every(t => selectedTokenIds.has(t.id))}
+                          onChange={e => {
+                            if (e.target.checked) setSelectedTokenIds(new Set(activeGroupTokens.map(t => t.id)));
+                            else setSelectedTokenIds(new Set());
+                          }}
+                          className="accent-blue-500 w-4 h-4 cursor-pointer"
+                          aria-label="Select all tokens"
+                        />
+                      </th>
+                    ) : (
+                      <th className="w-10 border-r border-gray-100" />
+                    )}
                     <th className="px-4 py-2 text-[10px] font-semibold text-left text-gray-400 uppercase tracking-wide">
                       Name
                     </th>
@@ -1232,7 +1427,7 @@ export function TokenGeneratorForm({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {group.tokens.map((token) => (
+                  {activeGroupTokens.map((token, tokenIndex) => (
                     <TokenTableRow
                       key={token.id}
                       token={token}
@@ -1253,6 +1448,9 @@ export function TokenGeneratorForm({
                       isPathLocked={Boolean(themeTokens)}
                       masterValue={findMasterValue?.(group.id, token.path)}
                       onResetToDefault={onResetToDefault}
+                      isMultiSelected={selectedTokenIds.has(token.id)}
+                      tokenIndex={tokenIndex}
+                      onMultiSelectClick={(shiftKey, idx) => handleTokenMultiSelect(token.id, shiftKey, idx)}
                     />
                   ))}
                 </tbody>
