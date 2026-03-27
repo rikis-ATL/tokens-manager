@@ -940,7 +940,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   }
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden">
+    <div className="flex flex-col h-full overflow-hidden">
 
       <header className="px-6 py-3 flex justify-between items-center border border-b border-gray-200">
        <div className="flex items-center gap-2">  

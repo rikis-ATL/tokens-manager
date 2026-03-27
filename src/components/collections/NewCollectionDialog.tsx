@@ -29,6 +29,7 @@ export function NewCollectionDialog({
   onCreated,
 }: NewCollectionDialogProps) {
   const [name, setName] = useState('');
+  const [namespace, setNamespace] = useState('');
   const [duplicateSourceId, setDuplicateSourceId] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState('');
@@ -42,6 +43,7 @@ export function NewCollectionDialog({
 
   const resetForm = () => {
     setName('');
+    setNamespace('');
     setDuplicateSourceId('');
     setError('');
     setPalettePresetId('none');
@@ -100,7 +102,7 @@ export function NewCollectionDialog({
         const res = await fetch('/api/collections', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: trimmedName, tokens }),
+          body: JSON.stringify({ name: trimmedName, namespace: namespace.trim() || undefined, tokens }),
         });
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
@@ -137,6 +139,22 @@ export function NewCollectionDialog({
               autoFocus
             />
             {error && <p className="text-xs text-red-600">{error}</p>}
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-gray-700">
+              Token prefix
+              <span className="font-normal text-gray-500 ml-1">(optional)</span>
+            </label>
+            <Input
+              value={namespace}
+              onChange={(e) => setNamespace(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleCreate(); }}
+              placeholder="token"
+            />
+            <p className="text-xs text-gray-500">
+              Namespace prepended to token paths in CSS output (e.g. <code className="font-mono">--token-color-slate-50</code>).
+            </p>
           </div>
 
           {existingCollections.length > 0 && (

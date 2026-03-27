@@ -265,13 +265,15 @@ export class TokenService {
   }
 
   /**
-   * Check if an object is a token definition
+   * Check if an object is a token definition.
+   * In W3C DTCG, `$type` can appear at group level (inherited by children) without
+   * being a token itself. Only the presence of `$value` (or legacy `value`) indicates
+   * an actual token definition.
    */
   private isTokenDefinition(obj: any): boolean {
     return obj && typeof obj === 'object' && (
       obj.hasOwnProperty('$value') ||
-      obj.hasOwnProperty('value') ||
-      obj.hasOwnProperty('$type')
+      obj.hasOwnProperty('value')
     );
   }
 

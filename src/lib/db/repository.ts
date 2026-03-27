@@ -11,6 +11,7 @@ export type CollectionDoc = Omit<ITokenCollection, 'createdAt' | 'updatedAt'> & 
 
 export interface CreateCollectionInput {
   name: string;
+  namespace?: string;
   tokens: Record<string, unknown>;
   sourceMetadata?: ISourceMetadata | null;
   userId?: string | null;

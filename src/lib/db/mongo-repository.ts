@@ -9,6 +9,7 @@ function toDoc(raw: Record<string, unknown>): CollectionDoc {
   return {
     _id: String(raw._id),
     name: raw.name as string,
+    namespace: (raw.namespace as string | undefined) ?? 'token',
     tokens: (raw.tokens as Record<string, unknown>) ?? {},
     sourceMetadata: (raw.sourceMetadata as CollectionDoc['sourceMetadata']) ?? null,
     userId: (raw.userId as string | null) ?? null,
@@ -56,6 +57,7 @@ export class MongoCollectionRepository implements ICollectionRepository {
     await this.connect();
     const doc = await TokenCollection.create({
       name: data.name,
+      namespace: data.namespace ?? 'token',
       tokens: data.tokens ?? {},
       sourceMetadata: data.sourceMetadata ?? null,
       userId: data.userId ?? null,

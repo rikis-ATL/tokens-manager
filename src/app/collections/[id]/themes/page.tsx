@@ -173,7 +173,7 @@ export default function CollectionThemesPage({ params }: ThemesPageProps) {
   }
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden">
+    <div className="flex flex-col flex-1 overflow-hidden border border-red-500">
       {/* Heading bar */}
       <div className="flex items-center gap-2 border-b border-gray-200 bg-white px-6 py-3 flex-shrink-0">
         <h1 className="text-lg font-semibold text-gray-900">Themes</h1>

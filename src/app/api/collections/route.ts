@@ -29,6 +29,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json() as {
       name?: string;
+      namespace?: string;
       tokens?: Record<string, unknown>;
       sourceMetadata?: ISourceMetadata | null;
     };
@@ -52,6 +53,7 @@ export async function POST(request: Request) {
 
     const doc = await repo.create({
       name: body.name,
+      namespace: body.namespace,
       tokens: body.tokens ?? {},
       sourceMetadata: body.sourceMetadata ?? null,
       userId: null,
