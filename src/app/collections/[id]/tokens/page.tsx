@@ -190,10 +190,11 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   const [selectedToken, setSelectedToken] = useState<{ token: GeneratedToken; groupPath: string } | null>(null);
   const [pendingNewGroup, setPendingNewGroup] = useState<string | null>(null);
   const [pendingBulkInsert, setPendingBulkInsert] = useState<{ groupId: string; tokens: GeneratedToken[]; subgroupName?: string } | null>(null);
-  const [pendingGroupAction, setPendingGroupAction] = useState<{ type: 'delete' | 'addSub'; groupId: string } | null>(null);
+  const [pendingGroupAction, setPendingGroupAction] = useState<{ type: 'delete' | 'addSub'; groupId: string; name?: string } | null>(null);
   const [guideOpen, setGuideOpen] = useState(false);
   const [isAddingGroup, setIsAddingGroup] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
+  const [addSubGroupParentId, setAddSubGroupParentId] = useState<string | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -740,7 +741,12 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   const confirmAddGroup = () => {
     const name = newGroupName.trim();
     if (!name) return;
-    setPendingNewGroup(name);
+    if (addSubGroupParentId) {
+      setPendingGroupAction({ type: 'addSub', groupId: addSubGroupParentId, name });
+      setAddSubGroupParentId(null);
+    } else {
+      setPendingNewGroup(name);
+    }
     setNewGroupName('');
     setIsAddingGroup(false);
   };
@@ -1115,7 +1121,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
                 onGroupSelect={(id) => { setSelectedGroupId(id); setSelectedToken(null); }}
                 onAddGroup={() => setIsAddingGroup(true)}
                 onDeleteGroup={(groupId) => setPendingGroupAction({ type: 'delete', groupId })}
-                onAddSubGroup={(groupId) => setPendingGroupAction({ type: 'addSub', groupId })}
+                onAddSubGroup={(groupId) => { setAddSubGroupParentId(groupId); setIsAddingGroup(true); }}
                 onGroupsReordered={handleGroupsReordered}
                 onRenameGroup={handleRenameGroup}
               />
@@ -1185,6 +1191,9 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
                   tokenNameMismatch={tokenNameMismatch}
                   onPreviewJSON={handlePreviewJSON}
                   onDownloadJSON={handleDownloadJSONFromHeader}
+                  onUndoSnapshot={(snapshot) => {
+                    undoStackRef.current = [snapshot, ...undoStackRef.current.slice(0, MAX_UNDO - 1)];
+                  }}
                 />
               </main>
             </ResizablePanel>
@@ -1283,10 +1292,10 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
         jsonData={generateTabTokens ?? rawCollectionTokens ?? {}}
       />
 
-      <Dialog open={isAddingGroup} onOpenChange={(open) => { if (!open) { setIsAddingGroup(false); setNewGroupName(''); } }}>
+      <Dialog open={isAddingGroup} onOpenChange={(open) => { if (!open) { setIsAddingGroup(false); setNewGroupName(''); setAddSubGroupParentId(null); } }}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>Add Token Group</DialogTitle>
+            <DialogTitle>{addSubGroupParentId ? 'Add Sub-group' : 'Add Token Group'}</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-4 pt-2">
             <Input
@@ -1294,14 +1303,14 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
               onChange={(e) => setNewGroupName(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') confirmAddGroup();
-                if (e.key === 'Escape') { setIsAddingGroup(false); setNewGroupName(''); }
+                if (e.key === 'Escape') { setIsAddingGroup(false); setNewGroupName(''); setAddSubGroupParentId(null); }
               }}
               placeholder="Group name (e.g. color / brand)"
               autoFocus
             />
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => { setIsAddingGroup(false); setNewGroupName(''); }}>Cancel</Button>
-              <Button onClick={confirmAddGroup}>Add Group</Button>
+              <Button variant="outline" onClick={() => { setIsAddingGroup(false); setNewGroupName(''); setAddSubGroupParentId(null); }}>Cancel</Button>
+              <Button onClick={confirmAddGroup}>{addSubGroupParentId ? 'Add Sub-group' : 'Add Group'}</Button>
             </div>
           </div>
         </DialogContent>
