@@ -86,20 +86,9 @@ export default function CollectionConfigPage({ params }: ConfigPageProps) {
       <h1 className="text-lg font-semibold text-gray-900 mb-6">
         Configuration{collectionName ? `: ${collectionName}` : ''}
       </h1>
-      <div className="grid grid-cols-2 gap-6 h-[calc(100vh-160px)]">
+      <div className="grid grid-cols-1 gap-6 h-[calc(100vh-160px)]">
         {/* Left column — Build settings */}
-        <div className="border rounded-lg bg-white p-4 flex flex-col gap-4">
-          <h2 className="text-sm font-semibold text-gray-700">Build Settings</h2>
-          <div className="text-sm text-gray-600">
-            <p>
-              Collection:{' '}
-              <span className="font-medium">{collectionName || 'Loading...'}</span>
-            </p>
-            <p className="mt-1 text-xs text-gray-400">
-              Build tokens for this collection to generate CSS, SCSS, JS and other formats.
-            </p>
-          </div>
-        </div>
+
 
         {/* Right column — Build output panel */}
         <div className="border rounded-lg bg-white overflow-auto flex flex-col">

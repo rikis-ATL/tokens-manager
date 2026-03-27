@@ -41,6 +41,23 @@ export function buildDisplayLabel(segment: string): string {
  * parseGroupPath('globals/border-radius.json') // → ['Globals', 'Border Radius']
  * parseGroupPath('globals/breakpoint.json')   // → ['Globals', 'Breakpoint']
  */
+/**
+ * Returns the display label for a group name.
+ * - If the name already contains uppercase letters or spaces (user-defined label),
+ *   it is returned as-is to preserve their intended casing.
+ * - Otherwise the name is treated as a slug and `buildDisplayLabel` is applied.
+ *
+ * @example
+ * toDisplayLabel('color')        // → 'Color'         (slug → auto-cap)
+ * toDisplayLabel('border-color') // → 'Border Color'  (slug → auto-cap)
+ * toDisplayLabel('Brand Colors') // → 'Brand Colors'  (user label → as-is)
+ * toDisplayLabel('brandColors')  // → 'brandColors'   (user label → as-is)
+ */
+export function toDisplayLabel(name: string): string {
+  if (/[A-Z ]/.test(name)) return name;
+  return buildDisplayLabel(name);
+}
+
 export function parseGroupPath(groupName: string): string[] {
   const segments = groupName.split('/');
   return segments.map((segment, index) => {

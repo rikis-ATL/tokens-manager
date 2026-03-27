@@ -40,6 +40,32 @@ interface TokenGroupTreeProps {
   onRenameGroup?: (groupId: string, newLabel: string) => void;
 }
 
+// ---------------------------------------------------------------------------
+// Collapse filtering
+// ---------------------------------------------------------------------------
+
+/**
+ * Filter flat nodes to exclude children of collapsed groups.
+ * Propagates collapse downward: if a parent is collapsed, all descendants are hidden.
+ */
+function filterCollapsed(nodes: FlatNode[], collapsedIds: Set<string>): FlatNode[] {
+  const hiddenSubtrees = new Set<string>();
+  return nodes.filter(node => {
+    if (node.parentId && hiddenSubtrees.has(node.parentId)) {
+      hiddenSubtrees.add(node.group.id);
+      return false;
+    }
+    if (collapsedIds.has(node.group.id) && (node.group.children?.length ?? 0) > 0) {
+      hiddenSubtrees.add(node.group.id);
+    }
+    return true;
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
+
 export function TokenGroupTree({
   groups,
   namespace: _namespace,
@@ -53,16 +79,27 @@ export function TokenGroupTree({
 }: TokenGroupTreeProps) {
   const [activeNode, setActiveNode] = useState<FlatNode | null>(null);
   const [dropIntent, setDropIntent] = useState<DropIntent | null>(null);
+  const [collapsedIds, setCollapsedIds] = useState<Set<string>>(new Set());
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
   );
 
   const flatNodes = flattenTree(groups);
-  const sortedIds = flatNodes.map(n => n.group.id);
+  const visibleNodes = filterCollapsed(flatNodes, collapsedIds);
+  const sortedIds = visibleNodes.map(n => n.group.id);
+
+  function handleToggleCollapse(groupId: string) {
+    setCollapsedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(groupId)) next.delete(groupId);
+      else next.add(groupId);
+      return next;
+    });
+  }
 
   function handleDragStart({ active }: DragStartEvent) {
-    const found = flatNodes.find(n => n.group.id === active.id);
+    const found = visibleNodes.find(n => n.group.id === active.id);
     setActiveNode(found ?? null);
     setDropIntent(null);
   }
@@ -73,6 +110,16 @@ export function TokenGroupTree({
       return;
     }
 
+    const overId = String(over.id);
+    
+    // Check if we're over a drag icon drop zone (these have IDs ending with '-drag-icon')
+    if (overId.endsWith('-drag-icon')) {
+      const groupId = overId.replace('-drag-icon', '');
+      setDropIntent({ id: groupId, intent: 'into' });
+      return;
+    }
+
+    // Original logic for main row areas
     const overRect = over.rect;
     const activeRect = active.rect.current?.translated;
     if (!activeRect || !overRect) {
@@ -81,8 +128,8 @@ export function TokenGroupTree({
     }
 
     const activeCenterY = activeRect.top + activeRect.height / 2;
-    const zoneTop = overRect.top + overRect.height * 0.3;
-    const zoneBottom = overRect.top + overRect.height * 0.7;
+    const zoneTop = overRect.top + overRect.height * 0.2;
+    const zoneBottom = overRect.top + overRect.height * 0.8;
 
     let intent: DropMode;
     if (activeCenterY < zoneTop) {
@@ -93,7 +140,7 @@ export function TokenGroupTree({
       intent = 'into';
     }
 
-    setDropIntent({ id: String(over.id), intent });
+    setDropIntent({ id: overId, intent });
   }
 
   function handleDragEnd({ active, over }: DragEndEvent) {
@@ -101,8 +148,18 @@ export function TokenGroupTree({
     setActiveNode(null);
     setDropIntent(null);
     if (!over || active.id === over.id) return;
+    
     const activeId = String(active.id);
-    const overId = String(over.id);
+    let overId = String(over.id);
+    
+    // Handle drag icon drop zone IDs
+    if (overId.endsWith('-drag-icon')) {
+      overId = overId.replace('-drag-icon', '');
+    }
+    
+    // Prevent dropping on self
+    if (activeId === overId) return;
+    
     const dropMode: DropMode =
       currentIntent?.id === overId ? currentIntent.intent : 'before';
     const { groups: newGroups } = applyGroupMove(groups, activeId, overId, [], dropMode);
@@ -144,7 +201,7 @@ export function TokenGroupTree({
           onDragCancel={handleDragCancel}
         >
           <SortableContext items={sortedIds} strategy={() => null}>
-            {flatNodes.map(node => (
+            {visibleNodes.map(node => (
               <SortableGroupRow
                 key={node.group.id}
                 node={node}
@@ -154,6 +211,8 @@ export function TokenGroupTree({
                 onAddSubGroup={onAddSubGroup}
                 onRenameGroup={onRenameGroup}
                 dropIntent={dropIntent?.id === node.group.id ? dropIntent.intent : null}
+                isCollapsed={collapsedIds.has(node.group.id)}
+                onToggleCollapse={handleToggleCollapse}
               />
             ))}
           </SortableContext>

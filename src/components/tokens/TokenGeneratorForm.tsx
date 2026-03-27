@@ -607,6 +607,12 @@ export function TokenGeneratorForm({
   const lastSelectedIndexRef = useRef<number>(-1);
   const tokenUndoStackRef = useRef<TokenGroup[][]>([]);
   const MAX_BULK_UNDO = 20;
+
+  // Prefix live-edit state
+  const [prefixInputValue, setPrefixInputValue] = useState('');
+  const isPrefixEditingRef = useRef(false);
+  const prefixBaseSnapshotRef = useRef<TokenGroup[] | null>(null);
+  const prefixOriginalRef = useRef<string>('');
   const [loadingState, setLoadingState] = useState<LoadingState>(
     createLoadingState(false),
   );
@@ -676,7 +682,24 @@ export function TokenGeneratorForm({
   useEffect(() => {
     setSelectedTokenIds(new Set());
     lastSelectedIndexRef.current = -1;
+    isPrefixEditingRef.current = false;
+    prefixBaseSnapshotRef.current = null;
+    setPrefixInputValue('');
   }, [selectedGroupId]);
+
+  // Sync prefix input when selection membership changes (not while actively editing)
+  const selectionKey = [...selectedTokenIds].sort().join(',');
+  useEffect(() => {
+    if (isPrefixEditingRef.current) return;
+    const currentGroups = (themeTokens && themeTokens.length > 0) ? themeTokens : tokenGroups;
+    const group = findGroupById(currentGroups, selectedGroupId ?? '')
+      ?? currentGroups.find(g => g.id === selectedGroupId);
+    const paths = [...selectedTokenIds]
+      .map(id => group?.tokens.find(t => t.id === id)?.path ?? '')
+      .filter(Boolean);
+    setPrefixInputValue(detectCommonPrefix(paths));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectionKey]);
 
   // Toast helper functions
   const showToast = (
@@ -1237,15 +1260,43 @@ export function TokenGeneratorForm({
     applyBulkMutation(groups => bulkChangeType(groups, selectedGroupId, selectedTokenIds, newType));
   }, [applyBulkMutation, selectedGroupId, selectedTokenIds]);
 
-  const handleBulkAddPrefix = useCallback((prefix: string) => {
-    if (!selectedGroupId || !prefix) return;
-    applyBulkMutation(groups => bulkAddPrefix(groups, selectedGroupId, selectedTokenIds, prefix));
-  }, [applyBulkMutation, selectedGroupId, selectedTokenIds]);
+  // ─── Live prefix edit handlers ───────────────────────────────────────────────
+  const handlePrefixFocus = useCallback(() => {
+    isPrefixEditingRef.current = true;
+    const isThemeMode = !!(themeTokens && onThemeTokensChange);
+    const currentGroups = isThemeMode ? themeTokens! : tokenGroups;
+    prefixBaseSnapshotRef.current = currentGroups;
+    prefixOriginalRef.current = prefixInputValue;
+    // Take undo snapshot once at edit start
+    tokenUndoStackRef.current = [[...currentGroups], ...tokenUndoStackRef.current.slice(0, MAX_BULK_UNDO - 1)];
+    if (!isThemeMode) onUndoSnapshot?.(currentGroups);
+  }, [themeTokens, onThemeTokensChange, tokenGroups, prefixInputValue, onUndoSnapshot]);
 
-  const handleBulkRemovePrefix = useCallback((prefix: string) => {
-    if (!selectedGroupId || !prefix) return;
-    applyBulkMutation(groups => bulkRemovePrefix(groups, selectedGroupId, selectedTokenIds, prefix));
-  }, [applyBulkMutation, selectedGroupId, selectedTokenIds]);
+  const handlePrefixChange = useCallback((newValue: string) => {
+    if (!selectedGroupId || !prefixBaseSnapshotRef.current) return;
+    setPrefixInputValue(newValue);
+    const base = prefixBaseSnapshotRef.current;
+    const original = prefixOriginalRef.current;
+    // Apply to base: remove original prefix then add new value
+    let mutated: TokenGroup[] = original
+      ? bulkRemovePrefix(base, selectedGroupId, selectedTokenIds, original)
+      : base;
+    if (newValue) {
+      mutated = bulkAddPrefix(mutated, selectedGroupId, selectedTokenIds, newValue);
+    }
+    const isThemeMode = !!(themeTokens && onThemeTokensChange);
+    if (isThemeMode) {
+      onThemeTokensChange!(mutated);
+    } else {
+      setTokenGroups(mutated);
+      setIsDirty(true);
+    }
+  }, [selectedGroupId, selectedTokenIds, themeTokens, onThemeTokensChange]);
+
+  const handlePrefixBlur = useCallback(() => {
+    isPrefixEditingRef.current = false;
+    prefixBaseSnapshotRef.current = null;
+  }, []);
 
   // ─── Token range select handler ─────────────────────────────────────────────
   const handleTokenMultiSelect = useCallback(
@@ -1366,31 +1417,6 @@ export function TokenGeneratorForm({
 
           {hasTokens && (
             <div className="overflow-x-auto">
-              {/* BulkActionBar — mounts above the table when tokens are selected */}
-              {selectedGroupId && !isReadOnly && (
-                <div className="px-2 pt-2">
-                  <BulkActionBar
-                    selectedCount={selectedTokenIds.size}
-                    selectedTokenPaths={
-                      [...selectedTokenIds]
-                        .map(id => activeGroupTokens.find(t => t.id === id)?.path ?? '')
-                        .filter(Boolean)
-                    }
-                    groups={tokenGroups}
-                    sourceGroupId={selectedGroupId}
-                    detectedPrefix={detectCommonPrefix(
-                      [...selectedTokenIds].map(id => activeGroupTokens.find(t => t.id === id)?.path ?? '').filter(Boolean)
-                    )}
-                    isReadOnly={!!isReadOnly}
-                    onDelete={handleBulkDelete}
-                    onMoveToGroup={handleBulkMove}
-                    onChangeType={handleBulkChangeType}
-                    onAddPrefix={handleBulkAddPrefix}
-                    onRemovePrefix={handleBulkRemovePrefix}
-                    onClearSelection={() => { setSelectedTokenIds(new Set()); lastSelectedIndexRef.current = -1; }}
-                  />
-                </div>
-              )}
               <table className="min-w-full border-collapse table-auto">
                 <thead className="border-b border-gray-200">
                   <tr>
@@ -1482,8 +1508,24 @@ export function TokenGeneratorForm({
   };
 
   return (
-    <div className="space-y-4">
- 
+    <div className="">
+      {/* Fixed floating BulkActionBar — rendered outside the group card, above all other UI */}
+      {selectedGroupId && (
+        <BulkActionBar
+          selectedCount={selectedTokenIds.size}
+          groups={tokenGroups}
+          sourceGroupId={selectedGroupId}
+          isReadOnly={!!isReadOnly}
+          prefixValue={prefixInputValue}
+          onDelete={handleBulkDelete}
+          onMoveToGroup={handleBulkMove}
+          onChangeType={handleBulkChangeType}
+          onPrefixFocus={handlePrefixFocus}
+          onPrefixChange={handlePrefixChange}
+          onPrefixBlur={handlePrefixBlur}
+          onClearSelection={() => { setSelectedTokenIds(new Set()); lastSelectedIndexRef.current = -1; }}
+        />
+      )}
 
         {!hideNamespaceAndActions && (
           <div className="flex items-center space-x-4 mb-4">

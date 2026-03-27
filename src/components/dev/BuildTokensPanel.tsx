@@ -157,10 +157,10 @@ export function BuildTokensPanel({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto">
         {/* Empty state — no tokens */}
         {!tokens && (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="flex flex-col items-center justify-center py-16 text-center p-4">
             <p className="text-gray-400 text-sm">
               No token collection selected. Select or generate a token collection to build.
             </p>
@@ -191,7 +191,7 @@ export function BuildTokensPanel({
 
         {/* Success state */}
         {tokens && !loading && result && (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 h-full">
             {/* Format tabs */}
             <div className="flex border-b border-gray-200">
               {FORMATS.map(fmt => (
@@ -232,7 +232,7 @@ export function BuildTokensPanel({
 
             {/* Code block */}
             {currentBrandOutput && (
-              <div className="relative">
+              <div className="relative h-full">
                 <Button
                   onClick={() => handleCopy(copyKey, currentBrandOutput.content)}
                   variant="outline"
@@ -241,7 +241,7 @@ export function BuildTokensPanel({
                 >
                   {copiedKey === copyKey ? 'Copied!' : 'Copy'}
                 </Button>
-                <pre className="bg-gray-50 rounded p-4 text-sm font-mono overflow-x-auto whitespace-pre-wrap break-all max-h-[400px] overflow-y-auto">
+                <pre className="bg-gray-50 rounded p-4 text-sm font-mono overflow-x-auto whitespace-pre-wrap break-all flex flex-1 overflow-y-auto">
                   <code>{currentBrandOutput.content || '/* (empty output) */'}</code>
                 </pre>
               </div>

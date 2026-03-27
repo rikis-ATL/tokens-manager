@@ -2,8 +2,9 @@
 
 import { useRef, useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
+import { useDroppable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, MoreHorizontal, Pencil, Plus, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronRight, GripVertical, MoreHorizontal, Pencil, Plus, Trash2 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,6 +28,8 @@ interface SortableGroupRowProps {
   isDragOverlay?: boolean;
   /** Drop intent for THIS row when it is the active over-target. Null when not targeted. */
   dropIntent?: DropMode | null;
+  isCollapsed?: boolean;
+  onToggleCollapse?: (groupId: string) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -34,13 +37,11 @@ interface SortableGroupRowProps {
 // ---------------------------------------------------------------------------
 
 function rowClassName(node: FlatNode, isSelected: boolean): string {
-  const hasChildren = (node.group.children?.length ?? 0) > 0;
   const base = 'group/item flex items-center pr-1 text-sm cursor-pointer transition-colors';
   const selected = isSelected
     ? 'bg-indigo-50 text-indigo-900 font-medium'
     : 'hover:bg-gray-100 text-gray-700';
-  const weight = hasChildren ? 'font-semibold' : 'font-normal';
-  return `${base} ${selected} ${weight}`;
+  return `${base} ${selected}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -51,6 +52,7 @@ interface InlineLabelProps {
   displayLabel: string;
   isEditing: boolean;
   editValue: string;
+  inputRef: React.RefObject<HTMLInputElement>;
   onEditValueChange: (v: string) => void;
   onCommit: () => void;
   onCancel: () => void;
@@ -61,20 +63,18 @@ function InlineLabel({
   displayLabel,
   isEditing,
   editValue,
+  inputRef,
   onEditValueChange,
   onCommit,
   onCancel,
   onStartEdit,
 }: InlineLabelProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
-
   if (isEditing) {
     return (
       <input
         ref={inputRef}
         className="flex-1 py-0.5 px-1 text-xs rounded border border-indigo-400 bg-white outline-none min-w-0"
         value={editValue}
-        autoFocus
         onClick={e => e.stopPropagation()}
         onChange={e => onEditValueChange(e.target.value)}
         onBlur={onCommit}
@@ -123,7 +123,7 @@ function GroupActions({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
-          className="opacity-0 group-hover/item:opacity-100 p-1 rounded hover:bg-gray-200 text-gray-400 hover:text-gray-700 transition-all flex-shrink-0"
+          className="p-1 rounded hover:bg-gray-200 text-gray-400 hover:text-gray-700 transition-all flex-shrink-0"
           onClick={e => e.stopPropagation()}
           title="Group actions"
         >
@@ -134,7 +134,7 @@ function GroupActions({
         {onRenameGroup && (
           <DropdownMenuItem
             className="gap-2 text-xs"
-            onClick={() => onStartRename()}
+            onSelect={e => { e.preventDefault(); onStartRename(); }}
           >
             <Pencil size={12} /> Rename
           </DropdownMenuItem>
@@ -176,6 +176,8 @@ export function SortableGroupRow({
   onRenameGroup,
   isDragOverlay = false,
   dropIntent,
+  isCollapsed,
+  onToggleCollapse,
 }: SortableGroupRowProps) {
   // Static overlay version — no sortable hooks, no transform, no ring
   if (isDragOverlay) {
@@ -198,6 +200,8 @@ export function SortableGroupRow({
     onAddSubGroup={onAddSubGroup}
     onRenameGroup={onRenameGroup}
     dropIntent={dropIntent}
+    isCollapsed={isCollapsed}
+    onToggleCollapse={onToggleCollapse}
   />;
 }
 
@@ -210,9 +214,12 @@ function SortableRowInner({
   onAddSubGroup,
   onRenameGroup,
   dropIntent,
+  isCollapsed,
+  onToggleCollapse,
 }: Omit<SortableGroupRowProps, 'isDragOverlay'>) {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState('');
+  const editInputRef = useRef<HTMLInputElement>(null);
 
   const {
     attributes,
@@ -223,6 +230,14 @@ function SortableRowInner({
     isDragging,
   } = useSortable({ id: node.group.id });
 
+  // Separate droppable area for the drag icon (handles 'into' drops)
+  const {
+    setNodeRef: setDragIconDropRef,
+    isOver: isDragIconOver,
+  } = useDroppable({
+    id: `${node.group.id}-drag-icon`,
+  });
+
   const style: React.CSSProperties = {
     paddingLeft: node.depth * 14 + 8,
     transform: CSS.Transform.toString(transform),
@@ -230,9 +245,16 @@ function SortableRowInner({
     opacity: isDragging ? 0.4 : 1,
   };
 
+  const hasChildren = (node.group.children?.length ?? 0) > 0;
+
   function startEdit() {
     setEditValue(node.displayLabel);
     setIsEditing(true);
+    // Defer focus until after Radix dropdown finishes its own focus management
+    setTimeout(() => {
+      editInputRef.current?.focus();
+      editInputRef.current?.select();
+    }, 0);
   }
 
   function commitEdit() {
@@ -267,22 +289,46 @@ function SortableRowInner({
         <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 rounded-full z-10 pointer-events-none" />
       )}
 
-      {/* Drag handle — hidden while editing */}
-      <button
-        {...(isEditing ? {} : listeners)}
-        className={`p-1 text-gray-300 flex-shrink-0 ${isEditing ? 'pointer-events-none opacity-0' : 'cursor-grab hover:text-gray-500'}`}
-        title="Drag to reorder"
-        tabIndex={-1}
-        aria-hidden={isEditing}
+      {/* Drag handle with expanded drop zone — hidden while editing */}
+      <div
+        ref={setDragIconDropRef}
+        className={`flex-shrink-0 ${isEditing ? 'pointer-events-none opacity-0' : ''}`}
       >
-        <GripVertical size={12} />
-      </button>
+        <button
+          {...(isEditing ? {} : listeners)}
+          className={`p-2 text-gray-300 flex-shrink-0 transition-all ${
+            isEditing 
+              ? 'pointer-events-none opacity-0' 
+              : 'cursor-grab hover:text-gray-500'
+          }`}
+          title="Drag to reorder"
+          tabIndex={-1}
+          aria-hidden={isEditing}
+        >
+          <GripVertical size={12} />
+        </button>
+      </div>
+
+      {/* Expand/collapse caret for groups with children */}
+      {hasChildren ? (
+        <button
+          className="p-0.5 text-gray-400 hover:text-gray-600 flex-shrink-0 -ml-0.5 mr-0.5"
+          onClick={e => { e.stopPropagation(); onToggleCollapse?.(node.group.id); }}
+          tabIndex={-1}
+          title={isCollapsed ? 'Expand' : 'Collapse'}
+        >
+          {isCollapsed ? <ChevronRight size={11} /> : <ChevronDown size={11} />}
+        </button>
+      ) : (
+        <span className="w-4 flex-shrink-0" />
+      )}
 
       {/* Label / inline input */}
       <InlineLabel
         displayLabel={node.displayLabel}
         isEditing={isEditing}
         editValue={editValue}
+        inputRef={editInputRef}
         onEditValueChange={setEditValue}
         onCommit={commitEdit}
         onCancel={cancelEdit}

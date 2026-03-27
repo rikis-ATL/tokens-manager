@@ -6,6 +6,9 @@
 export interface TokenPair {
   name: string;
   value: string;
+  type?: string;
+  description?: string;
+  attributes?: Record<string, string>;
 }
 
 function extractValue(obj: unknown): string {
@@ -19,6 +22,24 @@ function extractValue(obj: unknown): string {
   return JSON.stringify(obj);
 }
 
+/** Collect extra keys from a token object into attributes (excluding known token fields). */
+function extractAttributes(
+  obj: Record<string, unknown>,
+  reservedKeys: string[],
+): Record<string, string> | undefined {
+  const attrs: Record<string, string> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (reservedKeys.includes(k)) continue;
+    if (v != null && typeof v !== 'object') attrs[k] = String(v);
+  }
+  return Object.keys(attrs).length > 0 ? attrs : undefined;
+}
+
+/** Check if an object is a legacy Style Dictionary token: { value, ... } without $value. */
+function isLegacyToken(val: object): val is Record<string, unknown> {
+  return 'value' in val && !('$value' in val);
+}
+
 function flattenToPairs(
   obj: Record<string, unknown>,
   prefix = ''
@@ -28,10 +49,21 @@ function flattenToPairs(
     if (key.startsWith('$') && key !== '$value') continue;
     const path = prefix ? `${prefix}.${key}` : key;
     if (val != null && typeof val === 'object' && !Array.isArray(val)) {
-      if ('$value' in val) {
-        result.push({ name: path, value: extractValue(val) });
+      const rec = val as Record<string, unknown>;
+      if ('$value' in rec) {
+        // DTCG format: { $value, $type?, $description?, $extensions? }
+        const type = typeof rec['$type'] === 'string' ? rec['$type'] as string : undefined;
+        const description = typeof rec['$description'] === 'string' ? rec['$description'] : undefined;
+        const attributes = extractAttributes(rec, ['$value', '$type', '$description', '$extensions']);
+        result.push({ name: path, value: extractValue(rec), type, description, attributes });
+      } else if (isLegacyToken(rec)) {
+        // Legacy Tokens Studio / Style Dictionary: { value, type?, description?, ...rest→attributes }
+        const type = typeof rec['type'] === 'string' ? rec['type'] as string : undefined;
+        const description = typeof rec['description'] === 'string' ? rec['description'] : undefined;
+        const attributes = extractAttributes(rec, ['value', 'type', 'description']);
+        result.push({ name: path, value: extractValue(rec['value']), type, description, attributes });
       } else {
-        result.push(...flattenToPairs(val as Record<string, unknown>, path));
+        result.push(...flattenToPairs(rec, path));
       }
     } else {
       result.push({ name: path, value: extractValue(val) });

@@ -1,89 +1,142 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { X, Trash2, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+  Menubar,
+  MenubarContent,
+  MenubarItem,
+  MenubarMenu,
+  MenubarSeparator,
+  MenubarTrigger,
+} from '@/components/ui/menubar';
 import { TokenGroup, TokenType, TOKEN_TYPES } from '@/types/token.types';
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
 import { GroupPickerModal } from './GroupPickerModal';
+import { useState } from 'react';
 
 interface BulkActionBarProps {
   selectedCount: number;
-  selectedTokenPaths: string[];
   groups: TokenGroup[];
   sourceGroupId: string;
-  detectedPrefix: string;
   isReadOnly: boolean;
+  prefixValue: string;
   onDelete: () => void;
   onMoveToGroup: (destGroupId: string) => void;
   onChangeType: (type: TokenType) => void;
-  onAddPrefix: (prefix: string) => void;
-  onRemovePrefix: (prefix: string) => void;
+  onPrefixFocus: () => void;
+  onPrefixChange: (value: string) => void;
+  onPrefixBlur: () => void;
   onClearSelection: () => void;
 }
 
 export function BulkActionBar({
   selectedCount,
-  selectedTokenPaths,
   groups,
   sourceGroupId,
-  detectedPrefix,
   isReadOnly,
+  prefixValue,
   onDelete,
   onMoveToGroup,
   onChangeType,
-  onAddPrefix,
-  onRemovePrefix,
+  onPrefixFocus,
+  onPrefixChange,
+  onPrefixBlur,
   onClearSelection,
 }: BulkActionBarProps) {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [moveOpen, setMoveOpen] = useState(false);
-  const [addPrefixOpen, setAddPrefixOpen] = useState(false);
-  const [addPrefixValue, setAddPrefixValue] = useState('');
-  const [removePrefixOpen, setRemovePrefixOpen] = useState(false);
-  const [removePrefixValue, setRemovePrefixValue] = useState('');
 
-  if (isReadOnly || selectedCount === 0) {
-    return null;
-  }
-
-  const handleOpenRemovePrefix = () => {
-    setRemovePrefixValue(detectedPrefix);
-    setRemovePrefixOpen(true);
-  };
-
-  const previewPaths = selectedTokenPaths.slice(0, 5);
-  const previewOverflow = selectedTokenPaths.length - 5;
+  if (isReadOnly || selectedCount === 0) return null;
 
   return (
-    <div
-      className="flex flex-wrap items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg shadow-sm mb-2"
-      onKeyDown={(e) => {
-        if (e.key === 'Escape') onClearSelection();
-      }}
-    >
-      {/* Selection count */}
-      <span className="text-sm font-medium text-gray-700 mr-2">
-        {selectedCount} selected
-      </span>
-
-      {/* Delete */}
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => setDeleteOpen(true)}
+    <>
+      <div
+        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50"
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') onClearSelection();
+        }}
       >
-        <Trash2 className="w-3.5 h-3.5 mr-1" />
-        Delete
-      </Button>
+        <Menubar className="h-auto px-2 py-1.5 gap-1 shadow-lg border-gray-300 bg-white">
+          {/* Selection count */}
+          <span className="text-xs font-medium text-gray-500 px-2 select-none">
+            {selectedCount} selected
+          </span>
+
+          <div className="w-px h-4 bg-gray-200 mx-1" />
+
+          {/* Delete */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 px-2 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+            onClick={() => setDeleteOpen(true)}
+          >
+            <Trash2 className="w-3.5 h-3.5 mr-1" />
+            Delete
+          </Button>
+
+          {/* Move */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 px-2 text-xs"
+            onClick={() => setMoveOpen(true)}
+          >
+            <ArrowRight className="w-3.5 h-3.5 mr-1" />
+            Move
+          </Button>
+
+          {/* Change type */}
+          <MenubarMenu>
+            <MenubarTrigger className="h-7 px-2 text-xs font-normal cursor-pointer">
+              Change type
+            </MenubarTrigger>
+            <MenubarContent>
+              {TOKEN_TYPES.map((type) => (
+                <MenubarItem
+                  key={type}
+                  className="text-xs"
+                  onSelect={() => onChangeType(type as TokenType)}
+                >
+                  {type}
+                </MenubarItem>
+              ))}
+            </MenubarContent>
+          </MenubarMenu>
+
+          <div className="w-px h-4 bg-gray-200 mx-1" />
+
+          {/* Prefix — single live-edit control */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-gray-400 select-none">Prefix</span>
+            <Input
+              value={prefixValue}
+              onFocus={onPrefixFocus}
+              onChange={(e) => onPrefixChange(e.target.value)}
+              onBlur={onPrefixBlur}
+              placeholder="token-prefix-"
+              className="h-7 w-36 text-xs font-mono"
+            />
+          </div>
+
+          <div className="w-px h-4 bg-gray-200 mx-1" />
+
+          {/* Clear selection */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 w-7 p-0"
+            onClick={onClearSelection}
+            aria-label="Clear selection"
+          >
+            <X className="w-3.5 h-3.5 text-gray-400" />
+          </Button>
+        </Menubar>
+      </div>
+
       <DeleteConfirmDialog
         open={deleteOpen}
         count={selectedCount}
@@ -94,15 +147,6 @@ export function BulkActionBar({
         onCancel={() => setDeleteOpen(false)}
       />
 
-      {/* Move to group */}
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => setMoveOpen(true)}
-      >
-        <ArrowRight className="w-3.5 h-3.5 mr-1" />
-        Move
-      </Button>
       <GroupPickerModal
         open={moveOpen}
         groups={groups}
@@ -113,156 +157,6 @@ export function BulkActionBar({
         }}
         onCancel={() => setMoveOpen(false)}
       />
-
-      {/* Change type */}
-      <Select value="" onValueChange={(v) => onChangeType(v as TokenType)}>
-        <SelectTrigger className="h-8 w-36 text-xs">
-          <SelectValue placeholder="Change type" />
-        </SelectTrigger>
-        <SelectContent>
-          {TOKEN_TYPES.map((type) => (
-            <SelectItem key={type} value={type} className="text-xs">
-              {type}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
-      {/* Add prefix */}
-      {!addPrefixOpen ? (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setAddPrefixOpen(true)}
-        >
-          Add prefix
-        </Button>
-      ) : (
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-1">
-            <Input
-              value={addPrefixValue}
-              onChange={(e) => setAddPrefixValue(e.target.value)}
-              placeholder="prefix-"
-              className="h-7 w-32 text-xs"
-              autoFocus
-            />
-            <Button
-              size="sm"
-              onClick={() => {
-                onAddPrefix(addPrefixValue);
-                setAddPrefixOpen(false);
-                setAddPrefixValue('');
-              }}
-              disabled={!addPrefixValue}
-            >
-              Apply
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setAddPrefixOpen(false);
-                setAddPrefixValue('');
-              }}
-            >
-              ×
-            </Button>
-          </div>
-          {addPrefixValue && (
-            <div className="flex flex-col gap-0.5 pl-1">
-              {previewPaths.map((path) => (
-                <div
-                  key={path}
-                  className="text-xs text-gray-500 font-mono truncate"
-                >
-                  {addPrefixValue}{path}
-                </div>
-              ))}
-              {previewOverflow > 0 && (
-                <div className="text-xs text-gray-400">
-                  +{previewOverflow} more
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Remove prefix */}
-      {!removePrefixOpen ? (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleOpenRemovePrefix}
-        >
-          Remove prefix
-        </Button>
-      ) : (
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-1">
-            <Input
-              value={removePrefixValue}
-              onChange={(e) => setRemovePrefixValue(e.target.value)}
-              placeholder="prefix-"
-              className="h-7 w-32 text-xs"
-              autoFocus
-            />
-            <Button
-              size="sm"
-              onClick={() => {
-                onRemovePrefix(removePrefixValue);
-                setRemovePrefixOpen(false);
-                setRemovePrefixValue('');
-              }}
-              disabled={!removePrefixValue}
-            >
-              Apply
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setRemovePrefixOpen(false);
-                setRemovePrefixValue('');
-              }}
-            >
-              ×
-            </Button>
-          </div>
-          <div className="flex flex-col gap-0.5 pl-1">
-            {previewPaths.map((path) => {
-              const changed = path.startsWith(removePrefixValue) && removePrefixValue;
-              const newPath = changed ? path.slice(removePrefixValue.length) : path;
-              return (
-                <div
-                  key={path}
-                  className={[
-                    'text-xs font-mono truncate',
-                    changed ? 'text-gray-500' : 'text-gray-400',
-                  ].join(' ')}
-                >
-                  {newPath}
-                </div>
-              );
-            })}
-            {previewOverflow > 0 && (
-              <div className="text-xs text-gray-400">
-                +{previewOverflow} more
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Clear selection */}
-      <button
-        onClick={onClearSelection}
-        className="ml-auto p-1 rounded hover:bg-gray-100"
-        aria-label="Clear selection"
-      >
-        <X className="w-4 h-4 text-gray-500" />
-      </button>
-    </div>
+    </>
   );
 }

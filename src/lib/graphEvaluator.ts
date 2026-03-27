@@ -396,9 +396,12 @@ function evalJson(config: JsonConfig): Record<string, PortValue> {
   const values = pairs.map(p => p.value);
 
   const tokenData = JSON.stringify(
-    pairs.map(({ name, value }) => ({
+    pairs.map(({ name, value, type, description, attributes }) => ({
       name: prefix ? `${prefix}.${name}` : name,
       value,
+      ...(type        ? { type }        : {}),
+      ...(description ? { description } : {}),
+      ...(attributes  ? { attributes }  : {}),
     })),
   );
 

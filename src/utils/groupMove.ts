@@ -566,17 +566,25 @@ function buildRenamedPrefix(oldId: string, newLeaf: string): string {
 
 /**
  * Rewrite `group.name` for a subtree when the root segment changes.
- * Only the root group receives a fully rewritten name; descendants get
- * their paths updated to replace the old root segment with the new one.
+ * `group.name` can be either:
+ *  - the full slash-prefixed ID (top-level groups where id === name)
+ *  - just the leaf segment (subgroups where name is only the last part)
+ * Both cases are handled.
  */
 function rewriteSubtreeName(
   group: TokenGroup,
   oldPrefix: string,
   newPrefix: string
 ): TokenGroup {
-  const newName = group.name.startsWith(oldPrefix)
-    ? newPrefix + group.name.slice(oldPrefix.length)
-    : group.name;
+  const oldLeaf = oldPrefix.split('/').pop()!;
+  const newLeaf = newPrefix.split('/').pop()!;
+
+  const newName =
+    group.name === oldLeaf             // subgroup: name is the leaf only
+      ? newLeaf
+      : group.name.startsWith(oldPrefix) // top-level: name equals the full id
+        ? newPrefix + group.name.slice(oldPrefix.length)
+        : group.name;
 
   const newChildren = (group.children ?? []).map(child =>
     rewriteSubtreeName(child, oldPrefix, newPrefix)

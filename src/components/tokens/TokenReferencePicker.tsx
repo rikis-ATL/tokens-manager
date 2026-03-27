@@ -37,6 +37,16 @@ function matchesQuery(flat: FlatToken, q: string): boolean {
     flat.token.path.toLowerCase().includes(lower);
 }
 
+/** Follow alias chains up to `depth` hops to find the underlying CSS color string. */
+function resolveColorValue(value: string, allFlat: FlatToken[], depth = 0): string | null {
+  if (depth > 5 || !value || typeof value !== 'string') return null;
+  if (!value.startsWith('{')) return value;
+  const path = value.slice(1, -1);
+  const found = allFlat.find(f => f.aliasPath === path);
+  if (!found) return null;
+  return resolveColorValue(String(found.token.value), allFlat, depth + 1);
+}
+
 interface TokenReferencePickerProps {
   allGroups: TokenGroup[];
   onSelect: (aliasValue: string) => void;
@@ -99,17 +109,31 @@ export function TokenReferencePicker({ allGroups, onSelect }: TokenReferencePick
               {query ? 'No matching tokens' : 'No tokens available'}
             </p>
           )}
-          {filtered.map(flat => (
-            <button
-              key={flat.token.id}
-              type="button"
-              className="w-full text-left px-3 py-1.5 hover:bg-gray-50 flex flex-col gap-0.5"
-              onClick={() => handleSelect(flat)}
-            >
-              <span className="text-xs font-mono text-gray-800">{flat.token.path}</span>
-              <span className="text-[10px] text-gray-400 truncate">{flat.aliasPath}</span>
-            </button>
-          ))}
+          {filtered.map(flat => {
+            const isColor = flat.token.type === 'color';
+            const resolvedColor = isColor
+              ? resolveColorValue(String(flat.token.value), allTokens)
+              : null;
+            return (
+              <button
+                key={flat.token.id}
+                type="button"
+                className="w-full text-left px-3 py-1.5 hover:bg-gray-50 flex items-center gap-2"
+                onClick={() => handleSelect(flat)}
+              >
+                {isColor && (
+                  <span
+                    className="w-4 h-4 rounded-sm flex-shrink-0 border border-black/10"
+                    style={{ background: resolvedColor ?? '#e5e7eb' }}
+                  />
+                )}
+                <span className="flex flex-col gap-0.5 min-w-0">
+                  <span className="text-xs font-mono text-gray-800">{flat.token.path}</span>
+                  <span className="text-[10px] text-gray-400 truncate">{flat.aliasPath}</span>
+                </span>
+              </button>
+            );
+          })}
         </div>
       </PopoverContent>
     </Popover>
