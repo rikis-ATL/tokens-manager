@@ -23,11 +23,11 @@ See: .planning/PROJECT.md (updated 2026-03-19)
 ## Current Position
 
 Phase: 15 of 15 (Multi-Row Actions) — In Progress
-Plan: 02 complete — BulkActionBar, DeleteConfirmDialog, GroupPickerModal UI components
+Plan: 03 complete — TokenGeneratorForm integration: selection state, checkboxes, BulkActionBar, bulk handlers, undo wiring
 Status: In Progress
-Last activity: 2026-03-27 — 15-02 complete: three presentational bulk-action UI components
+Last activity: 2026-03-27 — 15-03 complete: multi-row selection + bulk actions fully wired in token table
 
-Progress: [████████] Phase 15 in progress (2/4 plans done)
+Progress: [██████████] Phase 15 in progress (3/4 plans done)
 
 ## Performance Metrics
 
@@ -60,6 +60,7 @@ Progress: [████████] Phase 15 in progress (2/4 plans done)
 | Phase 14-dark-mode-support P05 | 5min | 2 tasks | 0 files |
 | Phase 15-multi-row-actions P01 | ~3 min | 1 task (TDD) | 4 files |
 | Phase 15-multi-row-actions P02 | ~2 min | 2 tasks | 4 files |
+| Phase 15-multi-row-actions P03 | ~5 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -125,6 +126,10 @@ Key decisions relevant to v1.4:
 - [Phase 15-02]: BulkActionBar returns null (not hidden) when selectedCount=0 or isReadOnly — avoids DOM presence when not needed
 - [Phase 15-02]: removePrefixValue initialized from detectedPrefix when opening — handleOpenRemovePrefix sets state before showing input for correct pre-fill each time
 - [Phase 15-02]: GroupPickerModal uses flattenTree from groupMove.ts — canonical source (local flattenTree removed from TokenGroupTree in Phase 13-02)
+- [Phase 15-03]: TokenTableRow receives checkbox props (isMultiSelected, tokenIndex, onMultiSelectClick) — checkbox td rendered inside existing tr, no wrapper needed
+- [Phase 15-03]: onChange on checkbox is no-op; onClick used exclusively to capture shiftKey for range select
+- [Phase 15-03]: activeGroupTokens extracted at renderGroup call site from themeTokens/tokenGroups — single variable reused for header checkbox, BulkActionBar paths, and row iteration
+- [Phase 15-03]: applyBulkMutation pushes to tokenUndoStackRef AND onUndoSnapshot (default mode) for dual-path undo coverage
 
 ### Pending Todos
 
@@ -138,5 +143,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-27
-Stopped at: Completed 15-02-PLAN.md — BulkActionBar, DeleteConfirmDialog, GroupPickerModal UI components
+Stopped at: Completed 15-03-PLAN.md — TokenGeneratorForm integration, bulk actions, undo wiring
 Resume file: None
