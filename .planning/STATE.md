@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Token collections are always available and editable: stored in MongoDB, accessible via collection-scoped URLs, with per-collection Figma/GitHub config, full CRUD from the collections grid, Figma import/export fully integrated, and a Themes system for filtering active token groups.
-**Current focus:** Phase 15 Multi-Row Actions — Complete (awaiting human verification at checkpoint)
+**Current focus:** Phase 15 Multi-Row Actions — Complete (human verification passed, all 12 scenarios approved)
 
 ## Current Position
 
-Phase: 15 of 15 (Multi-Row Actions) — Checkpoint
-Plan: 04 checkpoint — Human verification of all 12 multi-row-action scenarios
-Status: Checkpoint — awaiting user verification at http://localhost:3000
-Last activity: 2026-03-27 — 15-04 checkpoint reached: dev server running, user verification required
+Phase: 15 of 15 (Multi-Row Actions) — Complete
+Plan: 04 — Human verification passed (all 12 scenarios approved)
+Status: Complete
+Last activity: 2026-03-27 — 15-04 human verification approved by user; Phase 15 complete
 
-Progress: [██████████] Phase 15 checkpoint (4/4 plans — awaiting user verify)
+Progress: [██████████] Phase 15 complete (4/4 plans done)
 
 ## Performance Metrics
 
@@ -145,5 +145,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-27
-Stopped at: Checkpoint 15-04 — human-verify gate reached, dev server running at http://localhost:3000
+Stopped at: Completed 15-04-PLAN.md — Phase 15 multi-row-actions fully verified and complete
 Resume file: None
