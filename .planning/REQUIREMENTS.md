@@ -54,6 +54,20 @@ Requirements for Phase 14 — Dark Mode Support.
 - **THEME-06**: Multi-theme ZIP export (all themes in one SD build action)
 - **THEME-07**: "Resync from collection" action when master tokens have changed since theme creation
 
+## Phase 15 Requirements
+
+Requirements for Phase 15 — Multi-Row Actions.
+
+### Bulk Token Operations
+
+- **BULK-01**: Token table has an always-visible checkbox column (leftmost, ~40px); header checkbox toggles all; shift-click range selection; checkboxes hidden when active group is in Source mode; switching groups clears the selection
+- **BULK-02**: A floating action bar appears above the token table when one or more rows are selected; bar shows "N selected"; Escape key clears selection and hides bar; bar disappears when no rows are selected
+- **BULK-03**: Bulk delete removes all selected tokens after a confirmation dialog; operation is undoable via Ctrl+Z as a single step
+- **BULK-04**: Bulk move reassigns selected tokens to a destination group chosen via a group-tree-picker modal; path collisions are resolved by auto-suffixing with a numeric index; operation is undoable via Ctrl+Z
+- **BULK-05**: Bulk change type sets all selected tokens to the same type at once; operation is undoable via Ctrl+Z
+- **BULK-06**: Bulk add prefix renames selected token paths inline with live preview; bulk remove prefix auto-detects the longest common prefix and pre-fills the input; within-group alias references are rewritten after rename; non-matching tokens silently skipped for remove; both operations undoable via Ctrl+Z
+- **BULK-07**: All bulk operations route through themeTokens/onThemeTokensChange when a custom theme is active (Enabled groups only); undo integrates with the existing undo stack in both Default and theme modes
+
 ## Out of Scope
 
 | Feature | Reason |
@@ -87,13 +101,21 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DARK-04 | Phase 14 | Planned |
 | DARK-05 | Phase 14 | Planned |
 | DARK-06 | Phase 14 | Planned |
+| BULK-01 | Phase 15 | Planned |
+| BULK-02 | Phase 15 | Planned |
+| BULK-03 | Phase 15 | Planned |
+| BULK-04 | Phase 15 | Planned |
+| BULK-05 | Phase 15 | Planned |
+| BULK-06 | Phase 15 | Planned |
+| BULK-07 | Phase 15 | Planned |
 
 **Coverage:**
 - v1.4 requirements: 11 total
 - Phase 14 requirements: 6 total
-- Mapped to phases: 17
+- Phase 15 requirements: 7 total
+- Mapped to phases: 24
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-20*
-*Last updated: 2026-03-25 — Phase 14 dark mode requirements added*
+*Last updated: 2026-03-27 — Phase 15 multi-row actions requirements added*

@@ -169,3 +169,16 @@ Plans:
 - [ ] 14-03-PLAN.md — buildCombinedOutput helper (CSS/SCSS/LESS + JS/TS); BuildTokensRequest extension; config page dark token auto-detection
 - [ ] 14-04-PLAN.md — Figma export: colorMode-aware theme pairing (Light/Dark modes per group structure)
 - [x] 14-05-PLAN.md — Pre-build check + human verification gate for complete Phase 14 feature set (completed 2026-03-25)
+
+### Phase 15: multi-row actions
+
+**Goal:** Users can select multiple tokens in the active group via always-visible checkboxes and perform bulk operations (delete, move to group, change type, add/remove prefix) from a floating action bar, with undo support and theme-aware dual-path routing
+**Depends on:** Phase 14
+**Requirements:** BULK-01, BULK-02, BULK-03, BULK-04, BULK-05, BULK-06, BULK-07
+**Plans:** 4 plans
+
+Plans:
+- [ ] 15-01-PLAN.md — Pure bulk mutation utils (TDD): bulkDeleteTokens, bulkMoveTokens, bulkChangeType, bulkAddPrefix, bulkRemovePrefix, detectCommonPrefix
+- [ ] 15-02-PLAN.md — UI components: DeleteConfirmDialog, GroupPickerModal, BulkActionBar (with inline prefix expand + live preview)
+- [ ] 15-03-PLAN.md — Integration: selection state + checkbox column + bulk handlers + undo wiring in TokenGeneratorForm and page.tsx
+- [ ] 15-04-PLAN.md — Human verify: 12-scenario walkthrough of complete multi-row actions feature
