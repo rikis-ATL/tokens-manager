@@ -18,9 +18,14 @@ export async function GET() {
 }
 
 /**
- * POST /api/auth/setup
- * Creates the first Admin user. Returns 403 if any user already exists.
- * Body: { displayName: string; password: string }
+ * POST /api/auth/setup — intentionally excluded from requireAuth().
+ *
+ * This is the bootstrap endpoint: it creates the first Admin user when no users
+ * exist in the database. Adding requireAuth() would break first-time setup
+ * because there is no session to authenticate against before the first user is created.
+ *
+ * The existing guard (count > 0 returns 403) prevents abuse after setup is complete.
+ * This is the one intentional exception to ARCH-02 (17 handlers guarded, 1 documented exception).
  */
 export async function POST(request: Request) {
   await dbConnect();

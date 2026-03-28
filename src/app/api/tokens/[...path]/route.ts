@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import { TokenUpdater } from '@/utils/tokenUpdater';
+import { requireAuth } from '@/lib/auth/require-auth';
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: { path: string[] } }
 ) {
+  const authResult = await requireAuth();
+  if (authResult instanceof NextResponse) return authResult;
   try {
     const body = await request.json();
     const { tokenPath, newValue } = body;

@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { buildTokens } from '@/services/style-dictionary.service';
 import type { BuildTokensRequest, BuildTokensResult } from '@/types';
+import { requireAuth } from '@/lib/auth/require-auth';
 
 const COMMENT_FORMATS = new Set(['css', 'scss', 'less', 'js', 'ts']);
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
+  const authResult = await requireAuth();
+  if (authResult instanceof NextResponse) return authResult;
   try {
     const body = (await req.json()) as BuildTokensRequest;
 

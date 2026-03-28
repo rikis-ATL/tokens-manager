@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/auth/require-auth';
 
 // Recursive function to process directories and subdirectories
 async function processDirectory(
@@ -73,6 +74,8 @@ async function processDirectory(
 }
 
 export async function POST(request: NextRequest) {
+  const authResult = await requireAuth();
+  if (authResult instanceof NextResponse) return authResult;
   try {
     const { repository, branch = 'main', path = 'tokens.json', githubToken } = await request.json();
 
