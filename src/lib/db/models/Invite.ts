@@ -4,12 +4,13 @@ import type { Role } from '@/lib/db/models/User';
 export type InviteStatus = 'pending' | 'accepted' | 'expired';
 
 export interface IInvite {
-  email:     string;
-  token:     string;    // SHA-256 hash of plaintext token stored; plaintext sent in email
-  status:    InviteStatus;
-  expiresAt: Date;
-  createdBy: string;    // User._id as string
-  role:      Role;
+  email:        string;
+  token:        string;    // SHA-256 hash of plaintext token stored; plaintext sent in email
+  status:       InviteStatus;
+  expiresAt:    Date;
+  createdBy:    string;    // User._id as string
+  role:         Role;
+  collectionId?: string;  // Optional: used for post-setup redirect to a specific collection
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -23,7 +24,8 @@ const inviteSchema = new Schema<InviteDoc>(
     status:    { type: String, enum: ['pending', 'accepted', 'expired'], default: 'pending' },
     expiresAt: { type: Date, required: true, default: () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) },
     createdBy: { type: String, required: true },
-    role:      { type: String, enum: ['Admin', 'Editor', 'Viewer'], required: true },
+    role:         { type: String, enum: ['Admin', 'Editor', 'Viewer'], required: true },
+    collectionId: { type: String, required: false },
   },
   { timestamps: true }
 );
