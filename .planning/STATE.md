@@ -22,10 +22,10 @@ See: .planning/PROJECT.md (updated 2026-03-28)
 
 ## Current Position
 
-Phase: 21 of 21 (Org Users Admin UI and Permission-Gated UI — in progress)
-Plan: 02 complete (21-02 — GET /api/org/users, PATCH role, DELETE user routes all created and verified)
-Status: Plan 21-02 complete; Plan 21-03 already complete; next is 21-04 (org users UI page)
-Last activity: 2026-03-28 — Completed 21-02: 3 API routes for org user management created, TypeScript zero errors
+Phase: 21 of 21 (Org Users Admin UI and Permission-Gated UI — complete)
+Plan: 04 complete (21-04 — /org/users page extended with Members table, role selector, remove dialog)
+Status: Phase 21 complete — all plans (01, 02, 03, 04) done; milestone v1.5 Org User Management complete
+Last activity: 2026-03-28 — Completed 21-04: Members table, inline role selector, AlertDialog remove flow; 1 task, 2 files modified (+1 created)
 
 Progress: [░░░░░░░░░░] 0% (0/6 phases complete, 3 plans complete in phase 16)
 
@@ -70,6 +70,7 @@ Progress: [░░░░░░░░░░] 0% (0/6 phases complete, 3 plans comp
 | Phase 21-org-users-admin-ui-and-permission-gated-ui P02 | 2 | 2 tasks | 3 files |
 | Phase 21-org-users-admin-ui-and-permission-gated-ui P01 | 4 | 2 tasks | 2 files |
 | Phase 21 P03 | 4 | 2 tasks | 2 files |
+| Phase 21-org-users-admin-ui-and-permission-gated-ui P04 | 2 | 1 task | 2 files |
 
 ## Accumulated Context
 
@@ -149,6 +150,9 @@ Key decisions relevant to v1.5 (from research and 16-01 execution):
 - [Phase 21]: Separator gated with (canFigma || canGitHub) — avoids orphaned divider when all Figma/GitHub items are hidden
 - [Phase 21]: isThemeReadOnly || !canEdit unifies theme group source-mode and role-based read-only at single prop boundary
 - [Phase 21]: NewCollectionDialog mount kept unconditional — canCreate=false prevents setCreateDialogOpen from ever being called
+- [Phase 21-04]: alert-dialog.tsx created as new shadcn-style component — @radix-ui/react-alert-dialog installed to support AlertDialog confirmation for remove user flow
+- [Phase 21-04]: canAct = !user.isSuperAdmin && !isSelf — single boolean gate controls both role selector disabled and remove button disabled per row
+- [Phase 21-04]: fetchUsers re-fetch used to revert optimistic role update — simpler than tracking previous value; consistent with fetch-on-mount pattern
 
 ### Pending Todos
 
@@ -163,6 +167,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-28T21:53:00Z
-Stopped at: Completed 21-01-PLAN.md — JWT roleLastFetched mechanism and TypeScript augmentation done; 2 tasks, 2 files modified
+Last session: 2026-03-28T21:59:38Z
+Stopped at: Completed 21-04-PLAN.md — /org/users page extended with Members table, inline role selector, AlertDialog remove flow; Phase 21 complete
 Resume file: None
