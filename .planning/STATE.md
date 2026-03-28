@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Org User Management
 status: in_progress
-last_updated: "2026-03-28T04:59:19Z"
+last_updated: "2026-03-28T05:05:42Z"
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 0
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -23,11 +23,11 @@ See: .planning/PROJECT.md (updated 2026-03-28)
 ## Current Position
 
 Phase: 16 of 21 (Auth Infrastructure and Security Baseline)
-Plan: 02 (16-01 complete)
+Plan: 03 (16-02 complete)
 Status: In progress
-Last activity: 2026-03-28 — Completed 16-01: CVE patch, auth packages, TypeScript session types
+Last activity: 2026-03-28 — Completed 16-02: permissions.ts, invite.ts, User/Invite/CollectionPermission models
 
-Progress: [░░░░░░░░░░] 0% (0/6 phases complete, 1 plan complete in phase 16)
+Progress: [░░░░░░░░░░] 0% (0/6 phases complete, 2 plans complete in phase 16)
 
 ## Performance Metrics
 
@@ -48,6 +48,7 @@ Progress: [░░░░░░░░░░] 0% (0/6 phases complete, 1 plan compl
 | 15. Multi-Row Actions | 4 | ~3 min |
 
 *Updated after each plan completion*
+| Phase 16 P02 | 4 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -64,6 +65,9 @@ Key decisions relevant to v1.5 (from research and 16-01 execution):
 - JWT role re-fetch every 60s — `roleLastFetched` timestamp in JWT; re-fetch from DB in jwt callback if stale
 - `getServerSession()` on every write Route Handler — middleware is UX, not security (CVE-2025-29927 proof)
 - `SUPER_ADMIN_EMAIL` enforcement in jwt callback — always overrides DB role; no UI surface needed
+- [Phase 16]: Action const object (not enum) for runtime iteration and TypeScript type inference
+- [Phase 16]: permissions.ts is canonical Role source of truth; User.ts re-exports it
+- [Phase 16]: canPerform is the only exported permission function; no isAdmin/isEditor helpers
 
 ### Pending Todos
 
@@ -78,6 +82,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-28T04:59:19Z
-Stopped at: Completed 16-01-PLAN.md (CVE patch + auth packages + TypeScript session types)
+Last session: 2026-03-28T05:05:42Z
+Stopped at: Completed 16-02-PLAN.md (permissions + invite utilities + 3 Mongoose models)
 Resume file: None
