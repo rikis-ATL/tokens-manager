@@ -39,6 +39,7 @@ import { LoadCollectionDialog } from '@/components/collections/LoadCollectionDia
 import { ClearFormDialog } from '@/components/tokens/ClearFormDialog';
 import { JsonPreviewDialog } from '@/components/dev/JsonPreviewDialog';
 import type { GitHubConfig } from '@/types';
+import { usePermissions } from '@/context/PermissionsContext';
 
 
 /** Pure helper: update a single token value within a recursive group tree */
@@ -84,6 +85,8 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   const [rawCollectionTokens, setRawCollectionTokens] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+
+  const { canEdit, canGitHub, canFigma } = usePermissions();
 
   const [saveAsDialogOpen, setSaveAsDialogOpen] = useState(false);
   const [isSavingAs, setIsSavingAs] = useState(false);
@@ -1013,19 +1016,27 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
               <DropdownMenuItem onClick={() => setShowLoadDialog(true)}>
                 Load from Database
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setImportFigmaOpen(true)}>
-                Import from Figma
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={importFromGitHub}>
-                Import from GitHub
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={exportToGitHub}>
-                Push to GitHub
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={exportToFigma}>
-                Export to Figma
-              </DropdownMenuItem>
+              {(canFigma || canGitHub) && <DropdownMenuSeparator />}
+              {canFigma && (
+                <DropdownMenuItem onClick={() => setImportFigmaOpen(true)}>
+                  Import from Figma
+                </DropdownMenuItem>
+              )}
+              {canGitHub && (
+                <DropdownMenuItem onClick={importFromGitHub}>
+                  Import from GitHub
+                </DropdownMenuItem>
+              )}
+              {canGitHub && (
+                <DropdownMenuItem onClick={exportToGitHub}>
+                  Push to GitHub
+                </DropdownMenuItem>
+              )}
+              {canFigma && (
+                <DropdownMenuItem onClick={exportToFigma}>
+                  Export to Figma
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => setEditOpen(true)}>
               Edit
@@ -1183,7 +1194,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
                   onGroupActionProcessed={() => setPendingGroupAction(null)}
                   themeTokens={activeThemeId ? activeThemeTokens : undefined}
                   onThemeTokensChange={activeThemeId ? handleThemeTokenChange : undefined}
-                  isReadOnly={isThemeReadOnly}
+                  isReadOnly={isThemeReadOnly || !canEdit}
                   findMasterValue={activeThemeId ? findMasterValue : undefined}
                   onResetToDefault={activeThemeId && !isThemeReadOnly ? handleResetToDefault : undefined}
                   onResetGroupToSource={activeThemeId ? handleResetGroupToSource : undefined}
