@@ -3,7 +3,7 @@ const nextConfig = {
   experimental: {
     // Same packages Next already externalizes by default — explicit for clarity and
     // stable resolution with mongoose/mongodb in App Router API routes.
-    serverComponentsExternalPackages: ['mongoose', 'mongodb'],
+    serverComponentsExternalPackages: ['mongoose', 'mongodb', 'resend'],
   },
   transpilePackages: [
     '@radix-ui/react-dropdown-menu',
