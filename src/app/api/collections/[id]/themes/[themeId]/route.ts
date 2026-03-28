@@ -3,11 +3,14 @@ import dbConnect from '@/lib/mongodb';
 import TokenCollection from '@/lib/db/models/TokenCollection';
 import type { ITheme, ThemeGroupState, ColorMode } from '@/types/theme.types';
 import type { CollectionGraphState } from '@/types/graph-state.types';
+import { requireAuth } from '@/lib/auth/require-auth';
 
 export async function PUT(
   request: Request,
   { params }: { params: { id: string; themeId: string } }
 ) {
+  const authResult = await requireAuth();
+  if (authResult instanceof NextResponse) return authResult;
   try {
     const body = await request.json() as {
       name?: string;
@@ -73,6 +76,8 @@ export async function DELETE(
   _request: Request,
   { params }: { params: { id: string; themeId: string } }
 ) {
+  const authResult = await requireAuth();
+  if (authResult instanceof NextResponse) return authResult;
   try {
     await dbConnect();
 

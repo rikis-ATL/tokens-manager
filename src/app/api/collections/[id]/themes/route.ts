@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getRepository } from '@/lib/db/get-repository';
 import dbConnect from '@/lib/mongodb';
+import { requireAuth } from '@/lib/auth/require-auth';
 import TokenCollection from '@/lib/db/models/TokenCollection';
 import { tokenService } from '@/services/token.service';
 import type { TokenGroup } from '@/types';
@@ -31,6 +32,8 @@ export async function POST(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  const authResult = await requireAuth();
+  if (authResult instanceof NextResponse) return authResult;
   try {
     const body = await request.json() as { name?: string; colorMode?: string };
 

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getRepository } from '@/lib/db/get-repository';
 import type { UpdateTokenCollectionInput } from '@/types/collection.types';
+import { requireAuth } from '@/lib/auth/require-auth';
 
 export async function GET(
   _request: Request,
@@ -40,6 +41,8 @@ export async function PUT(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  const authResult = await requireAuth();
+  if (authResult instanceof NextResponse) return authResult;
   try {
     const body = await request.json() as UpdateTokenCollectionInput;
 
@@ -87,6 +90,8 @@ export async function DELETE(
   _request: Request,
   { params }: { params: { id: string } }
 ) {
+  const authResult = await requireAuth();
+  if (authResult instanceof NextResponse) return authResult;
   try {
     const repo = await getRepository();
     const deleted = await repo.delete(params.id);

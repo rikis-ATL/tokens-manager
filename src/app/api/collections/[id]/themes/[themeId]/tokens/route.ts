@@ -2,11 +2,14 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import TokenCollection from '@/lib/db/models/TokenCollection';
 import type { TokenGroup } from '@/types';
+import { requireAuth } from '@/lib/auth/require-auth';
 
 export async function PATCH(
   request: Request,
   { params }: { params: { id: string; themeId: string } }
 ) {
+  const authResult = await requireAuth();
+  if (authResult instanceof NextResponse) return authResult;
   try {
     const body = await request.json() as { tokens?: unknown };
 

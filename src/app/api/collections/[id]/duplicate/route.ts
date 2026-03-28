@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server';
 import { getRepository } from '@/lib/db/get-repository';
+import { requireAuth } from '@/lib/auth/require-auth';
 
 export async function POST(
   _request: Request,
   { params }: { params: { id: string } }
 ) {
+  const authResult = await requireAuth();
+  if (authResult instanceof NextResponse) return authResult;
   try {
     const repo = await getRepository();
     const source = await repo.findById(params.id);

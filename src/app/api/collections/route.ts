@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getRepository } from '@/lib/db/get-repository';
 import type { CollectionCardData, ISourceMetadata } from '@/types/collection.types';
+import { requireAuth } from '@/lib/auth/require-auth';
 
 export async function GET() {
   try {
@@ -26,6 +27,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const authResult = await requireAuth();
+  if (authResult instanceof NextResponse) return authResult;
   try {
     const body = await request.json() as {
       name?: string;
