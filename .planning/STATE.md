@@ -23,9 +23,9 @@ See: .planning/PROJECT.md (updated 2026-03-28)
 ## Current Position
 
 Phase: 19 of 21 (RBAC and Permissions Context)
-Plan: 04 (19-04 complete — PermissionsContext rewritten with collection-aware named boolean API)
+Plan: 03 (19-03 complete — requireRole() on all 9 non-collection-scoped write route handlers)
 Status: In progress
-Last activity: 2026-03-28 — Completed 19-04: PermissionsContext.tsx rewritten with usePathname() collection detection, /permissions/me fetch, and named boolean API { canEdit, canCreate, isAdmin, canGitHub, canFigma }
+Last activity: 2026-03-28 — Completed 19-03: requireRole() with Action-specific org-level gates on export/import/utility routes; zero requireAuth() outside bootstrap exception
 
 Progress: [░░░░░░░░░░] 0% (0/6 phases complete, 3 plans complete in phase 16)
 
@@ -114,6 +114,9 @@ Key decisions relevant to v1.5 (from research and 16-01 execution):
 - [Phase 19]: requireRole(action, collectionId) replaces requireAuth() on all collection write handlers — enforces both org role and collection grant
 - [Phase 19]: GET /api/collections/[id] returns 404 for non-Admin without grant — collection invisible, not forbidden
 - [Phase 19]: POST+DELETE /api/collections/[id]/permissions uses Action.ManageUsers (Admin-only) — no collectionId arg needed
+- [Phase 19]: Export/import routes use org-level requireRole() no collectionId — collection-level access gated at UI layer before these operations
+- [Phase 19]: Action.ManageUsers for database test/config routes — Admin-only; no Editor or Viewer should reconfigure the database
+- [Phase 19]: Action.PushGithub gates both GitHub export and import symmetrically — push and pull share the same privilege level
 
 ### Pending Todos
 
@@ -129,5 +132,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-28T09:28:54Z
-Stopped at: Completed 19-02-PLAN.md (requireRole() enforcement on all collection routes + permissions grant/revoke API)
+Stopped at: Completed 19-03-PLAN.md (requireRole() on all 9 non-collection-scoped write route handlers)
 Resume file: None
