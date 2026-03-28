@@ -21,10 +21,13 @@ export const authOptions: NextAuthOptions = {
         if (!credentials?.email || !credentials?.password) return null;
         await dbConnect();
         const user = await User.findOne({ email: credentials.email.toLowerCase() });
-        if (!user || user.status === 'disabled') return null;
+        if (!user) throw new Error('No account found with that email');
+        if (user.status === 'disabled') throw new Error('Incorrect password'); // generic — same as wrong pw, don't reveal status
+        // Note: 'invited' status users who have set a password CAN sign in (they are not yet 'active' until Phase 20 sets status)
+        // Only 'disabled' is explicitly blocked
         const valid = await bcrypt.compare(credentials.password, user.passwordHash);
-        if (!valid) return null;
-        return { id: user._id.toString(), email: user.email, role: user.role };
+        if (!valid) throw new Error('Incorrect password');
+        return { id: user._id.toString(), email: user.email, name: user.displayName, role: user.role };
       },
     }),
   ],
@@ -38,6 +41,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id   = (user as any).id;
         token.role = (user as any).role;
+        token.name = (user as any).name;
       }
       // SUPER_ADMIN_EMAIL enforcement — check token.email (always present), not user.email
       // Does not modify the DB record — JWT override only (per AUTH-06)
