@@ -14,7 +14,7 @@ Requirements for v1.5 Org User Management milestone. Each maps to roadmap phases
 - [ ] **AUTH-03**: Signed-in session persists across browser refresh (JWT)
 - [ ] **AUTH-04**: User can sign out from any page
 - [ ] **AUTH-05**: First user to complete registration is automatically granted the Admin role
-- [ ] **AUTH-06**: A superadmin account is configured via `SUPER_ADMIN_EMAIL` environment variable; this account always has Admin access and cannot be removed or downgraded by any user action (enforced in JWT callback on every sign-in)
+- [x] **AUTH-06**: A superadmin account is configured via `SUPER_ADMIN_EMAIL` environment variable; this account always has Admin access and cannot be removed or downgraded by any user action (enforced in JWT callback on every sign-in)
 
 ### User Management (USER)
 
@@ -44,7 +44,7 @@ Requirements for v1.5 Org User Management milestone. Each maps to roadmap phases
 
 ### Architecture Constraint (ARCH)
 
-- [ ] **ARCH-01**: Auth infrastructure lives in isolated modules — `src/lib/auth/` (authOptions, helpers, models), `src/app/api/auth/` (NextAuth route handler), `src/app/auth/` (sign-in, invite setup pages) — never mixed with existing token/collection code
+- [x] **ARCH-01**: Auth infrastructure lives in isolated modules — `src/lib/auth/` (authOptions, helpers, models), `src/app/api/auth/` (NextAuth route handler), `src/app/auth/` (sign-in, invite setup pages) — never mixed with existing token/collection code
 - [ ] **ARCH-02**: All 18 existing write Route Handlers are guarded with `getServerSession()` / `requireAuth()` — middleware alone is not a security boundary
 
 ## Future Requirements
@@ -87,8 +87,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ARCH-01 | Phase 16 | Pending |
-| AUTH-06 | Phase 16 | Pending |
+| ARCH-01 | Phase 16 | Complete |
+| AUTH-06 | Phase 16 | Complete |
 | AUTH-01 | Phase 17 | Pending |
 | AUTH-03 | Phase 17 | Pending |
 | AUTH-04 | Phase 17 | Pending |

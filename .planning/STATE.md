@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Org User Management
-status: roadmap_ready
-last_updated: "2026-03-28T00:00:00Z"
+status: in_progress
+last_updated: "2026-03-28T04:59:19Z"
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 0
-  completed_plans: 0
+  completed_plans: 1
 ---
 
 # Project State
@@ -23,11 +23,11 @@ See: .planning/PROJECT.md (updated 2026-03-28)
 ## Current Position
 
 Phase: 16 of 21 (Auth Infrastructure and Security Baseline)
-Plan: — (not started)
-Status: Ready to plan
-Last activity: 2026-03-28 — Roadmap created for v1.5 Org User Management (6 phases, 25 requirements mapped)
+Plan: 02 (16-01 complete)
+Status: In progress
+Last activity: 2026-03-28 — Completed 16-01: CVE patch, auth packages, TypeScript session types
 
-Progress: [░░░░░░░░░░] 0% (0/6 phases complete)
+Progress: [░░░░░░░░░░] 0% (0/6 phases complete, 1 plan complete in phase 16)
 
 ## Performance Metrics
 
@@ -55,7 +55,8 @@ Progress: [░░░░░░░░░░] 0% (0/6 phases complete)
 
 All decisions logged in PROJECT.md Key Decisions table.
 
-Key decisions relevant to v1.5 (from research):
+Key decisions relevant to v1.5 (from research and 16-01 execution):
+- `next@13.5.9` — CVE-2025-29927 (CVSS 9.1) patched; 16-01 also fixed 5 pre-existing TypeScript errors exposed by stricter type checking
 - `next-auth@^4.24.13` (not v5) — v5 requires Next.js 14+; project locked at 13.5.6 → 13.5.9
 - No `@auth/mongodb-adapter` — Credentials provider requires JWT sessions; adapter is incompatible and creates conflicting MongoClient
 - `session: { strategy: "jwt" }` explicit — role and id embedded in JWT via callbacks; never rely on default session strategy
@@ -70,13 +71,13 @@ None.
 
 ### Blockers/Concerns
 
-- CVE-2025-29927: Next.js 13.5.6 middleware auth bypass (CVSS 9.1) — must patch to 13.5.9 as first step of Phase 16 before any auth code ships
+- ~~CVE-2025-29927: Next.js 13.5.6 middleware auth bypass (CVSS 9.1)~~ — RESOLVED in 16-01: patched to next@13.5.9
 - Per-collection override loading strategy (PERM-04) unresolved — lazy fetch on collection page mount vs. eager load of all user overrides at session start; resolve during Phase 19 planning
 - Resend domain verification required for production — `onboarding@resend.dev` works in dev; production needs verified sending domain (operational gap, not code gap)
 - Sign-in rate limiting deferred — `POST /api/auth/callback/credentials` unprotected against brute force; acceptable for internal tool; document in Phase 18 plan
 
 ## Session Continuity
 
-Last session: 2026-03-28
-Stopped at: Roadmap created — Phase 16 ready to plan
+Last session: 2026-03-28T04:59:19Z
+Stopped at: Completed 16-01-PLAN.md (CVE patch + auth packages + TypeScript session types)
 Resume file: None
