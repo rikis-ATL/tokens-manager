@@ -80,7 +80,7 @@ See: `.planning/milestones/v1.4-ROADMAP.md` for full phase details.
 - [x] **Phase 16: Auth Infrastructure and Security Baseline** — Patch CVE-2025-29927, install packages, Mongoose models, authOptions, permissions pure function (completed 2026-03-28)
 - [x] **Phase 17: Auth API Routes and Sign-In Flow** — NextAuth route handler, first-user bootstrap, sign-in and sign-out pages, SessionProvider wiring (completed 2026-03-28)
 - [x] **Phase 18: Middleware and Route Handler Guards** — withAuth middleware, requireAuth() utility, all 18 existing write Route Handlers guarded (completed 2026-03-28)
-- [ ] **Phase 19: RBAC and Permissions Context** — PermissionsProvider, usePermissions() hook, role enforcement on write routes, JWT role re-fetch, per-collection overrides
+- [x] **Phase 19: RBAC and Permissions Context** — PermissionsProvider, usePermissions() hook, role enforcement on write routes, JWT role re-fetch, per-collection overrides (completed 2026-03-28)
 - [ ] **Phase 20: Email Invite Flow and Account Setup** — Resend invite email, invite token generation, account setup page, invite management
 - [ ] **Phase 21: Org Users Admin UI and Permission-Gated UI** — /org/users admin page, role change and removal API, write controls hidden for Viewer
 
@@ -211,6 +211,6 @@ Plans:
 | 16. Auth Infrastructure and Security Baseline | 3/3 | Complete    | 2026-03-28 | - |
 | 17. Auth API Routes and Sign-In Flow | v1.5 | Complete    | 2026-03-28 | 2026-03-28 |
 | 18. Middleware and Route Handler Guards | 3/3 | Complete    | 2026-03-28 | - |
-| 19. RBAC and Permissions Context | 4/5 | In Progress|  | - |
+| 19. RBAC and Permissions Context | 5/5 | Complete   | 2026-03-28 | - |
 | 20. Email Invite Flow and Account Setup | v1.5 | 0/TBD | Not started | - |
 | 21. Org Users Admin UI and Permission-Gated UI | v1.5 | 0/TBD | Not started | - |

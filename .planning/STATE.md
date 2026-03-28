@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Org User Management
 status: in_progress
-last_updated: "2026-03-28T09:36:00Z"
+last_updated: "2026-03-28T10:14:45Z"
 progress:
   total_phases: 6
   completed_phases: 0
@@ -18,14 +18,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-28)
 
 **Core value:** Token collections are always available and editable: stored in MongoDB, accessible via collection-scoped URLs, with per-collection Figma/GitHub config, full CRUD from the collections grid, Figma import/export fully integrated, and a Themes system where each theme is a complete token value set with per-group edit permissions, dark-mode awareness, and theme-targeted export.
-**Current focus:** Phase 19 — RBAC and Permissions Context
+**Current focus:** Phase 20 — next phase (Phase 19 RBAC complete)
 
 ## Current Position
 
-Phase: 19 of 21 (RBAC and Permissions Context)
-Plan: 05 (19-05 paused at human-verify checkpoint — automated build+curl checks passed)
-Status: In progress
-Last activity: 2026-03-28 — Completed 19-05 Task 1: TypeScript zero errors, 35 requireRole() usages, 0 requireAuth() outside bootstrap, unauthenticated API returns 401; awaiting human verification of Task 2
+Phase: 19 of 21 (RBAC and Permissions Context — COMPLETE)
+Plan: 05 (19-05 complete — human-verify approved, all 6 PERM requirements satisfied)
+Status: In progress (Phase 19 complete; awaiting Phase 20)
+Last activity: 2026-03-28 — Completed 19-05: human verified all 4 RBAC scenarios and approved; Phase 19 fully signed off
 
 Progress: [░░░░░░░░░░] 0% (0/6 phases complete, 3 plans complete in phase 16)
 
@@ -61,6 +61,7 @@ Progress: [░░░░░░░░░░] 0% (0/6 phases complete, 3 plans comp
 | Phase 19-rbac-and-permissions-context P02 | 3 | 2 tasks | 7 files |
 | Phase 19 P03 | 3 | 2 tasks | 9 files |
 | Phase 19 P05 | 4 | 1 tasks | 1 files |
+| Phase 19 P05 | 5 | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -118,6 +119,7 @@ Key decisions relevant to v1.5 (from research and 16-01 execution):
 - [Phase 19]: Export/import routes use org-level requireRole() no collectionId — collection-level access gated at UI layer before these operations
 - [Phase 19]: Action.ManageUsers for database test/config routes — Admin-only; no Editor or Viewer should reconfigure the database
 - [Phase 19]: Action.PushGithub gates both GitHub export and import symmetrically — push and pull share the same privilege level
+- [Phase 19]: Phase 19 RBAC verified complete — Admin access, API enforcement, bootstrap, and usePermissions() all approved by human
 
 ### Pending Todos
 
@@ -132,6 +134,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-28T09:36:00Z
-Stopped at: Checkpoint in 19-05-PLAN.md Task 2 — human-verify Phase 19 RBAC end-to-end (automated checks passed, awaiting human approval)
+Last session: 2026-03-28T10:14:45Z
+Stopped at: Completed 19-05-PLAN.md — Phase 19 RBAC and Permissions Context complete
 Resume file: None
