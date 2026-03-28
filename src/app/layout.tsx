@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import "@xyflow/react/dist/style.css";
 import { LayoutShell } from "@/components/layout/LayoutShell";
+import { AuthProviders } from "@/components/providers/AuthProviders";
+import { Toaster } from "sonner";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -21,7 +23,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} antialiased`}>
-        <LayoutShell>{children}</LayoutShell>
+        <AuthProviders>
+          <LayoutShell>{children}</LayoutShell>
+        </AuthProviders>
+        <Toaster position="bottom-right" richColors closeButton />
       </body>
     </html>
   );
