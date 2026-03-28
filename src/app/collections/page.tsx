@@ -8,6 +8,7 @@ import { CollectionCard } from '@/components/collections/CollectionCard';
 import { DeleteCollectionDialog } from '@/components/collections/DeleteCollectionDialog';
 import { NewCollectionDialog } from '@/components/collections/NewCollectionDialog';
 import { Button } from '@/components/ui/button';
+import { usePermissions } from '@/context/PermissionsContext';
 
 export default function CollectionsPage() {
   const router = useRouter();
@@ -19,6 +20,7 @@ export default function CollectionsPage() {
   } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const { canCreate } = usePermissions();
 
   const fetchCollections = async () => {
     try {
@@ -106,10 +108,12 @@ export default function CollectionsPage() {
     <div className="p-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Collections</h1>
-        <Button onClick={() => setCreateDialogOpen(true)}>
-          <PlusCircle size={14} className="mr-1.5" />
-          New Collection
-        </Button>
+        {canCreate && (
+          <Button onClick={() => setCreateDialogOpen(true)}>
+            <PlusCircle size={14} className="mr-1.5" />
+            New Collection
+          </Button>
+        )}
       </div>
 
       {/* Loading skeleton */}
@@ -133,24 +137,28 @@ export default function CollectionsPage() {
           <p className="text-sm text-gray-500 mt-1 mb-4">
             Create your first collection to start managing your design tokens.
           </p>
-          <Button onClick={() => setCreateDialogOpen(true)}>
-            <PlusCircle size={14} className="mr-1.5" />
-            Create Collection
-          </Button>
+          {canCreate && (
+            <Button onClick={() => setCreateDialogOpen(true)}>
+              <PlusCircle size={14} className="mr-1.5" />
+              Create Collection
+            </Button>
+          )}
         </div>
       )}
 
       {/* Grid */}
       {!loading && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {/* + New Collection card — always first */}
-          <div
-            className="border-2 border-dashed border-gray-300 rounded-lg p-4 cursor-pointer hover:border-gray-400 hover:bg-gray-50 transition-all flex flex-col items-center justify-center min-h-[120px] text-gray-400 hover:text-gray-600"
-            onClick={() => setCreateDialogOpen(true)}
-          >
-            <PlusCircle size={24} />
-            <span className="mt-2 text-sm font-medium">New Collection</span>
-          </div>
+          {/* + New Collection card — only visible to users with canCreate */}
+          {canCreate && (
+            <div
+              className="border-2 border-dashed border-gray-300 rounded-lg p-4 cursor-pointer hover:border-gray-400 hover:bg-gray-50 transition-all flex flex-col items-center justify-center min-h-[120px] text-gray-400 hover:text-gray-600"
+              onClick={() => setCreateDialogOpen(true)}
+            >
+              <PlusCircle size={24} />
+              <span className="mt-2 text-sm font-medium">New Collection</span>
+            </div>
+          )}
 
           {/* Collection cards */}
           {collections.map((collection) => (
