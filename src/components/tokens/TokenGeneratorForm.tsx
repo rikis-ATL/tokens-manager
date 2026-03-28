@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { HexColorPicker, HexColorInput } from "react-colorful";
 import { ChevronDown, ChevronUp, Trash2, RotateCcw, Lock, EllipsisVertical } from "lucide-react";
 import { LoadingIndicator } from "@/components/layout/LoadingIndicator";
-import { ToastNotification } from "@/components/layout/ToastNotification";
+import { showSuccessToast, showErrorToast } from "@/utils/toast.utils";
 import { JsonPreviewDialog } from "@/components/dev/JsonPreviewDialog";
 import { LoadCollectionDialog } from "@/components/collections/LoadCollectionDialog";
 import { TokenReferencePicker } from "@/components/tokens/TokenReferencePicker";
@@ -40,7 +40,6 @@ import {
   GitHubConfig,
   TokenType,
   TOKEN_TYPES,
-  ToastMessage,
   LoadingState,
 } from "../../types";
 import {
@@ -61,7 +60,7 @@ import {
   bulkRemovePrefix,
   detectCommonPrefix,
 } from "../../utils";
-import { createToast, createLoadingState } from "../../utils";
+import { createLoadingState } from "../../utils";
 import { BulkActionBar } from "./BulkActionBar";
 
 // ─── TokenTableRow ─────────────────────────────────────────────────────────────
@@ -534,6 +533,11 @@ interface TokenGeneratorFormProps {
     subgroupName?: string;
   } | null;
   onBulkInsertProcessed?: () => void;
+  pendingGroupCreation?: {
+    parentGroupId: string | null;
+    groupData: { name: string; tokens: GeneratedToken[] };
+  } | null;
+  onGroupCreationProcessed?: () => void;
   pendingGroupAction?: { type: "delete" | "addSub"; groupId: string; name?: string } | null;
   onGroupActionProcessed?: () => void;
   themeTokens?: TokenGroup[];
@@ -579,6 +583,8 @@ export function TokenGeneratorForm({
   selectedTokenId,
   pendingBulkInsert,
   onBulkInsertProcessed,
+  pendingGroupCreation,
+  onGroupCreationProcessed,
   pendingGroupAction,
   onGroupActionProcessed,
   themeTokens,
@@ -616,8 +622,6 @@ export function TokenGeneratorForm({
   const [loadingState, setLoadingState] = useState<LoadingState>(
     createLoadingState(false),
   );
-  const [toast, setToast] = useState<ToastMessage | null>(null);
-
   // Collection persistence state
   const [loadedCollection, setLoadedCollection] = useState<{
     id: string;
@@ -701,17 +705,6 @@ export function TokenGeneratorForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectionKey]);
 
-  // Toast helper functions
-  const showToast = (
-    message: string,
-    type: "success" | "error" | "info" = "info",
-  ) => {
-    setToast(createToast(message, type));
-    setTimeout(() => setToast(null), 5000); // Auto-dismiss after 5 seconds
-  };
-
-  const hideToast = () => setToast(null);
-
   // Loading helper functions
   const setLoading = (isLoading: boolean, message?: string) => {
     setLoadingState(createLoadingState(isLoading, message));
@@ -724,7 +717,7 @@ export function TokenGeneratorForm({
       const res = await fetch(`/api/collections/${collectionId}`);
       const data = await res.json();
       if (!res.ok) {
-        showToast(`Failed to load collection: ${data.error}`, "error");
+        showErrorToast(`Failed to load collection: ${data.error}`);
         return;
       }
       const { collection } = data;
@@ -737,11 +730,10 @@ export function TokenGeneratorForm({
       setLoadedCollection({ id: collection._id, name: collection.name });
       setIsDirty(false);
       setShowLoadDialog(false);
-      showToast(`Loaded: ${collection.name}`, "success");
+      showSuccessToast(`Loaded: ${collection.name}`);
     } catch (err) {
-      showToast(
+      showErrorToast(
         `Error: ${err instanceof Error ? err.message : "Unknown error"}`,
-        "error",
       );
     }
   };
@@ -909,6 +901,59 @@ export function TokenGeneratorForm({
   }, [pendingBulkInsert]);
 
   useEffect(() => {
+    if (!pendingGroupCreation) return;
+    const { parentGroupId, groupData } = pendingGroupCreation;
+
+    if (parentGroupId) {
+      // Create as subgroup
+      addSubGroup(parentGroupId, groupData.name);
+      // Find the newly created group and add tokens to it
+      setTokenGroups(prev => {
+        const findAndAddTokens = (groups: TokenGroup[]): TokenGroup[] =>
+          groups.map(g => {
+            if (g.id === parentGroupId && g.children) {
+              const newChild = g.children.find(child => child.name === groupData.name);
+              if (newChild) {
+                return {
+                  ...g,
+                  children: g.children.map(child =>
+                    child.name === groupData.name
+                      ? { ...child, tokens: [...child.tokens, ...groupData.tokens] }
+                      : child
+                  ),
+                };
+              }
+            }
+            if (g.children) {
+              return { ...g, children: findAndAddTokens(g.children) };
+            }
+            return g;
+          });
+        return findAndAddTokens(prev);
+      });
+    } else {
+      // Create as root level group
+      addTokenGroup(groupData.name);
+      // Find the newly created group and add tokens to it
+      setTokenGroups(prev => {
+        const newGroup = prev.find(g => g.name === groupData.name);
+        if (newGroup) {
+          return prev.map(g =>
+            g.name === groupData.name
+              ? { ...g, tokens: [...g.tokens, ...groupData.tokens] }
+              : g
+          );
+        }
+        return prev;
+      });
+    }
+
+    setIsDirty(true);
+    onGroupCreationProcessed?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingGroupCreation]);
+
+  useEffect(() => {
     if (!pendingGroupAction) return;
     if (pendingGroupAction.type === "delete") {
       deleteTokenGroup(pendingGroupAction.groupId);
@@ -922,7 +967,7 @@ export function TokenGeneratorForm({
   const deleteTokenGroup = (groupId: string) => {
     const allGroups = getAllGroups(tokenGroups);
     if (allGroups.length === 1) {
-      showToast("Cannot delete the last group", "error");
+      showErrorToast("Cannot delete the last group");
       return;
     }
 
@@ -1568,7 +1613,7 @@ export function TokenGeneratorForm({
     
 
       {/* Token Groups */}
-      {!selectedGroupId ? (
+      {!selectedGroupId || selectedGroupId === '__all_groups__' ? (
         /* Default view: overview table of all top-level groups */
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
           <div className="px-4 py-3">
@@ -1762,8 +1807,6 @@ export function TokenGeneratorForm({
       {/* Loading Indicator */}
       <LoadingIndicator loadingState={loadingState} />
 
-      {/* Toast Notification */}
-      <ToastNotification toast={toast} onClose={hideToast} />
     </div>
   );
 }

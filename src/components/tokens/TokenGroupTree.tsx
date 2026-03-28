@@ -192,6 +192,24 @@ export function TokenGroupTree({
         {flatNodes.length === 0 && (
           <p className="px-3 py-3 text-xs text-gray-400">No groups yet</p>
         )}
+        
+        {/* All Groups item - only show if there are groups */}
+        {flatNodes.length > 0 && (
+          <div
+            className={`px-3 py-2 mx-2 mb-1 rounded cursor-pointer transition-colors ${
+              selectedGroupId === '__all_groups__'
+                ? 'bg-blue-50 border border-blue-200 text-blue-700'
+                : 'hover:bg-gray-50 text-gray-700'
+            }`}
+            onClick={() => onGroupSelect?.('__all_groups__')}
+          >
+            <div className="flex items-center">
+              <span className="text-sm font-medium">All Groups</span>
+              <span className="ml-2 text-xs text-gray-400">({flatNodes.length})</span>
+            </div>
+          </div>
+        )}
+        
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}

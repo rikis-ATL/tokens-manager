@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Info, MoreHorizontal, RotateCcw, Save, Sun, Moon, Eye, Download, EllipsisVertical } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { ToastNotification } from '@/components/layout/ToastNotification';
+import { showSuccessToast, showErrorToast } from '@/utils/toast.utils';
 import { SaveCollectionDialog } from '@/components/collections/SaveCollectionDialog';
 import { TokenGeneratorForm } from '@/components/tokens/TokenGeneratorForm';
 import { TokenGeneratorDocs } from '@/components/tokens/TokenGeneratorDocs';
@@ -20,7 +20,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import type { ToastMessage, TokenGroup, GeneratedToken } from '@/types';
+import type { TokenGroup, GeneratedToken } from '@/types';
 import type { ISourceMetadata } from '@/types/collection.types';
 import type { CollectionGraphState, GraphGroupState } from '@/types/graph-state.types';
 import type { FlatToken, FlatGroup } from '@/types/graph-nodes.types';
@@ -84,7 +84,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   const [rawCollectionTokens, setRawCollectionTokens] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [toast, setToast] = useState<ToastMessage | null>(null);
+
   const [saveAsDialogOpen, setSaveAsDialogOpen] = useState(false);
   const [isSavingAs, setIsSavingAs] = useState(false);
   const [importFigmaOpen, setImportFigmaOpen] = useState(false);
@@ -190,6 +190,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   const [selectedToken, setSelectedToken] = useState<{ token: GeneratedToken; groupPath: string } | null>(null);
   const [pendingNewGroup, setPendingNewGroup] = useState<string | null>(null);
   const [pendingBulkInsert, setPendingBulkInsert] = useState<{ groupId: string; tokens: GeneratedToken[]; subgroupName?: string } | null>(null);
+  const [pendingGroupCreation, setPendingGroupCreation] = useState<{ parentGroupId: string | null; groupData: { name: string; tokens: GeneratedToken[] } } | null>(null);
   const [pendingGroupAction, setPendingGroupAction] = useState<{ type: 'delete' | 'addSub'; groupId: string; name?: string } | null>(null);
   const [guideOpen, setGuideOpen] = useState(false);
   const [isAddingGroup, setIsAddingGroup] = useState(false);
@@ -198,12 +199,6 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const abortControllerRef = useRef<AbortController | null>(null);
-
-  useEffect(() => {
-    if (!toast) return;
-    const timer = setTimeout(() => setToast(null), 4000);
-    return () => clearTimeout(timer);
-  }, [toast]);
 
   useEffect(() => {
     loadCollection();
@@ -267,7 +262,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       }
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') return;
-      setToast({ message: 'Failed to load collection', type: 'error' });
+      showErrorToast('Failed to load collection');
     } finally {
       setLoading(false);
     }
@@ -277,18 +272,18 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
 
   const handleRenamed = (newName: string) => {
     setCollectionName(newName);
-    setToast({ message: `Renamed to "${newName}"`, type: 'success' });
+    showSuccessToast(`Renamed to "${newName}"`);
   };
 
   const handleEdited = (newName: string, newNamespace: string) => {
     setCollectionName(newName);
     setGlobalNamespace(newNamespace);
-    setToast({ message: `Updated collection settings`, type: 'success' });
+    showSuccessToast('Updated collection settings');
   };
 
   const handleDuplicated = (newId: string, newName: string) => {
     router.push(`/collections/${newId}/tokens`);
-    setToast({ message: `Duplicated as "${newName}"`, type: 'success' });
+    showSuccessToast(`Duplicated as "${newName}"`);
   };
 
   const handleSaveAs = async (name: string) => {
@@ -304,7 +299,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
         const { collection } = await res.json();
         setSaveAsDialogOpen(false);
         router.push(`/collections/${collection._id}/tokens`);
-        setToast({ message: `Saved as "${collection.name}"`, type: 'success' });
+        showSuccessToast(`Saved as "${collection.name}"`);
       } else if (res.status === 409) {
         const existingData = await res.json();
         const putRes = await fetch(`/api/collections/${existingData.existingId}`, {
@@ -316,15 +311,15 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
           const { collection } = await putRes.json();
           setSaveAsDialogOpen(false);
           router.push(`/collections/${collection._id}/tokens`);
-          setToast({ message: `Saved as "${collection.name}"`, type: 'success' });
+          showSuccessToast(`Saved as "${collection.name}"`);
         } else {
-          setToast({ message: 'Failed to save collection', type: 'error' });
+          showErrorToast('Failed to save collection');
         }
       } else {
-        setToast({ message: 'Failed to save collection', type: 'error' });
+        showErrorToast('Failed to save collection');
       }
     } catch {
-      setToast({ message: 'Failed to save collection', type: 'error' });
+      showErrorToast('Failed to save collection');
     } finally {
       setIsSavingAs(false);
     }
@@ -406,7 +401,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       rawCollectionTokensRef.current = rawTokens as Record<string, unknown>;
       setRawCollectionTokens(rawTokens as Record<string, unknown>);
     } catch {
-      setToast({ message: 'Failed to save rename', type: 'error' });
+      showErrorToast('Failed to save rename');
     }
   }, [masterGroups, themes, id, globalNamespace]);
 
@@ -422,7 +417,10 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
         if (res.ok) {
           setThemes(prev => prev.map(t => t.id === themeId ? { ...t, graphState: gs } : t));
         }
-      }).catch(() => {/* silent */});
+      }).catch((error) => {
+        console.error('Failed to persist graph state:', error);
+        showErrorToast('Failed to save graph state');
+      });
     }
     // Guard: if neither source is ready (page still loading), skip to avoid wiping DB with {}
     if (generateTabTokensRef.current === null && rawCollectionTokensRef.current === null) return;
@@ -438,7 +436,10 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       if (res.ok) {
         setCollectionGraphState(gs);
       }
-    }).catch(() => {/* silent */});
+    }).catch((error) => {
+      console.error('Failed to persist collection graph state:', error);
+      showErrorToast('Failed to save collection graph state');
+    });
   }, [id]);
 
   const handleGraphStateChange = useCallback((groupId: string, state: GraphGroupState, flushImmediate?: boolean) => {
@@ -473,9 +474,9 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
         });
         if (res.ok) {
           setThemes(prev => prev.map(t => t.id === activeThemeId ? { ...t, graphState: gs } : t));
-          setToast({ message: 'Saved', type: 'success' });
+          showSuccessToast('Saved');
         } else {
-          setToast({ message: 'Save failed', type: 'error' });
+          showErrorToast('Save failed');
         }
       } else {
         const tokensPayload = generateTabTokensRef.current ?? rawCollectionTokens ?? {};
@@ -490,13 +491,13 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
         });
         if (res.ok) {
           setCollectionGraphState(gs);
-          setToast({ message: 'Saved', type: 'success' });
+          showSuccessToast('Saved');
         } else {
-          setToast({ message: 'Save failed', type: 'error' });
+          showErrorToast('Save failed');
         }
       }
     } catch {
-      setToast({ message: 'Save failed', type: 'error' });
+      showErrorToast('Save failed');
     } finally {
       setIsSaving(false);
     }
@@ -781,7 +782,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   const exportToGitHub = async () => {
     console.log('GitHub config check:', githubConfig);
     if (!githubConfig) {
-      setToast({ message: 'Please configure GitHub connection first', type: 'error' });
+      showErrorToast('Please configure GitHub connection first');
       return;
     }
 
@@ -802,7 +803,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   const importFromGitHub = async () => {
     console.log('GitHub config check:', githubConfig);
     if (!githubConfig) {
-      setToast({ message: 'Please configure GitHub connection first', type: 'error' });
+      showErrorToast('Please configure GitHub connection first');
       return;
     }
 
@@ -839,7 +840,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     
-    setToast({ message: 'JSON downloaded successfully', type: 'success' });
+    showSuccessToast('JSON downloaded successfully');
   };
 
   const handleClearForm = () => {
@@ -849,7 +850,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     generateTabTokensRef.current = initialTokens;
     setGlobalNamespace('');
     setShowClearDialog(false);
-    setToast({ message: 'Form cleared successfully!', type: 'success' });
+    showSuccessToast('Form cleared successfully!');
   };
 
   const handlePreviewJSON = () => {
@@ -871,7 +872,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     
-    setToast({ message: 'JSON downloaded successfully', type: 'success' });
+    showSuccessToast('JSON downloaded successfully');
   };
 
   const handleDirectorySelect = async (selectedPath: string, selectedBranch: string) => {
@@ -898,10 +899,10 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
         });
 
         if (response.ok) {
-          setToast({ message: 'Successfully exported to GitHub!', type: 'success' });
+          showSuccessToast('Successfully exported to GitHub!');
         } else {
           const error = await response.text();
-          setToast({ message: `Export failed: ${error}`, type: 'error' });
+          showErrorToast(`Export failed: ${error}`);
         }
       } else {
         // Import mode
@@ -923,17 +924,14 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
           setGenerateTabTokens(tokenSet);
           generateTabTokensRef.current = tokenSet;
           
-          setToast({ message: 'Successfully imported from GitHub!', type: 'success' });
+          showSuccessToast('Successfully imported from GitHub!');
         } else {
           const error = await response.text();
-          setToast({ message: `Import failed: ${error}`, type: 'error' });
+          showErrorToast(`Import failed: ${error}`);
         }
       }
     } catch (error) {
-      setToast({ 
-        message: `${isImportMode ? 'Import' : 'Export'} failed: ${error instanceof Error ? error.message : 'Unknown error'}`, 
-        type: 'error' 
-      });
+      showErrorToast(`${isImportMode ? 'Import' : 'Export'} failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -1059,7 +1057,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
         onRenamed={handleRenamed}
         onEdited={handleEdited}
         onDuplicated={handleDuplicated}
-        onError={(msg) => setToast({ message: msg, type: 'error' })}
+        onError={(msg) => showErrorToast(msg)}
         deleteOpen={deleteOpen}
         onDeleteOpenChange={setDeleteOpen}
         editOpen={editOpen}
@@ -1179,6 +1177,8 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
                   }
                   pendingBulkInsert={pendingBulkInsert}
                   onBulkInsertProcessed={() => setPendingBulkInsert(null)}
+                  pendingGroupCreation={pendingGroupCreation}
+                  onGroupCreationProcessed={() => setPendingGroupCreation(null)}
                   pendingGroupAction={pendingGroupAction}
                   onGroupActionProcessed={() => setPendingGroupAction(null)}
                   themeTokens={activeThemeId ? activeThemeTokens : undefined}
@@ -1208,6 +1208,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
                   selectedGroupId={selectedGroupId}
                   selectedToken={selectedToken}
                   onBulkAddTokens={(groupId, tokens, subgroupName) => setPendingBulkInsert({ groupId, tokens, subgroupName })}
+                  onBulkCreateGroups={(parentGroupId, groupData) => setPendingGroupCreation({ parentGroupId, groupData })}
                   graphStateMap={graphStateMap}
                   onGraphStateChange={handleGraphStateChange}
                   namespace={globalNamespace}
@@ -1221,7 +1222,6 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
         </div>
       </div>
 
-      <ToastNotification toast={toast} onClose={() => setToast(null)} />
 
       <SaveCollectionDialog
         isOpen={saveAsDialogOpen}
@@ -1236,7 +1236,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
         onImported={async (collectionId, name) => {
           router.push(`/collections/${collectionId}/tokens`);
           setImportFigmaOpen(false);
-          setToast({ message: `Imported "${name}" from Figma`, type: 'success' });
+          showSuccessToast(`Imported "${name}" from Figma`);
         }}
       />
 
@@ -1269,12 +1269,12 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
               setGenerateTabTokens(collection.tokens);
               generateTabTokensRef.current = collection.tokens;
               setShowLoadDialog(false);
-              setToast({ message: `Loaded "${collection.name}"`, type: 'success' });
+              showSuccessToast(`Loaded "${collection.name}"`);
             } else {
-              setToast({ message: 'Failed to load collection', type: 'error' });
+              showErrorToast('Failed to load collection');
             }
           } catch (error) {
-            setToast({ message: 'Failed to load collection', type: 'error' });
+            showErrorToast('Failed to load collection');
           }
         }}
         onCancel={() => setShowLoadDialog(false)}

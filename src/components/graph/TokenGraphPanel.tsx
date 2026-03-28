@@ -13,6 +13,7 @@ interface TokenGraphPanelProps {
   selectedGroupId: string;
   selectedToken: { token: GeneratedToken; groupPath: string } | null;
   onBulkAddTokens?: (groupId: string, tokens: GeneratedToken[], subgroupName?: string) => void;
+  onBulkCreateGroups?: (parentGroupId: string | null, groupData: { name: string; tokens: GeneratedToken[] }) => void;
   graphStateMap?: CollectionGraphState;
   onGraphStateChange?: (groupId: string, state: GraphGroupState, flushImmediate?: boolean) => void;
   namespace?: string;
@@ -39,6 +40,7 @@ export function TokenGraphPanel({
   selectedGroupId,
   selectedToken,
   onBulkAddTokens,
+  onBulkCreateGroups,
   graphStateMap,
   onGraphStateChange,
   namespace,
@@ -46,7 +48,10 @@ export function TokenGraphPanel({
   flatGroups,
   activeThemeId,
 }: TokenGraphPanelProps) {
-  const selectedGroup = selectedGroupId ? findGroupById(allGroups, selectedGroupId) : null;
+  const selectedGroup = selectedGroupId && selectedGroupId !== '__all_groups__' 
+    ? findGroupById(allGroups, selectedGroupId) 
+    : null;
+  const isAllGroupsView = selectedGroupId === '__all_groups__';
 
   // Token detail takes priority when a token row is selected
   if (selectedToken) {
@@ -72,6 +77,36 @@ export function TokenGraphPanel({
     );
   }
 
+  // All Groups view - unified graph showing all top-level groups
+  if (isAllGroupsView) {
+    return (
+      <div className="flex flex-col h-full">
+        <div className="flex items-center gap-2 px-3 py-2 border-b border-gray-200 bg-white flex-shrink-0">
+          <Network size={14} className="text-blue-500" />
+          <span className="text-xs font-medium text-gray-600">All Groups</span>
+          <span className="text-xs text-gray-400 ml-auto">unified view</span>
+        </div>
+        <GroupStructureGraph
+          key={`__all_groups__-${activeThemeId ?? 'default'}`}
+          allGroupsMode={true}
+          allGroupsData={allGroups}
+          namespace={namespace}
+          allTokens={allTokens}
+          allGroups={flatGroups}
+          initialGraphState={graphStateMap?.__all_groups__}
+          onBulkAddTokens={onBulkAddTokens}
+          onBulkCreateGroups={onBulkCreateGroups}
+          onGraphStateChange={
+            onGraphStateChange
+              ? (state, options) => onGraphStateChange('__all_groups__', state, options?.flushImmediate)
+              : undefined
+          }
+        />
+      </div>
+    );
+  }
+
+  // Single group view
   if (selectedGroup) {
     return (
       <div className="flex flex-col h-full">
@@ -83,6 +118,7 @@ export function TokenGraphPanel({
           allGroups={flatGroups}
           initialGraphState={graphStateMap?.[selectedGroup.id]}
           onBulkAddTokens={onBulkAddTokens}
+          onBulkCreateGroups={onBulkCreateGroups}
           onGraphStateChange={
             onGraphStateChange
               ? (state, options) => onGraphStateChange(selectedGroup.id, state, options?.flushImmediate)

@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { ThemeList, ThemeGroupMatrix } from '@/components/themes';
-import { ToastNotification } from '@/components/layout/ToastNotification';
 import { tokenService } from '@/services/token.service';
+import { showErrorToast } from '@/utils/toast.utils';
 import type { ITheme, ThemeGroupState, ColorMode } from '@/types/theme.types';
-import type { TokenGroup, ToastMessage } from '@/types';
+import type { TokenGroup } from '@/types';
 
 interface ThemesPageProps {
   params: { id: string };
@@ -18,14 +18,6 @@ export default function CollectionThemesPage({ params }: ThemesPageProps) {
   const [selectedThemeId, setSelectedThemeId] = useState<string | null>(null);
   const [masterGroups, setMasterGroups] = useState<TokenGroup[]>([]);
   const [loading, setLoading] = useState(true);
-  const [toast, setToast] = useState<ToastMessage | null>(null);
-
-  // Auto-clear toast after 4000ms
-  useEffect(() => {
-    if (!toast) return;
-    const timer = setTimeout(() => setToast(null), 4000);
-    return () => clearTimeout(timer);
-  }, [toast]);
 
   // Load themes and groups on mount
   useEffect(() => {
@@ -62,7 +54,7 @@ export default function CollectionThemesPage({ params }: ThemesPageProps) {
         }
         setMasterGroups(flattenAllGroups(groupTree));
       } catch {
-        setToast({ message: 'Failed to load themes', type: 'error' });
+        showErrorToast('Failed to load themes');
       } finally {
         setLoading(false);
       }
@@ -84,7 +76,7 @@ export default function CollectionThemesPage({ params }: ThemesPageProps) {
       setThemes((prev) => [...prev, newTheme]);
       setSelectedThemeId(newTheme.id);
     } catch {
-      setToast({ message: 'Failed to create theme', type: 'error' });
+      showErrorToast('Failed to create theme');
     }
   };
 
@@ -105,7 +97,7 @@ export default function CollectionThemesPage({ params }: ThemesPageProps) {
         return updated;
       });
     } catch {
-      setToast({ message: 'Failed to delete theme', type: 'error' });
+      showErrorToast('Failed to delete theme');
     }
   };
 
@@ -126,7 +118,7 @@ export default function CollectionThemesPage({ params }: ThemesPageProps) {
           ? { ...t, colorMode: colorMode === 'dark' ? 'light' : 'dark' }
           : t
       ));
-      setToast({ message: 'Failed to update color mode', type: 'error' });
+      showErrorToast('Failed to update color mode');
     }
   };
 
@@ -158,7 +150,7 @@ export default function CollectionThemesPage({ params }: ThemesPageProps) {
           t.id === selectedThemeId ? selectedTheme : t
         )
       );
-      setToast({ message: 'Failed to update theme', type: 'error' });
+      showErrorToast('Failed to update theme');
     }
   };
 
@@ -217,7 +209,6 @@ export default function CollectionThemesPage({ params }: ThemesPageProps) {
         </div>
       </div>
 
-      <ToastNotification toast={toast} onClose={() => setToast(null)} />
     </div>
   );
 }

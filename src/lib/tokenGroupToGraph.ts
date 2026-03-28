@@ -98,6 +98,43 @@ export function buildGroupGraph(group: TokenGroup): { nodes: Node[]; edges: Edge
   return { nodes, edges };
 }
 
+/**
+ * Build a unified graph showing all top-level groups in a grid layout.
+ * Each group maintains its internal hierarchy while being positioned
+ * in a grid to avoid overlaps.
+ */
+export function buildAllGroupsGraph(groups: TokenGroup[]): { nodes: Node[]; edges: Edge[] } {
+  const nodes: Node[] = [];
+  const edges: Edge[] = [];
+  
+  if (groups.length === 0) {
+    return { nodes, edges };
+  }
+  
+  // Calculate grid layout
+  const cols = Math.ceil(Math.sqrt(groups.length));
+  const rows = Math.ceil(groups.length / cols);
+  
+  // Calculate spacing based on estimated group sizes
+  const maxGroupWidth = GROUP_NODE_W + (3 * (GROUP_NODE_W + H_GAP)); // Assume max 4 children per group
+  const maxGroupHeight = GROUP_NODE_H + (2 * (GROUP_NODE_H + V_GAP)); // Assume max 3 levels deep
+  const gridSpacingX = maxGroupWidth + 100; // Extra padding between groups
+  const gridSpacingY = maxGroupHeight + 80;
+  
+  // Position each group in the grid
+  groups.forEach((group, index) => {
+    const col = index % cols;
+    const row = Math.floor(index / cols);
+    const x = col * gridSpacingX;
+    const y = row * gridSpacingY;
+    
+    // Layout this group's hierarchy starting at the calculated position
+    layoutGroupNodes(group, x, y, nodes, edges);
+  });
+  
+  return { nodes, edges };
+}
+
 // ─── Token Detail Graph ───────────────────────────────────────────────────────
 
 function buildTokenNode(
