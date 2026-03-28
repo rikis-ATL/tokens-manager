@@ -58,6 +58,8 @@ Progress: [░░░░░░░░░░] 0% (0/6 phases complete, 3 plans comp
 | Phase 18 P02 | 4 | 2 tasks | 16 files |
 | Phase 19 P01 | 2 | 2 tasks | 3 files |
 | Phase 19 P04 | 1 | 1 task | 1 file |
+| Phase 19-rbac-and-permissions-context P02 | 3 | 2 tasks | 7 files |
+| Phase 19 P03 | 3 | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -108,6 +110,10 @@ Key decisions relevant to v1.5 (from research and 16-01 execution):
 - [Phase 19-04]: Admin short-circuit sets effectiveRole to 'Admin' without fetching /permissions/me — Admin bypasses all collection-level checks
 - [Phase 19-04]: PermissionsContextValue interface now exported — required for typed consumers in Phase 20+
 - [Phase 19-04]: Named boolean API replaces scaffold { role, canPerform } — usePermissions() returns { canEdit, canCreate, isAdmin, canGitHub, canFigma }
+- [Phase 19]: GET /api/collections calls bootstrapCollectionGrants() on every request — idempotent no-op via module-level flag + countDocuments guard
+- [Phase 19]: requireRole(action, collectionId) replaces requireAuth() on all collection write handlers — enforces both org role and collection grant
+- [Phase 19]: GET /api/collections/[id] returns 404 for non-Admin without grant — collection invisible, not forbidden
+- [Phase 19]: POST+DELETE /api/collections/[id]/permissions uses Action.ManageUsers (Admin-only) — no collectionId arg needed
 
 ### Pending Todos
 
@@ -122,6 +128,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-28T09:26:28Z
-Stopped at: Completed 19-04-PLAN.md (PermissionsContext rewrite with collection-aware named boolean API)
+Last session: 2026-03-28T09:28:54Z
+Stopped at: Completed 19-02-PLAN.md (requireRole() enforcement on all collection routes + permissions grant/revoke API)
 Resume file: None
