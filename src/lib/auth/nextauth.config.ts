@@ -37,17 +37,45 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async jwt({ token, user }) {
-      // user is only present on initial sign-in (not on token refresh)
+      // Initial sign-in: set all fields and seed roleLastFetched
       if (user) {
-        token.id   = (user as any).id;
-        token.role = (user as any).role;
-        token.name = (user as any).name;
+        const u = user as unknown as { id: string; role: string; name: string };
+        token.id   = u.id;
+        token.role = u.role;
+        token.name = u.name;
+        token.roleLastFetched = Date.now();
       }
-      // SUPER_ADMIN_EMAIL enforcement — check token.email (always present), not user.email
-      // Does not modify the DB record — JWT override only (per AUTH-06)
+
+      // SUPER_ADMIN_EMAIL short-circuit — apply first, return early to skip DB re-fetch
+      // Checks token.email (always present) per AUTH-06 decision in STATE.md
       if (token.email === process.env.SUPER_ADMIN_EMAIL) {
         token.role = 'Admin';
+        token.roleLastFetched = Date.now(); // keep timestamp fresh, no DB hit needed
+        return token;
       }
+
+      // Role re-fetch when stale (> 60 seconds)
+      // token.id is absent in very old pre-v1.5 sessions — skip re-fetch safely
+      if (!token.id) return token;
+
+      const ROLE_TTL_MS = 60 * 1000;
+      const lastFetched = (token.roleLastFetched ?? 0) as number;
+      if (Date.now() - lastFetched > ROLE_TTL_MS) {
+        await dbConnect();
+        const dbUser = await User.findById(token.id as string)
+          .select('role status')
+          .lean() as { role: string; status: string } | null;
+
+        if (!dbUser || dbUser.status === 'disabled') {
+          // User deleted or removed — invalidate session by returning empty token
+          // next-auth v4: returning {} forces re-sign-in on the client
+          return {} as typeof token;
+        }
+
+        token.role = dbUser.role;
+        token.roleLastFetched = Date.now();
+      }
+
       return token;
     },
     async session({ session, token }) {
