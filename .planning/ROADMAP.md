@@ -168,7 +168,13 @@ Plans:
   3. After completing account setup, the invited user is signed in and can access the app with their assigned role
   4. The invite link is single-use (clicking it a second time after account setup returns an error page)
   5. Pending invitations appear in the org users list with an expiry badge showing whether the invite is active or expired
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 20-01-PLAN.md — Invite model + email utility + all invite API routes (POST/GET/DELETE/resend/validate)
+- [ ] 20-02-PLAN.md — POST /api/auth/invite-setup handler + /auth/invite-setup page
+- [ ] 20-03-PLAN.md — /org/users page + InviteModal + OrgSidebar/LayoutShell/middleware plumbing
+- [ ] 20-04-PLAN.md — Human verification of complete invite flow end-to-end
 
 ### Phase 21: Org Users Admin UI and Permission-Gated UI
 **Goal**: Admin can manage all org members from a dedicated page, and write controls in existing collection UI are hidden for users who cannot perform those actions
