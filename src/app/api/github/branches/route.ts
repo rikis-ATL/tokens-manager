@@ -77,6 +77,8 @@ export async function POST(request: NextRequest) {
 
 // Get all branches
 export async function GET(request: NextRequest) {
+  const authResult = await requireRole(Action.PushGithub);
+  if (authResult instanceof NextResponse) return authResult;
   try {
     const { searchParams } = new URL(request.url);
     const repository = searchParams.get('repository');
