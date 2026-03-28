@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Org User Management
 status: in_progress
-last_updated: "2026-03-28T06:57:14Z"
+last_updated: "2026-03-28T08:13:23Z"
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 0
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # Project State
@@ -23,9 +23,9 @@ See: .planning/PROJECT.md (updated 2026-03-28)
 ## Current Position
 
 Phase: 18 of 21 (Middleware and Route Handler Guards)
-Plan: 01 (18-01 complete — middleware withAuth + requireAuth() utility)
+Plan: 02 (18-02 complete — requireAuth() guards on all 17 write Route Handlers)
 Status: In progress
-Last activity: 2026-03-28 — Completed 18-01: middleware.ts and require-auth.ts created; dual-layer security model established
+Last activity: 2026-03-28 — Completed 18-02: requireAuth() applied to all 17 write handlers across 15 route files; POST /api/auth/setup documented as bootstrap exception (ARCH-02 satisfied)
 
 Progress: [░░░░░░░░░░] 0% (0/6 phases complete, 3 plans complete in phase 16)
 
@@ -55,6 +55,7 @@ Progress: [░░░░░░░░░░] 0% (0/6 phases complete, 3 plans comp
 | Phase 17 P03 | 7 | 3 tasks | 4 files |
 | Phase 17 P04 | - | 1 task (human-verify) | 0 files |
 | Phase 18 P01 | 2 | 2 tasks | 2 files |
+| Phase 18 P02 | 4 | 2 tasks | 16 files |
 
 ## Accumulated Context
 
@@ -93,6 +94,9 @@ Key decisions relevant to v1.5 (from research and 16-01 execution):
 - [Phase 18]: Middleware excludes api/ routes — HTML redirect would break fetch() callers; requireAuth() is the actual API security boundary
 - [Phase 18]: getServerSession(authOptions) single-argument form required in App Router — three-argument Pages Router form throws res.getHeader is not a function
 - [Phase 18]: requireAuth() returns 401 {error: Unauthorized} — no WWW-Authenticate header needed for session-cookie app; no DB lookup; JWT-only validation
+- [Phase 18-02]: 17 handlers guarded with requireAuth(); POST /api/auth/setup is 1 documented bootstrap exception — count > 0 guard prevents abuse post-setup (ARCH-02 satisfied)
+- [Phase 18-02]: GET handlers in all modified route files left unguarded — ARCH-02 specifies write handlers only; reads are publicly accessible
+- [Phase 18-02]: Guard placed before try{} block in all handlers — early return prevents any business logic executing on unauthenticated requests
 
 ### Pending Todos
 
@@ -107,6 +111,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-28T08:05:39Z
-Stopped at: Completed 18-01-PLAN.md (middleware withAuth + requireAuth() utility)
+Last session: 2026-03-28T08:13:23Z
+Stopped at: Completed 18-02-PLAN.md (requireAuth() guards on all 17 write Route Handlers)
 Resume file: None
