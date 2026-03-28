@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Org User Management
 status: in_progress
-last_updated: "2026-03-28T10:14:45Z"
+last_updated: "2026-03-28T21:25:16Z"
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 0
-  completed_plans: 6
+  completed_plans: 7
 ---
 
 # Project State
@@ -22,10 +22,10 @@ See: .planning/PROJECT.md (updated 2026-03-28)
 
 ## Current Position
 
-Phase: 19 of 21 (RBAC and Permissions Context — COMPLETE)
-Plan: 06 (19-06 complete — gap closure: GET /api/github/branches requireRole guard added; PERM-03 fully satisfied)
-Status: In progress (Phase 19 complete including gap closure; awaiting Phase 20)
-Last activity: 2026-03-28 — Completed 19-06: GET /api/github/branches guarded with requireRole(Action.PushGithub); PERM-03 fully satisfied
+Phase: 20 of 21 (Email Invite Flow and Account Setup — in progress)
+Plan: 01 complete (20-01 — invite API foundation: 5 route handlers, email utility, resend integration)
+Status: In progress — Phase 20 Plan 01 complete; Plans 02 (setup page) and 03 (users page) remaining
+Last activity: 2026-03-28 — Completed 20-01: Resend-backed invite API with hashed token storage, duplicate guards, validate endpoint
 
 Progress: [░░░░░░░░░░] 0% (0/6 phases complete, 3 plans complete in phase 16)
 
@@ -63,6 +63,7 @@ Progress: [░░░░░░░░░░] 0% (0/6 phases complete, 3 plans comp
 | Phase 19 P05 | 4 | 1 tasks | 1 files |
 | Phase 19 P05 | 5 | 2 tasks | 1 files |
 | Phase 19 P06 | 3 | 1 tasks | 1 files |
+| Phase 20 P01 | ~30 min | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -122,6 +123,10 @@ Key decisions relevant to v1.5 (from research and 16-01 execution):
 - [Phase 19]: Action.PushGithub gates both GitHub export and import symmetrically — push and pull share the same privilege level
 - [Phase 19]: Phase 19 RBAC verified complete — Admin access, API enforcement, bootstrap, and usePermissions() all approved by human
 - [Phase 19]: GET /api/github/branches guarded with requireRole(Action.PushGithub) — listing branches is a GitHub privilege, not a public read; PERM-03 fully satisfied
+- [Phase 20-01]: resend added to serverComponentsExternalPackages — prevents webpack bundling @react-email/render (optional peer dep that isn't installed)
+- [Phase 20-01]: POST /api/invites rolls back Invite document if Resend email fails — delete-on-error atomicity pattern
+- [Phase 20-01]: GET /api/invites/validate is public (no requireRole) — must be reachable pre-login when invited user lands on setup page
+- [Phase 20-01]: Duplicate check covers both active User account and pending non-expired Invite; both return 409
 
 ### Pending Todos
 
@@ -136,6 +141,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-28T10:37:30Z
-Stopped at: Completed 19-06-PLAN.md — gap closure: GET /api/github/branches requireRole guard added; PERM-03 fully satisfied
+Last session: 2026-03-28T21:25:16Z
+Stopped at: Completed 20-01-PLAN.md — invite API foundation: GET/POST /api/invites, GET /api/invites/validate, DELETE/POST /api/invites/[id], resend integration
 Resume file: None

@@ -81,7 +81,7 @@ See: `.planning/milestones/v1.4-ROADMAP.md` for full phase details.
 - [x] **Phase 17: Auth API Routes and Sign-In Flow** — NextAuth route handler, first-user bootstrap, sign-in and sign-out pages, SessionProvider wiring (completed 2026-03-28)
 - [x] **Phase 18: Middleware and Route Handler Guards** — withAuth middleware, requireAuth() utility, all 18 existing write Route Handlers guarded (completed 2026-03-28)
 - [x] **Phase 19: RBAC and Permissions Context** — PermissionsProvider, usePermissions() hook, role enforcement on write routes, JWT role re-fetch, per-collection overrides (completed 2026-03-28)
-- [ ] **Phase 20: Email Invite Flow and Account Setup** — Resend invite email, invite token generation, account setup page, invite management
+- [x] **Phase 20: Email Invite Flow and Account Setup** — Resend invite email, invite token generation, account setup page, invite management (in progress — 1/4 plans complete)
 - [ ] **Phase 21: Org Users Admin UI and Permission-Gated UI** — /org/users admin page, role change and removal API, write controls hidden for Viewer
 
 ## Phase Details
@@ -171,7 +171,7 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 20-01-PLAN.md — Invite model + email utility + all invite API routes (POST/GET/DELETE/resend/validate)
+- [x] 20-01-PLAN.md — Invite model + email utility + all invite API routes (POST/GET/DELETE/resend/validate)
 - [ ] 20-02-PLAN.md — POST /api/auth/invite-setup handler + /auth/invite-setup page
 - [ ] 20-03-PLAN.md — /org/users page + InviteModal + OrgSidebar/LayoutShell/middleware plumbing
 - [ ] 20-04-PLAN.md — Human verification of complete invite flow end-to-end
@@ -219,5 +219,5 @@ Plans:
 | 17. Auth API Routes and Sign-In Flow | v1.5 | Complete    | 2026-03-28 | 2026-03-28 |
 | 18. Middleware and Route Handler Guards | 3/3 | Complete    | 2026-03-28 | - |
 | 19. RBAC and Permissions Context | 6/6 | Complete    | 2026-03-28 | - |
-| 20. Email Invite Flow and Account Setup | v1.5 | 0/TBD | Not started | - |
+| 20. Email Invite Flow and Account Setup | v1.5 | 1/4 | In progress | - |
 | 21. Org Users Admin UI and Permission-Gated UI | v1.5 | 0/TBD | Not started | - |
