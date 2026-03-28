@@ -56,6 +56,7 @@ Progress: [░░░░░░░░░░] 0% (0/6 phases complete, 3 plans comp
 | Phase 17 P04 | - | 1 task (human-verify) | 0 files |
 | Phase 18 P01 | 2 | 2 tasks | 2 files |
 | Phase 18 P02 | 4 | 2 tasks | 16 files |
+| Phase 19 P01 | 2 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -97,6 +98,10 @@ Key decisions relevant to v1.5 (from research and 16-01 execution):
 - [Phase 18-02]: 17 handlers guarded with requireAuth(); POST /api/auth/setup is 1 documented bootstrap exception — count > 0 guard prevents abuse post-setup (ARCH-02 satisfied)
 - [Phase 18-02]: GET handlers in all modified route files left unguarded — ARCH-02 specifies write handlers only; reads are publicly accessible
 - [Phase 18-02]: Guard placed before try{} block in all handlers — early return prevents any business logic executing on unauthenticated requests
+- [Phase 19]: requireRole() uses 404 (not 403) for non-Admin with no grant — collection invisible to user
+- [Phase 19]: Admin org role bypasses CollectionPermission grant lookup — canPerform('Admin', action) is the only check
+- [Phase 19]: bootstrapCollectionGrants() uses countDocuments guard + module-level flag for double idempotency across processes and same-process calls
+- [Phase 19]: GET /permissions/me uses direct getServerSession() (not requireAuth()) consistent with Phase 18 pattern for read endpoints
 
 ### Pending Todos
 
