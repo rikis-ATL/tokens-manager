@@ -21,7 +21,7 @@ import { DeletableEdge } from './edges/DeletableEdge';
 import {
   Plus,
   Palette, Zap, Eye, Pipette, Coins, Type,
-  Hash, Waves, List, Calculator, Tag, FileJson,
+  Hash, Waves, List, Calculator, Tag, FileJson, Layers,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -33,7 +33,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-import { buildGroupGraph } from '@/lib/tokenGroupToGraph';
+import { buildGroupGraph, buildAllGroupsGraph } from '@/lib/tokenGroupToGraph';
 import { evaluateGraph } from '@/lib/graphEvaluator';
 
 import { GroupNode } from './nodes/GroupNode';
@@ -50,6 +50,7 @@ import { PaletteNode }        from './nodes/PaletteNode';
 import { TokenOutputNode }    from './nodes/TokenOutputNode';
 import { JsonNode }           from './nodes/JsonNode';
 import { GeneratorNode }      from './nodes/GeneratorNode';
+import { GroupCreatorNode } from './nodes/GroupCreatorNode';
 
 import type { TokenGroup, GeneratedToken, TokenType } from '@/types';
 import { GENERATOR_CATEGORIES } from '@/types/generator.types';
@@ -62,6 +63,7 @@ import type {
   ArrayConfig,
   ConstantConfig,
   GeneratorNodeConfig,
+  GroupConfig,
   PortValue,
   ArrayInputMode,
   FlatToken,
@@ -84,8 +86,9 @@ const COMPOSABLE_BADGE: Record<string, string> = {
   typography:   'bg-purple-50 text-purple-700 border border-purple-200',
   tokenOutput:  'bg-emerald-50 text-emerald-700 border border-emerald-200',
   json:         'bg-amber-50 text-amber-700 border border-amber-200',
-  generator:    'bg-indigo-50 text-indigo-700 border border-indigo-200',
-  palette:      'bg-rose-50 text-rose-700 border border-rose-200',
+  generator:      'bg-indigo-50 text-indigo-700 border border-indigo-200',
+  palette:        'bg-rose-50 text-rose-700 border border-rose-200',
+  group: 'bg-cyan-50 text-cyan-700 border border-cyan-200',
 };
 
 const COMPOSABLE_NODES: {
@@ -103,9 +106,10 @@ const COMPOSABLE_NODES: {
   { kind: 'tokenRef',     label: 'Token',           desc: 'Reference an existing token', icon: <Coins size={12} /> },
   { kind: 'typography',   label: 'Typography',      desc: 'Composite font shorthand',    icon: <Type size={12} /> },
   { kind: 'palette',      label: 'Color Palette',   desc: 'Generate a color scale',      icon: <Palette size={12} /> },
-  { kind: 'generator',    label: 'Generator',       desc: 'Color or dimension scale',    icon: <Zap size={12} /> },
-  { kind: 'tokenOutput',  label: 'Token Output',    desc: 'Create token group entries',  icon: <Tag size={12} /> },
-  { kind: 'json',         label: 'Json',            desc: 'Upload JSON file as token source', icon: <FileJson size={12} /> },
+  { kind: 'generator',      label: 'Generator',       desc: 'Color or dimension scale',    icon: <Zap size={12} /> },
+  { kind: 'tokenOutput',    label: 'Token Output',    desc: 'Create token group entries',  icon: <Tag size={12} /> },
+  { kind: 'json',           label: 'Json',            desc: 'Upload JSON file as token source', icon: <FileJson size={12} /> },
+  { kind: 'group', label: 'Group Creator', desc: 'Create a new group with tokens', icon: <Layers size={12} /> },
 ];
 
 const KIND_TO_NODE_TYPE: Record<ComposableNodeConfig['kind'], string> = {
@@ -118,9 +122,10 @@ const KIND_TO_NODE_TYPE: Record<ComposableNodeConfig['kind'], string> = {
   tokenRef:     'composableTokenRef',
   typography:   'composableTypography',
   palette:      'composablePalette',
-  tokenOutput:  'composableTokenOutput',
-  json:         'composableJson',
-  generator:    'composableGenerator',
+  tokenOutput:    'composableTokenOutput',
+  json:           'composableJson',
+  generator:      'composableGenerator',
+  group: 'composableGroup',
 };
 
 // Approximate rendered width per node type (used for neighbour placement)
@@ -134,10 +139,11 @@ const NODE_WIDTHS: Record<string, number> = {
   composableTokenRef:     240,
   composableTypography:   268,
   composablePalette:      290,
-  composableTokenOutput: 260,
-  composableJson:        268,
-  composableGenerator:   290,
-  groupNode:             200,
+  composableTokenOutput:    260,
+  composableJson:           268,
+  composableGenerator:      290,
+  composableGroup: 280,
+  groupNode:                200,
 };
 
 const NODE_TYPES = {
@@ -151,9 +157,10 @@ const NODE_TYPES = {
   composableA11yContrast: A11yContrastNode,
   composableTokenRef:     TokenRefNode,
   composableTypography:   TypographyNode,
-  composablePalette:      PaletteNode,
-  composableTokenOutput:  TokenOutputNode,
-  composableJson:         JsonNode,
+  composablePalette:        PaletteNode,
+  composableTokenOutput:    TokenOutputNode,
+  composableJson:           JsonNode,
+  composableGroup: GroupCreatorNode,
 } as const;
 
 const EDGE_TYPES = {
@@ -213,6 +220,17 @@ function defaultComposableConfig(kind: ComposableNodeConfig['kind']): Composable
           distribution: 'linear',
         },
       };
+    case 'group':
+      return {
+        kind: 'group',
+        groupName: 'New Group',
+        tokenType: 'color',
+        outputTarget: 'currentGroup',
+        tokens: [
+          { name: 'primary', value: '#3b82f6' },
+          { name: 'secondary', value: '#64748b' },
+        ],
+      };
   }
 }
 
@@ -220,16 +238,41 @@ function defaultComposableConfig(kind: ComposableNodeConfig['kind']): Composable
 // ── Main component ────────────────────────────────────────────────────────────
 
 interface GroupStructureGraphProps {
-  group: TokenGroup;
+  // Single group mode
+  group?: TokenGroup;
+  // All groups mode
+  allGroupsMode?: boolean;
+  allGroupsData?: TokenGroup[];
+  // Common props
   namespace?: string;
   allTokens?: FlatToken[];
   allGroups?: FlatGroup[];
   initialGraphState?: GraphGroupState;
   onBulkAddTokens?: (groupId: string, tokens: GeneratedToken[], subgroupName?: string) => void;
+  onBulkCreateGroups?: (parentGroupId: string | null, groupData: { name: string; tokens: GeneratedToken[] }) => void;
   onGraphStateChange?: (state: GraphGroupState, options?: { flushImmediate?: boolean }) => void;
 }
 
-export function GroupStructureGraph({ group, namespace, allTokens, allGroups, initialGraphState, onBulkAddTokens, onGraphStateChange }: GroupStructureGraphProps) {
+export function GroupStructureGraph({ 
+  group, 
+  allGroupsMode = false, 
+  allGroupsData, 
+  namespace, 
+  allTokens, 
+  allGroups, 
+  initialGraphState, 
+  onBulkAddTokens,
+  onBulkCreateGroups, 
+  onGraphStateChange 
+}: GroupStructureGraphProps) {
+  
+  // Validate props - either single group mode or all groups mode
+  if (!allGroupsMode && !group) {
+    throw new Error('GroupStructureGraph: group prop is required when not in allGroupsMode');
+  }
+  if (allGroupsMode && !allGroupsData) {
+    throw new Error('GroupStructureGraph: allGroupsData prop is required when in allGroupsMode');
+  }
 
   // ── Composable node state ────────────────────────────────────────────────
   const [composableNodeMetas, setComposableNodeMetas] = useState<Map<string, ComposableNodeMeta>>(
@@ -359,7 +402,7 @@ export function GroupStructureGraph({ group, namespace, allTokens, allGroups, in
     try {
       const pairs: { name: string; value: string; type?: string; description?: string; attributes?: Record<string, string> }[] = JSON.parse(tokenDataStr);
       return pairs.map((t, i) => ({
-        id: `${group.id}/${nodeId}/${i}-${generateId()}`,
+        id: `${group?.id || 'all-groups'}/${nodeId}/${i}-${generateId()}`,
         path: t.name,
         value: t.value,
         type: (t.type ?? cfg.tokenType) as TokenType,
@@ -369,7 +412,7 @@ export function GroupStructureGraph({ group, namespace, allTokens, allGroups, in
     } catch {
       return [];
     }
-  }, [nodeValues, composableNodeMetas, group.id]);
+  }, [nodeValues, composableNodeMetas, group?.id]);
 
   // Handle "Add to Group" / "Save as Token" button clicks on composable nodes
   const handleComposableGenerate = useCallback((nodeId: string) => {
@@ -379,7 +422,8 @@ export function GroupStructureGraph({ group, namespace, allTokens, allGroups, in
       const cfg = meta.config as ConstantConfig;
       const evaluated = nodeValues.get(nodeId);
       if (!cfg.tokenName.trim()) return;
-      const targetGroupId = cfg.destGroupId || group.id;
+      const targetGroupId = cfg.destGroupId || group?.id;
+      if (!targetGroupId) return;
 
       let tokenValue: GeneratedToken['value'];
       let tokenType: GeneratedToken['type'];
@@ -416,7 +460,8 @@ export function GroupStructureGraph({ group, namespace, allTokens, allGroups, in
       const evaluated = nodeValues.get(nodeId);
       const values = evaluated?.outputs['values'];
       if (!Array.isArray(values) || values.length === 0 || !cfg.tokenName.trim()) return;
-      const targetGroupId = cfg.destGroupId || group.id;
+      const targetGroupId = cfg.destGroupId || group?.id;
+      if (!targetGroupId) return;
       const token: GeneratedToken = {
         id: `${targetGroupId}/${nodeId}-${generateId()}`,
         path: cfg.tokenName.trim(),
@@ -436,13 +481,13 @@ export function GroupStructureGraph({ group, namespace, allTokens, allGroups, in
       const names  = evaluated?.outputs['names']  as string[] | undefined;
       if (!values || !names || values.length === 0) return;
       const tokens: GeneratedToken[] = values.map((v, i) => ({
-        id:          `${group.id}/${nodeId}/${i}-${generateId()}`,
+        id:          `${group?.id || 'all-groups'}/${nodeId}/${i}-${generateId()}`,
         path:        names[i] ?? String(i + 1),
         value:       v,
         type:        cfg.type as TokenType,
         description: 'Generated by Generator node',
       }));
-      onBulkAddTokens?.(group.id, tokens);
+      if (group?.id) onBulkAddTokens?.(group.id, tokens);
       return;
     }
 
@@ -458,18 +503,18 @@ export function GroupStructureGraph({ group, namespace, allTokens, allGroups, in
         const pairs: { name: string; value: string }[] = JSON.parse(tokenDataStr);
         const sgName = (evaluated?.outputs['subgroupName'] as string | null) || cfg.namePrefix || 'generated';
         const sgTokens = pairs.map((t, i) => ({
-          id: `${group.id}/${nodeId}/${i}-${generateId()}`,
+          id: `${group?.id || 'all-groups'}/${nodeId}/${i}-${generateId()}`,
           path: t.value,
           value: t.value,
           type: cfg.tokenType as TokenType,
           description: `Generated by Token Output node`,
         }));
-        if (sgTokens.length > 0) onBulkAddTokens?.(group.id, sgTokens, sgName);
+        if (sgTokens.length > 0 && group?.id) onBulkAddTokens?.(group.id, sgTokens, sgName);
         return;
       }
 
       const tokens = buildTokensFromNode(nodeId);
-      if (tokens.length > 0) onBulkAddTokens?.(group.id, tokens);
+      if (tokens.length > 0 && group?.id) onBulkAddTokens?.(group.id, tokens);
       return;
     }
 
@@ -484,27 +529,53 @@ export function GroupStructureGraph({ group, namespace, allTokens, allGroups, in
         const pairs: { name: string; value: string; type?: string; description?: string; attributes?: Record<string, string> }[] = JSON.parse(tokenDataStr);
         const sgName = (evaluated?.outputs['subgroupName'] as string | null) || cfg.namePrefix || 'imported';
         const sgTokens = pairs.map((t, i) => ({
-          id: `${group.id}/${nodeId}/${i}-${generateId()}`,
+          id: `${group?.id || 'all-groups'}/${nodeId}/${i}-${generateId()}`,
           path: t.name,
           value: t.value,
           type: (t.type ?? cfg.tokenType) as TokenType,
           ...(t.description ? { description: t.description } : {}),
           ...(t.attributes ? { attributes: t.attributes } : {}),
         }));
-        if (sgTokens.length > 0) onBulkAddTokens?.(group.id, sgTokens, sgName);
+        if (sgTokens.length > 0 && group?.id) onBulkAddTokens?.(group.id, sgTokens, sgName);
         return;
       }
 
       const tokens = buildTokensFromNode(nodeId);
-      if (tokens.length > 0) onBulkAddTokens?.(group.id, tokens);
+      if (tokens.length > 0 && group?.id) onBulkAddTokens?.(group.id, tokens);
       return;
     }
-  }, [buildTokensFromNode, composableNodeMetas, nodeValues, group.id, onBulkAddTokens]);
+
+    // GroupCreatorNode
+    if (meta?.config.kind === 'group') {
+      const cfg = meta.config as GroupConfig;
+      const evaluated = nodeValues.get(nodeId);
+      
+      if (!cfg.groupName?.trim() || !cfg.tokens?.length) return;
+      
+      const tokens: GeneratedToken[] = cfg.tokens.map((token, i) => ({
+        id: `${cfg.groupName}/${nodeId}/${i}-${generateId()}`,
+        path: token.name,
+        value: token.value,
+        type: (token.type ?? cfg.tokenType) as TokenType,
+        ...(token.description ? { description: token.description } : {}),
+      }));
+      
+      const parentGroupId = cfg.outputTarget === 'rootLevel' ? null : group?.id || null;
+      
+      onBulkCreateGroups?.(parentGroupId, {
+        name: cfg.groupName,
+        tokens,
+      });
+      return;
+    }
+  }, [buildTokensFromNode, composableNodeMetas, nodeValues, group?.id, onBulkAddTokens, onBulkCreateGroups]);
 
   // ── Detect TokenOutputNode → GroupNode wiring for Apply button ───────────
-  const rootNodeId = `group-${group.id}`;
+  const rootNodeId = allGroupsMode ? null : `group-${group?.id}`;
 
   const groupNodePendingTokens = useMemo(() => {
+    if (allGroupsMode) return []; // In all-groups mode, tokens are routed via destGroupId
+    
     const result: GeneratedToken[] = [];
     for (const edge of composableEdges) {
       if (edge.target !== rootNodeId) continue;
@@ -513,13 +584,13 @@ export function GroupStructureGraph({ group, namespace, allTokens, allGroups, in
       result.push(...buildTokensFromNode(edge.source));
     }
     return result;
-  }, [composableEdges, rootNodeId, buildTokensFromNode]);
+  }, [composableEdges, rootNodeId, buildTokensFromNode, allGroupsMode]);
 
   const handleApplyGroupTokens = useCallback(() => {
-    if (groupNodePendingTokens.length > 0) {
+    if (groupNodePendingTokens.length > 0 && group?.id) {
       onBulkAddTokens?.(group.id, groupNodePendingTokens);
     }
-  }, [groupNodePendingTokens, group.id, onBulkAddTokens]);
+  }, [onBulkAddTokens, group?.id, groupNodePendingTokens]);
 
   // ── Edge management ──────────────────────────────────────────────────────
   const handleEdgeDelete = useCallback((id: string) => {
@@ -559,18 +630,23 @@ export function GroupStructureGraph({ group, namespace, allTokens, allGroups, in
   }, []);
 
   // ── Build all React Flow nodes ───────────────────────────────────────────
-  const { nodes: rawGroupNodes, edges: groupEdges } = useMemo(
-    () => buildGroupGraph(group),
-    [group],
-  );
+  const { nodes: rawGroupNodes, edges: groupEdges } = useMemo(() => {
+    if (allGroupsMode && allGroupsData) {
+      return buildAllGroupsGraph(allGroupsData);
+    } else if (group) {
+      return buildGroupGraph(group);
+    } else {
+      return { nodes: [], edges: [] };
+    }
+  }, [allGroupsMode, allGroupsData, group]);
 
-  const rootNode = rawGroupNodes.find(n => n.id === rootNodeId);
+  const rootNode = rootNodeId ? rawGroupNodes.find(n => n.id === rootNodeId) : null;
   const rootX = rootNode?.position.x ?? 0;
   const rootY = rootNode?.position.y ?? 0;
 
   // Inject pendingTokenCount + onApplyTokens into the root GroupNode
   const groupNodes = useMemo(() => rawGroupNodes.map(n => {
-    if (n.id !== rootNodeId || groupNodePendingTokens.length === 0) return n;
+    if (!rootNodeId || n.id !== rootNodeId || groupNodePendingTokens.length === 0) return n;
     return {
       ...n,
       data: {
@@ -679,7 +755,9 @@ export function GroupStructureGraph({ group, namespace, allTokens, allGroups, in
     <div className="flex flex-col w-full h-full">
       {/* Toolbar */}
       <div className="flex items-center gap-2 px-3 py-2 border-b border-gray-100 bg-white flex-shrink-0">
-        <span className="text-xs font-medium text-gray-500 flex-1 truncate">{group.name}</span>
+        <span className="text-xs font-medium text-gray-500 flex-1 truncate">
+          {allGroupsMode ? 'All Groups' : group?.name || 'Group'}
+        </span>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm" className="h-7 text-xs gap-1">

@@ -9,6 +9,7 @@ const TABLE = 'token_collections';
 interface SupabaseRow {
   id: string;
   name: string;
+  namespace: string | null;
   tokens: Record<string, unknown>;
   source_metadata: ISourceMetadata | null;
   user_id: string | null;
@@ -28,6 +29,7 @@ function rowToDoc(row: SupabaseRow): CollectionDoc {
   return {
     _id: row.id,
     name: row.name,
+    namespace: row.namespace ?? 'token',
     tokens: row.tokens ?? {},
     sourceMetadata: row.source_metadata ?? null,
     userId: row.user_id ?? null,

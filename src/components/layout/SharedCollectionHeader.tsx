@@ -13,6 +13,7 @@ interface SharedCollectionHeaderProps {
   onNewCollection: () => void;
   onDeleted: () => void;
   onRenamed: (newName: string) => void;
+  onEdited: (newName: string, newNamespace: string) => void;
   onDuplicated: (newId: string, newName: string) => void;
   onError: (message: string) => void;
 }
@@ -26,6 +27,7 @@ export function SharedCollectionHeader({
   onNewCollection,
   onDeleted,
   onRenamed,
+  onEdited,
   onDuplicated,
   onError,
 }: SharedCollectionHeaderProps) {
@@ -53,6 +55,7 @@ export function SharedCollectionHeader({
           collections={collections}
           onDeleted={onDeleted}
           onRenamed={onRenamed}
+          onEdited={onEdited}
           onDuplicated={onDuplicated}
           onError={onError}
         />

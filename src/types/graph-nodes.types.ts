@@ -182,7 +182,7 @@ export interface JsonConfig {
   namePrefix: string;
   tokenType: string;
   outputTarget: TokenOutputTarget;
-  parsedTokens: { name: string; value: string }[];
+  parsedTokens: { name: string; value: string; type?: string; description?: string; attributes?: Record<string, unknown> }[];
 }
 
 // ── Generator node — composable wrapper around the legacy GeneratorConfig ──────
@@ -193,6 +193,16 @@ export interface GeneratorNodeConfig {
   count: number;            // number of tokens to generate
   naming: NamingPattern;    // naming pattern for output steps
   config: GeneratorSpecificConfig;  // color or dimension specific config
+}
+
+// ── Group node — creates a single group with tokens ──────────────────────────
+
+export interface GroupConfig {
+  kind: 'group';
+  groupName: string;        // name of the group to create
+  tokenType: string;        // type of tokens in this group
+  outputTarget: 'currentGroup' | 'rootLevel'; // where to create the group
+  tokens: { name: string; value: string; type?: string; description?: string }[]; // tokens for this group
 }
 
 // ── Union ─────────────────────────────────────────────────────────────────────
@@ -209,7 +219,8 @@ export type ComposableNodeConfig =
   | TypographyConfig
   | TokenOutputConfig
   | JsonConfig
-  | GeneratorNodeConfig;
+  | GeneratorNodeConfig
+  | GroupConfig;
 
 // ── Node data passed via React Flow data prop ─────────────────────────────────
 

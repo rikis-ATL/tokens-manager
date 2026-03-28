@@ -17,6 +17,7 @@ import type {
   JsonConfig,
   PaletteConfig,
   GeneratorNodeConfig,
+  GroupConfig,
   CssColorFormat,
 } from '@/types/graph-nodes.types';
 import { previewGeneratedTokens } from './tokenGenerators';
@@ -413,6 +414,32 @@ function evalJson(config: JsonConfig): Record<string, PortValue> {
   };
 }
 
+// ── Group evaluator ──────────────────────────────────────────────────────────
+
+function evalGroup(config: GroupConfig): Record<string, PortValue> {
+  const tokens = config.tokens ?? [];
+  const groupName = config.groupName?.trim() || 'New Group';
+  
+  // Generate group data for output (single group)
+  const groupData = JSON.stringify({
+    name: groupName,
+    tokens: tokens.map(token => ({
+      name: token.name,
+      value: token.value,
+      type: token.type || config.tokenType || 'string',
+      ...(token.description ? { description: token.description } : {}),
+    })),
+  });
+
+  return {
+    count: tokens.length,
+    groupData,
+    groupName,
+    outputTarget: config.outputTarget,
+    tokens: tokens.map(t => t.value),
+  };
+}
+
 // ── Color Palette evaluator ───────────────────────────────────────────────────
 
 function evalPalette(
@@ -595,9 +622,10 @@ export function evaluateNode(
     case 'a11yContrast': return evalA11yContrast(config, inputs);
     case 'palette':      return evalPalette(config, inputs);
     case 'tokenOutput':  return evalTokenOutput(config, inputs);
-    case 'json':        return evalJson(config);
-    case 'generator':   return evalGenerator(config, inputs);
-    default:             return {};
+    case 'json':           return evalJson(config);
+    case 'generator':      return evalGenerator(config, inputs);
+    case 'group':          return evalGroup(config);
+    default:               return {};
   }
 }
 
