@@ -46,7 +46,8 @@ export default function OrgUsersPage() {
   const [removeTarget, setRemoveTarget] = useState<UserRow | null>(null);
 
   useEffect(() => {
-    Promise.all([fetchUsers(), fetchInvites()]);
+    setLoading(true);
+    Promise.all([fetchUsers(), fetchInvites()]).finally(() => setLoading(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -59,13 +60,11 @@ export default function OrgUsersPage() {
   }
 
   async function fetchInvites() {
-    setLoading(true);
     const res = await fetch('/api/invites');
     if (res.ok) {
       const data = await res.json();
       setInvites(data.invites ?? []);
     }
-    setLoading(false);
   }
 
   async function handleRoleChange(userId: string, newRole: string) {
@@ -142,9 +141,8 @@ export default function OrgUsersPage() {
         </Button>
       </div>
 
-      {/* Active Members section */}
       <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 mt-0">Members</h2>
-      <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 mb-6">
+      <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100 dark:border-gray-800">
@@ -156,12 +154,17 @@ export default function OrgUsersPage() {
             </tr>
           </thead>
           <tbody>
-            {users.length === 0 && (
+            {loading && (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-gray-400">Loading members...</td>
+                <td colSpan={5} className="px-4 py-8 text-center text-gray-400">Loading...</td>
               </tr>
             )}
-            {users.map((user) => {
+            {!loading && users.length === 0 && invites.length === 0 && (
+              <tr>
+                <td colSpan={5} className="px-4 py-8 text-center text-gray-400">No members yet. Click &quot;Invite User&quot; to get started.</td>
+              </tr>
+            )}
+            {!loading && users.map((user) => {
               const isSelf = user._id === session?.user?.id;
               const canAct = !user.isSuperAdmin && !isSelf;
               return (
@@ -207,36 +210,6 @@ export default function OrgUsersPage() {
                 </tr>
               );
             })}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Pending Invitations section */}
-      <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Pending Invitations</h2>
-      <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-gray-100 dark:border-gray-800">
-              <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Email</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Role</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Status</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Expires</th>
-              <th className="text-right px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading && (
-              <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-gray-400">Loading...</td>
-              </tr>
-            )}
-            {!loading && invites.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-gray-400">
-                  No pending invitations. Click &quot;Invite User&quot; to get started.
-                </td>
-              </tr>
-            )}
             {!loading && invites.map((invite) => {
               const expired = isExpired(invite.expiresAt);
               return (
@@ -244,18 +217,16 @@ export default function OrgUsersPage() {
                   key={invite._id}
                   className="border-b border-gray-50 dark:border-gray-800/50 last:border-0"
                 >
-                  <td className="px-4 py-3 text-gray-900 dark:text-gray-100">{invite.email}</td>
-                  <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{invite.role}</td>
+                  <td className="px-4 py-3 text-gray-400 dark:text-gray-500">—</td>
+                  <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{invite.email}</td>
+                  <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{invite.role}</td>
                   <td className="px-4 py-3">
-                    <Badge variant={expired ? 'destructive' : 'secondary'}>
+                    <Badge variant={expired ? 'destructive' : 'outline'}>
                       {expired ? 'Expired' : 'Pending'}
                     </Badge>
                   </td>
-                  <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">
-                    {formatDate(invite.expiresAt)}
-                  </td>
                   <td className="px-4 py-3 text-right">
-                    <div className="flex items-center justify-end gap-2">
+                    <div className="flex items-center justify-end gap-1">
                       <Button
                         variant="ghost"
                         size="sm"
