@@ -1,16 +1,18 @@
 # Stack Research
 
-**Domain:** Org user management + authentication — ATUI Tokens Manager v1.5
-**Researched:** 2026-03-28
-**Confidence:** HIGH for next-auth v4 + JWT pattern; HIGH for bcryptjs; HIGH for Resend SDK; MEDIUM for global permissions context architecture (established pattern, no single authoritative source)
+**Domain:** Multi-tenant SaaS billing — ATUI Tokens Manager v1.6
+**Researched:** 2026-03-30
+**Confidence:** HIGH for Stripe SDK + webhook pattern; HIGH for rate-limiter-flexible + MongoDB; HIGH for next-auth JWT extension for orgId; MEDIUM for stripe v17 as version pin (v21 is latest but carries breaking changes not yet warranted)
 
 ---
 
 ## Context: What This Research Covers
 
-This is a SUBSEQUENT MILESTONE stack document. The existing stack (Next.js 13.5.6, React 18.2.0, Mongoose 9.2.2, shadcn/ui + Tailwind CSS) is validated and locked. This document covers only the NEW dependencies required for v1.5: authentication, email invites, and global permissions context.
+This is a SUBSEQUENT MILESTONE stack document. The existing validated stack (Next.js 13.5.9, React 18.2.0, Mongoose 9.2.2, next-auth v4.24.13, bcryptjs, Resend, shadcn/ui + Tailwind CSS) is locked. This document covers only the NEW dependencies for v1.6: Stripe billing, per-org rate limiting, and multi-tenancy data scoping.
 
-**The verdict: three new production packages, one new dev dependency.**
+**The verdict: two new production packages, zero new dev dependencies.**
+
+The host environment runs Node.js 20.19.6, which satisfies Stripe SDK v17+ requirements (Node 18+ minimum).
 
 ---
 
@@ -20,96 +22,126 @@ This is a SUBSEQUENT MILESTONE stack document. The existing stack (Next.js 13.5.
 
 | Technology | Version | Purpose | Why Recommended |
 |------------|---------|---------|-----------------|
-| `next-auth` | `^4.24.13` | Credentials-based session management, JWT sessions, route protection via `withAuth` middleware | v4 is the only stable release compatible with Next.js 13.5.6. v5 (Auth.js) requires Next.js 14+ minimum. v4.24.13 is the latest v4 release (Oct 2025). Supports App Router via Route Handlers. |
-| `resend` | `^6.0.0` | Transactional email delivery for magic-link invites | Official Resend Node.js SDK. Simple API: `new Resend(key).emails.send({...})`. Works directly in Next.js API route handlers. Current version 6.9.4. No peer deps that conflict with existing stack. |
-| `bcryptjs` | `^3.0.3` | Password hashing for stored credentials | Pure JavaScript implementation — no native C++ bindings. Works in Next.js API routes without `next.config.js` webpack workarounds. Same API as `bcrypt`. Latest version 3.0.3 (2025). |
+| `stripe` | `^17.7.0` | Server-side Stripe API: Checkout Session creation, billing portal sessions, webhook event construction + verification, customer/subscription CRUD | v17 (API version `2024-09-30.acacia`) is the last major before the `2025-03-31.basil` API changes in v18. Pinning `^17` avoids the v18 and v21 breaking changes (decimal_string type overhaul, new OAuth error classes) with no cost — Checkout, billing portal, and subscription webhooks are all stable in v17. Node 18+ required; this project runs Node 20. The `stripe` package is server-only and never imported client-side. |
+| `rate-limiter-flexible` | `^10.0.1` | Per-user rate limiting on export + token-update endpoints, backed by the existing MongoDB connection | v10.0.1 is current (published March 2026). Supports `RateLimiterMongo` with a mongoose connection as `storeClient` — zero new infrastructure. Sliding window algorithm prevents burst abuse. ~1.4M weekly downloads, actively maintained. No Redis or Upstash account required — the existing MongoDB connection handles state. |
 
-### Development Dependencies — New Additions
+### No New Client-Side Stripe Packages Needed
 
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| `@types/bcryptjs` | `^2.4.6` | TypeScript type declarations for bcryptjs | Required — bcryptjs ships without bundled types. Add as `devDependency`. |
+`@stripe/stripe-js` and `@stripe/react-stripe-js` are **not required**. The v1.6 Checkout flow uses the server-side redirect pattern: the API route creates a Checkout Session and returns `session.url`; the client does a plain redirect to that URL. `stripe.redirectToCheckout()` was deprecated by Stripe in 2025. No embedded checkout iframe is needed.
 
-### No Adapter Required
+### No New Middleware Package Needed
 
-**The `@auth/mongodb-adapter` is explicitly NOT recommended for this project.**
-
-NextAuth v4's Credentials provider only works with `session.strategy: "jwt"`. When using JWT sessions, a database adapter is not used for session persistence — sessions live in signed JWT cookies. Adding an adapter with credentials auth requires complex workarounds and provides no benefit. Instead, user data is managed directly via the existing Mongoose `dbConnect` + a new `User` Mongoose model.
-
-This is the standard credentials + JWT approach for NextAuth v4 with MongoDB.
+Next.js 13's built-in `middleware.ts` handles org-scoping and auth gating. The existing `withAuth` from next-auth v4 already provides the JWT verification layer. No additional middleware package is required.
 
 ---
 
 ## Architecture: How the New Stack Integrates
 
-### Authentication Flow
+### Stripe Integration Points
 
 ```
-POST /api/auth/[...nextauth]   ← NextAuth v4 Route Handler
-  └─ CredentialsProvider.authorize()
-       └─ dbConnect() + User.findOne({ email })   ← existing Mongoose pattern
-       └─ bcryptjs.compare(password, user.passwordHash)
-       └─ return { id, email, role }              ← embedded in JWT
+src/lib/billing/
+  ├─ stripe.ts              ← singleton: new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-09-30' })
+  ├─ checkout.ts            ← createCheckoutSession(orgId, plan, returnUrl) → session.url
+  ├─ portal.ts              ← createBillingPortalSession(stripeCustomerId, returnUrl) → portal.url
+  ├─ webhooks.ts            ← constructWebhookEvent(body, sig, secret) + event routing
+  └─ limits.ts              ← LIMITS config: Free/Pro/Team tier caps; checkLimit(org, feature)
 
-JWT callback: add role + id to token
-Session callback: expose role + id to useSession()
-withAuth middleware: protect all routes except /auth/*
+src/app/api/billing/
+  ├─ checkout/route.ts      ← POST: calls billing/checkout.ts, returns { url }
+  ├─ portal/route.ts        ← POST: calls billing/portal.ts, returns { url }
+  └─ webhook/route.ts       ← POST: raw body via req.text(), stripe.webhooks.constructEvent()
+                               handles: checkout.session.completed
+                                        invoice.payment_failed
+                                        customer.subscription.deleted
 ```
 
-### Email Invite Flow
+All Stripe logic is isolated to `src/lib/billing/`. App routes call into billing functions; they never instantiate Stripe directly.
 
+### Webhook Raw Body Pattern (Next.js 13 App Router)
+
+```typescript
+// src/app/api/billing/webhook/route.ts
+export async function POST(req: Request) {
+  const body = await req.text();          // raw body — DO NOT use req.json()
+  const sig = req.headers.get('stripe-signature')!;
+  const event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!);
+  // route on event.type ...
+}
 ```
-POST /api/users/invite           ← new Admin-only API route
-  └─ Create Invitation doc in MongoDB (token + expiry)
-  └─ new Resend(key).emails.send({ to, subject, react: InviteEmail })
-       └─ InviteEmail component renders magic link: /auth/setup?token=...
 
-GET /auth/setup?token=...        ← public page
-  └─ Verify token, not expired, not used
-  └─ User sets displayName + password
-  └─ bcryptjs.hash(password, 12)
-  └─ Create User doc, mark invitation used
+`req.text()` is the correct App Router approach. The old `bodyParser: false` export config is not available in App Router route handlers and is not needed when using `req.text()`.
+
+### Rate Limiting Integration
+
+```typescript
+// src/lib/rateLimit.ts
+import { RateLimiterMongo } from 'rate-limiter-flexible';
+import dbConnect from '@/lib/db/dbConnect';
+
+let rateLimiter: RateLimiterMongo | null = null;
+
+export async function getRateLimiter(): Promise<RateLimiterMongo> {
+  if (!rateLimiter) {
+    const mongoose = await dbConnect();
+    rateLimiter = new RateLimiterMongo({
+      storeClient: mongoose.connection,
+      keyPrefix:   'rl_export',
+      points:      60,      // 60 requests
+      duration:    60,      // per 60 seconds
+    });
+  }
+  return rateLimiter;
+}
+
+// Usage in API route:
+const limiter = await getRateLimiter();
+await limiter.consume(userId);   // throws RateLimiterRes on limit exceeded → return 429
 ```
 
-### Global Permissions React Context
+The lazy-init singleton pattern matches the existing `dbConnect()` pattern used throughout the codebase. The rate limiter persists state in a `rl_export` MongoDB collection — no Redis, no cold-start drift.
 
+### next-auth JWT Extension for orgId
+
+No new packages. Extend the existing `jwt` and `session` callbacks in `[...nextauth]/route.ts`:
+
+```typescript
+callbacks: {
+  jwt({ token, user }) {
+    if (user) {
+      token.orgId = (user as any).orgId;    // set on sign-in from User model
+      token.plan  = (user as any).plan;     // org plan for client-side gate hints
+    }
+    return token;
+  },
+  session({ session, token }) {
+    session.user.orgId = token.orgId as string;
+    session.user.plan  = token.plan as string;
+    return session;
+  },
+}
 ```
-src/lib/auth/
-  ├─ permissions.ts      ← pure role → capability map (no React)
-  └─ permissionsContext.tsx  ← 'use client' PermissionsProvider + usePermissions hook
 
-PermissionsProvider wraps root layout shell:
-  └─ Reads session via useSession()
-  └─ Derives capabilities from role (Admin/Editor/Viewer)
-  └─ Provides { canEdit, canCreate, canManageUsers, canPushGitHub, ... }
-
-Components consume via: const { canEdit } = usePermissions()
-```
+`orgId` flows from the `User` document → JWT cookie → `useSession()` hook. API routes extract `orgId` from `getServerSession()` — one DB round-trip eliminated per request.
 
 ### Mongoose Models — New Files
 
-Two new Mongoose models join the existing `TokenCollection` model:
+| Model | Collection | Key Fields |
+|-------|------------|------------|
+| `Organization` | `organizations` | `name`, `plan` (free/pro/team), `stripeCustomerId`, `subscriptionStatus`, `exportsThisMonth`, `tokenCount`, `lastReset`, `seats` |
 
-| Model | Collection | Purpose |
-|-------|------------|---------|
-| `User` | `users` | Stores email, displayName, passwordHash, role, status (active/pending) |
-| `Invitation` | `invitations` | Stores token (UUID), inviteeEmail, expiresAt, usedAt, invitedBy |
-
-No schema migration needed for existing collections. `userId` field on `TokenCollection` was pre-scoped as nullable in v1.0 Key Decisions for exactly this milestone.
+Existing `User` model gains `organizationId: ObjectId` (ref `Organization`). Existing `TokenCollection` model gains `organizationId: ObjectId`. All queries gain `.where({ organizationId })` scope.
 
 ---
 
 ## Installation
 
 ```bash
-# Production dependencies
-yarn add next-auth@^4.24.13 resend@^6.0.0 bcryptjs@^3.0.3
-
-# Dev dependency (TypeScript types for bcryptjs)
-yarn add -D @types/bcryptjs@^2.4.6
+# Production dependencies only — two new packages
+yarn add stripe@^17.7.0 rate-limiter-flexible@^10.0.1
 ```
 
-No other packages required. All other capabilities (role model, permissions context, invite token generation, middleware route protection) are built from existing stack primitives.
+No dev dependencies needed. Both packages ship with their own TypeScript types.
 
 ---
 
@@ -117,16 +149,14 @@ No other packages required. All other capabilities (role model, permissions cont
 
 | Recommended | Alternative | Why Not |
 |-------------|-------------|---------|
-| `next-auth@^4.24.13` | `next-auth@5.x` (Auth.js) | v5 requires Next.js 14+. This project is locked to Next.js 13.5.6 per constraints in PROJECT.md. Cannot upgrade without risk to the existing 27K LOC codebase. |
-| `next-auth@^4.24.13` | Custom JWT implementation | next-auth handles cookie management, CSRF, session rotation, and middleware integration out of the box. Rolling custom auth is a security risk. |
-| `next-auth@^4.24.13` | `iron-session` | iron-session handles cookies but not credentials auth flow, session callbacks, or withAuth middleware. More manual work for no gain. |
-| `bcryptjs` | `bcrypt` (native) | `bcrypt` requires native C++ bindings. Next.js API routes can run this, but it requires Webpack configuration (`serverExternalPackages`). bcryptjs is pure JS, zero config, same API, and is only slower for high-throughput scenarios (irrelevant for login flows). |
-| `bcryptjs` | `argon2` | Argon2 is technically stronger but also requires native bindings. Same config friction as `bcrypt`. bcryptjs is sufficient for this use case and adds zero friction. |
-| `resend` | `nodemailer` | Nodemailer requires configuring an SMTP relay; Resend is an API-first service with React email template support and a simpler SDK. The project already has a Resend account in scope (implied by PROJECT.md invite flow). |
-| `resend` | `@sendgrid/mail` | SendGrid is more complex, pricing model less developer-friendly, and requires domain warming. Resend is the current standard for new Next.js projects needing transactional email. |
-| No adapter (JWT only) | `@auth/mongodb-adapter` | The Credentials provider **cannot use database sessions** — NextAuth v4 documentation is explicit. The adapter's user management tables would conflict with the custom `User` Mongoose model. Adding an adapter without using its session persistence adds complexity with zero benefit. |
-| Custom `User` Mongoose model | NextAuth adapter `users` collection | The adapter's users collection has a fixed schema without role, status, or displayName fields. A custom Mongoose model gives full schema control with the existing `dbConnect` pattern. |
-| UUID v4 invite tokens via `crypto.randomUUID()` | `nanoid` or `uuid` package | `crypto.randomUUID()` is built into Node.js 14.17+ and available in all Next.js 13 environments. No additional package needed for token generation. |
+| `stripe@^17.7.0` | `stripe@^21.0.1` (latest) | v21 changes all `decimal_string` fields from `string` to `Stripe.Decimal` — a breaking type change requiring codebase-wide updates. v18 introduced a new API version (`2025-03-31.basil`) with its own breaking changes. v17 covers all needed APIs (Checkout, billing portal, subscriptions, webhooks) with zero friction. Upgrade to v18+ when Stripe adds features specifically needed. |
+| `stripe@^17.7.0` | `stripe@^15.x` | v15 was the "current stable" as of mid-2024 and is still compatible, but v17 is newer with no additional migration cost at this point. |
+| `rate-limiter-flexible` | `@upstash/ratelimit` | Upstash requires a Redis instance (either self-hosted or Upstash cloud). This project has no Redis. Adding Redis for 60 req/min rate limiting on two endpoints is infrastructure over-engineering. `rate-limiter-flexible` uses the existing MongoDB connection via `RateLimiterMongo`. |
+| `rate-limiter-flexible` | Custom in-memory counter | In-memory counters reset on every cold start / process restart. In serverless or multi-process deployments (even locally with `next dev`'s two processes) this silently fails to enforce limits. MongoDB-backed is the minimum viable persistent approach. |
+| `rate-limiter-flexible` | `express-rate-limit` | `express-rate-limit` is designed for Express middleware chains, not Next.js App Router route handlers. Requires adapters and is awkward to use in a function-based handler. |
+| Server-redirect Checkout | `@stripe/react-stripe-js` Embedded Checkout | Embedded checkout requires `@stripe/stripe-js` + `@stripe/react-stripe-js` client bundle. The redirect pattern achieves the same outcome with zero client-side bundle addition. `stripe.redirectToCheckout()` was deprecated in 2025; the current pattern is `session.url` redirect. |
+| next-auth JWT extension | Separate org lookup middleware | A separate middleware doing a DB fetch on every request adds latency on every page load. The JWT already makes one round-trip at login; embedding `orgId` + `plan` there gives O(0) cost per subsequent request. |
+| No adapter (JWT only) | `@auth/mongodb-adapter` | Already rejected in v1.5 research. Credentials provider requires JWT sessions; adapter targets database sessions. Incompatible combination in next-auth v4. |
 
 ---
 
@@ -134,39 +164,40 @@ No other packages required. All other capabilities (role model, permissions cont
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| `next-auth@5.x` / `auth.js` | Requires Next.js 14 minimum. This project is on Next.js 13.5.6. | `next-auth@^4.24.13` |
-| `@auth/mongodb-adapter` | Credentials provider + database sessions is an unsupported combination in NextAuth v4. Adapter's user schema conflicts with custom User model requirements (role, status, displayName). | Custom Mongoose `User` model + JWT session strategy |
-| `@next-auth/mongodb-adapter` | Deprecated — last published 3 years ago (v1.1.3). Succeeded by `@auth/mongodb-adapter`, which is itself not recommended here. | No adapter — see above |
-| `bcrypt` (native) | Requires Webpack `serverExternalPackages` config. Introduces build complexity. | `bcryptjs` (pure JS, same API) |
-| `next-auth` database session strategy | Not supported with Credentials provider. nextauth docs: "users authenticated in this manner are not persisted in the database, and consequently that the Credentials provider can only be used if JSON Web Tokens are enabled for sessions." | JWT session strategy (`session: { strategy: "jwt" }`) |
-| OAuth providers (Google, GitHub) | Explicitly out of scope per PROJECT.md v1.5 milestone definition. | Email/password credentials only |
-| `react-email` package | Adds a dependency and build step for email templates. For magic-link invites, a plain HTML string or inline template string is sufficient. | HTML string in Resend `html:` field |
-| Global role fetch on every render | Triggers a DB round-trip per component. | Derive permissions from JWT token in `useSession()` — role is already embedded in the signed cookie |
+| `stripe@^21.x` | Decimal_string breaking type change (`string` → `Stripe.Decimal`) across all affected fields. Webhook parsing methods throw differently. Not worth the migration at this stage. | `stripe@^17.7.0` |
+| `@stripe/stripe-js` / `@stripe/react-stripe-js` | Not needed. Server-side redirect Checkout pattern creates session URL on server and redirects. These packages (and the embedded checkout iframe) are for the deprecated `redirectToCheckout` flow or optional embedded checkout UI — neither is needed here. | Server-side `session.url` redirect |
+| `@upstash/ratelimit` | Requires Redis — new infrastructure dependency for a modest rate limiting requirement. | `rate-limiter-flexible` with MongoDB |
+| `req.json()` in webhook route | Consumes raw body; Stripe signature verification fails because signature is computed over raw bytes, not parsed JSON. | `await req.text()` — App Router method that returns raw string |
+| `bodyParser: false` export config | Only valid in Pages Router (`pages/api/`). In App Router route handlers this config is ignored and has no effect. | `await req.text()` in the handler directly |
+| `LIMITS` constants scattered in route files | Hard to audit, easy to miss when adding new limits. | Single `src/lib/billing/limits.ts` file exporting `LIMITS` config object; all enforcement calls `checkLimit(org, feature)` |
+| Stripe logic in route files | Couples API contract to billing implementation; makes testing harder. | All Stripe calls in `src/lib/billing/`; routes call billing functions |
+| `RateLimiterMemory` (in-memory) | Silently resets on cold starts / process restarts. Does not work correctly with serverless or `next dev` (multiple processes). | `RateLimiterMongo` backed by the existing MongoDB connection |
 
 ---
 
 ## Stack Patterns by Variant
 
-**If the user is an Admin:**
-- Role embedded in JWT as `token.role = "Admin"`
-- `usePermissions()` returns `{ canManageUsers: true, canEdit: true, canCreate: true, ... }`
-- Admin nav item (Users page) visible
+**If `SELF_HOSTED=true` env var is set:**
+- Skip all Stripe initialization
+- Return `null` from `billing/stripe.ts` singleton
+- `checkLimit()` always returns `{ allowed: true }`
+- Rate limiter still applies (it's operational, not billing-related)
+- No Stripe env vars required in self-hosted deployments
 
-**If the user is an Editor:**
-- `usePermissions()` returns `{ canManageUsers: false, canEdit: true, canCreate: true, canPushGitHub: true, canPushFigma: true }`
-- User management nav hidden
+**If org plan is `free`:**
+- `checkLimit(org, 'collections')` returns `{ allowed: false, limit: 1 }` when `org.collections >= 1`
+- `checkLimit(org, 'integrations')` always returns `{ allowed: false }`
+- API routes return HTTP 402 with `{ code: 'LIMIT_EXCEEDED', feature, limit }`
+- Client reads 402 + `code` → opens `UpgradeModal`
 
-**If the user is a Viewer:**
-- `usePermissions()` returns `{ canManageUsers: false, canEdit: false, canCreate: false, canPushGitHub: false, canPushFigma: false }`
-- All write controls hidden/disabled via `usePermissions()` hook in consuming components
+**If org plan is `pro` or `team`:**
+- `checkLimit` passes all features except `seats` (team: 10 max, pro: 1)
+- Stripe billing portal session available at `POST /api/billing/portal`
 
-**If per-collection override exists (PERM-04):**
-- Override stored on `User` document as `collectionOverrides: Record<collectionId, "Admin"|"Editor"|"Viewer">`
-- `PermissionsProvider` checks override before falling back to org role
-- Override lookup is O(1) from JWT claims or a single DB fetch at session start
-
-**If NEXTAUTH_SECRET is not set:**
-- next-auth will throw in production; error is surfaced at startup. Add to `.env.local` and deployment environment.
+**If Stripe webhook signature verification fails:**
+- Return HTTP 400 immediately — do not process the event
+- Log the error with the received signature for debugging
+- Never update org plan/status without a verified webhook event
 
 ---
 
@@ -174,12 +205,12 @@ No other packages required. All other capabilities (role model, permissions cont
 
 | Package | Compatible With | Notes |
 |---------|-----------------|-------|
-| `next-auth@^4.24.13` | `next@13.5.6` | Confirmed. v4 supports Next.js 13 App Router via Route Handlers at `app/api/auth/[...nextauth]/route.ts`. withAuth middleware supports `jwt` strategy only — aligns with credentials provider requirement. |
-| `next-auth@^4.24.13` | `react@18.2.0` | Confirmed. `SessionProvider` and `useSession` are React 18 compatible. |
-| `next-auth@^4.24.13` | `mongoose@9.2.2` | No direct dependency. User lookup in `authorize()` callback uses existing `dbConnect()` + Mongoose model pattern. |
-| `bcryptjs@^3.0.3` | `typescript@5.2.2` | Requires `@types/bcryptjs` dev dependency. No other compatibility concerns. |
-| `resend@^6.0.0` | `next@13.5.6` | Confirmed. Resend SDK works in Next.js API Route Handlers as a plain Node.js HTTP client. No edge runtime required. |
-| `next-auth@4.x` | `@auth/mongodb-adapter@3.x` | NOT compatible without workarounds. Credentials provider requires JWT sessions; adapter targets database sessions. Do not combine. |
+| `stripe@^17.7.0` | `node@20.19.6` | Confirmed. Stripe v17+ requires Node 18+; project runs Node 20. |
+| `stripe@^17.7.0` | `next@13.5.9` | Confirmed. Stripe is a server-only package imported only in API route handlers. No Next.js version dependency. |
+| `stripe@^17.7.0` | `typescript@5.2.2` | Confirmed. Stripe v17 ships TypeScript definitions. No `@types/stripe` needed. |
+| `rate-limiter-flexible@^10.0.1` | `mongoose@9.2.2` | Confirmed. `RateLimiterMongo` accepts a mongoose connection (`mongoose.connection`) as `storeClient`. Docs state "Mongoose >=5.2.0". Project uses Mongoose 9. |
+| `rate-limiter-flexible@^10.0.1` | `typescript@5.2.2` | Confirmed. Package ships its own type definitions. |
+| `rate-limiter-flexible@^10.0.1` | `next@13.5.9` | Confirmed. Used only in server-side route handlers; no edge runtime required. |
 
 ---
 
@@ -187,28 +218,29 @@ No other packages required. All other capabilities (role model, permissions cont
 
 | Variable | Purpose | Notes |
 |----------|---------|-------|
-| `NEXTAUTH_SECRET` | JWT signing secret | Generate: `openssl rand -base64 32`. Required in all environments. |
-| `NEXTAUTH_URL` | Canonical app URL for redirects | e.g. `http://localhost:3000` in dev, production URL in prod |
-| `RESEND_API_KEY` | Resend transactional email API key | From resend.com dashboard. Keep in `.env.local`, never commit. |
-| `SUPER_ADMIN_EMAIL` | Hardcoded superadmin email address | Grants permanent Admin role; cannot be removed via UI (AUTH-06) |
+| `STRIPE_SECRET_KEY` | Stripe API secret key | `sk_live_...` in production, `sk_test_...` in dev. Never expose to client. |
+| `STRIPE_WEBHOOK_SECRET` | Webhook signature verification | From Stripe dashboard → Webhooks → your endpoint → Signing secret. Required for `constructEvent()`. |
+| `STRIPE_PRO_PRICE_ID` | Price ID for Pro plan Checkout | From Stripe dashboard. Used when creating Checkout Sessions for Pro upgrades. |
+| `STRIPE_TEAM_PRICE_ID` | Price ID for Team plan Checkout | From Stripe dashboard. Used when creating Checkout Sessions for Team upgrades. |
+| `SELF_HOSTED` | Bypass billing when `true` | Optional. Skips all Stripe logic and limits. |
+| `INITIAL_ORG_NAME` | Name for the default org seeded on first boot | Used by migration script to create the seed Organization document. |
 
 ---
 
 ## Sources
 
-- [NextAuth.js v4 — Credentials Provider](https://next-auth.js.org/providers/credentials) — JWT-only session requirement confirmed (HIGH confidence)
-- [NextAuth.js v4 — Next.js Middleware (withAuth)](https://next-auth.js.org/configuration/nextjs) — `jwt` strategy only, App Router middleware pattern (HIGH confidence)
-- [NextAuth.js v4 — Callbacks (JWT + Session)](https://next-auth.js.org/configuration/callbacks#jwt-callback) — role embedding pattern confirmed (HIGH confidence)
-- [Auth.js Migrating to v5](https://authjs.dev/getting-started/migrating-to-v5) — v5 requires Next.js 14+, confirms v4 is correct choice for Next.js 13 (HIGH confidence)
-- [npm: next-auth](https://www.npmjs.com/package/next-auth) — v4.24.13 is latest v4 stable, published Oct 2025 (HIGH confidence)
-- [npm: resend](https://www.npmjs.com/package/resend) — v6.9.4 latest (HIGH confidence)
-- [Resend — Send with Next.js](https://resend.com/docs/send-with-nextjs) — App Router Route Handler pattern verified (HIGH confidence)
-- [npm: bcryptjs](https://www.npmjs.com/package/bcryptjs) — v3.0.3 latest, pure JS (HIGH confidence)
-- [npm: @auth/mongodb-adapter](https://www.npmjs.com/package/@auth/mongodb-adapter) — v3.11.1, confirmed NOT recommended for credentials provider (HIGH confidence)
-- [NextAuth GitHub Discussion #4394](https://github.com/nextauthjs/next-auth/discussions/4394) — database sessions + credentials provider limitation confirmed (HIGH confidence)
-- [Vercel — React Context in Next.js App Router](https://vercel.com/kb/guide/react-context-state-management-nextjs) — context providers must be Client Components; wrap in layout shell (HIGH confidence)
+- [stripe/stripe-node Releases](https://github.com/stripe/stripe-node/releases) — v21.0.1 confirmed latest; v17 breaking changes assessed (HIGH confidence)
+- [stripe/stripe-node CHANGELOG.md](https://github.com/stripe/stripe-node/blob/master/CHANGELOG.md) — v17, v18, v21 breaking changes reviewed (HIGH confidence)
+- [Migration guide for v18 — stripe/stripe-node Wiki](https://github.com/stripe/stripe-node/wiki/Migration-guide-for-v18) — API version 2025-03-31.basil breaking changes (HIGH confidence)
+- [GeeksforGeeks — Stripe Webhook Using NextJS 13 App Router](https://www.geeksforgeeks.org/reactjs/how-to-add-stripe-webhook-using-nextjs-13-app-router/) — `req.text()` webhook pattern confirmed (MEDIUM confidence — community article, cross-checked with Next.js discussion)
+- [vercel/next.js Discussion #48885](https://github.com/vercel/next.js/discussions/48885) — `req.text()` vs `req.json()` for Stripe webhooks in App Router (HIGH confidence — official GitHub discussion)
+- [Stripe Docs — Remove redirectToCheckout](https://docs.stripe.com/changelog/clover/2025-09-30/remove-redirect-to-checkout) — Confirms `redirectToCheckout` deprecated; server-side `session.url` redirect is current pattern (HIGH confidence)
+- [npm: rate-limiter-flexible](https://www.npmjs.com/package/rate-limiter-flexible) — v10.0.1 latest (March 2026), ~1.4M weekly downloads (HIGH confidence)
+- [rate-limiter-flexible Wiki — Mongo](https://github.com/animir/node-rate-limiter-flexible/wiki/Mongo) — `RateLimiterMongo` with mongoose connection pattern confirmed (HIGH confidence)
+- [NextAuth.js v4 — Callbacks](https://next-auth.js.org/configuration/callbacks#jwt-callback) — JWT + session callback extension for custom claims (HIGH confidence)
+- [Stripe Docs — Build a Stripe-hosted checkout page](https://docs.stripe.com/checkout/quickstart) — Current Checkout Session creation pattern (HIGH confidence)
 
 ---
 
-*Stack research for: ATUI Tokens Manager v1.5 — Org User Management + Authentication*
-*Researched: 2026-03-28*
+*Stack research for: ATUI Tokens Manager v1.6 — Multi-Tenant SaaS Billing*
+*Researched: 2026-03-30*

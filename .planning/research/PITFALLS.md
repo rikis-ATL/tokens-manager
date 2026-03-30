@@ -1,344 +1,380 @@
 # Pitfalls Research
 
-**Domain:** Adding NextAuth.js credentials provider + Resend invite flow + RBAC to an existing Next.js 13.5.6 App Router + MongoDB/Mongoose app
-**Researched:** 2026-03-28
-**Confidence:** HIGH (official docs + confirmed CVEs + codebase directly inspected + Mongoose issue tracker)
+**Domain:** Adding multi-tenant org model, configurable tier limits, Stripe subscriptions, and rate limiting to an existing Next.js 13.5.6 + Mongoose + next-auth v4 app
+**Researched:** 2026-03-30
+**Confidence:** HIGH (Stripe official docs + next-auth GitHub discussions + MongoDB official docs + codebase directly inspected)
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: Middleware-Only Auth Is Bypassable via CVE-2025-29927
+### Pitfall 1: organizationId Backfill Leaves Orphaned Documents
 
 **What goes wrong:**
-Next.js 13.5.6 (the current version in this project) is directly vulnerable to CVE-2025-29927 (CVSS 9.1). An attacker can bypass all middleware-based authentication by adding the `x-middleware-subrequest` header with a crafted value. This means a `middleware.ts` that redirects unauthenticated users to `/login` provides zero protection against a direct HTTP request with the bypass header. All existing API routes — collection CRUD, GitHub push/pull, Figma export — remain fully accessible without a session.
+The migration script adds `organizationId` to the seeded org document and to new documents going forward, but existing `TokenCollection` and `User` documents from v1.0–v1.5 have no `organizationId` field. Mongoose queries filtered by `{ organizationId: orgId }` return zero results for all pre-migration data. The app appears to work (no errors), but all existing collections and users are invisible — silently lost from the UI.
 
 **Why it happens:**
-Next.js uses the `x-middleware-subrequest` header internally to prevent infinite middleware loops. In versions before 13.5.9, the check trusts this header from external requests. The fix ships in Next.js 13.5.9.
+The current `TokenCollection` schema uses `Schema.Types.Mixed` for flexible fields and `userId: { type: String, default: null }` for the prior single-user model. There is no `organizationId` field in the schema yet. Developers write the migration to seed the org, then add `organizationId` to the schema with a default, and assume existing documents will be covered. They are not — Mongoose schema defaults only apply to new documents created through the model, never to documents already in the database.
 
 **How to avoid:**
-Two-pronged approach:
-1. Upgrade Next.js from 13.5.6 to at least 13.5.9 before shipping any auth (the patch is a point release on the same minor, no breaking changes). This must be the first step in the auth phase.
-2. Even after patching, never treat middleware as the sole auth gate. Verify the session token in every Route Handler that mutates data, using `getServerSession(authOptions)` at the top of each handler. Middleware is a UX convenience (redirect to login page); the Route Handler check is the security boundary.
+Run an explicit MongoDB `updateMany` backfill before adding `organizationId` as a required field in the schema:
+```js
+// In the boot-time migration (TENANT-03):
+await TokenCollection.updateMany(
+  { organizationId: { $exists: false } },
+  { $set: { organizationId: seedOrgId } }
+);
+await User.updateMany(
+  { organizationId: { $exists: false } },
+  { $set: { organizationId: seedOrgId } }
+);
+```
+Add the compound index `{ organizationId: 1, name: 1 }` on `TokenCollection` and `{ organizationId: 1, email: 1 }` on `User` only after the backfill completes. Verify the migration by asserting that `await TokenCollection.countDocuments({ organizationId: { $exists: false } })` returns 0 before the app continues booting.
 
 **Warning signs:**
-- A curl request with `-H "x-middleware-subrequest: src/middleware:src/middleware:src/middleware:src/middleware:src/middleware"` reaches a protected route and returns 200 instead of being redirected.
-- Auth "works" in browser (middleware redirects correctly) but automated tests against the API with headers set manually succeed without a session cookie.
+- Collections grid shows 0 collections after migration even though MongoDB Atlas shows documents exist.
+- `User.find({ organizationId: orgId })` returns empty array; `User.find({})` returns all users.
+- No error is thrown — the query simply returns `[]`.
 
 **Phase to address:**
-Auth setup phase (first auth phase) — upgrade Next.js to 13.5.9 as prerequisite step 0. Add `getServerSession` checks to all collection write routes in the same phase.
+Org data model phase (TENANT-01/TENANT-03) — the backfill must run atomically with the schema change, not after it.
 
 ---
 
-### Pitfall 2: Credentials Provider Requires JWT Session Strategy — Cannot Use Database Sessions
+### Pitfall 2: Missing Compound Index on organizationId Causes Full Collection Scans
 
 **What goes wrong:**
-NextAuth.js Credentials provider only works with JWT session strategy. The official docs state: "users authenticated in this manner are not persisted in the database, and consequently that the Credentials provider can only be used if JSON Web Tokens are enabled for sessions." If a developer installs `@auth/mongodb-adapter` hoping it will persist Credentials-based sessions to MongoDB (like OAuth sessions), it does not — the adapter is ignored for Credentials login. Sessions will appear to work during testing but user records are never created in the `nextauth_users` collection.
+After adding `organizationId` to documents, every collection listing query becomes `TokenCollection.find({ organizationId: orgId })`. Without a compound index, this is a full collection scan. With 10 orgs each owning 10 collections, that is 100 documents scanned for every page load. With 1,000 orgs it is 10,000. MongoDB silently falls back to a `COLLSCAN` plan — no error, just degraded latency that worsens over time.
 
 **Why it happens:**
-NextAuth considers Credentials too flexible to safely auto-create user records. The adapter pattern is designed for OAuth, where the provider asserts identity. With Credentials, identity assertion is the application's responsibility.
+The existing schema only indexes `{ name: 1 }` and `{ userId: 1 }`. Developers add `organizationId` to the document but forget to add an index because the app seems fast during local development with a handful of documents.
 
 **How to avoid:**
-- Configure `session: { strategy: "jwt" }` explicitly in `authOptions`. Do not add `@auth/mongodb-adapter` to the NextAuth config if only Credentials is used — it adds a dependency and a second MongoDB connection without benefit.
-- User documents live in the app's own `User` Mongoose model (not in NextAuth's adapter collections). The `authorize` callback queries the `User` model directly and returns `{ id, email, role }`.
-- Store user ID and role in the JWT via the `jwt` callback; expose them in the session via the `session` callback. This is the only way custom fields like `role` are available in `useSession()` or `getServerSession()`.
+Add compound indexes at schema definition time, not as a follow-up:
+```js
+tokenCollectionSchema.index({ organizationId: 1, name: 1 });
+tokenCollectionSchema.index({ organizationId: 1, updatedAt: -1 });
+userSchema.index({ organizationId: 1, email: 1 });
+```
+Run `db.collection.explain("executionStats")` during integration testing to confirm `IXSCAN` not `COLLSCAN` is used on tenant-scoped queries.
 
 **Warning signs:**
-- No `users` or `accounts` collections appear in MongoDB after sign-in.
-- `session.user` has `name`, `email`, `image` but no `id` or `role` — means the JWT/session callbacks are missing.
-- `getServerSession()` returns `null` in Route Handlers when a user is signed in — means `NEXTAUTH_SECRET` is missing or the session strategy is inconsistent.
+- MongoDB Atlas Performance Advisor flags `TokenCollection` queries without an `organizationId` index.
+- Response time for the collections grid grows linearly as total document count increases.
+- `explain()` output shows `stage: "COLLSCAN"` for `{ organizationId: ... }` filters.
 
 **Phase to address:**
-Auth setup phase — establish JWT strategy and User Mongoose model before writing any permission check code. The data shape of the JWT (what fields it carries) is a contract that all later RBAC code depends on.
+Org data model phase (TENANT-01) — add indexes in the same PR that adds the field.
 
 ---
 
-### Pitfall 3: MongoDB Adapter Requires a Separate Native MongoClient — Conflicts with Mongoose Singleton
+### Pitfall 3: Stripe Webhook Raw Body Consumed Before Signature Verification
 
 **What goes wrong:**
-The existing `src/lib/mongodb.ts` manages a Mongoose connection singleton. `@auth/mongodb-adapter` requires a separate `MongoClient` (native MongoDB driver, not Mongoose). If a developer tries to extract the native client from Mongoose (`mongoose.connection.getClient()`) and pass it to the adapter, it may work intermittently but is not officially supported and breaks with Mongoose reconnection events. Running two separate `MongoClient` instances pointing at the same MongoDB URI is safe but must be managed as two separate singletons.
+The webhook route handler calls `await req.json()` to parse the body, then passes the parsed object to `stripe.webhooks.constructEvent()`. Signature verification fails with `No signatures found matching the expected signature for payload`. Every webhook event is rejected with a 400, causing Stripe to retry for up to 3 days, eventually disabling the endpoint.
 
 **Why it happens:**
-The MongoDB adapter does not handle connections automatically — it requires the caller to pass an already-connected `MongoClient`. Mongoose uses its own internal `MongoClient` that is not designed to be shared. The NextAuth maintainers explicitly state the adapter is incompatible with an active Mongoose connection.
+This is a well-documented Next.js 13 App Router behavior. `req.json()` consumes the underlying `ReadableStream`. `constructEvent()` needs the original raw bytes exactly as Stripe transmitted them to recompute the HMAC. Once the stream is consumed and the body is deserialized and re-serialized, byte-level fidelity is lost (encoding, whitespace, key ordering). The Pages Router had `bodyParser: false` as a workaround. The App Router requires `req.text()` instead.
 
 **How to avoid:**
-Since this project uses JWT strategy (no adapter needed for auth), avoid installing `@auth/mongodb-adapter` entirely for v1.5. The `User`, `Invite`, and permission models all go through Mongoose. If the adapter is needed in a future OAuth milestone, create a second singleton file (`src/lib/mongo-client.ts`) that manages a native `MongoClient` separate from the Mongoose connection — never reuse Mongoose's internal client.
+In the webhook route handler, always use `req.text()` to read the raw body string, then pass it directly to `constructEvent()`:
+```ts
+// src/app/api/webhooks/stripe/route.ts
+import { headers } from 'next/headers';
+import Stripe from 'stripe';
 
-**Warning signs:**
-- `MongoNotConnectedError` in NextAuth adapter operations after Mongoose reconnects.
-- Sessions randomly fail after the development server hot-reloads (Mongoose recreates its connection; the adapter's shared client reference goes stale).
-- Duplicate `_ensureIndex` log lines from two clients connecting to the same database.
-
-**Phase to address:**
-Auth setup phase — make the decision to skip the adapter (JWT strategy) explicit in the phase plan so no one installs it by mistake.
-
----
-
-### Pitfall 4: Existing API Routes Have No Auth Guard — Retrofitting Requires Touching Every Route
-
-**What goes wrong:**
-The app has 18 Route Handler files, all currently unprotected. When auth is added, the natural instinct is to protect only the new auth-related routes and rely on middleware for the existing ones. Due to CVE-2025-29927 (Pitfall 1) and the architectural principle that middleware is not a security boundary, every write Route Handler must independently call `getServerSession(authOptions)` and check for a valid session before executing. Missing even one route (e.g., `PUT /api/collections/[id]` or `POST /api/export/github`) leaves a real data-write endpoint unguarded.
-
-**Why it happens:**
-Retrofitting auth into an existing codebase is non-obvious: the developer adds the middleware redirect and tests the UI, which correctly sends them to login. But the Route Handlers are tested via browser interactions, not direct HTTP calls, so the missing guards are not caught until someone curls the endpoint.
-
-**How to avoid:**
-Create a shared `requireAuth(request)` utility that calls `getServerSession(authOptions)` and returns `NextResponse.json({ error: 'Unauthorized' }, { status: 401 })` early if no session exists. Apply this utility to every existing write Route Handler in a single phase:
-- `POST /api/collections` — create collection
-- `PUT /api/collections/[id]` — update collection
-- `DELETE /api/collections/[id]` — delete (handled via PUT with delete flag, or dedicated route)
-- `POST /api/collections/[id]/duplicate`
-- `POST/PUT/DELETE /api/collections/[id]/themes` and `[themeId]`
-- `POST /api/export/github`
-- `POST /api/export/figma`
-- `POST /api/figma/import`
-- `POST /api/import/github`
-
-Read-only routes (`GET`) can return data to authenticated users; the RBAC check (Viewer vs Editor) determines whether write controls appear in the UI.
-
-**Warning signs:**
-- Direct `curl -X PUT https://app/api/collections/[id]` with a JSON body returns 200 without a session cookie.
-- The GitHub export endpoint is callable without auth — a real risk for credential exposure.
-
-**Phase to address:**
-Auth setup phase — apply `requireAuth()` to all write routes in the same phase as adding the middleware redirect. Do not split this across phases.
-
----
-
-### Pitfall 5: Permission Context Not Available in Server Components — Wrong Layer for RBAC Checks
-
-**What goes wrong:**
-The v1.5 requirements include "Permissions are available globally via a React context (no prop drilling)" (PERM-06). React context only works in Client Components. The `LayoutShell` is already `'use client'`, but the collection layout and page components (e.g., `src/app/collections/[id]/tokens/page.tsx`) are Server Components. If a developer adds a `PermissionsContext` provider inside `LayoutShell`, child Server Components cannot consume it via `useContext`. They can only receive permission data as props passed down from the nearest Client Component parent, or by re-fetching the session themselves via `getServerSession`.
-
-**Why it happens:**
-The App Router Server/Client boundary is frequently misunderstood. `useContext`, `useState`, `useEffect` are Client-only hooks. A Server Component inside a Client Component subtree is still a Server Component — it cannot call `useContext`.
-
-**How to avoid:**
-Two-layer approach:
-1. **Client Components** (token table, action bar, nav items, buttons): consume `usePermissions()` from a `PermissionsContext` provided by a `PermissionsProvider` client component near the root. The provider receives the session data as a serialized prop from the nearest Server Component parent.
-2. **Server Components and Route Handlers** (page.tsx, API routes): call `getServerSession(authOptions)` directly. Do not rely on context. The session is the source of truth; derive permissions from `session.user.role` inline.
-
-Practically: the `LayoutShell` (already `'use client'`) is the right place for `PermissionsProvider`. It can call `useSession()` and provide `{ role, canEdit, canAdmin, ... }` to all client child components. Server Components alongside it call `getServerSession` independently.
-
-**Warning signs:**
-- `useContext` in a Server Component throws: "createContext is not a function" or "cannot read properties of undefined".
-- Permission checks work in the browser but API routes allow writes regardless of role (means the server-side check is missing).
-- Write controls appear for Viewer role users (means client-side check is missing or context is not reaching the component).
-
-**Phase to address:**
-RBAC + permissions context phase — establish the two-layer pattern (context for clients, `getServerSession` for servers) as the canonical pattern before writing any permission-dependent UI.
-
----
-
-### Pitfall 6: JWT Token Does Not Auto-Update After Role Change
-
-**What goes wrong:**
-An Admin changes a user's org role from Viewer to Editor in the Users management page. The change is written to MongoDB. But the affected user's session JWT still carries `role: "viewer"` — it was encoded when the user signed in and will not change until the JWT expires (typically 30 days). During that window, the user's client-side `usePermissions()` context shows the old role, and any server-side `getServerSession()` call in Route Handlers also returns the old role from the JWT payload.
-
-**Why it happens:**
-JWT sessions are stateless by design — NextAuth does not re-query the database on every request. The JWT payload is frozen at sign-in time unless the `jwt` callback explicitly re-fetches user data from the database.
-
-**How to avoid:**
-Add a database re-read in the `jwt` callback that runs on each request (not just on first sign-in). Guard it with a timestamp to avoid querying on every single request:
-
-```typescript
-// In authOptions jwt callback:
-async jwt({ token, user }) {
-  if (user) {
-    // First sign-in: populate from user object
-    token.id = user.id;
-    token.role = user.role;
-    token.roleLastFetched = Date.now();
-  } else if (token.roleLastFetched && Date.now() - token.roleLastFetched > 60_000) {
-    // Re-fetch role from DB every 60 seconds
-    const dbUser = await UserModel.findById(token.id).lean();
-    if (dbUser) {
-      token.role = dbUser.role;
-      token.roleLastFetched = Date.now();
-    }
+export async function POST(req: Request) {
+  const body = await req.text(); // NOT req.json()
+  const sig  = headers().get('stripe-signature') ?? '';
+  let event: Stripe.Event;
+  try {
+    event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!);
+  } catch (err) {
+    return new Response(`Webhook Error: ${(err as Error).message}`, { status: 400 });
   }
-  return token;
+  // handle event...
+  return new Response('OK', { status: 200 });
 }
 ```
-
-For an internal tool with a small user base, 60-second staleness is acceptable. For immediate effect, the affected user must sign out and back in.
+Never call `req.json()` before `constructEvent()`. No `bodyParser: false` config needed in App Router (it is not applicable to Route Handlers).
 
 **Warning signs:**
-- Role change in Users admin page takes no effect until user logs out and back in.
-- Viewer can still access write controls in the UI after being promoted to Editor (or vice versa).
-- Automated test: change user role, make request with existing session, expect new role in response — test fails.
+- All webhook events arrive but every one returns 400.
+- Stripe Dashboard shows `Webhook Error: No signatures found matching the expected signature for payload`.
+- Local `stripe listen` shows the same signature error even with the correct `STRIPE_WEBHOOK_SECRET`.
 
 **Phase to address:**
-RBAC phase — implement the re-fetch pattern in the `jwt` callback when user roles are first being persisted. Do not defer to a "role refresh" improvement later.
+Stripe integration phase (STRIPE-03) — must be addressed in the initial webhook handler, not as a follow-up fix.
 
 ---
 
-### Pitfall 7: Invite Token Security — Predictable Tokens, Reuse, and No Expiry Enforcement
+### Pitfall 4: Webhook Events Processed Multiple Times (Missing Idempotency Guard)
 
 **What goes wrong:**
-The invite flow generates a magic link with a token that the invited user clicks to set up their account. Three common mistakes: (1) Using a short or predictable token (e.g., UUID v4 without additional entropy, or a hash of the email). (2) Not marking the token as used after the account is created — the same link can be clicked multiple times (by forwarded email, double-click, etc.) and creates duplicate accounts or sessions. (3) Not enforcing expiry — a token stored in MongoDB without an expiry check allows invitations to remain valid indefinitely, bypassing the "Pending invitations with expiry status" requirement.
+Stripe retries any webhook that does not receive a 2xx within the timeout window. If the handler is slow (DB write, external API call), or if the handler crashes after partially processing the event, Stripe retries. The handler runs again on the same event. For `checkout.session.completed`, this means a subscription is activated twice. For `invoice.payment_failed`, the org is suspended twice. For `customer.subscription.deleted`, plan is downgraded twice (usually harmless, but can cause double-email sends or double-audit-log entries).
 
 **Why it happens:**
-Invite flows feel simple but have multiple failure modes. Developers focus on the happy path (click link, set password, land on dashboard) and miss the edge cases that matter for security.
+Developers write handlers that are not idempotent by default. They assume Stripe delivers each event exactly once. Stripe's own documentation states: "Webhook endpoints might occasionally receive the same event more than once."
 
 **How to avoid:**
-- Generate tokens with `crypto.randomBytes(32).toString('hex')` — 256 bits of entropy, not predictable.
-- Store a `used: boolean` field and a `expiresAt: Date` field in the `Invite` MongoDB document. Set `expiresAt` to `Date.now() + 72 * 60 * 60 * 1000` (72 hours) at creation.
-- In the account-setup handler, verify: token exists in DB + `used === false` + `expiresAt > Date.now()`. On success, set `used = true` before creating the user — do not create the user first.
-- Return the same generic error message ("This invitation link is invalid or has expired.") for all failure cases — do not distinguish between "token not found" and "token expired" or "already used", as the difference leaks information.
-- Rate-limit the invite email sending endpoint: one invite per email per 5 minutes to prevent Admin from accidentally spamming or a user from triggering repeated Resend charges.
+Store processed Stripe event IDs in a `ProcessedWebhookEvent` collection (or add a `processedStripeEventIds` set to the Org document). Before handling any event, check if `event.id` has been processed. After successful handling, record it:
+```ts
+const existing = await ProcessedEvent.findOne({ stripeEventId: event.id });
+if (existing) return new Response('Already processed', { status: 200 });
+// ... process the event ...
+await ProcessedEvent.create({ stripeEventId: event.id, processedAt: new Date() });
+```
+Return 200 immediately when the event is already processed — do not return 4xx or Stripe will keep retrying.
 
 **Warning signs:**
-- Visiting the same magic link twice succeeds both times.
-- The `Invite` collection in MongoDB has documents with no `expiresAt` field.
-- A pending invite 30 days old still shows "active" in the Users list.
-- Invite resend can be triggered rapidly without throttling.
+- Org plan is set to `pro` twice in logs within seconds.
+- Email notifications sent twice for the same billing event.
+- MongoDB document updated twice for a single Stripe checkout completion.
 
 **Phase to address:**
-Email invite + account setup phase — the token generation, storage, one-time use enforcement, and expiry check must all be in the same implementation unit. They are not separable.
+Stripe integration phase (STRIPE-03) — implement alongside the first webhook handler, not as a hardening step.
 
 ---
 
-### Pitfall 8: Superadmin Env Var Bypass — Role Hardcoded in JWT vs Derived From DB
+### Pitfall 5: Stripe Webhook Out-of-Order Event Delivery Breaks State Machine
 
 **What goes wrong:**
-The requirement is: "Superadmin account is configured via `SUPER_ADMIN_EMAIL` env var; always Admin, cannot be removed." If the superadmin bypass is implemented only in the `jwt` callback (checking if the email matches the env var and setting `role: 'admin'`), then the role in MongoDB for that user can be anything, and the JWT override only takes effect at sign-in or during JWT refresh. Two specific risks:
-1. If the `jwt` callback forgets to re-apply the superadmin override during re-fetches (Pitfall 6), a role change to "viewer" in MongoDB would propagate to the superadmin's token after 60 seconds.
-2. If the env var `SUPER_ADMIN_EMAIL` is unset or misspelled in production, the superadmin loses admin access and cannot manage users.
-
-**How to avoid:**
-- Apply the superadmin override at two layers: (a) in the `jwt` callback — always override `token.role = 'admin'` if `token.email === process.env.SUPER_ADMIN_EMAIL`; (b) in every server-side permission check — `const effectiveRole = user.email === process.env.SUPER_ADMIN_EMAIL ? 'admin' : user.role`.
-- In the Users management page, the "Remove" and "Change Role" actions must be disabled for the user whose email matches `SUPER_ADMIN_EMAIL` — checked server-side in the API handler, not just client-side UI.
-- On app startup (or in a health check route), verify `SUPER_ADMIN_EMAIL` is set and is a valid email format. Log a warning at startup if it is missing — do not fail silently.
-- Never store the superadmin role in MongoDB; derive it always from the env var at runtime.
-
-**Warning signs:**
-- The Users admin page shows a "Remove" button for the superadmin user — it should be absent.
-- `SUPER_ADMIN_EMAIL` is set in `.env.local` but not in the production environment — superadmin logs in as Viewer.
-- After a role DB re-fetch (Pitfall 6), superadmin's role temporarily shows "viewer" in the UI for 60 seconds.
-
-**Phase to address:**
-Auth setup phase (superadmin bootstrap) and RBAC phase (disable remove/change-role for superadmin). Both layers must be in place before the Users page is shipped.
-
----
-
-### Pitfall 9: Per-Collection Permission Query Performance — N+1 on Collection Listing
-
-**What goes wrong:**
-The requirement PERM-04 adds per-collection access overrides for individual users. If the `GET /api/collections` listing route fetches all collections and then, for each collection, makes a separate MongoDB query to check whether the current user has a per-collection override, the listing page makes `N+1` database queries for `N` collections. A user with 50 collections triggers 50 extra permission queries per page load.
+Stripe does not guarantee delivery order. A `customer.subscription.updated` event (plan changed to Pro) can arrive before `customer.subscription.created` (initial subscription). A handler that assumes the subscription record exists in MongoDB when processing `updated` will throw an unhandled error or silently do nothing, leaving the org on the Free plan permanently.
 
 **Why it happens:**
-Per-entity permissions feel natural to implement as a per-document lookup, especially when the permission model is "org-level role, with override per collection." The override check is added naively as an async loop over the collection list.
+Developers model webhook handlers as a sequential state machine: create → update → delete. Stripe's distributed architecture means events can arrive out of order, especially during high load or retries.
 
 **How to avoid:**
-- Store per-collection overrides in a dedicated `CollectionPermission` collection with a compound index on `{ collectionId, userId }`.
-- On the collections listing, fetch all overrides for the current user in a single query: `CollectionPermission.find({ userId: currentUser.id })`. Then merge the results in memory with the collection list. Two queries total, not N+1.
-- For the single-collection view (`GET /api/collections/[id]`), a single `findOne({ collectionId, userId })` is acceptable.
-- For Viewer and Editor users with no overrides (the common case), skip the override query entirely by checking the org role first.
+Make each handler fetch authoritative state from Stripe rather than trusting event sequence. For `customer.subscription.updated` or `customer.subscription.deleted`, call `stripe.subscriptions.retrieve(event.data.object.id)` to get current state, then apply an upsert to the Org document:
+```ts
+// Upsert pattern — safe regardless of event order
+await Organization.findOneAndUpdate(
+  { stripeCustomerId: subscription.customer as string },
+  { $set: { plan: derivePlan(subscription), subscriptionStatus: subscription.status } },
+  { upsert: false } // Never create orgs from webhooks — org must already exist
+);
+```
+If the org document is not found, log a structured warning and return 200 (don't 500 — Stripe will retry and the retry likely won't fix a missing org document).
 
 **Warning signs:**
-- `/api/collections` becomes noticeably slow as the collection count grows.
-- MongoDB profiler shows `N` consecutive `findOne` queries on `CollectionPermission` for a single GET request.
-- The API route has a `for...of` loop calling `await Permission.findOne(...)` inside it.
+- Org remains on Free plan after successful Stripe Checkout despite correct webhook configuration.
+- Handler logs show "Org not found for stripeCustomerId" after subscription events.
+- `customer.subscription.updated` fires but the DB update is a no-op because the org document was not yet updated by `checkout.session.completed`.
 
 **Phase to address:**
-RBAC phase — implement the batch permission fetch before the collections listing is connected to the permission layer.
+Stripe integration phase (STRIPE-03).
 
 ---
 
-### Pitfall 10: NextAuth Route File Location — App Router Requires Different Path Than Pages Router
+### Pitfall 6: Checkout Session Metadata Not Present in Subscription Events
 
 **What goes wrong:**
-Most NextAuth examples and tutorials use the Pages Router path: `pages/api/auth/[...nextauth].js`. In Next.js 13 App Router, this route does not exist. The correct path is `src/app/api/auth/[...nextauth]/route.ts` with named exports `GET` and `POST`. If the Pages Router path is used in an App Router project, NextAuth silently fails to register the auth routes. Sign-in pages return 404, OAuth callbacks fail, and `getServerSession` returns `null` everywhere.
+The checkout session is created with `metadata: { organizationId: org._id }` so the webhook handler can identify which org completed checkout. The `checkout.session.completed` event contains this metadata. However, subsequent subscription events (`customer.subscription.created`, `customer.subscription.updated`) do NOT carry checkout session metadata — they carry subscription-level metadata, which is different. A handler that reads `event.data.object.metadata.organizationId` on a subscription event finds `undefined` and fails to update the org's plan.
 
 **Why it happens:**
-NextAuth.js v4 documentation primarily shows Pages Router examples. The App Router migration is documented but not prominently. Many blog posts and Stack Overflow answers still show the Pages Router path.
+Developers test `checkout.session.completed` correctly, see metadata present, then reuse the same metadata-reading pattern in subscription event handlers. Stripe's metadata scoping is per-object: Session metadata stays on the Session, not the Subscription.
 
 **How to avoid:**
-Use exactly this file path and export pattern:
+Handle org identification in two distinct ways depending on event type:
+1. For `checkout.session.completed`: read `session.metadata.organizationId` to link the `stripeCustomerId` to the Org. Store `stripeCustomerId` on the Org document at this point.
+2. For all subsequent subscription events: look up the Org by `stripeCustomerId` (which was stored in step 1), never by metadata.
 
-```typescript
-// src/app/api/auth/[...nextauth]/route.ts
-import NextAuth from 'next-auth';
-import { authOptions } from '@/lib/auth'; // centralized authOptions
+Also set metadata on the Stripe Customer object (`stripe.customers.update(customerId, { metadata: { organizationId } })`) as a fallback that persists across all customer-related events.
 
-const handler = NextAuth(authOptions);
-export { handler as GET, handler as POST };
+**Warning signs:**
+- `checkout.session.completed` handler succeeds, but `customer.subscription.updated` handler logs `organizationId undefined`.
+- Org `stripeCustomerId` is stored correctly but plan never updates on renewal.
+
+**Phase to address:**
+Stripe integration phase (STRIPE-01 / STRIPE-03) — checkout creation and webhook handler must be designed together.
+
+---
+
+### Pitfall 7: Tier Limit Race Condition on Collection and Token Creation
+
+**What goes wrong:**
+The API route for creating a collection reads the current collection count, checks it against the tier limit, and if within limit, creates the document. Under concurrent requests (two browser tabs, a mobile client + desktop, or any parallel action), two requests read the count simultaneously before either write completes. Both see count = 0 (below the limit of 1 for Free tier), both proceed, and two collections are created. The org is now over the Free tier limit with no enforcement.
+
+**Why it happens:**
+The check-then-act pattern (read count → compare → insert) is a classic read-modify-write race condition. MongoDB documents are atomic per-document, but a `countDocuments()` followed by an `insertOne()` is not atomic across two calls. Any delay between the count read and the insert (even milliseconds) creates a window.
+
+**How to avoid:**
+Use a conditional atomic upsert on the Org's usage counters rather than a separate count query. Two patterns work:
+
+**Option A — Conditional `$inc` with max check (preferred for token counts):**
+```ts
+const result = await Organization.findOneAndUpdate(
+  { _id: orgId, tokenCount: { $lt: tierLimit.maxTokens } },
+  { $inc: { tokenCount: delta } },
+  { new: true }
+);
+if (!result) throw new LimitExceededError('Token limit reached');
 ```
 
-Export `authOptions` from a separate `src/lib/auth.ts` file — not from the route file itself — so it can be imported in Route Handlers and Server Components without creating circular dependencies.
+**Option B — `countDocuments` + MongoDB session/transaction (preferred for collection counts):**
+Use a MongoDB multi-document transaction to atomically count and insert. This requires a replica set (MongoDB Atlas satisfies this). Alternatively, store `collectionCount` on the Org document and use the `$lt` conditional update pattern above.
+
+Storing denormalized counters (`tokenCount`, `collectionCount`) on the Org document and updating them atomically with the create/delete operations is the most practical approach for this codebase.
 
 **Warning signs:**
-- Navigating to `/api/auth/signin` returns 404.
-- `getServerSession()` always returns `null` even after a successful sign-in appears in the browser.
-- The NextAuth session cookie (`next-auth.session-token`) is never set.
+- Automated load tests show orgs with more collections than their tier allows.
+- Two near-simultaneous POST requests to `/api/collections` both return 201 when only one should have succeeded.
+- Free-tier org has 2 collections visible.
 
 **Phase to address:**
-Auth setup phase — verify the route is reachable and session cookie is set before writing any permission-dependent code.
+Billing enforcement phase (BILLING-01/LIMIT-01) — counters must be atomic from the start, not added as a hardening step.
 
 ---
 
-### Pitfall 11: SessionProvider Must Live in a Client Component — Cannot Be in Root layout.tsx
+### Pitfall 8: JWT Does Not Reflect Plan Upgrade After Stripe Checkout
 
 **What goes wrong:**
-`SessionProvider` from `next-auth/react` is a Client Component. Next.js App Router requires the root `layout.tsx` to be a Server Component (so it can export `metadata`). If `SessionProvider` is placed directly in `layout.tsx`, the build fails or Next.js downgrades `layout.tsx` to a Client Component, breaking `metadata` export. The existing app already uses `LayoutShell` as a `'use client'` wrapper — this is the correct pattern, and `SessionProvider` belongs inside `LayoutShell`.
+A user upgrades from Free to Pro via Stripe Checkout. The webhook fires, updates the Org document in MongoDB with `plan: 'pro'`. The user's browser session, however, carries a JWT issued at sign-in that encodes `plan: 'free'`. The user returns to the app — the JWT still says Free, limit enforcement reads from the JWT, and the upgrade UI modal keeps appearing. The user believes billing is broken. The plan field in the JWT will only update after the 30-day JWT max age expires (current `maxAge: 30 * 24 * 60 * 60` in `nextauth.config.ts`).
 
 **Why it happens:**
-The Pages Router had `_app.tsx` as a natural Client Component entry point. App Router has no equivalent; developers unfamiliar with the boundary try to wrap the root layout.
+The current JWT callback in `nextauth.config.ts` re-fetches `role` from DB every 60 seconds (the `roleLastFetched` pattern). But it does not re-fetch `organizationId`, `plan`, or `subscriptionStatus` — because these fields do not exist on the JWT yet. Once plan data is added to the JWT, the TTL-based re-fetch pattern must be extended to cover plan data, or plan data must never be cached in the JWT at all.
 
 **How to avoid:**
-Place `SessionProvider` inside `LayoutShell` (already `'use client'`):
+Two valid approaches:
 
-```typescript
-// src/components/layout/LayoutShell.tsx
-'use client';
-import { SessionProvider } from 'next-auth/react';
+**Option A — Never put plan in JWT; always read from DB:**
+In API route handlers and server components, call `Organization.findById(session.user.organizationId).select('plan')` when limit enforcement is needed. This adds one DB query per relevant request but eliminates staleness. This is the simpler and safer approach given the existing TTL re-fetch pattern.
 
-export function LayoutShell({ children }) {
+**Option B — Extend the existing 60-second TTL re-fetch to include plan:**
+Add `planLastFetched` to the JWT and re-fetch `plan` and `subscriptionStatus` from the Org document alongside the role re-fetch. The existing pattern in `nextauth.config.ts` (lines 63–77) can be extended to also query `Organization.findOne({ userId: token.id })` and include plan in the returned token.
+
+For the Stripe return URL, redirect to a purpose-built page (`/billing/success?action=refresh`) that calls `useSession().update()` (next-auth v4 supports session update via the `update()` method exposed by `useSession`) to force a JWT refresh immediately after checkout completion.
+
+**Warning signs:**
+- User completes Stripe Checkout, is redirected back to the app, but upgrade modal still appears.
+- `session.user.plan` shows `free` after a confirmed Pro subscription in Stripe Dashboard.
+- The issue self-resolves after 60 seconds (TTL re-fetch kicks in) — this is the tell.
+
+**Phase to address:**
+JWT/session design must be settled in the Org data model phase (TENANT-01/BILLING-02) before Stripe checkout is wired up.
+
+---
+
+### Pitfall 9: Billing Logic Scattered Into Route Handlers (Layer Violation)
+
+**What goes wrong:**
+Stripe API calls (`stripe.checkout.sessions.create`, `stripe.customers.create`) are written directly inside Next.js Route Handlers. The `STRIPE_SECRET_KEY` is imported in multiple route files. Limit checks (`if (org.plan === 'free' && count >= 1)`) are copy-pasted into collection create, token save, and theme create routes. When the Pro tier limit changes (e.g., from 10 to 15 collections), the change must be made in 3–4 places, and one is always missed.
+
+**Why it happens:**
+It is faster to write the Stripe call directly in the route handler than to design an abstraction layer first. The PROJECT.md requirement BILLING-07 ("All Stripe and billing logic lives in `src/lib/billing/`") exists precisely because this is the default gravitational pull during incremental development.
+
+**How to avoid:**
+Establish `src/lib/billing/` as an isolated module before writing any Stripe code:
+- `src/lib/billing/stripe.ts` — Stripe client singleton
+- `src/lib/billing/limits.ts` — LIMITS config object (exported constant, one source of truth)
+- `src/lib/billing/enforcement.ts` — `checkLimit(orgId, limitKey)` function called by route handlers
+- `src/lib/billing/checkout.ts` — `createCheckoutSession(orgId, planId)` function
+- `src/lib/billing/webhooks.ts` — `handleWebhookEvent(event)` function
+
+Route handlers call these functions; they never import `stripe` directly. This matches the BILLING-07 requirement and is critical for the self-hosted bypass (`SELF_HOSTED=true` short-circuits in `enforcement.ts`, not in every route).
+
+**Warning signs:**
+- `import Stripe from 'stripe'` appears in any file outside `src/lib/billing/`.
+- `process.env.STRIPE_SECRET_KEY` is accessed in a route file.
+- Limit values (1, 500, 10) appear as literals in API route files.
+- `SELF_HOSTED` check duplicated across multiple routes.
+
+**Phase to address:**
+Must be established as the first step of the billing phase, before STRIPE-01 or BILLING-03. The module skeleton should exist before any route touches billing.
+
+---
+
+### Pitfall 10: Rate Limiter Bypassed via Spoofed X-Forwarded-For Header
+
+**What goes wrong:**
+The rate limiter for export and token-update endpoints identifies users by IP address extracted from `req.headers['x-forwarded-for']` or `req.headers['x-real-ip']`. An attacker sends requests with a forged `X-Forwarded-For: 1.2.3.4` header, cycling through different fake IPs. Each request appears to come from a new IP, bypassing the 60 req/min per-user limit entirely.
+
+**Why it happens:**
+IP-based rate limiting is the first approach most implementations use. In Next.js deployed behind a proxy (Vercel, nginx, Cloudflare), the real client IP is in `x-forwarded-for`. But this header can be set by the client if the edge proxy does not strip and re-inject it.
+
+**How to avoid:**
+Rate limit by authenticated user ID, not IP address. Since all rate-limited endpoints (RATE-01: export, token-update) require authentication, `session.user.id` is available from `getServerSession()`. Use the user ID as the rate limit key:
+```ts
+const session = await getServerSession(authOptions);
+const rateLimitKey = `rate:${session.user.id}:export`;
+```
+If a secondary IP-based limit is desired as defense-in-depth, extract the IP from Vercel's trusted `x-forwarded-for` (which Vercel sets from the real client IP at the edge and cannot be spoofed at the application layer). Do not trust `x-real-ip` or `x-forwarded-for` from arbitrary clients.
+
+For the rate limit store, use an in-memory sliding window (acceptable for single-instance deployment) or Upstash Redis (required for multi-instance/serverless). Do not use MongoDB for rate limit tracking — the write overhead defeats the purpose.
+
+**Warning signs:**
+- Load test with rotating `X-Forwarded-For` headers bypasses the limit (each fake IP gets its own window).
+- Authenticated user can trigger 600 export requests per minute by cycling headers.
+- Rate limit does not apply to the same user across two concurrent browser sessions (because sessions have different IPs).
+
+**Phase to address:**
+Rate limiting phase (RATE-01) — key by user ID from the start.
+
+---
+
+### Pitfall 11: Usage Counter Reset Creates Timezone-Dependent Off-by-One
+
+**What goes wrong:**
+The `exportsThisMonth` counter resets at midnight UTC on the first of the month. An org in UTC-8 (Pacific Time) resets their counter at 4:00 PM on the last day of the previous month — still in their "current month" subjectively. A different org in UTC+9 (Tokyo) resets at 9:00 AM on the first — already their "next month". The inconsistency is visible in the UI when the billing cycle shown ("resets March 1") doesn't match when the counter actually drops to zero.
+
+More critically, the lazy reset pattern (reset on first request after the 1st rather than via a cron) creates a scenario where `lastReset` is the 28th of a 28-day February, and requests made on March 1 don't reset the counter if the check uses calendar month arithmetic incorrectly (e.g., `new Date().getMonth() !== lastReset.getMonth()` wraps correctly but `new Date().getDate() < lastReset.getDate()` does not apply when months differ).
+
+**Why it happens:**
+MongoDB stores dates in UTC. JavaScript `Date` objects are also UTC internally but display in local timezone. Month-boundary logic is easy to get wrong — comparing month numbers works for most months but fails at year boundaries (December → January: both return `0` and `11`, so `month !== lastMonth` correctly detects the rollover only if year is also checked).
+
+**How to avoid:**
+Reset based on UTC month boundary using a reliable comparison:
+```ts
+function needsReset(lastReset: Date): boolean {
+  const now    = new Date();
+  const reset  = new Date(lastReset);
   return (
-    <SessionProvider>
-      {/* existing layout content */}
-      {children}
-    </SessionProvider>
+    now.getUTCFullYear() > reset.getUTCFullYear() ||
+    now.getUTCMonth()    > reset.getUTCMonth()
   );
 }
 ```
-
-Keep `src/app/layout.tsx` as a Server Component with `metadata` export.
+Always use `getUTCMonth()` / `getUTCFullYear()`, never `getMonth()` / `getFullYear()`. Document in the UI that the export counter resets on the 1st of each month UTC, not the user's local midnight.
 
 **Warning signs:**
-- Build error: "You are attempting to export 'metadata' from a component marked with 'use client'."
-- `useSession()` throws "No SessionProvider found" in client components.
+- Org in UTC+13 reports counter reset "yesterday" while still in the same calendar month for UTC users.
+- Counter does not reset on January 1 (month rollover from 11 → 0 where a `>` comparison on month alone fails).
+- Unit tests using fixed dates in December pass but production resets fail in January.
 
 **Phase to address:**
-Auth setup phase — verify `LayoutShell` wraps `SessionProvider` as the first integration check.
+Usage tracking phase (USAGE-01/USAGE-02).
 
 ---
 
-### Pitfall 12: TypeScript Module Augmentation for Custom JWT Fields Is Easy to Break
+### Pitfall 12: Cross-Tenant Data Leakage via Missing organizationId Filter
 
 **What goes wrong:**
-Adding `role` and `id` to `session.user` requires TypeScript module augmentation in a `next-auth.d.ts` file. Two common failures: (1) The file exists but TypeScript does not pick it up because the `types/` directory is not listed in `tsconfig.json`'s `typeRoots` or `include`. (2) The `jwt` callback populates `token.role` correctly but the `session` callback does not forward it to `session.user.role` — so the runtime value is `undefined` even though TypeScript thinks it's a `string`.
+A route handler fetches a collection by `_id` without also filtering by `organizationId`. An authenticated user from Org A constructs a request to `/api/collections/[id]` with the MongoDB `_id` of a collection belonging to Org B. The handler finds the document (it exists), returns it in full, and Org A can read Org B's private token collection. This is a tenant isolation failure — the most severe class of multi-tenant bug.
 
 **Why it happens:**
-TypeScript module augmentation is a non-obvious pattern. The disconnect between "TypeScript thinks the type is right" and "runtime value is undefined" is especially confusing because there are no type errors — the augmentation type declaration suppresses them.
+Before multi-tenancy, every authenticated user could access every collection (single-org model). Route handlers were written as `TokenCollection.findById(id)`. Adding `organizationId` to documents does not automatically add it to existing query filters. Developers miss updating collection-specific GET/PUT/DELETE handlers that only filter by `_id`.
 
 **How to avoid:**
-Always implement both sides:
-1. The `next-auth.d.ts` type declaration (tells TypeScript the shape).
-2. The `jwt` + `session` callback pair that actually puts the value there at runtime.
+Every MongoDB query that takes a `collectionId` from an HTTP request must be a compound filter:
+```ts
+// Correct — tenant-scoped lookup
+const collection = await TokenCollection.findOne({
+  _id: collectionId,
+  organizationId: session.user.organizationId,
+});
+if (!collection) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+```
+Never use `findById(id)` for tenant-owned resources. Return 404 (not 403) when an org does not own a resource — 403 confirms the resource exists, which leaks information.
 
-Write an integration test that signs in a test user and asserts `session.user.role !== undefined`. The TypeScript types alone are not sufficient validation.
-
-Add `next-auth.d.ts` to the project root or to `src/types/` and ensure the path is covered by `tsconfig.json`'s `include` glob.
+Create a helper `assertOrgOwnership(collectionId, orgId)` that performs this check and throws a typed error, used by all collection route handlers.
 
 **Warning signs:**
-- TypeScript compiles without errors but `session.user.role` is `undefined` at runtime.
-- Changing the declared type in `next-auth.d.ts` makes no TypeScript errors appear in consuming code.
-- `console.log(session)` shows `{ user: { name, email, image } }` — missing `id` and `role`.
+- GET `/api/collections/[id]` returns 200 for a collection ID belonging to a different org.
+- User can view or edit another org's Figma/GitHub config by guessing MongoDB ObjectIds.
+- No 404 or 403 is returned when a valid `_id` from another org is used.
 
 **Phase to address:**
-Auth setup phase — write a sanity-check test or manual verification step that confirms `id` and `role` are present in the decoded session before the RBAC phase begins.
+Org data model phase (TENANT-01) — all existing route handlers must be audited and patched in this phase, before any billing work starts.
 
 ---
 
@@ -346,13 +382,14 @@ Auth setup phase — write a sanity-check test or manual verification step that 
 
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Protect only the middleware, not Route Handlers | Fast to implement; UI redirects correctly | CVE-2025-29927 bypass; API remains fully open | Never — always add Route Handler guards |
-| Use `getSession()` instead of `getServerSession()` in API routes | Familiar, same result in testing | Extra HTTP round-trip per API call; session fetch doubles latency in server context | Never — always use `getServerSession` server-side |
-| Store role only in JWT, never re-fetch from DB | Simple; no extra queries | Role changes take up to 30 days to take effect without logout | Never for role changes that need near-real-time effect |
-| Use `@auth/mongodb-adapter` with Credentials provider, no `session: "jwt"` | Matches OAuth adapter usage pattern | Sessions not persisted; adapter ignored; confusing behavior | Never — adapter and Credentials are incompatible without `session: "jwt"` |
-| Skip per-collection override query for the listing route (check overrides lazily on open) | Faster listing implementation | Permissions appear correctly only when a collection is opened; listing shows no indication of override | Acceptable as MVP deferral if overrides are rare (PERM-04 is lower priority) |
-| Hardcode admin check in UI only (no server-side admin guard) | Faster to build; no extra API calls | Any user with devtools can call admin endpoints directly | Never for any mutation endpoint |
-| Use UUID v4 as invite token | Simple; UUID library already available | UUID v4 has 122 bits of entropy — sufficient, but lacks explicit "invite" context. Acceptable if combined with expiry + single-use enforcement | Acceptable if expiry and `used` flag are enforced |
+| Store `plan` in JWT | Avoids DB query on every request | Stale plan after upgrade; upgrade prompts persist for up to 60s | Never — read plan from DB for limit enforcement |
+| Hardcode limit values in route handlers | Faster to write | Limit changes require touching N files; risk of inconsistency | Never — use LIMITS config in `src/lib/billing/limits.ts` |
+| Import Stripe directly in route handlers | Faster initial development | Breaks isolation; `SELF_HOSTED` bypass must be duplicated everywhere | Never — all Stripe calls go through `src/lib/billing/` |
+| IP-based rate limiting without user ID | Simple implementation | Trivially bypassable with header spoofing | Never for authenticated endpoints |
+| Skip idempotency on webhook handlers | Saves one DB query per webhook | Duplicate events cause double-activation, double-emails | Never |
+| `TokenCollection.findById(id)` without orgId | Less code | Cross-tenant data leakage | Never after multi-tenancy is added |
+| Lazy-write `organizationId` (write on next update) | Avoids migration script | Silent data loss when queries filter by orgId | Never — run explicit backfill |
+| In-memory rate limit store | No external dependency | Resets on redeploy; does not work across multiple instances | Acceptable for single-instance Vercel deployment only |
 
 ---
 
@@ -360,15 +397,15 @@ Auth setup phase — write a sanity-check test or manual verification step that 
 
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| NextAuth + App Router | Placing the handler at `pages/api/auth/[...nextauth].js` | Place at `src/app/api/auth/[...nextauth]/route.ts` with `export { handler as GET, handler as POST }` |
-| NextAuth + App Router | Calling `getSession()` in Server Components or Route Handlers | Call `getServerSession(authOptions)` — avoids extra HTTP round-trip |
-| NextAuth Credentials + MongoDB | Using `@auth/mongodb-adapter` with Credentials provider | Use JWT strategy; manage User model directly in Mongoose; skip the adapter |
-| NextAuth + Mongoose | Extracting `mongoose.connection.getClient()` to pass to MongoDB adapter | Keep a separate `MongoClient` singleton in `src/lib/mongo-client.ts` if adapter is ever needed; never share Mongoose's internal client |
-| SessionProvider + App Router | Wrapping root `layout.tsx` with `SessionProvider` | Place `SessionProvider` inside `LayoutShell` (`'use client'`) — root layout stays Server Component |
-| NextAuth JWT + custom fields | Declaring fields in `next-auth.d.ts` without the runtime callback | Must implement both: type declaration AND `jwt` + `session` callbacks that assign the values |
-| Resend + invite flow | Sending invite emails without rate limiting | Rate-limit invite sends to 1 per email per 5 minutes; guard the invite POST route with auth + admin role check |
-| Next.js middleware + MongoDB | Attempting to call `dbConnect()` / Mongoose inside `middleware.ts` | Middleware runs in Edge Runtime which does not support Node.js `net` module — no Mongoose in middleware. Use JWT decode only (stateless) in middleware |
-| Per-collection RBAC | Checking overrides with a `for...of` + `findOne` loop in the collections listing handler | Fetch all overrides for the current user in one query (`find({ userId })`), then merge in memory |
+| Stripe webhooks | `req.json()` before `constructEvent()` | Use `req.text()` to preserve raw bytes for HMAC verification |
+| Stripe webhooks | Trusting event order | Fetch authoritative subscription state from Stripe API on each event |
+| Stripe webhooks | Assuming metadata propagates from Session to Subscription | Session metadata stays on Session; look up org by `stripeCustomerId` for subscription events |
+| Stripe webhooks | Missing idempotency | Store processed `event.id` in DB; return 200 on duplicate |
+| next-auth v4 + plan | Adding `plan` to JWT without re-fetch logic | Extend TTL re-fetch in `jwt` callback or never cache plan in JWT |
+| next-auth v4 + Stripe return | User returns from Checkout with stale session | Redirect to `/billing/success` that calls `session.update()` to force JWT refresh |
+| MongoDB + multi-tenant | `findById()` on tenant-owned resources | Always filter by `{ _id, organizationId }` compound query |
+| MongoDB + usage counters | Separate count query then insert | Use atomic `findOneAndUpdate` with `$lt` condition on denormalized counter |
+| MongoDB migration | Schema default backfills existing docs | Run explicit `updateMany` with `{ field: { $exists: false } }` filter |
 
 ---
 
@@ -376,10 +413,10 @@ Auth setup phase — write a sanity-check test or manual verification step that 
 
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| N+1 permission queries on collection listing | Collections page slow; MongoDB shows many sequential queries per request | Batch-fetch all user overrides in one query; merge in memory | Noticeable at 10+ collections; serious at 50+ |
-| Calling `getServerSession` in every Server Component in the render tree | Cascading DB reads on a single page load; waterfall latency | Call `getServerSession` once at the page level; pass session/role down as props to child Server Components | Immediately on any page with more than 2–3 nested Server Component fetches |
-| JWT re-fetch on every request (not throttled) | Every authenticated API call triggers a MongoDB `findById` | Add a `roleLastFetched` timestamp to the JWT; re-fetch only if older than 60 seconds | Immediately — every API call doubles its DB load |
-| Loading the full collection document to check permissions before returning it | Extra read for permission check; then second read inside the handler | Embed the permission check in the same query projection, or use the user's org role (which is already in the JWT) for the common case | Any collection endpoint under load |
+| Missing `organizationId` index | Collection listing latency grows linearly with total document count across all orgs | Add `{ organizationId: 1, name: 1 }` compound index before any multi-tenant queries run | 500+ total collections |
+| MongoDB for rate limiting (write-per-request) | Export endpoint latency spikes; MongoDB write queue backs up | Use in-memory store (single instance) or Upstash Redis (multi-instance) | ~100 req/s to rate-limited endpoints |
+| Webhook handler synchronous DB writes | Stripe timeout (30s) exceeded; Stripe retries flood the endpoint | Keep webhook handler fast — validate signature, enqueue, return 200 immediately | Webhook volume > 50/s |
+| `Organization.findOne()` on every request for plan check | +1 DB roundtrip per API call | Cache plan in request context (not JWT); or use a 60s TTL approach same as role | Every API call when billing enforcement is enabled |
 
 ---
 
@@ -387,13 +424,12 @@ Auth setup phase — write a sanity-check test or manual verification step that 
 
 | Mistake | Risk | Prevention |
 |---------|------|------------|
-| Relying solely on middleware for route protection (not upgrading from 13.5.6) | Complete auth bypass via CVE-2025-29927 — any external attacker can reach all API routes | Upgrade Next.js to 13.5.9; add `getServerSession` checks in all write Route Handlers |
-| Returning different error messages for "invalid token" vs "expired token" in invite flow | Timing/content oracle — attacker can enumerate valid invite emails | Return one generic message: "This invitation link is invalid or has expired." |
-| Storing raw invite tokens in MongoDB (not hashed) | If MongoDB is compromised, all pending invite links are usable | Hash the token with `crypto.createHash('sha256').update(token).digest('hex')` before storing; compare hash on redemption. Store only the hash. |
-| Not enforcing SUPER_ADMIN_EMAIL server-side in role-change API | Admin can demote the superadmin via the UI if the API doesn't check | In the `PUT /api/users/[id]/role` handler, check if the target user's email equals `SUPER_ADMIN_EMAIL` and return 403 |
-| Not rate-limiting the sign-in endpoint | Credential stuffing / brute force against the email+password endpoint | Apply in-memory or Redis rate limiting to `POST /api/auth/callback/credentials`; NextAuth does not rate-limit by default |
-| Exposing per-collection Figma tokens to Viewer-role users via the collection GET response | Viewer can extract API keys they should not have | Project the response in `GET /api/collections/[id]` to exclude `figmaToken` and `githubRepo` config for users without Editor or Admin role |
-| Setting `NEXTAUTH_SECRET` to a weak or static value in production | JWT forgery — attacker crafts valid session tokens | Generate with `openssl rand -base64 32`; rotate annually; never commit to source |
+| Missing `organizationId` filter on collection/token queries | Tenant A reads Tenant B's private token collections | Always use `{ _id, organizationId }` compound filter; return 404 on mismatch |
+| Rate limiting by IP instead of user ID | Authenticated users bypass rate limit with header spoofing | Rate limit key = `session.user.id`, never `x-forwarded-for` |
+| Skipping Stripe webhook signature verification | Attacker sends fake webhook to activate Pro plan without paying | Always call `stripe.webhooks.constructEvent(rawBody, sig, secret)` before reading event data |
+| STRIPE_SECRET_KEY in client-side code or non-billing route | Key exposure; attacker can make arbitrary Stripe API calls | Key accessible only in `src/lib/billing/`; never imported outside |
+| Trusting `plan` from JWT for billing decisions | User edits JWT to claim Pro plan | Always re-fetch plan from Organization document for limit enforcement decisions |
+| Storing Stripe webhook secret in client env var | Attacker can forge webhooks | `STRIPE_WEBHOOK_SECRET` must be server-only (no `NEXT_PUBLIC_` prefix) |
 
 ---
 
@@ -401,26 +437,26 @@ Auth setup phase — write a sanity-check test or manual verification step that 
 
 | Pitfall | User Impact | Better Approach |
 |---------|-------------|-----------------|
-| No feedback when invite link is expired | User sees a generic 404 or error page with no path forward | Show a specific "This invitation has expired" page with a link to contact the admin |
-| Write controls are hidden but page still loads for Viewer (no loading state) | Momentary flash of enabled controls before permission context loads | Derive initial permission state from the server-rendered session; avoid client-side permission loading flicker by seeding `PermissionsProvider` with server-fetched data |
-| Admin user list shows no indication of pending invites | Admin cannot tell who has accepted and who has not | Show status badges: "Active", "Invited (expires in 2d)", "Expired" — each with distinct color |
-| Sign-in page is the app's own `/login` route but `NEXTAUTH_URL` is not set | NextAuth generates callback URLs pointing to `localhost` in production | Set `NEXTAUTH_URL` explicitly in production environment variables; never rely on auto-detection |
-| "First user becomes Admin" logic fires on every cold start if the user count check is not atomic | Multiple concurrent first-user registrations both get Admin role | Use a MongoDB upsert with `{ $setOnInsert: { role: 'admin' } }` + check for zero existing users inside a transaction, or use a dedicated "org bootstrap" document as a lock |
+| Upgrade modal appears immediately after successful Stripe Checkout | User is confused — they just paid | Redirect to `/billing/success` that forces session refresh before showing the app |
+| Limit block returns HTTP 500 instead of 422 with upgrade prompt | User sees "server error"; no clear action | Return `{ error: 'limit_exceeded', limit: 'collections', upgradeUrl: '/billing' }` with HTTP 422 |
+| Token save silently drops tokens when token limit is exceeded | User types tokens, saves, they vanish | Enforce limit at write time with a clear error message and count display in UI |
+| Export counter shown as "N/10" without explaining the reset date | User doesn't know when limit resets | Show "N/10 exports · resets [date]" using `lastReset` from Org document |
+| Plan downgrade (payment failure) immediately blocks all features | User locked out without warning | Give a 3-day grace period on `invoice.payment_failed`; downgrade only on `customer.subscription.deleted` |
 
 ---
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **Next.js version:** Upgraded from 13.5.6 to 13.5.9 before any middleware auth — verify `package.json` shows `"next": "13.5.9"` and CVE-2025-29927 is not exploitable.
-- [ ] **Route Handler guards:** Every write API route (PUT, POST, DELETE, PATCH) calls `getServerSession` and returns 401 if null — verify with a curl request without a session cookie.
-- [ ] **JWT fields at runtime:** `session.user.id` and `session.user.role` are non-null after sign-in — verify in browser devtools or a test that decodes the session.
-- [ ] **Superadmin cannot be removed:** The Users admin page returns 403 from the API when attempting to change or remove the `SUPER_ADMIN_EMAIL` user — verify with a direct API call.
-- [ ] **Invite token single-use:** Clicking the same magic link twice returns the "invalid or expired" page on the second click — verify by completing signup and revisiting the same URL.
-- [ ] **Invite token expiry:** Manually setting `expiresAt` to a past date in MongoDB causes the link to be rejected — verify the expiry check is server-side, not only `expiresAt` display in the UI.
-- [ ] **Role change propagates:** After changing a user's role in the admin UI, the user's write controls change within 60 seconds (or after re-login) — verify the `jwt` callback re-fetch is in place.
-- [ ] **Viewer cannot write:** A Viewer-role session receives 403 from `PUT /api/collections/[id]` — verify with a direct API call using a Viewer's session cookie.
-- [ ] **SessionProvider does not break metadata:** `src/app/layout.tsx` still exports `metadata` without TypeScript or build errors after `SessionProvider` is added to `LayoutShell`.
-- [ ] **Mongoose not in middleware:** `middleware.ts` has zero imports from `mongoose`, `dbConnect`, or any Mongoose model — verify with a grep.
+- [ ] **organizationId backfill:** Migration script runs `updateMany` with `$exists: false` filter — verify with `countDocuments` assertion before app boot continues.
+- [ ] **Compound indexes:** Run `explain("executionStats")` on `TokenCollection.find({ organizationId })` — confirm `IXSCAN`, not `COLLSCAN`.
+- [ ] **Webhook signature verification:** Delete `STRIPE_WEBHOOK_SECRET` temporarily and confirm all webhooks are rejected with 400 — proves verification is active.
+- [ ] **Webhook idempotency:** Replay the same webhook event twice using Stripe CLI (`stripe events resend evt_xxx`) — confirm second delivery returns 200 without mutating state.
+- [ ] **Billing isolation:** `grep -r "from 'stripe'" src/` — all matches must be inside `src/lib/billing/` only.
+- [ ] **Tenant query isolation:** Automated test — authenticated User from Org A requests a collection belonging to Org B — must return 404, not 200.
+- [ ] **Race condition on limits:** Load test — two concurrent POST `/api/collections` requests with a Free-tier org — only one must succeed.
+- [ ] **JWT staleness after upgrade:** Simulate webhook → force session re-read → confirm `session.user.plan` reflects Pro within 60 seconds.
+- [ ] **SELF_HOSTED bypass:** Set `SELF_HOSTED=true`, confirm all limit enforcement functions return pass-through, confirm no Stripe API calls are made.
+- [ ] **Rate limit by user not IP:** Send 65 requests with rotating `X-Forwarded-For` headers from a single authenticated user — all 65 must hit the rate limit.
 
 ---
 
@@ -428,12 +464,12 @@ Auth setup phase — write a sanity-check test or manual verification step that 
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| CVE-2025-29927 middleware bypass discovered in production | HIGH | Immediately add `x-middleware-subrequest` header block at CDN/proxy level; deploy Next.js 13.5.9 upgrade; audit API logs for unauthorized access |
-| Route Handler missing auth guard — write endpoint exposed | MEDIUM | Add `requireAuth()` guard and deploy; audit MongoDB for unauthorized mutations via `updatedAt` timestamps; notify affected users if data was changed |
-| JWT role not propagating after role change | LOW | Document workaround: affected user must sign out and back in; implement DB re-fetch in `jwt` callback in next deploy |
-| Invite token reuse vulnerability discovered | MEDIUM | Set `used = true` for all existing invite tokens in MongoDB immediately; deploy fix; re-issue invites that were affected |
-| Superadmin locked out (SUPER_ADMIN_EMAIL not set in production) | HIGH | SSH to server, set env var, restart. Or: directly update user role in MongoDB via `mongo` CLI: `db.users.updateOne({ email: '...' }, { $set: { role: 'admin' } })` |
-| MongoClient conflict between adapter and Mongoose | MEDIUM | Remove adapter, confirm JWT strategy, restart; no data loss since JWT sessions were never in the DB |
+| organizationId backfill missed | MEDIUM | Run `updateMany({ organizationId: { $exists: false } }, { $set: { organizationId: seedOrgId } })` in a migration script; verify count; re-deploy |
+| Webhook idempotency missing, events doubled | MEDIUM | Identify duplicated Stripe event IDs in logs; manually revert double-applied state changes; add idempotency guard; replay from Stripe Dashboard |
+| Cross-tenant data leaked | HIGH | Audit query logs for `findById` calls without `organizationId` filter; patch all affected routes; notify affected orgs if any data was accessed; add integration test suite |
+| Rate limiter bypassable | LOW | Replace IP key with user ID key; reset rate limit store; re-deploy |
+| Plan stuck as Free after upgrade | LOW | Webhook re-delivery from Stripe Dashboard for the `checkout.session.completed` event; or manually set `plan: 'pro'` in Org document via DB admin |
+| Billing code in route handlers | MEDIUM | Extract Stripe calls to `src/lib/billing/`; update all imports; no data migration needed |
 
 ---
 
@@ -441,37 +477,38 @@ Auth setup phase — write a sanity-check test or manual verification step that 
 
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| CVE-2025-29927 middleware bypass | Auth setup phase — step 0: upgrade Next.js | curl with bypass header returns 401/redirect; `package.json` shows 13.5.9+ |
-| Credentials provider + JWT strategy confusion | Auth setup phase | No adapter installed; `session: { strategy: 'jwt' }` explicit; MongoDB has no `nextauth_*` collections |
-| MongoDB adapter / Mongoose connection conflict | Auth setup phase | Single connection in `mongodb.ts`; no `MongoClient` singleton needed for auth |
-| All write routes unprotected | Auth setup phase — apply `requireAuth()` | All write routes return 401 for unauthenticated curl requests |
-| Permission context not in Server Components | RBAC + permissions context phase | Server Components call `getServerSession`; client components use `usePermissions()`; no `useContext` in Server Components |
-| JWT role stale after role change | RBAC phase — `jwt` callback re-fetch | Role change reflects in UI within 60 seconds without logout |
-| Invite token security | Email invite + account setup phase | Single-use enforced; expiry enforced; hash stored |
-| Superadmin env var bypass | Auth setup phase + RBAC phase | API returns 403 on superadmin role-change attempt; env var missing logs warning at startup |
-| N+1 collection permission queries | RBAC phase — permission query design | Collections listing triggers 2 queries (collections + user overrides) not N+1 |
-| NextAuth route location | Auth setup phase | `/api/auth/signin` returns 200; session cookie set on credentials login |
-| SessionProvider in wrong component | Auth setup phase | `layout.tsx` exports `metadata`; no build errors; `useSession()` works in client components |
-| TypeScript augmentation without runtime values | Auth setup phase — verified before RBAC | `session.user.id` and `session.user.role` are non-undefined at runtime |
+| organizationId backfill (Pitfall 1) | Org data model — TENANT-01/TENANT-03 | Boot-time assertion: `countDocuments({ organizationId: { $exists: false } }) === 0` |
+| Missing compound index (Pitfall 2) | Org data model — TENANT-01 | `explain()` shows `IXSCAN` on org-scoped collection queries |
+| Webhook raw body consumed (Pitfall 3) | Stripe integration — STRIPE-03 | Test with invalid sig → 400; valid sig → 200 |
+| Webhook not idempotent (Pitfall 4) | Stripe integration — STRIPE-03 | Replay event twice via `stripe events resend` → no duplicate DB state |
+| Out-of-order webhook events (Pitfall 5) | Stripe integration — STRIPE-03 | Send `subscription.updated` without prior `checkout.session.completed` — handler must not crash |
+| Session metadata lost in subscription events (Pitfall 6) | Stripe checkout design — STRIPE-01 | Verify `customer.subscription.updated` handler correctly identifies org via `stripeCustomerId` |
+| Race condition on limit enforcement (Pitfall 7) | Billing enforcement — BILLING-01/LIMIT-01 | Concurrent load test: two simultaneous creates with Free tier org |
+| JWT stale after plan upgrade (Pitfall 8) | JWT design — TENANT-01/BILLING-02 (settled before STRIPE-01) | Simulate upgrade → verify session reflects new plan within TTL |
+| Billing logic in route handlers (Pitfall 9) | Billing module setup — before BILLING-03 | `grep -r "from 'stripe'" src/` — no matches outside `src/lib/billing/` |
+| Rate limit IP spoofing (Pitfall 10) | Rate limiting — RATE-01 | Load test with rotating `X-Forwarded-For` headers on authenticated session |
+| Usage counter timezone bug (Pitfall 11) | Usage tracking — USAGE-01/USAGE-02 | Unit test with dates straddling UTC year/month boundaries |
+| Cross-tenant data leakage (Pitfall 12) | Org data model — TENANT-01 | Integration test: org A requests org B's collection ID → 404 |
 
 ---
 
 ## Sources
 
-- Next.js CVE-2025-29927 (middleware bypass): [ProjectDiscovery Technical Analysis](https://projectdiscovery.io/blog/nextjs-middleware-authorization-bypass), [NVD CVE-2025-29927](https://nvd.nist.gov/vuln/detail/CVE-2025-29927), [JFrog Analysis](https://jfrog.com/blog/cve-2025-29927-next-js-authorization-bypass/) — HIGH confidence (multiple official security advisories; fixed in Next.js 13.5.9)
-- NextAuth Credentials provider + JWT only: [NextAuth credentials docs](https://next-auth.js.org/providers/credentials), [Discussion #4394](https://github.com/nextauthjs/next-auth/discussions/4394) — HIGH confidence (official NextAuth documentation)
-- MongoDB adapter incompatibility with Mongoose: [Discussion #5004](https://github.com/nextauthjs/next-auth/discussions/5004), [Discussion #9468](https://github.com/nextauthjs/next-auth/discussions/9468), [Auth.js MongoDB adapter docs](https://authjs.dev/getting-started/adapters/mongodb) — HIGH confidence (official docs + confirmed community reports)
-- App Router route file location for NextAuth: [NextAuth.js Next.js configuration](https://next-auth.js.org/configuration/nextjs), [Auth.js reference](https://authjs.dev/reference/nextjs) — HIGH confidence (official docs)
-- `getServerSession` vs `getSession` performance: [NextAuth securing pages](https://next-auth.js.org/tutorials/securing-pages-and-api-routes) — HIGH confidence (official docs)
-- React context unavailable in Server Components: [Next.js Server and Client Components](https://nextjs.org/docs/app/getting-started/server-and-client-components) — HIGH confidence (official Next.js docs)
-- Middleware not a security boundary: [Next.js authentication guide](https://nextjs.org/docs/app/guides/authentication), [WorkOS guide 2026](https://workos.com/blog/nextjs-app-router-authentication-guide-2026) — HIGH confidence (official docs)
-- TypeScript module augmentation for NextAuth: [NextAuth TypeScript docs](https://next-auth.js.org/getting-started/typescript), [Discussion #9120](https://github.com/nextauthjs/next-auth/discussions/9120) — HIGH confidence (official docs + confirmed community pattern)
-- Invite token security (single-use, expiry, hashing): [Clerk magic link security](https://clerk.com/blog/secure-authentication-nextjs-email-magic-links), [AppMaster transactional email flows](https://appmaster.io/blog/transactional-email-flows-tokens-expiration-deliverability) — MEDIUM confidence (verified against standard security practices; no official NextAuth doc for custom invite flows)
-- Resend rate limits: [Resend rate limit docs](https://resend.com/docs/api-reference/rate-limit) — HIGH confidence (official Resend docs)
-- JWT role re-fetch pattern: community-verified pattern; no official NextAuth doc but widely recommended in [Discussion #1571](https://github.com/nextauthjs/next-auth/discussions/1571) — MEDIUM confidence
-- Codebase inspection: `src/lib/mongodb.ts`, `src/lib/db/models/TokenCollection.ts`, `src/app/api/collections/[id]/route.ts`, all 18 Route Handler files, `src/components/layout/LayoutShell.tsx` — HIGH confidence (direct inspection of current production code)
+- [Stripe: Using webhooks with subscriptions](https://docs.stripe.com/billing/subscriptions/webhooks) — event ordering, metadata scoping
+- [Stripe: Resolve webhook signature verification errors](https://docs.stripe.com/webhooks/signature) — raw body requirement
+- [Stripe: Idempotent requests](https://docs.stripe.com/api/idempotent_requests) — idempotency keys vs webhook-level idempotency
+- [Stigg: Best practices I wish we knew when integrating Stripe webhooks](https://www.stigg.io/blog-posts/best-practices-i-wish-we-knew-when-integrating-stripe-webhooks) — out-of-order events, duplicate events
+- [Kitson Broadhurst: Next.js App Router + Stripe Webhook Signature Verification](https://kitson-broadhurst.medium.com/next-js-app-router-stripe-webhook-signature-verification-ea9d59f3593f) — `req.text()` fix
+- [next-auth GitHub Discussion #4229: How to manually trigger next-auth to refresh the JWT](https://github.com/nextauthjs/next-auth/discussions/4229) — JWT staleness after plan change
+- [MongoDB: Atomicity and Transactions](https://www.mongodb.com/docs/manual/core/write-operations-atomicity/) — single-document atomic writes
+- [Abdul Saleem Mohamed Faheem: Handling Race Conditions in Node and MongoDB](https://medium.com/tales-from-nimilandia/handling-race-conditions-and-concurrent-resource-updates-in-node-and-mongodb-by-performing-atomic-9f1a902bd5fa) — atomic conditional updates
+- [Traefik: Security Alert — Next.js Middleware Bypass via HTTP Header](https://traefik.io/blog/security-alert-how-attackers-can-bypass-next-js-middleware-with-a-single-http-header) — rate limit header spoofing patterns
+- [Hookdeck: How to Implement Webhook Idempotency](https://hookdeck.com/webhooks/guides/implement-webhook-idempotency) — event ID tracking pattern
+- [codingcops: MongoDB Migration Guide](https://codingcops.com/mongodb-migration-guide-strategy-tools-pitfalls/) — backfill strategies
+- Codebase inspection: `src/lib/auth/nextauth.config.ts` — existing JWT TTL re-fetch pattern (roleLastFetched, 60s TTL)
+- Codebase inspection: `src/lib/db/models/TokenCollection.ts` — no organizationId field yet; `userId: null` legacy field
+- Codebase inspection: `src/lib/db/models/User.ts` — no organizationId field; single-org model
 
 ---
-
-*Pitfalls research for: ATUI Tokens Manager v1.5 — Org User Management (Auth + RBAC)*
-*Researched: 2026-03-28*
+*Pitfalls research for: Multi-tenant SaaS billing (Stripe + Mongoose + next-auth v4) added to existing Next.js 13.5.6 app*
+*Researched: 2026-03-30*
