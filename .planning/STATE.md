@@ -1,31 +1,31 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.5
-milestone_name: Org User Management
-status: complete
-last_updated: "2026-03-29T00:05:00Z"
+milestone: v1.6
+milestone_name: Multi-Tenant SaaS
+status: planning
+last_updated: "2026-03-30T00:00:00Z"
 progress:
-  total_phases: 6
+  total_phases: 0
   completed_phases: 0
   total_plans: 0
-  completed_plans: 7
+  completed_plans: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-28)
+See: .planning/PROJECT.md (updated 2026-03-30)
 
 **Core value:** Token collections are always available and editable: stored in MongoDB, accessible via collection-scoped URLs, with per-collection Figma/GitHub config, full CRUD from the collections grid, Figma import/export fully integrated, and a Themes system where each theme is a complete token value set with per-group edit permissions, dark-mode awareness, and theme-targeted export.
-**Current focus:** Phase 20 — next phase (Phase 19 RBAC complete)
+**Current focus:** Defining requirements for v1.6 Multi-Tenant SaaS
 
 ## Current Position
 
-Phase: 21 of 21 (Org Users Admin UI and Permission-Gated UI — complete)
-Plan: 05 complete (21-05 — Pre-flight human verification: all 7 Phase 21 success criteria approved)
-Status: Phase 21 complete — all plans (01, 02, 03, 04, 05) done; milestone v1.5 Org User Management complete
-Last activity: 2026-03-29 — Completed 21-05: Human verification approved all 7 scenarios; build clean; Phase 21 and milestone v1.5 closed
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements — Milestone v1.6 started 2026-03-30
+Last activity: 2026-03-30 — Milestone v1.6 Multi-Tenant SaaS started
 
 Progress: [░░░░░░░░░░] 0% (0/6 phases complete, 3 plans complete in phase 16)
 

@@ -74,66 +74,63 @@ Token collections are always available and editable: stored in MongoDB, accessib
 
 ### Active
 
-<!-- v1.5 Org User Management -->
-- [ ] User can sign in with email and password — AUTH-01
-- [ ] Unauthenticated users are redirected to the sign-in page — AUTH-02
-- [ ] Signed-in session persists across browser refresh — AUTH-03
-- [ ] User can sign out from any page — AUTH-04
-- [ ] First user to complete registration is automatically granted the Admin role — AUTH-05
-- [ ] Superadmin account is configured via SUPER_ADMIN_EMAIL env var; always Admin, cannot be removed — AUTH-06
-- [ ] Admin can view a list of all org members with their roles and status — USER-01
-- [ ] Admin can invite a new user by entering their email address — USER-02
-- [ ] Invited user receives an email with a magic link to create their account — USER-03
-- [ ] Invited user can set display name and password during account setup — USER-04
-- [ ] Admin can change an existing user's org-level role (Admin / Editor / Viewer) — USER-05
-- [ ] Admin can remove a user from the org — USER-06
-- [ ] Pending invitations are visible in the Users list with expiry status — USER-07
-- [ ] Admin role grants full access — all collections, user management, create/delete, GitHub, Figma — PERM-01
-- [ ] Editor role grants read-write + create collections + GitHub push/pull + Figma push/pull — PERM-02
-- [ ] Viewer role grants read-only on all collections; no push/pull, no create — PERM-03
-- [ ] Admin can set a per-collection access override for any user — PERM-04
-- [ ] All existing MongoDB collections are owned by the first Admin — PERM-05
-- [ ] Permissions are available globally via a React context (no prop drilling) — PERM-06
-- [ ] All write controls are hidden/disabled for users without write permission — UI-01
-- [ ] Users without create-collection permission cannot access the new-collection flow — UI-02
-- [ ] Users without GitHub permission cannot access GitHub push/pull controls — UI-03
-- [ ] Users without Figma permission cannot access Figma push/pull controls — UI-04
+<!-- v1.6 Multi-Tenant SaaS -->
+- [ ] All users and collections are scoped to an organization via organizationId — TENANT-01
+- [ ] User can create a new organization during self-serve signup — TENANT-02
+- [ ] Existing data is migrated to an org seeded from INITIAL_ORG_NAME env var on first boot — TENANT-03
+- [ ] Tier limits are defined in a configurable LIMITS config (not hardcoded per-route) — BILLING-01
+- [ ] Organization stores plan, stripeCustomerId, and subscriptionStatus — BILLING-02
+- [ ] Free tier enforces: max 1 collection, 500 tokens, 1 theme, 10 exports/mo, 100 KB export size, no integrations — BILLING-03
+- [ ] Pro tier enforces: max 10 collections, 5,000 tokens, 5 themes, 100 exports/mo, integrations enabled — BILLING-04
+- [ ] Team tier extends Pro with max 10 seats — BILLING-05
+- [ ] Self-hosted mode (SELF_HOSTED=true env var) bypasses all limits and Stripe — BILLING-06
+- [ ] Per-org usage is tracked: exportsThisMonth, tokenCount, lastReset — USAGE-01
+- [ ] Export count resets monthly (cron or lazy reset on request) — USAGE-02
+- [ ] All Stripe and billing logic lives in src/lib/billing/ — isolated from app routes — BILLING-07
+- [ ] Stripe Checkout flow is available for upgrade from Free to Pro or Team — STRIPE-01
+- [ ] Stripe billing portal allows org admin to manage subscription — STRIPE-02
+- [ ] Webhooks handle: checkout.session.completed, invoice.payment_failed, customer.subscription.deleted — STRIPE-03
+- [ ] Collection creation is blocked (with upgrade prompt) when org is at Free-tier collection limit — LIMIT-01
+- [ ] Token save is blocked (with upgrade prompt) when org is at Free-tier token limit — LIMIT-02
+- [ ] Theme creation is blocked (with upgrade prompt) when org is at Free-tier theme limit — LIMIT-03
+- [ ] Export is blocked (with upgrade prompt) when export count or file size limit is reached — LIMIT-04
+- [ ] GitHub and Figma integrations are blocked (with upgrade prompt) for Free-tier orgs — LIMIT-05
+- [ ] Upgrade modal appears when any limit is hit — UXUP-01
+- [ ] Rate limiting: 60 req/min per user on export and token-update endpoints — RATE-01
 
 <!-- Deferred from v1.2/v1.3 -->
 - [ ] Tree nodes can be expanded and collapsed (expand/collapse toggle per node) — TREE-05
 - [ ] User can add a new group from the tree sidebar (child of any node, or at root level) — TREE-04
 - [ ] User can add tokens to the currently selected group inline — CONT-02
 
-## Current Milestone: v1.5 Org User Management
+## Current Milestone: v1.6 Multi-Tenant SaaS
 
-**Goal:** Add authentication and org-level user management so multiple users can collaborate on token collections with role-based access control.
+**Goal:** Convert the app into a multi-org SaaS with configurable free/pro/team tiers enforced at the API layer and paid upgrades via Stripe Checkout.
 
 **Target features:**
-- NextAuth.js email/password sessions and route protection
-- Email invite flow via Resend with magic-link account setup
-- Admin / Editor / Viewer roles with per-collection access override
-- Org Users admin page: invite, list, role-change, remove, pending invites
-- Global permissions React context for UI-level access control
-- Hardcoded superadmin via SUPER_ADMIN_EMAIL env var (lockout prevention)
+- Organization data model — all users and collections scoped by `organizationId`; existing data migrated via `INITIAL_ORG_NAME` env var
+- Self-serve org signup — any user creates an org at registration and becomes its Admin
+- Configurable tier limits (`LIMITS` config) — Free / Pro / Team tiers with per-org enforcement:
+  - Free: 1 collection, 500 tokens, 1 theme, 10 exports/mo, 100 KB export size, no integrations
+  - Pro: 10 collections, 5,000 tokens, 5 themes, 100 exports/mo, integrations enabled, 1 user
+  - Team: same as Pro + up to 10 seats
+  - Self-hosted (`SELF_HOSTED=true`): unlimited, no Stripe, own MongoDB + GitHub team access
+- Usage tracking — per-org `exportsThisMonth` + `tokenCount`; monthly reset via cron or lazy reset
+- Stripe subscriptions — Checkout flow, billing portal, webhooks (`checkout.session.completed`, `invoice.payment_failed`, `customer.subscription.deleted`)
+- Upgrade prompts — modal triggers when limits are hit (export cap, token count, GitHub/Figma, second theme)
+- Rate limiting — 60 req/min per user on export and token-update endpoints
+- Payment code isolation — all Stripe/billing logic in `src/lib/billing/` module; no payment code in app routes directly
 
-### Out of Scope
+### Out of Scope (v1.6)
 
-- OAuth / SSO providers (Google, GitHub login) — email/password sufficient for v1.5
-- Per-permission toggles beyond named roles — roles cover current use case
-- Multi-org / tenant support — single org now; architecture allows future extension
-- User profile / avatar management — not core to current use case
-- Activity audit log — deferred; MongoDB timestamps provide basic trail
+- OAuth / SSO providers — email/password sufficient
+- Usage-based metered billing / overages — flat subscriptions only
+- Multi-org membership (user in multiple orgs) — single org per user for now
+- Invoice history UI — Stripe billing portal covers this
+- Enterprise tier / custom pricing — sales-led; deferred
+- Angular / Stencil / Vite workspaces — excluded
 - Real-time collaboration — no concurrent edit handling
-- Token versioning / history — deferred; MongoDB timestamps provide basic backup
-- Angular / Stencil / Vite workspaces — explicitly excluded; Angular port is a future milestone
-- GitHub API caching — performance improvement, deferred
-- CORS / CSRF protection — localhost dev tool; security hardening deferred
-- ATUI Stencil components replacing shadcn/ui — integration pattern established in v1.1 but full replacement deferred
-- Theme inheritance chains — flat per-theme model covers current use case
-- Multi-dimensional theme permutation (mode × brand matrix) — needs sd-transforms permutateThemes + UX redesign; v2+
-- Real-time cross-theme diff view — analytical feature, not core authoring
-- Automatic propagation of master collection edits into themes — silent mutations are dangerous; resync must be explicit
-- Token alias resolution across theme boundaries — circular reference risk; SD resolves after merge
+- Token versioning / history — deferred
 
 ## Context
 
@@ -234,4 +231,4 @@ The Tokens page includes a **visual graph editor** (React Flow) in the right-han
 | Prefix control: single input replacing add/remove buttons | Shows current common prefix; editing applies live; no preview list needed (table updates live) | ✓ Good — simpler, more direct UX |
 
 ---
-*Last updated: 2026-03-28 after v1.5 milestone start*
+*Last updated: 2026-03-30 after v1.6 milestone start*
