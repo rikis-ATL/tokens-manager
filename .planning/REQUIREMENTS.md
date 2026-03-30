@@ -47,6 +47,55 @@ Requirements for v1.5 Org User Management milestone. Each maps to roadmap phases
 - [x] **ARCH-01**: Auth infrastructure lives in isolated modules — `src/lib/auth/` (authOptions, helpers, models), `src/app/api/auth/` (NextAuth route handler), `src/app/auth/` (sign-in, invite setup pages) — never mixed with existing token/collection code
 - [x] **ARCH-02**: All 18 existing write Route Handlers are guarded with `getServerSession()` / `requireAuth()` — middleware alone is not a security boundary
 
+## v1.6 Requirements
+
+Requirements for v1.6 Multi-Tenant SaaS milestone. Each maps to roadmap phases 22+.
+
+### Multi-Tenancy (TENANT)
+
+- [ ] **TENANT-01**: All users and collections are scoped to an organization via `organizationId`; every DB query that touches a tenant-owned resource includes an `organizationId` filter (compound `{ _id, organizationId }` lookups; `assertOrgOwnership()` helper applied to all existing collection routes)
+- [ ] **TENANT-02**: User can create a new organization during self-serve signup — org is created atomically with the user account; user is assigned Admin role for the new org; `organizationId` is embedded in the JWT at sign-in
+- [ ] **TENANT-03**: On first boot, an idempotent migration script seeds one org from `INITIAL_ORG_NAME` env var, backfills `organizationId` onto all existing `User` and `TokenCollection` documents, asserts zero unscoped documents before the app continues
+
+### Billing Configuration (BILLING)
+
+- [ ] **BILLING-01**: Tier limits are defined in a single configurable `LIMITS` constant exported from `src/lib/billing/tiers.ts`; all enforcement reads from this config — no tier values hardcoded in route handlers
+- [ ] **BILLING-02**: `Organization` Mongoose model stores: `plan` (`"free" | "pro" | "team"`), `stripeCustomerId` (optional), `subscriptionStatus` (`"active" | "inactive" | "past_due"`)
+- [ ] **BILLING-03**: Free tier cap: `maxCollections: 1`, `maxTokens: 500`, `maxThemes: 1`, `maxExportsPerMonth: 10`, `maxExportSize: 100_000` bytes, `integrations: false`
+- [ ] **BILLING-04**: Pro tier cap: `maxCollections: 10`, `maxTokens: 5_000`, `maxThemes: 5`, `maxExportsPerMonth: 100`, `integrations: true`, `maxUsers: 1`
+- [ ] **BILLING-05**: Team tier extends Pro with `maxUsers: 10`; all other limits identical to Pro
+- [ ] **BILLING-06**: When `SELF_HOSTED=true` env var is set (server-side only, never sent to client), all billing limit checks return `{ allowed: true }` immediately and the Stripe SDK is never initialized
+- [ ] **BILLING-07**: All Stripe SDK imports and billing logic live exclusively in `src/lib/billing/`; route handlers call named service functions and act on typed return values only — no `stripe` imports in `src/app/api/` files
+
+### Usage Tracking (USAGE)
+
+- [ ] **USAGE-01**: Per-org usage counters are stored on the `Organization` document: `exportsThisMonth`, `tokenCount`, `usageResetAt` (UTC timestamp of last reset)
+- [ ] **USAGE-02**: Export count resets monthly via lazy reset — on each guarded export request, if `usageResetAt` is before the start of the current UTC month, counters are atomically reset via `findOneAndUpdate` before the limit check proceeds; no cron job required
+
+### Tier Limit Enforcement (LIMIT)
+
+- [ ] **LIMIT-01**: Collection creation is blocked with HTTP 402 and structured payload `{ limitType: "collections", current, limit, upgradePlans }` when the org is at its plan's `maxCollections` cap; uses atomic `findOneAndUpdate` with `$lt` condition to prevent race-condition over-creation
+- [ ] **LIMIT-02**: Token save is blocked with HTTP 402 when the write would push `tokenCount` over the plan's `maxTokens` cap; `tokenCount` is updated via atomic `$inc` on the `Organization` document
+- [ ] **LIMIT-03**: Theme creation is blocked with HTTP 402 when the collection already has the plan's `maxThemes` themes
+- [ ] **LIMIT-04**: Export is blocked with HTTP 402 when `exportsThisMonth >= maxExportsPerMonth` or the resolved export file size exceeds `maxExportSize` bytes
+- [ ] **LIMIT-05**: GitHub push/pull and Figma push/pull endpoints return HTTP 402 when the org plan has `integrations: false`
+
+### Stripe Integration (STRIPE)
+
+- [ ] **STRIPE-01**: Org Admin can initiate a Stripe Checkout session to upgrade to Pro or Team — server creates a `checkout.session` with `mode: "subscription"`, returns `session.url`; client performs a full-page redirect to Stripe-hosted Checkout
+- [ ] **STRIPE-02**: Org Admin can open the Stripe billing portal to manage their subscription (cancel, update payment method, view invoices) — server creates a billing portal session and redirects
+- [ ] **STRIPE-03**: Webhook handler at `POST /api/billing/webhooks` uses `req.text()` for raw body, verifies Stripe signature with `stripe.webhooks.constructEvent()`, processes: `checkout.session.completed` (set plan + store `stripeCustomerId`), `invoice.payment_failed` (set `subscriptionStatus: "past_due"`), `customer.subscription.deleted` (revert to `plan: "free"`); implements `ProcessedWebhookEvent` MongoDB collection as idempotency guard; returns 200 for already-processed events
+
+### Upgrade UX (UXUP)
+
+- [ ] **UXUP-01**: A reusable `UpgradeModal` (shadcn `Dialog`) is triggered by a global 402 response interceptor; modal displays the limit type, current usage vs. cap, and an upgrade CTA that initiates a Stripe Checkout session for the appropriate plan
+
+### Rate Limiting (RATE)
+
+- [ ] **RATE-01**: Export endpoints and token-update endpoints enforce a 60 requests/minute sliding window per `session.user.id`; the rate limit key is always the authenticated user ID — never the client IP address
+
+---
+
 ## Future Requirements
 
 Deferred to later milestones. Tracked but not in current roadmap.
@@ -66,24 +115,37 @@ Deferred to later milestones. Tracked but not in current roadmap.
 ### Permissions (future)
 
 - **PERM-07**: Per-permission toggle granularity beyond named roles (e.g. Viewer with Figma export)
-- **PERM-08**: Multi-org / multi-tenant support
+
+### Billing (future)
+
+- **BILL-F01**: Pre-limit warnings at 80% usage (amber indicator in UI before hard block)
+- **BILL-F02**: `customer.subscription.updated` webhook for mid-cycle plan changes via billing portal
+- **BILL-F03**: Usage-based metered billing / overage charges (Stripe Meters API)
+- **BILL-F04**: Enterprise tier with custom pricing (sales-led)
+- **BILL-F05**: Multi-org membership / org switching (requires session model change)
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| OAuth / SSO providers | Email/password sufficient for v1.5; can add in future milestone |
+| OAuth / SSO providers | Email/password sufficient; can add in future milestone |
 | Per-permission toggles beyond named roles | Admin/Editor/Viewer roles cover current use case |
-| Multi-org / tenant support | Single org now; userId field in schema ready for future extension |
 | User profile / avatar management | Not core to token management use case |
 | Activity audit log | Deferred; MongoDB timestamps provide basic trail |
 | Real-time collaboration | No concurrent edit handling |
 | Token versioning / history | MongoDB timestamps provide basic backup |
 | Angular / Stencil / Vite workspaces | Explicitly excluded; Angular port is a future milestone |
+| Custom payment form (Stripe Elements) | PCI burden; Stripe-hosted Checkout is sufficient |
+| Client-side-only limit enforcement | Trivially bypassable; server enforcement is mandatory |
+| Real-time usage dashboard | Unnecessary complexity; counters update on write |
+| Multi-org membership (v1.6) | Single org per user now; session model supports extension later |
+| Invoice history UI in-app | Stripe billing portal covers this for v1.6 |
 
 ## Traceability
 
 Which phases cover which requirements. Updated during roadmap creation.
+
+### v1.5 (Complete)
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
@@ -113,11 +175,37 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UI-03 | Phase 21 | Complete |
 | UI-04 | Phase 21 | Complete |
 
+### v1.6 (Pending — filled by roadmapper)
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| TENANT-01 | TBD | Pending |
+| TENANT-02 | TBD | Pending |
+| TENANT-03 | TBD | Pending |
+| BILLING-01 | TBD | Pending |
+| BILLING-02 | TBD | Pending |
+| BILLING-03 | TBD | Pending |
+| BILLING-04 | TBD | Pending |
+| BILLING-05 | TBD | Pending |
+| BILLING-06 | TBD | Pending |
+| BILLING-07 | TBD | Pending |
+| USAGE-01 | TBD | Pending |
+| USAGE-02 | TBD | Pending |
+| LIMIT-01 | TBD | Pending |
+| LIMIT-02 | TBD | Pending |
+| LIMIT-03 | TBD | Pending |
+| LIMIT-04 | TBD | Pending |
+| LIMIT-05 | TBD | Pending |
+| STRIPE-01 | TBD | Pending |
+| STRIPE-02 | TBD | Pending |
+| STRIPE-03 | TBD | Pending |
+| UXUP-01 | TBD | Pending |
+| RATE-01 | TBD | Pending |
+
 **Coverage:**
-- v1.5 requirements: 25 total
-- Mapped to phases: 25
-- Unmapped: 0
+- v1.5 requirements: 25 total — all complete
+- v1.6 requirements: 22 total — 0 mapped (roadmap pending)
 
 ---
 *Requirements defined: 2026-03-28*
-*Last updated: 2026-03-28 — traceability complete after roadmap creation*
+*Last updated: 2026-03-31 — v1.6 requirements added*
