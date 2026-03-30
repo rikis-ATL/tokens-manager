@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.6
-milestone_name: Multi-Tenant SaaS
-status: roadmap_complete
-last_updated: "2026-03-30T00:00:00Z"
+milestone: v1.7
+milestone_name: AI Integration
+status: planning
+last_updated: "2026-03-31T00:00:00Z"
 progress:
-  total_phases: 3
+  total_phases: 0
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -15,19 +15,19 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-30)
+See: .planning/PROJECT.md (updated 2026-03-31)
 
 **Core value:** Token collections are always available and editable: stored in MongoDB, accessible via collection-scoped URLs, with per-collection Figma/GitHub config, full CRUD from the collections grid, Figma import/export fully integrated, and a Themes system where each theme is a complete token value set with per-group edit permissions, dark-mode awareness, and theme-targeted export.
-**Current focus:** v1.6 Multi-Tenant SaaS — roadmap complete, ready for Phase 22 planning
+**Current focus:** v1.7 AI Integration — defining requirements
 
 ## Current Position
 
-Phase: Phase 22 (not started)
+Phase: Not started (defining requirements)
 Plan: —
-Status: Roadmap set — ready to begin Phase 22 planning
-Last activity: 2026-03-30 — v1.6 roadmap created (Phases 22-24, 22 requirements mapped)
+Status: Defining requirements — Milestone v1.7 started 2026-03-31
+Last activity: 2026-03-31 — Milestone v1.7 AI Integration started
 
-Progress: [░░░░░░░░░░] 0% (0/3 phases complete)
+Progress: [░░░░░░░░░░] 0% (0/? phases complete)
 
 ## Performance Metrics
 

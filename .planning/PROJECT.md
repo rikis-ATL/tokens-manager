@@ -74,7 +74,24 @@ Token collections are always available and editable: stored in MongoDB, accessib
 
 ### Active
 
-<!-- v1.6 Multi-Tenant SaaS -->
+<!-- v1.7 AI Integration -->
+- [ ] User can open an AI chat panel on the Tokens page for the active collection — AI-01
+- [ ] User enters their own AI provider API key in user settings; key stored encrypted in MongoDB — AI-02
+- [ ] All AI API calls are made server-side; API key never exposed to the browser — AI-03
+- [ ] AI service layer is provider-agnostic; Claude (Anthropic SDK) is the initial provider — AI-04
+- [ ] AI agent can create tokens in the active collection via tool use — AI-05
+- [ ] AI agent can edit token values in the active collection via tool use — AI-06
+- [ ] AI agent can delete tokens in the active collection via tool use — AI-07
+- [ ] AI agent can create token groups in the active collection via tool use — AI-08
+- [ ] AI agent can rename token groups in the active collection via tool use — AI-09
+- [ ] AI agent can delete token groups in the active collection via tool use — AI-10
+- [ ] AI agent can create themes with AI-suggested token values via tool use — AI-11
+- [ ] User can query tokens in natural language ("which tokens use #0056D2?") — AI-12
+- [ ] User can request natural language edits ("rename all sm spacing tokens to small") — AI-13
+- [ ] User can paste token values and receive AI-suggested canonical names and group structure — AI-14
+- [ ] AI tool calls map to existing app API endpoints; AI does not write to the database directly — AI-15
+
+<!-- v1.6 Multi-Tenant SaaS (planned, not yet executed) -->
 - [ ] All users and collections are scoped to an organization via organizationId — TENANT-01
 - [ ] User can create a new organization during self-serve signup — TENANT-02
 - [ ] Existing data is migrated to an org seeded from INITIAL_ORG_NAME env var on first boot — TENANT-03
@@ -103,34 +120,41 @@ Token collections are always available and editable: stored in MongoDB, accessib
 - [ ] User can add a new group from the tree sidebar (child of any node, or at root level) — TREE-04
 - [ ] User can add tokens to the currently selected group inline — CONT-02
 
-## Current Milestone: v1.6 Multi-Tenant SaaS
+## Planned Milestone: v1.6 Multi-Tenant SaaS (roadmap ready, not yet executed)
 
 **Goal:** Convert the app into a multi-org SaaS with configurable free/pro/team tiers enforced at the API layer and paid upgrades via Stripe Checkout.
 
 **Target features:**
 - Organization data model — all users and collections scoped by `organizationId`; existing data migrated via `INITIAL_ORG_NAME` env var
 - Self-serve org signup — any user creates an org at registration and becomes its Admin
-- Configurable tier limits (`LIMITS` config) — Free / Pro / Team tiers with per-org enforcement:
-  - Free: 1 collection, 500 tokens, 1 theme, 10 exports/mo, 100 KB export size, no integrations
-  - Pro: 10 collections, 5,000 tokens, 5 themes, 100 exports/mo, integrations enabled, 1 user
-  - Team: same as Pro + up to 10 seats
-  - Self-hosted (`SELF_HOSTED=true`): unlimited, no Stripe, own MongoDB + GitHub team access
-- Usage tracking — per-org `exportsThisMonth` + `tokenCount`; monthly reset via cron or lazy reset
-- Stripe subscriptions — Checkout flow, billing portal, webhooks (`checkout.session.completed`, `invoice.payment_failed`, `customer.subscription.deleted`)
-- Upgrade prompts — modal triggers when limits are hit (export cap, token count, GitHub/Figma, second theme)
-- Rate limiting — 60 req/min per user on export and token-update endpoints
-- Payment code isolation — all Stripe/billing logic in `src/lib/billing/` module; no payment code in app routes directly
+- Configurable tier limits (`LIMITS` config) — Free / Pro / Team tiers with per-org enforcement
+- Usage tracking — per-org `exportsThisMonth` + `tokenCount`; lazy monthly reset
+- Stripe subscriptions — Checkout flow, billing portal, webhooks
+- Upgrade prompts and rate limiting
+- Payment code isolation — all Stripe/billing logic in `src/lib/billing/`
 
-### Out of Scope (v1.6)
+## Current Milestone: v1.7 AI Integration
 
-- OAuth / SSO providers — email/password sufficient
-- Usage-based metered billing / overages — flat subscriptions only
-- Multi-org membership (user in multiple orgs) — single org per user for now
-- Invoice history UI — Stripe billing portal covers this
-- Enterprise tier / custom pricing — sales-led; deferred
+**Goal:** Embed a Claude-powered AI agent in each collection's Tokens page that understands natural language and uses tool calls to create, edit, and delete tokens and groups directly in the app.
+
+**Target features:**
+- Per-collection AI chat panel on the Tokens page
+- Claude API via Anthropic SDK — provider-agnostic architecture (Claude first, extensible to others)
+- Per-user API key stored encrypted in user settings (MongoDB); all AI calls server-side
+- AI tool use — agent can call: create/edit/delete tokens, create/rename/delete groups, create themes with suggested token values
+- Natural language token queries ("which tokens use #0056D2?")
+- Natural language edits ("rename all spacing tokens with sm → small")
+- AI-assisted naming: user pastes values, AI suggests canonical token names and group structure
+- Tools map directly to existing app API endpoints (AI calls app methods, not raw DB)
+
+### Out of Scope (v1.7)
+
+- Documentation / changelog generation — deferred to v1.8+
+- Cross-collection AI queries — per-collection only
+- Shared org-level API key — per-user key only
+- AI-triggered export to GitHub/Figma — deferred
+- Fine-tuned models or custom embeddings — standard chat completions only
 - Angular / Stencil / Vite workspaces — excluded
-- Real-time collaboration — no concurrent edit handling
-- Token versioning / history — deferred
 
 ## Context
 
@@ -231,4 +255,4 @@ The Tokens page includes a **visual graph editor** (React Flow) in the right-han
 | Prefix control: single input replacing add/remove buttons | Shows current common prefix; editing applies live; no preview list needed (table updates live) | ✓ Good — simpler, more direct UX |
 
 ---
-*Last updated: 2026-03-30 after v1.6 milestone start*
+*Last updated: 2026-03-31 after v1.7 milestone start*
