@@ -7,7 +7,8 @@
 - ✅ **v1.2 Token Groups Tree** — Phases 5-6 (shipped 2026-03-13; Phase 7 Mutations deferred)
 - ✅ **v1.3 Add Tokens Modes** — Phases 8-9 (shipped 2026-03-19)
 - ✅ **v1.4 Theme Token Sets** — Phases 10-15 (shipped 2026-03-27)
-- 🚧 **v1.5 Org User Management** — Phases 16-21 (in progress)
+- ✅ **v1.5 Org User Management** — Phases 16-21 (shipped 2026-03-29)
+- 🚧 **v1.6 Multi-Tenant SaaS** — Phases 22-24 (in progress)
 
 ## Phases
 
@@ -73,16 +74,27 @@ See: `.planning/milestones/v1.4-ROADMAP.md` for full phase details.
 
 </details>
 
-### 🚧 v1.5 Org User Management (In Progress)
-
-**Milestone Goal:** Add authentication and org-level user management so multiple users can collaborate on token collections with role-based access control.
+<details>
+<summary>✅ v1.5 Org User Management (Phases 16-21) — SHIPPED 2026-03-29</summary>
 
 - [x] **Phase 16: Auth Infrastructure and Security Baseline** — Patch CVE-2025-29927, install packages, Mongoose models, authOptions, permissions pure function (completed 2026-03-28)
 - [x] **Phase 17: Auth API Routes and Sign-In Flow** — NextAuth route handler, first-user bootstrap, sign-in and sign-out pages, SessionProvider wiring (completed 2026-03-28)
 - [x] **Phase 18: Middleware and Route Handler Guards** — withAuth middleware, requireAuth() utility, all 18 existing write Route Handlers guarded (completed 2026-03-28)
 - [x] **Phase 19: RBAC and Permissions Context** — PermissionsProvider, usePermissions() hook, role enforcement on write routes, JWT role re-fetch, per-collection overrides (completed 2026-03-28)
-- [x] **Phase 20: Email Invite Flow and Account Setup** — Resend invite email, invite token generation, account setup page, invite management (in progress — 1/4 plans complete)
+- [x] **Phase 20: Email Invite Flow and Account Setup** — Resend invite email, invite token generation, account setup page, invite management (completed 2026-03-28)
 - [x] **Phase 21: Org Users Admin UI and Permission-Gated UI** — /org/users admin page, role change and removal API, write controls hidden for Viewer (completed 2026-03-29)
+
+</details>
+
+### 🚧 v1.6 Multi-Tenant SaaS (In Progress)
+
+**Milestone Goal:** Convert the app into a multi-org SaaS with configurable free/pro/team tiers enforced at the API layer and paid upgrades via Stripe Checkout.
+
+**Branch:** `feature/v1.6-multi-tenant-saas` — all v1.6 work must be done in this branch.
+
+- [ ] **Phase 22: Org Model and Multi-Tenant Foundation** — Organization model, organizationId on User+TokenCollection, JWT extension, idempotent migration bootstrap, assertOrgOwnership() on all collection routes, compound indexes, self-serve org signup
+- [ ] **Phase 23: Billing Module and Limit Enforcement** — src/lib/billing/ module skeleton, LIMITS config (tiers.ts), check functions, usage tracking with lazy UTC-month reset, rate limiter (per user ID, never IP), SELF_HOSTED bypass, 402 responses on all capped routes, UpgradeModal
+- [ ] **Phase 24: Stripe Checkout and Webhook Integration** — Stripe singleton, checkout session creation, billing portal session, webhook handler (req.text() — CRITICAL), ProcessedWebhookEvent idempotency guard, all three webhook event types, success page session refresh
 
 ## Phase Details
 
@@ -197,6 +209,41 @@ Plans:
 - [ ] 21-04-PLAN.md — Extend /org/users page with active members section, inline role selector, and remove confirmation
 - [x] 21-05-PLAN.md — Human verification of all 7 Phase 21 success criteria (completed 2026-03-29)
 
+### Phase 22: Org Model and Multi-Tenant Foundation
+**Goal**: Every user and collection belongs to an organization — the data model is scoped, existing data is migrated, and all collection routes enforce org ownership before any billing work begins
+**Depends on**: Phase 21
+**Requirements**: TENANT-01, TENANT-02, TENANT-03
+**Success Criteria** (what must be TRUE):
+  1. Every `TokenCollection` and `User` document in the database has an `organizationId` field; a boot-time assertion aborts startup if any unscoped document remains
+  2. A new user registering via the sign-up flow creates an organization atomically, is assigned Admin for that org, and has `organizationId` embedded in their JWT session at first sign-in
+  3. Any API request that references a collection by ID returns 404 (not 403) if the collection does not belong to the requesting user's org — cross-tenant resource enumeration is not possible
+  4. Compound `{ _id, organizationId }` indexes exist on `User` and `TokenCollection`; collection list queries include an `organizationId` filter visible in MongoDB explain output
+**Plans**: TBD
+
+### Phase 23: Billing Module and Limit Enforcement
+**Goal**: Every write operation is gated by tier limits defined in a single config — Free-tier orgs cannot exceed their caps, usage is tracked atomically, rate limiting is enforced per user, and the upgrade modal surfaces the correct context when any limit is hit
+**Depends on**: Phase 22
+**Requirements**: BILLING-01, BILLING-02, BILLING-03, BILLING-04, BILLING-05, BILLING-06, BILLING-07, USAGE-01, USAGE-02, LIMIT-01, LIMIT-02, LIMIT-03, LIMIT-04, LIMIT-05, UXUP-01, RATE-01
+**Success Criteria** (what must be TRUE):
+  1. A Free-tier org attempting to create a second collection, a second theme, a token write that would exceed 500 tokens, an 11th export, or a GitHub/Figma integration call receives HTTP 402 with a structured `{ limitType, current, limit, upgradePlans }` payload; no limit values are hardcoded in any route handler
+  2. Export count resets automatically on the first export request after a UTC month boundary without any cron job — verified by manipulating `usageResetAt` in the database and confirming the counter resets before the limit check proceeds
+  3. When `SELF_HOSTED=true` is set server-side, all limit check functions return `{ allowed: true }` immediately and the Stripe SDK is never imported or initialized
+  4. Export and token-update endpoints reject a user who sends more than 60 requests within a 60-second window with HTTP 429; the rate limit key is `session.user.id` (verified by inspecting the limiter key, never the client IP)
+  5. The `UpgradeModal` appears automatically when any 402 response is received; it displays the limit type, current usage vs. cap, and a CTA button that initiates an upgrade flow
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 24: Stripe Checkout and Webhook Integration
+**Goal**: An org Admin can upgrade to Pro or Team via Stripe Checkout and manage their subscription via the billing portal — plan changes are applied reliably via webhook with full idempotency
+**Depends on**: Phase 23
+**Requirements**: STRIPE-01, STRIPE-02, STRIPE-03
+**Success Criteria** (what must be TRUE):
+  1. An org Admin clicking "Upgrade to Pro" is redirected to a Stripe-hosted Checkout page; completing payment redirects back to the app where the session is refreshed and the org plan reads "pro" immediately
+  2. An org Admin clicking "Manage Billing" is redirected to the Stripe billing portal where they can cancel, update payment method, or view invoices — returning to the app reflects any plan changes
+  3. Sending a test `checkout.session.completed` webhook event to `POST /api/billing/webhooks` updates the org's `plan` and stores `stripeCustomerId`; sending the same event ID a second time returns 200 without re-processing (idempotency guard confirmed via `ProcessedWebhookEvent` collection)
+  4. A test `invoice.payment_failed` event sets the org's `subscriptionStatus` to `"past_due"`; a test `customer.subscription.deleted` event reverts the org to `plan: "free"` — both verified against the database
+**Plans**: TBD
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -222,9 +269,12 @@ Plans:
 | 13. Groups Ordering Drag and Drop | v1.4 | 3/3 | Complete | 2026-03-21 |
 | 14. Dark Mode Support | v1.4 | 5/5 | Complete | 2026-03-26 |
 | 15. Multi-Row Actions | v1.4 | 4/4 | Complete | 2026-03-27 |
-| 16. Auth Infrastructure and Security Baseline | 3/3 | Complete    | 2026-03-28 | - |
-| 17. Auth API Routes and Sign-In Flow | v1.5 | Complete    | 2026-03-28 | 2026-03-28 |
-| 18. Middleware and Route Handler Guards | 3/3 | Complete    | 2026-03-28 | - |
-| 19. RBAC and Permissions Context | 6/6 | Complete    | 2026-03-28 | - |
-| 20. Email Invite Flow and Account Setup | 4/4 | Complete   | 2026-03-28 | - |
-| 21. Org Users Admin UI and Permission-Gated UI | 5/5 | Complete    | 2026-03-29 | - |
+| 16. Auth Infrastructure and Security Baseline | v1.5 | 3/3 | Complete | 2026-03-28 |
+| 17. Auth API Routes and Sign-In Flow | v1.5 | 4/4 | Complete | 2026-03-28 |
+| 18. Middleware and Route Handler Guards | v1.5 | 3/3 | Complete | 2026-03-28 |
+| 19. RBAC and Permissions Context | v1.5 | 6/6 | Complete | 2026-03-28 |
+| 20. Email Invite Flow and Account Setup | v1.5 | 4/4 | Complete | 2026-03-28 |
+| 21. Org Users Admin UI and Permission-Gated UI | v1.5 | 5/5 | Complete | 2026-03-29 |
+| 22. Org Model and Multi-Tenant Foundation | v1.6 | 0/TBD | Not started | - |
+| 23. Billing Module and Limit Enforcement | v1.6 | 0/TBD | Not started | - |
+| 24. Stripe Checkout and Webhook Integration | v1.6 | 0/TBD | Not started | - |

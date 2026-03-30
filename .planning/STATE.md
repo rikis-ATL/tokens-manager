@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Multi-Tenant SaaS
-status: planning
+status: roadmap_complete
 last_updated: "2026-03-30T00:00:00Z"
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-30)
 
 **Core value:** Token collections are always available and editable: stored in MongoDB, accessible via collection-scoped URLs, with per-collection Figma/GitHub config, full CRUD from the collections grid, Figma import/export fully integrated, and a Themes system where each theme is a complete token value set with per-group edit permissions, dark-mode awareness, and theme-targeted export.
-**Current focus:** Defining requirements for v1.6 Multi-Tenant SaaS
+**Current focus:** v1.6 Multi-Tenant SaaS — roadmap complete, ready for Phase 22 planning
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Phase 22 (not started)
 Plan: —
-Status: Defining requirements — Milestone v1.6 started 2026-03-30
-Last activity: 2026-03-30 — Milestone v1.6 Multi-Tenant SaaS started
+Status: Roadmap set — ready to begin Phase 22 planning
+Last activity: 2026-03-30 — v1.6 roadmap created (Phases 22-24, 22 requirements mapped)
 
-Progress: [░░░░░░░░░░] 0% (0/6 phases complete, 3 plans complete in phase 16)
+Progress: [░░░░░░░░░░] 0% (0/3 phases complete)
 
 ## Performance Metrics
 
@@ -101,7 +101,7 @@ Key decisions relevant to v1.5 (from research and 16-01 execution):
 - [Phase 17-01]: Disabled accounts return 'Incorrect password' same as wrong password — no status enumeration risk
 - [Phase 17-01]: invited-status users can sign in — only 'disabled' is explicitly blocked at auth layer
 - [Phase 17-01]: GET /api/auth/setup includes SUPER_ADMIN_EMAIL only when setupRequired=true — email never exposed post-setup
-- [Phase 17-01]: POST /api/auth/setup sets status:'active' explicitly — User schema defaults to 'invited' which would block sign-in
+- [Phase 17-01]: POST /api/auth/setup sets status:'active' explicitly — User schema defaults to 'invited' which blocks sign-in in authorize()
 - [Phase 17]: Auth pages (sign-in, setup) have no app shell — isolated centered card layout for pre-auth flows
 - [Phase 17]: setupEmail stored from GET /api/auth/setup response in component state (not process.env — server-side only)
 - [Phase 17]: router.replace (not push) on setup redirect — prevents back-button return to setup page
@@ -156,19 +156,38 @@ Key decisions relevant to v1.5 (from research and 16-01 execution):
 - [Phase 21-04]: fetchUsers re-fetch used to revert optimistic role update — simpler than tracking previous value; consistent with fetch-on-mount pattern
 - [Phase 21]: All 7 Phase 21 success criteria verified by human: org members list, role change propagation, user removal, superadmin/self protection, Viewer collection page gating, Viewer GitHub/Figma dropdown gating, Viewer token editing disabled
 
+Key decisions relevant to v1.6 (from research):
+- `stripe@^17.7.0` pinned below v18 — v18 introduces `2025-03-31.basil` API breaking changes; v21 has `Stripe.Decimal` type overhaul; v17 covers all needed APIs
+- `rate-limiter-flexible@^10.0.1` with `RateLimiterMongo` — backed by existing Mongoose connection; zero new infrastructure; avoids Redis dependency
+- No `@stripe/stripe-js` or `@stripe/react-stripe-js` — server-side `session.url` redirect is current Stripe pattern; client packages not needed
+- `src/lib/billing/` isolation boundary — all Stripe SDK imports and billing logic stay in this module; route handlers call named service functions only (BILLING-07)
+- Do NOT cache plan in JWT — read from Org document at enforcement time to avoid stale plan after Stripe upgrade; `useSession().update()` on success page for UX refresh
+- Rate limit key: always `session.user.id`, never client IP — IP spoofable via X-Forwarded-For; user ID is the only trustworthy identifier
+- Webhook route uses `req.text()` exclusively — `req.json()` consumes body stream and breaks Stripe HMAC signature verification 100% of the time
+- `ProcessedWebhookEvent` MongoDB collection for webhook idempotency — survives restarts; works across instances; in-process Set is insufficient for production
+- Lazy UTC-month reset (USAGE-02) — no cron job; atomic `findOneAndUpdate` before limit check on first export of new month; `getUTCMonth()` / `getUTCFullYear()` for correct boundary
+- Atomic `$lt` check for limit enforcement (LIMIT-01, LIMIT-02) — prevents race-condition over-creation; `findOneAndUpdate` with conditional filter replaces check-then-act
+- `assertOrgOwnership()` returns 404 not 403 — avoids confirming resource existence to cross-tenant requestors
+- SELF_HOSTED bypass checked first in all limit functions — short-circuits before any DB read or Stripe call
+- Compound `{ _id, organizationId }` indexes on User and TokenCollection — prevents COLLSCAN on collection list queries; added in same commit as the field
+- org created atomically with user at registration — no orphaned users without an org; organizationId in JWT from first sign-in
+
 ### Pending Todos
 
-None.
+- Create `feature/v1.6-multi-tenant-saas` git branch before beginning Phase 22 work
+- Add `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRO_PRICE_ID`, `STRIPE_TEAM_PRICE_ID`, `INITIAL_ORG_NAME`, `SELF_HOSTED` to `.env.local` documentation before Phase 23/24
+- Confirm deployment target (single-instance vs. Vercel serverless) before Phase 23 — determines whether in-process Map or `RateLimiterMongo` is appropriate for rate limiting
+- Create Stripe price IDs in Dashboard (ops step) before Phase 24 begins
 
 ### Blockers/Concerns
 
 - ~~CVE-2025-29927: Next.js 13.5.6 middleware auth bypass (CVSS 9.1)~~ — RESOLVED in 16-01: patched to next@13.5.9
-- Per-collection override loading strategy (PERM-04) unresolved — lazy fetch on collection page mount vs. eager load of all user overrides at session start; resolve during Phase 19 planning
 - Resend domain verification required for production — `onboarding@resend.dev` works in dev; production needs verified sending domain (operational gap, not code gap)
 - Sign-in rate limiting deferred — `POST /api/auth/callback/credentials` unprotected against brute force; acceptable for internal tool; document in Phase 18 plan
 
 ## Session Continuity
 
-Last session: 2026-03-29T00:05:00Z
-Stopped at: Completed 21-05-PLAN.md — Phase 21 human verification approved; all 7 scenarios pass; milestone v1.5 Org User Management complete
+Last session: 2026-03-30T00:00:00Z
+Stopped at: v1.6 roadmap created — Phases 22-24 defined, all 22 requirements mapped, files written
 Resume file: None
+Next action: `/gsd:plan-phase 22` to begin Org Model and Multi-Tenant Foundation

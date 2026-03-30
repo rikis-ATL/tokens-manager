@@ -175,37 +175,37 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UI-03 | Phase 21 | Complete |
 | UI-04 | Phase 21 | Complete |
 
-### v1.6 (Pending — filled by roadmapper)
+### v1.6 (Roadmap set 2026-03-30)
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TENANT-01 | TBD | Pending |
-| TENANT-02 | TBD | Pending |
-| TENANT-03 | TBD | Pending |
-| BILLING-01 | TBD | Pending |
-| BILLING-02 | TBD | Pending |
-| BILLING-03 | TBD | Pending |
-| BILLING-04 | TBD | Pending |
-| BILLING-05 | TBD | Pending |
-| BILLING-06 | TBD | Pending |
-| BILLING-07 | TBD | Pending |
-| USAGE-01 | TBD | Pending |
-| USAGE-02 | TBD | Pending |
-| LIMIT-01 | TBD | Pending |
-| LIMIT-02 | TBD | Pending |
-| LIMIT-03 | TBD | Pending |
-| LIMIT-04 | TBD | Pending |
-| LIMIT-05 | TBD | Pending |
-| STRIPE-01 | TBD | Pending |
-| STRIPE-02 | TBD | Pending |
-| STRIPE-03 | TBD | Pending |
-| UXUP-01 | TBD | Pending |
-| RATE-01 | TBD | Pending |
+| TENANT-01 | Phase 22 | Pending |
+| TENANT-02 | Phase 22 | Pending |
+| TENANT-03 | Phase 22 | Pending |
+| BILLING-01 | Phase 23 | Pending |
+| BILLING-02 | Phase 23 | Pending |
+| BILLING-03 | Phase 23 | Pending |
+| BILLING-04 | Phase 23 | Pending |
+| BILLING-05 | Phase 23 | Pending |
+| BILLING-06 | Phase 23 | Pending |
+| BILLING-07 | Phase 23 | Pending |
+| USAGE-01 | Phase 23 | Pending |
+| USAGE-02 | Phase 23 | Pending |
+| LIMIT-01 | Phase 23 | Pending |
+| LIMIT-02 | Phase 23 | Pending |
+| LIMIT-03 | Phase 23 | Pending |
+| LIMIT-04 | Phase 23 | Pending |
+| LIMIT-05 | Phase 23 | Pending |
+| UXUP-01 | Phase 23 | Pending |
+| RATE-01 | Phase 23 | Pending |
+| STRIPE-01 | Phase 24 | Pending |
+| STRIPE-02 | Phase 24 | Pending |
+| STRIPE-03 | Phase 24 | Pending |
 
 **Coverage:**
 - v1.5 requirements: 25 total — all complete
-- v1.6 requirements: 22 total — 0 mapped (roadmap pending)
+- v1.6 requirements: 22 total — 22 mapped (Phases 22-24)
 
 ---
 *Requirements defined: 2026-03-28*
-*Last updated: 2026-03-31 — v1.6 requirements added*
+*Last updated: 2026-03-30 — v1.6 traceability filled by roadmapper*
