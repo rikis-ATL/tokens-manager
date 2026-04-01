@@ -19,8 +19,10 @@ interface SupabaseRow {
   figma_file_id: string | null;
   github_repo: string | null;
   github_branch: string | null;
+  github_path: string | null;
   graph_state: Record<string, unknown> | null;
   themes: ITheme[] | null;
+  is_playground: boolean | null;
   created_at: string;
   updated_at: string;
 }
@@ -39,7 +41,9 @@ function rowToDoc(row: SupabaseRow): CollectionDoc {
     figmaFileId: row.figma_file_id ?? null,
     githubRepo: row.github_repo ?? null,
     githubBranch: row.github_branch ?? null,
+    githubPath: row.github_path ?? null,
     graphState: (row.graph_state as CollectionDoc['graphState']) ?? null,
+    isPlayground: row.is_playground ?? false,
     themes: row.themes ?? [],
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -58,6 +62,8 @@ function toInsertRow(data: CreateCollectionInput) {
     figma_file_id: data.figmaFileId ?? null,
     github_repo: data.githubRepo ?? null,
     github_branch: data.githubBranch ?? null,
+    github_path: data.githubPath ?? null,
+    is_playground: data.isPlayground ?? false,
   };
 }
 
@@ -72,8 +78,10 @@ function toUpdateRow(data: UpdateTokenCollectionInput) {
   if (data.figmaFileId !== undefined) row.figma_file_id = data.figmaFileId;
   if (data.githubRepo !== undefined) row.github_repo = data.githubRepo;
   if (data.githubBranch !== undefined) row.github_branch = data.githubBranch;
+  if (data.githubPath !== undefined) row.github_path = data.githubPath;
   if (data.graphState !== undefined) row.graph_state = data.graphState;
   if (data.themes !== undefined) row.themes = data.themes;
+  if (data.isPlayground !== undefined) row.is_playground = data.isPlayground;
   return row;
 }
 

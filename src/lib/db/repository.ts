@@ -21,6 +21,8 @@ export interface CreateCollectionInput {
   figmaFileId?: string | null;
   githubRepo?: string | null;
   githubBranch?: string | null;
+  githubPath?: string | null;
+  isPlayground?: boolean;
 }
 
 /**

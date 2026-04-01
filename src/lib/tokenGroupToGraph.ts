@@ -225,8 +225,8 @@ export function buildTokenDetailGraph(
           );
           edges.push({
             id: `ref-${token.id}-${targetId}`,
-            source: token.id,
-            target: targetId,
+            source: targetId,
+            target: token.id,
             type: 'referenceEdge',
             animated: true,
           });

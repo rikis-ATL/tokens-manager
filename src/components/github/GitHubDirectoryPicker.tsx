@@ -19,6 +19,7 @@ interface GitHubDirectoryPickerProps {
   onSelect: (path: string, branch: string) => void;
   onCancel: () => void;
   defaultFilename?: string;
+  defaultPath?: string;
   mode?: 'export' | 'import';
   availableBranches?: string[];
 }
@@ -30,12 +31,13 @@ export function GitHubDirectoryPicker({
   onSelect,
   onCancel,
   defaultFilename = 'tokens.json',
+  defaultPath = '',
   mode = 'export',
   availableBranches = []
 }: GitHubDirectoryPickerProps) {
   const [directoryTree, setDirectoryTree] = useState<DirectoryItem[]>([]);
   const [expandedDirs, setExpandedDirs] = useState<Set<string>>(new Set());
-  const [selectedPath, setSelectedPath] = useState('');
+  const [selectedPath, setSelectedPath] = useState(defaultPath);
   const [selectedFile, setSelectedFile] = useState('');
   const [filename, setFilename] = useState(defaultFilename);
   const [loading, setLoading] = useState(true);
@@ -46,12 +48,12 @@ export function GitHubDirectoryPicker({
   useEffect(() => {
     setDirectoryTree([]);
     setExpandedDirs(new Set());
-    setSelectedPath('');
+    setSelectedPath(defaultPath);
     setSelectedFile('');
     setSelectionType('');
     setLoading(true);
     loadDirectoryContents('');
-  }, [githubToken, repository, selectedBranch]);
+  }, [githubToken, repository, selectedBranch, defaultPath]);
 
   const loadDirectoryContents = async (path: string = '') => {
     try {
@@ -64,7 +66,18 @@ export function GitHubDirectoryPicker({
       });
 
       if (!response.ok) {
-        throw new Error('Failed to load directory contents');
+        const errorData = await response.json().catch(() => ({ message: response.statusText }));
+        const errorMessage = errorData.message || 'Failed to load directory contents';
+        
+        if (response.status === 401) {
+          throw new Error('Authentication failed - check your GitHub token');
+        } else if (response.status === 404) {
+          throw new Error(`Repository "${repository}" or branch "${selectedBranch}" not found`);
+        } else if (response.status === 403) {
+          throw new Error('Access denied - check token permissions (needs "repo" scope)');
+        } else {
+          throw new Error(errorMessage);
+        }
       }
 
       const contents = await response.json();
@@ -97,7 +110,9 @@ export function GitHubDirectoryPicker({
       }
     } catch (error) {
       console.error('Error loading directory:', error);
-      alert('Failed to load directory contents');
+      const message = error instanceof Error ? error.message : 'Failed to load directory contents';
+      alert(`GitHub Error: ${message}\n\nRepository: ${repository}\nBranch: ${selectedBranch}`);
+      setLoading(false);
     }
   };
 

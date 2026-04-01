@@ -19,7 +19,9 @@ function toDoc(raw: Record<string, unknown>): CollectionDoc {
     figmaFileId: (raw.figmaFileId as string | null) ?? null,
     githubRepo: (raw.githubRepo as string | null) ?? null,
     githubBranch: (raw.githubBranch as string | null) ?? null,
+    githubPath: (raw.githubPath as string | null) ?? null,
     graphState: (raw.graphState as CollectionDoc['graphState']) ?? null,
+    isPlayground: (raw.isPlayground as boolean) ?? false,
     themes: ((raw.themes as Array<Record<string, unknown>>) ?? []).map((t) => ({
       ...t,
       tokens: (t.tokens as TokenGroup[]) ?? [],
@@ -67,6 +69,8 @@ export class MongoCollectionRepository implements ICollectionRepository {
       figmaFileId: data.figmaFileId ?? null,
       githubRepo: data.githubRepo ?? null,
       githubBranch: data.githubBranch ?? null,
+      githubPath: data.githubPath ?? null,
+      isPlayground: data.isPlayground ?? false,
     });
     return toDoc(doc.toObject() as Record<string, unknown>);
   }

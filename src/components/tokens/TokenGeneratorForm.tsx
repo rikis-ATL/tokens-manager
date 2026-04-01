@@ -69,6 +69,7 @@ interface TokenTableRowProps {
   token: GeneratedToken;
   group: TokenGroup;
   tokenGroups: TokenGroup[];
+  namespace?: string;
   selectedTokenId?: string | null;
   isExpanded: boolean;
   onTokenSelect?: (token: GeneratedToken | null, groupPath: string) => void;
@@ -134,6 +135,7 @@ function TokenTableRow({
   token,
   group,
   tokenGroups,
+  namespace,
   selectedTokenId,
   isExpanded,
   onTokenSelect,
@@ -383,6 +385,7 @@ function TokenTableRow({
               <div onClick={(e) => e.stopPropagation()}>
                 <TokenReferencePicker
                   allGroups={tokenGroups}
+                  namespace={namespace}
                   onSelect={(alias) =>
                     onUpdateToken(group.id, token.id, "value", alias)
                   }
@@ -1067,6 +1070,51 @@ export function TokenGeneratorForm({
         !!findGroupById(themeTokens, groupId));
     if (groupInTheme && field === "path") return; // Theme mode: token names locked
 
+    const workingGroups = groupInTheme ? themeTokens! : tokenGroups;
+
+    // If updating path, we need to cascade the change to all references
+    let oldFullPath: string | null = null;
+    let newFullPath: string | null = null;
+    
+    if (field === "path") {
+      // Find the old full path before update
+      const findOldPath = (groups: TokenGroup[], prefix = ''): string | null => {
+        for (const group of groups) {
+          const groupPath = prefix ? `${prefix}.${group.name}` : (group.path ?? group.name);
+          if (group.id === groupId) {
+            const token = group.tokens.find(t => t.id === tokenId);
+            if (token) {
+              return `${globalNamespace}.${groupPath}.${token.path}`;
+            }
+          }
+          if (group.children) {
+            const found = findOldPath(group.children, groupPath);
+            if (found) return found;
+          }
+        }
+        return null;
+      };
+      
+      oldFullPath = findOldPath(workingGroups);
+      
+      // Construct new full path
+      const findNewPath = (groups: TokenGroup[], prefix = ''): string | null => {
+        for (const group of groups) {
+          const groupPath = prefix ? `${prefix}.${group.name}` : (group.path ?? group.name);
+          if (group.id === groupId) {
+            return `${globalNamespace}.${groupPath}.${value}`;
+          }
+          if (group.children) {
+            const found = findNewPath(group.children, groupPath);
+            if (found) return found;
+          }
+        }
+        return null;
+      };
+      
+      newFullPath = findNewPath(workingGroups);
+    }
+
     const applyUpdate = (groups: TokenGroup[]): TokenGroup[] => {
       return groups.map((group) => {
         if (group.id === groupId) {
@@ -1084,10 +1132,36 @@ export function TokenGeneratorForm({
       });
     };
 
+    // Apply cascading reference updates if path changed
+    const cascadeReferenceUpdates = (groups: TokenGroup[]): TokenGroup[] => {
+      if (!oldFullPath || !newFullPath) return groups;
+      
+      const oldRef = `{${oldFullPath}.value}`;
+      const newRef = `{${newFullPath}.value}`;
+      
+      return groups.map((group) => ({
+        ...group,
+        tokens: group.tokens.map((token) => {
+          if (typeof token.value === 'string' && token.value === oldRef) {
+            return { ...token, value: newRef };
+          }
+          return token;
+        }),
+        children: group.children ? cascadeReferenceUpdates(group.children) : undefined,
+      }));
+    };
+
+    let updatedGroups = applyUpdate(workingGroups);
+    
+    // Apply cascade if path changed
+    if (field === "path" && oldFullPath && newFullPath) {
+      updatedGroups = cascadeReferenceUpdates(updatedGroups);
+    }
+
     if (groupInTheme) {
-      onThemeTokensChange!(applyUpdate(themeTokens!));
+      onThemeTokensChange!(updatedGroups);
     } else {
-      setTokenGroups(applyUpdate(tokenGroups));
+      setTokenGroups(updatedGroups);
       setIsDirty(true);
     }
   };
@@ -1528,6 +1602,7 @@ export function TokenGeneratorForm({
                       token={token}
                       group={group}
                       tokenGroups={tokenGroups}
+                      namespace={globalNamespace}
                       selectedTokenId={selectedTokenId}
                       isExpanded={expandedTokens.has(token.id)}
                       onTokenSelect={onTokenSelect}

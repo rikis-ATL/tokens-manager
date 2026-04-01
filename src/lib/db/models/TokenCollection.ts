@@ -34,6 +34,7 @@ const tokenCollectionSchema = new Schema<TokenCollectionDoc>(
     figmaFileId:    { type: String, default: null },
     githubRepo:     { type: String, default: null },
     githubBranch:   { type: String, default: null },
+    githubPath:     { type: String, default: null },
     graphState:     { type: Schema.Types.Mixed, default: null },
     themes:         { type: Schema.Types.Mixed, default: [] },
     isPlayground:   { type: Boolean, default: false },

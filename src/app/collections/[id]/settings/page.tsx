@@ -3,7 +3,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
 import { usePermissions } from '@/context/PermissionsContext';
+import { showSuccessToast, showErrorToast } from '@/utils/toast.utils';
+import { GitHubDirectoryPicker } from '@/components/github/GitHubDirectoryPicker';
+import { ExportToFigmaDialog } from '@/components/figma/ExportToFigmaDialog';
+import { ImportFromFigmaDialog } from '@/components/figma/ImportFromFigmaDialog';
+import { githubService } from '@/services';
 
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
@@ -13,16 +19,26 @@ interface SettingsPageProps {
 
 export default function CollectionSettingsPage({ params }: SettingsPageProps) {
   const { id } = params;
-  const { isAdmin } = usePermissions();
+  const { isAdmin, canGitHub, canFigma } = usePermissions();
 
   const [collectionName, setCollectionName] = useState('');
   const [figmaToken, setFigmaToken] = useState('');
   const [figmaFileId, setFigmaFileId] = useState('');
   const [githubRepo, setGithubRepo] = useState('');
   const [githubBranch, setGithubBranch] = useState('');
+  const [githubPath, setGithubPath] = useState('');
+  const [githubToken, setGithubToken] = useState('');
   const [isPlayground, setIsPlayground] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [loading, setLoading] = useState(true);
+  const [collectionTokens, setCollectionTokens] = useState<Record<string, unknown>>({});
+
+  // GitHub/Figma sync dialogs
+  const [showDirectoryPicker, setShowDirectoryPicker] = useState(false);
+  const [directoryPickerMode, setDirectoryPickerMode] = useState<'export' | 'import'>('export');
+  const [availableBranches, setAvailableBranches] = useState<string[]>([]);
+  const [showExportFigmaDialog, setShowExportFigmaDialog] = useState(false);
+  const [showImportFigmaDialog, setShowImportFigmaDialog] = useState(false);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const didMountRef = useRef(false);
@@ -38,6 +54,7 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
         const col = data.collection;
 
         setCollectionName(col.name ?? '');
+        setCollectionTokens(col.tokens ?? {});
 
         // Pre-populate from DB; fall back to localStorage (using actual keys from FigmaConfig/GitHubConfig)
         const figmaConfigRaw = localStorage.getItem('figma-config');
@@ -50,6 +67,12 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
         setFigmaFileId(col.figmaFileId ?? figmaConfig?.fileKey ?? '');
         setGithubRepo(col.githubRepo ?? githubConfig?.repository ?? '');
         setGithubBranch(col.githubBranch ?? githubConfig?.branch ?? '');
+        setGithubPath(col.githubPath ?? '');
+        
+        // Load GitHub token from localStorage (not stored in DB)
+        const savedGithubToken = localStorage.getItem('github-token-settings') || githubConfig?.token || '';
+        setGithubToken(savedGithubToken);
+        
         setIsPlayground(col.isPlayground ?? false);
       } catch (err) {
         console.error('[CollectionSettingsPage] Failed to load collection:', err);
@@ -77,14 +100,15 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
     setSaveStatus('saving');
 
     debounceRef.current = setTimeout(async () => {
-      await saveToDb({ figmaToken, figmaFileId, githubRepo, githubBranch, isPlayground });
+      await saveToDb({ figmaToken, figmaFileId, githubRepo, githubBranch, githubPath, isPlayground });
     }, 800);
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
+    // Note: githubToken is intentionally excluded — it's stored in localStorage only
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [figmaToken, figmaFileId, githubRepo, githubBranch, isPlayground]);
+  }, [figmaToken, figmaFileId, githubRepo, githubBranch, githubPath, isPlayground]);
 
   // Once loading finishes, mark mount as done so subsequent changes trigger auto-save
   useEffect(() => {
@@ -93,11 +117,19 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
     }
   }, [loading]);
 
+  // Sync GitHub token to/from localStorage (separate from DB auto-save)
+  useEffect(() => {
+    if (githubToken) {
+      localStorage.setItem('github-token-settings', githubToken);
+    }
+  }, [githubToken]);
+
   async function saveToDb(fields: {
     figmaToken: string;
     figmaFileId: string;
     githubRepo: string;
     githubBranch: string;
+    githubPath: string;
     isPlayground: boolean;
   }) {
     try {
@@ -109,6 +141,7 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
           figmaFileId: fields.figmaFileId || null,
           githubRepo: fields.githubRepo || null,
           githubBranch: fields.githubBranch || null,
+          githubPath: fields.githubPath || null,
           isPlayground: fields.isPlayground,
         }),
       });
@@ -131,16 +164,241 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
     setFigmaToken('');
     setFigmaFileId('');
     setSaveStatus('saving');
-    saveToDb({ figmaToken: '', figmaFileId: '', githubRepo, githubBranch, isPlayground });
+    saveToDb({ figmaToken: '', figmaFileId: '', githubRepo, githubBranch, githubPath, isPlayground });
   }
 
   function clearGithubFields() {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     setGithubRepo('');
     setGithubBranch('');
+    setGithubPath('');
     setSaveStatus('saving');
-    saveToDb({ figmaToken, figmaFileId, githubRepo: '', githubBranch: '', isPlayground });
+    saveToDb({ figmaToken, figmaFileId, githubRepo: '', githubBranch: '', githubPath: '', isPlayground });
   }
+
+  // ── GitHub sync actions ────────────────────────────────────────────
+  const loadBranches = async () => {
+    if (!githubRepo || !githubToken) {
+      showErrorToast('Please configure GitHub connection first');
+      return;
+    }
+
+    const cleanedRepo = cleanRepositoryName(githubRepo);
+    if (!cleanedRepo) {
+      showErrorToast('Invalid repository format');
+      return;
+    }
+
+    try {
+      const branches = await githubService.getBranches(githubToken, cleanedRepo);
+      const branchNames = branches.map((branch) => branch.name);
+      setAvailableBranches(branchNames);
+    } catch (error) {
+      console.error('Failed to load branches:', error);
+      throw error;
+    }
+  };
+
+  const handlePushToGitHub = async () => {
+    if (!githubRepo || !githubToken) {
+      showErrorToast('Please configure GitHub connection first');
+      return;
+    }
+
+    // Clean repository name (remove GitHub URL if present)
+    const cleanedRepo = cleanRepositoryName(githubRepo);
+    if (!cleanedRepo) {
+      showErrorToast('Invalid repository format. Use: username/repository-name');
+      return;
+    }
+
+    // Update state with cleaned repo name if it was modified
+    if (cleanedRepo !== githubRepo) {
+      setGithubRepo(cleanedRepo);
+    }
+
+    try {
+      await loadBranches();
+    } catch (error) {
+      console.warn('Failed to load branches, continuing with export:', error);
+      if (availableBranches.length === 0 && githubBranch) {
+        setAvailableBranches([githubBranch]);
+      }
+    }
+
+    setDirectoryPickerMode('export');
+    setShowDirectoryPicker(true);
+  };
+
+  const handlePullFromGitHub = async () => {
+    if (!githubRepo || !githubToken) {
+      showErrorToast('Please configure GitHub connection first');
+      return;
+    }
+
+    // Clean repository name (remove GitHub URL if present)
+    const cleanedRepo = cleanRepositoryName(githubRepo);
+    if (!cleanedRepo) {
+      showErrorToast('Invalid repository format. Use: username/repository-name');
+      return;
+    }
+
+    // Update state with cleaned repo name if it was modified
+    if (cleanedRepo !== githubRepo) {
+      setGithubRepo(cleanedRepo);
+    }
+
+    try {
+      await loadBranches();
+    } catch (error) {
+      console.warn('Failed to load branches, continuing with import:', error);
+      if (availableBranches.length === 0 && githubBranch) {
+        setAvailableBranches([githubBranch]);
+      }
+    }
+
+    setDirectoryPickerMode('import');
+    setShowDirectoryPicker(true);
+  };
+
+  // Helper: clean repository name by removing GitHub URLs
+  function cleanRepositoryName(repo: string): string | null {
+    let cleaned = repo.trim();
+    
+    // Remove GitHub URL prefixes
+    if (cleaned.startsWith('https://github.com/')) {
+      cleaned = cleaned.replace('https://github.com/', '');
+    } else if (cleaned.startsWith('http://github.com/')) {
+      cleaned = cleaned.replace('http://github.com/', '');
+    } else if (cleaned.startsWith('github.com/')) {
+      cleaned = cleaned.replace('github.com/', '');
+    }
+    
+    // Remove trailing slashes or .git
+    cleaned = cleaned.replace(/\.git$/, '').replace(/\/$/, '');
+    
+    // Validate format: must be username/repository
+    if (!cleaned.includes('/') || cleaned.split('/').length !== 2) {
+      return null;
+    }
+    
+    return cleaned;
+  }
+
+  const handleDirectorySelect = async (selectedPath: string, selectedBranch: string) => {
+    setShowDirectoryPicker(false);
+
+    const isImportMode = directoryPickerMode === 'import';
+    const cleanedRepo = cleanRepositoryName(githubRepo);
+    
+    if (!cleanedRepo) {
+      showErrorToast('Invalid repository format');
+      return;
+    }
+
+    try {
+      if (directoryPickerMode === 'export') {
+        // Export mode
+        const response = await fetch('/api/export/github', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tokenSet: collectionTokens,
+            repository: cleanedRepo,
+            githubToken: githubToken,
+            branch: selectedBranch,
+            path: selectedPath,
+          }),
+        });
+
+        if (response.ok) {
+          showSuccessToast('Successfully pushed to GitHub!');
+        } else {
+          const error = await response.text();
+          showErrorToast(`Push failed: ${error}`);
+        }
+      } else {
+        // Import mode
+        const response = await fetch('/api/import/github', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            repository: cleanedRepo,
+            githubToken: githubToken,
+            branch: selectedBranch,
+            path: selectedPath,
+          }),
+        });
+
+        if (response.ok) {
+          const { tokenSet } = await response.json();
+          
+          // Update collection with imported tokens
+          const updateRes = await fetch(`/api/collections/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tokens: tokenSet }),
+          });
+
+          if (updateRes.ok) {
+            setCollectionTokens(tokenSet);
+            showSuccessToast('Successfully pulled from GitHub!');
+          } else {
+            showErrorToast('Failed to save imported tokens');
+          }
+        } else {
+          const error = await response.text();
+          showErrorToast(`Pull failed: ${error}`);
+        }
+      }
+    } catch (error) {
+      showErrorToast(`${isImportMode ? 'Pull' : 'Push'} failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
+  // ── Figma sync actions ─────────────────────────────────────────────
+  const handlePushToFigma = () => {
+    if (!figmaToken || !figmaFileId) {
+      showErrorToast('Please configure Figma connection first');
+      return;
+    }
+    setShowExportFigmaDialog(true);
+  };
+
+  const handlePullFromFigma = () => {
+    if (!figmaToken || !figmaFileId) {
+      showErrorToast('Please configure Figma connection first');
+      return;
+    }
+    setShowImportFigmaDialog(true);
+  };
+
+  const handleFigmaImported = async (importedCollectionId: string, name: string) => {
+    // Fetch the imported collection's tokens and update the current collection
+    try {
+      const res = await fetch(`/api/collections/${importedCollectionId}`);
+      if (!res.ok) throw new Error('Failed to fetch imported collection');
+      const data = await res.json();
+      
+      // Update current collection with imported tokens
+      const updateRes = await fetch(`/api/collections/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tokens: data.collection.tokens }),
+      });
+
+      if (updateRes.ok) {
+        setCollectionTokens(data.collection.tokens);
+        setShowImportFigmaDialog(false);
+        showSuccessToast(`Successfully pulled "${name}" from Figma!`);
+      } else {
+        showErrorToast('Failed to save imported tokens');
+      }
+    } catch (err) {
+      console.error('Failed to apply imported tokens:', err);
+      showErrorToast('Failed to apply imported tokens');
+    }
+  };
 
   if (loading) {
     return (
@@ -223,6 +481,41 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
                 The file key from your Figma file URL (figma.com/design/<strong>FILE_KEY</strong>/...)
               </p>
             </div>
+
+            {/* Figma sync actions */}
+            {canFigma && figmaToken && figmaFileId && (
+              <div className="flex gap-2 pt-2">
+                <Button
+                  onClick={handlePushToFigma}
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                >
+                  Push to Figma
+                </Button>
+                <Button
+                  onClick={handlePullFromFigma}
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                >
+                  Pull from Figma
+                </Button>
+              </div>
+            )}
+            
+            {/* Show helper text when buttons are hidden */}
+            {canFigma && (!figmaToken || !figmaFileId) && (
+              <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-xs text-blue-700">
+                Fill in all Figma fields above to enable Push/Pull actions
+              </div>
+            )}
+            
+            {!canFigma && (figmaToken || figmaFileId) && (
+              <div className="bg-amber-50 border border-amber-200 rounded-md p-3 text-xs text-amber-700">
+                You don't have Figma sync permissions for this collection
+              </div>
+            )}
           </div>
         </section>
 
@@ -250,11 +543,51 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
                 type="text"
                 value={githubRepo}
                 onChange={(e) => setGithubRepo(e.target.value)}
+                onBlur={(e) => {
+                  // Auto-clean on blur if user pasted a full URL
+                  const cleaned = cleanRepositoryName(e.target.value);
+                  if (cleaned && cleaned !== e.target.value) {
+                    setGithubRepo(cleaned);
+                  }
+                }}
                 placeholder="org/repo"
               />
               <p className="text-xs text-gray-500 mt-1">
                 Format: <code className="bg-gray-100 px-1 rounded">username/repository</code>
               </p>
+              <p className="text-xs text-gray-400 mt-1">
+                Tip: You can paste the full GitHub URL and it will be auto-cleaned to the correct format
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                GitHub Token
+              </label>
+              <Input
+                type="password"
+                value={githubToken}
+                onChange={(e) => setGithubToken(e.target.value)}
+                placeholder="ghp_xxxx..."
+              />
+              <div className="mt-1 space-y-1">
+                <p className="text-xs text-gray-500">
+                  Personal access token with <strong>repo</strong> scope permissions (stored in browser only, not in DB)
+                </p>
+                <details className="text-xs text-gray-600">
+                  <summary className="cursor-pointer hover:text-gray-900 font-medium">
+                    How to create a token with correct permissions
+                  </summary>
+                  <div className="mt-2 pl-3 space-y-1 text-gray-600 bg-gray-50 p-2 rounded">
+                    <p>1. Go to <a href="https://github.com/settings/tokens" target="_blank" rel="noopener" className="text-blue-600 hover:underline">github.com/settings/tokens</a></p>
+                    <p>2. Click "Generate new token" → "Generate new token (classic)"</p>
+                    <p>3. Name it (e.g., "Token Manager Access")</p>
+                    <p>4. <strong>Required: Check the "repo" checkbox</strong> (gives full repo access)</p>
+                    <p>5. Click "Generate token" at bottom</p>
+                    <p>6. Copy the token (starts with ghp_) and paste it here</p>
+                  </div>
+                </details>
+              </div>
             </div>
 
             <div>
@@ -271,6 +604,59 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
                 The branch to read tokens from (e.g. <code className="bg-gray-100 px-1 rounded">main</code>)
               </p>
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Default Output Path
+              </label>
+              <Input
+                type="text"
+                value={githubPath}
+                onChange={(e) => setGithubPath(e.target.value)}
+                placeholder="tokens/ or design-system/tokens/"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Optional subdirectory path for token files. When pushing to GitHub, you'll be able to navigate existing directories or type a new path - GitHub will create any missing directories automatically.
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                Examples: <code className="bg-gray-100 px-1 rounded">tokens/</code>, <code className="bg-gray-100 px-1 rounded">design-system/tokens/</code>, <code className="bg-gray-100 px-1 rounded">src/styles/tokens/</code>
+              </p>
+            </div>
+
+            {/* GitHub sync actions */}
+            {canGitHub && githubRepo && githubBranch && githubToken && (
+              <div className="flex gap-2 pt-2">
+                <Button
+                  onClick={handlePushToGitHub}
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                >
+                  Push to GitHub
+                </Button>
+                <Button
+                  onClick={handlePullFromGitHub}
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                >
+                  Pull from GitHub
+                </Button>
+              </div>
+            )}
+            
+            {/* Show helper text when buttons are hidden */}
+            {canGitHub && (!githubRepo || !githubBranch || !githubToken) && (
+              <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-xs text-blue-700">
+                Fill in all GitHub fields above to enable Push/Pull actions
+              </div>
+            )}
+            
+            {!canGitHub && (githubRepo || githubBranch || githubToken) && (
+              <div className="bg-amber-50 border border-amber-200 rounded-md p-3 text-xs text-amber-700">
+                You don't have GitHub sync permissions for this collection
+              </div>
+            )}
           </div>
         </section>
 
@@ -304,6 +690,35 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
           </section>
         )}
       </div>
+
+      {/* GitHub Directory Picker Dialog */}
+      {showDirectoryPicker && githubRepo && githubToken && (
+        <GitHubDirectoryPicker
+          githubToken={githubToken}
+          repository={cleanRepositoryName(githubRepo) || githubRepo}
+          branch={githubBranch}
+          onSelect={handleDirectorySelect}
+          onCancel={() => setShowDirectoryPicker(false)}
+          mode={directoryPickerMode}
+          defaultPath={githubPath}
+          availableBranches={availableBranches}
+        />
+      )}
+
+      {/* Figma Export Dialog */}
+      <ExportToFigmaDialog
+        isOpen={showExportFigmaDialog}
+        onClose={() => setShowExportFigmaDialog(false)}
+        tokenSet={collectionTokens}
+        loadedCollectionId={id}
+      />
+
+      {/* Figma Import Dialog */}
+      <ImportFromFigmaDialog
+        isOpen={showImportFigmaDialog}
+        onClose={() => setShowImportFigmaDialog(false)}
+        onImported={handleFigmaImported}
+      />
     </div>
   );
 }

@@ -12,19 +12,22 @@ interface FlatToken {
   aliasPath: string;
 }
 
-function flattenAllTokens(groups: TokenGroup[], prefix = ''): FlatToken[] {
+function flattenAllTokens(groups: TokenGroup[], namespace = '', prefix = ''): FlatToken[] {
   const results: FlatToken[] = [];
   for (const group of groups) {
     const groupPath = prefix ? `${prefix}.${group.name}` : group.name;
     for (const token of group.tokens) {
+      // Build aliasPath with namespace prefix if provided
+      const tokenPath = `${groupPath}.${token.path}`;
+      const aliasPath = namespace ? `${namespace}.${tokenPath}` : tokenPath;
       results.push({
         token,
         groupPath,
-        aliasPath: `${groupPath}.${token.path}`,
+        aliasPath,
       });
     }
     if (group.children?.length) {
-      results.push(...flattenAllTokens(group.children, groupPath));
+      results.push(...flattenAllTokens(group.children, namespace, groupPath));
     }
   }
   return results;
@@ -41,23 +44,35 @@ function matchesQuery(flat: FlatToken, q: string): boolean {
 function resolveColorValue(value: string, allFlat: FlatToken[], depth = 0): string | null {
   if (depth > 5 || !value || typeof value !== 'string') return null;
   if (!value.startsWith('{')) return value;
-  const path = value.slice(1, -1);
-  const found = allFlat.find(f => f.aliasPath === path);
+  
+  // Clean the reference: remove braces and .value suffix
+  const cleanPath = value.slice(1, -1).replace(/\.value$/, '');
+  
+  // Try to find a matching token by comparing paths flexibly
+  const found = allFlat.find(f => {
+    const cleanAliasPath = f.aliasPath.replace(/\.value$/, '');
+    // Exact match or suffix match (handles namespace differences)
+    return cleanAliasPath === cleanPath || 
+           cleanAliasPath.endsWith('.' + cleanPath) || 
+           cleanPath.endsWith('.' + cleanAliasPath);
+  });
+  
   if (!found) return null;
   return resolveColorValue(String(found.token.value), allFlat, depth + 1);
 }
 
 interface TokenReferencePickerProps {
   allGroups: TokenGroup[];
+  namespace?: string;
   onSelect: (aliasValue: string) => void;
 }
 
-export function TokenReferencePicker({ allGroups, onSelect }: TokenReferencePickerProps) {
+export function TokenReferencePicker({ allGroups, namespace, onSelect }: TokenReferencePickerProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const searchRef = useRef<HTMLInputElement>(null);
 
-  const allTokens = useMemo(() => flattenAllTokens(allGroups), [allGroups]);
+  const allTokens = useMemo(() => flattenAllTokens(allGroups, namespace), [allGroups, namespace]);
   const filtered = useMemo(
     () => allTokens.filter(f => matchesQuery(f, query)),
     [allTokens, query]
