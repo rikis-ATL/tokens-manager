@@ -172,6 +172,10 @@ function TokenTableRow({
   );
 
   const resolvedValue = resolveRef(token.value?.toString() ?? "");
+  const tokenValueStr = token.value?.toString() ?? "";
+  const isReference = tokenValueStr.startsWith("{") && tokenValueStr.endsWith("}");
+  const isUnresolvedReference = isReference && resolvedValue === tokenValueStr;
+  
   const swatchBg = resolvedValue.startsWith("#")
     ? resolvedValue
     : resolvedValue.startsWith("{")
@@ -333,13 +337,24 @@ function TokenTableRow({
                 className="flex-1 h-7 border border-gray-300 rounded px-2 text-sm font-mono shadow-none focus-visible:ring-1 focus-visible:ring-blue-400"
               />
             ) : (
-              <div
-                className={`flex-1 text-sm font-mono text-gray-700 truncate ${isReadOnly ? "cursor-default" : "cursor-text"}`}
-                onClick={isReadOnly ? undefined : enterEdit("value")}
-              >
-                {token.value?.toString() || (
-                  <span className="text-gray-300">
-                    {getValuePlaceholder(token.type)}
+              <div className="flex-1 flex items-center gap-1">
+                <div
+                  className={`flex-1 text-sm font-mono text-gray-700 truncate ${isReadOnly ? "cursor-default" : "cursor-text"}`}
+                  onClick={isReadOnly ? undefined : enterEdit("value")}
+                >
+                  {token.value?.toString() || (
+                    <span className="text-gray-300">
+                      {getValuePlaceholder(token.type)}
+                    </span>
+                  )}
+                </div>
+                {/* Unresolved reference warning indicator */}
+                {isUnresolvedReference && (
+                  <span 
+                    className="flex-shrink-0 px-1 py-0.5 text-[9px] bg-amber-50 text-amber-600 border border-amber-200 rounded font-medium"
+                    title="Token reference cannot be resolved. The source token may not exist yet."
+                  >
+                    ?
                   </span>
                 )}
               </div>
@@ -1397,10 +1412,9 @@ export function TokenGeneratorForm({
   const renderGroup = (group: TokenGroup) => {
     const hasChildren = group.children && group.children.length > 0;
     const hasTokens = group.tokens.length > 0;
-    // Prefer themeTokens when available — keeps render and write source in sync
-    const activeSourceGroups = themeTokens && themeTokens.length > 0 ? themeTokens : tokenGroups;
-    const activeGroup = findGroupById(activeSourceGroups, group.id) ?? group;
-    const activeGroupTokens = activeGroup.tokens;
+    // Use the group parameter directly - it already contains the correct token data
+    // after operations like reparenting that update group IDs
+    const activeGroupTokens = group.tokens;
 
     return (
       <div key={group.id} className="mb-4">

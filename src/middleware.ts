@@ -1,9 +1,20 @@
 // src/middleware.ts
 import { withAuth } from 'next-auth/middleware';
 import { NextResponse } from 'next/server';
+import { isDemoMode } from '@/lib/auth/demo';
 
 export default withAuth(
   function middleware(req) {
+    // Demo mode: Allow all page access without auth, redirect /auth/sign-in to /collections
+    if (isDemoMode()) {
+      if (req.nextUrl.pathname === '/auth/sign-in') {
+        return NextResponse.redirect(new URL('/collections', req.url));
+      }
+      // Allow all other page access in demo mode
+      return NextResponse.next();
+    }
+
+    // Normal auth mode (DEMO_MODE=false)
     // Redirect already-authenticated users away from the sign-in page to the app
     if (req.nextUrl.pathname === '/auth/sign-in' && req.nextauth.token) {
       return NextResponse.redirect(new URL('/collections', req.url));
@@ -27,7 +38,9 @@ export default withAuth(
       // next-auth automatically appends ?callbackUrl=<current-path> on unauthorized redirect
       // Allow unauthenticated access to /auth/* pages to prevent infinite redirect loop —
       // the middleware body above handles redirecting authenticated users away from sign-in
+      // In demo mode, allow all access (auth is handled by requireAuthOrDemo in API routes)
       authorized: ({ token, req }) => {
+        if (isDemoMode()) return true;
         if (req.nextUrl.pathname.startsWith('/auth/')) return true;
         return !!token;
       },

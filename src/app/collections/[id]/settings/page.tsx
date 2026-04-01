@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import { usePermissions } from '@/context/PermissionsContext';
 
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
@@ -11,12 +13,14 @@ interface SettingsPageProps {
 
 export default function CollectionSettingsPage({ params }: SettingsPageProps) {
   const { id } = params;
+  const { isAdmin } = usePermissions();
 
   const [collectionName, setCollectionName] = useState('');
   const [figmaToken, setFigmaToken] = useState('');
   const [figmaFileId, setFigmaFileId] = useState('');
   const [githubRepo, setGithubRepo] = useState('');
   const [githubBranch, setGithubBranch] = useState('');
+  const [isPlayground, setIsPlayground] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [loading, setLoading] = useState(true);
 
@@ -46,6 +50,7 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
         setFigmaFileId(col.figmaFileId ?? figmaConfig?.fileKey ?? '');
         setGithubRepo(col.githubRepo ?? githubConfig?.repository ?? '');
         setGithubBranch(col.githubBranch ?? githubConfig?.branch ?? '');
+        setIsPlayground(col.isPlayground ?? false);
       } catch (err) {
         console.error('[CollectionSettingsPage] Failed to load collection:', err);
       } finally {
@@ -72,14 +77,14 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
     setSaveStatus('saving');
 
     debounceRef.current = setTimeout(async () => {
-      await saveToDb({ figmaToken, figmaFileId, githubRepo, githubBranch });
+      await saveToDb({ figmaToken, figmaFileId, githubRepo, githubBranch, isPlayground });
     }, 800);
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [figmaToken, figmaFileId, githubRepo, githubBranch]);
+  }, [figmaToken, figmaFileId, githubRepo, githubBranch, isPlayground]);
 
   // Once loading finishes, mark mount as done so subsequent changes trigger auto-save
   useEffect(() => {
@@ -93,6 +98,7 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
     figmaFileId: string;
     githubRepo: string;
     githubBranch: string;
+    isPlayground: boolean;
   }) {
     try {
       const res = await fetch(`/api/collections/${id}`, {
@@ -103,6 +109,7 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
           figmaFileId: fields.figmaFileId || null,
           githubRepo: fields.githubRepo || null,
           githubBranch: fields.githubBranch || null,
+          isPlayground: fields.isPlayground,
         }),
       });
 
@@ -124,8 +131,7 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
     setFigmaToken('');
     setFigmaFileId('');
     setSaveStatus('saving');
-    // Use current githubRepo/githubBranch from state via closure — save all four fields
-    saveToDb({ figmaToken: '', figmaFileId: '', githubRepo, githubBranch });
+    saveToDb({ figmaToken: '', figmaFileId: '', githubRepo, githubBranch, isPlayground });
   }
 
   function clearGithubFields() {
@@ -133,7 +139,7 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
     setGithubRepo('');
     setGithubBranch('');
     setSaveStatus('saving');
-    saveToDb({ figmaToken, figmaFileId, githubRepo: '', githubBranch: '' });
+    saveToDb({ figmaToken, figmaFileId, githubRepo: '', githubBranch: '', isPlayground });
   }
 
   if (loading) {
@@ -267,6 +273,36 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
             </div>
           </div>
         </section>
+
+        {/* Playground section - Admin only */}
+        {isAdmin && (
+          <section>
+            <div className="flex items-center mb-4">
+              <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
+                Playground Mode
+              </h2>
+            </div>
+
+            <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+              <Checkbox
+                id="playground-toggle"
+                checked={isPlayground}
+                onCheckedChange={(checked) => setIsPlayground(checked === true)}
+              />
+              <div className="flex-1">
+                <label
+                  htmlFor="playground-toggle"
+                  className="block text-sm font-medium text-gray-900 cursor-pointer"
+                >
+                  Playground Collection
+                </label>
+                <p className="text-xs text-gray-600 mt-1">
+                  When enabled, all edits are session-based (stored in browser memory). Changes are not saved to the database and will be lost when the browser is closed. Useful for demos, workshops, and experimentation.
+                </p>
+              </div>
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );

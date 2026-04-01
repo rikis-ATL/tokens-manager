@@ -41,6 +41,8 @@ export interface ITokenCollection {
   graphState: CollectionGraphState | null;
   // Themes — named configurations that assign group states (disabled/enabled/source)
   themes: ITheme[];
+  // Playground mode — session-based edits (not persisted to DB)
+  isPlayground: boolean;
 }
 
 /**
@@ -56,6 +58,7 @@ export interface CollectionCardData {
   updatedAt: string;
   figmaConfigured: boolean;
   githubConfigured: boolean;
+  isPlayground: boolean;
 }
 
 /**
@@ -66,4 +69,4 @@ export type CreateTokenCollectionInput = Omit<ITokenCollection, '_id' | 'created
 /**
  * Shape for updating an existing collection.
  */
-export type UpdateTokenCollectionInput = Partial<Pick<ITokenCollection, 'name' | 'namespace' | 'tokens' | 'sourceMetadata' | 'description' | 'tags' | 'figmaToken' | 'figmaFileId' | 'githubRepo' | 'githubBranch' | 'graphState' | 'themes'>>;
+export type UpdateTokenCollectionInput = Partial<Pick<ITokenCollection, 'name' | 'namespace' | 'tokens' | 'sourceMetadata' | 'description' | 'tags' | 'figmaToken' | 'figmaFileId' | 'githubRepo' | 'githubBranch' | 'graphState' | 'themes' | 'isPlayground'>>;

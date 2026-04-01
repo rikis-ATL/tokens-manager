@@ -179,8 +179,14 @@ export function CollectionCard({
       </div>
 
       {/* Integration badges */}
-      {(collection.figmaConfigured || collection.githubConfigured) && (
+      {(collection.figmaConfigured || collection.githubConfigured || collection.isPlayground) && (
         <div className="flex gap-1.5 mt-2">
+          {collection.isPlayground && (
+            <span className="bg-amber-50 text-amber-700 text-xs px-1.5 py-0.5 rounded border border-amber-200 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" />
+              Playground
+            </span>
+          )}
           {collection.figmaConfigured && (
             <span className="bg-green-50 text-green-700 text-xs px-1.5 py-0.5 rounded border border-green-200 flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />

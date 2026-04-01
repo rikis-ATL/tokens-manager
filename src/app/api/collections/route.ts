@@ -42,6 +42,7 @@ export async function GET() {
       updatedAt: doc.updatedAt,
       figmaConfigured: !!(doc.figmaToken && doc.figmaFileId),
       githubConfigured: !!doc.githubRepo,
+      isPlayground: doc.isPlayground ?? false,
     }));
 
     return NextResponse.json({ collections });

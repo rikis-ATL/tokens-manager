@@ -27,6 +27,13 @@ export function UserMenu() {
       .toUpperCase()
       .slice(0, 2) ?? '?';
 
+  const isDemoUser = session.user.role === 'Demo';
+
+  const handleExitDemo = () => {
+    // Reload page to clear demo session
+    window.location.href = '/collections';
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -40,9 +47,15 @@ export function UserMenu() {
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => signOut({ callbackUrl: '/auth/sign-in' })}>
-          Sign out
-        </DropdownMenuItem>
+        {isDemoUser ? (
+          <DropdownMenuItem onClick={handleExitDemo}>
+            Exit Demo
+          </DropdownMenuItem>
+        ) : (
+          <DropdownMenuItem onClick={() => signOut({ callbackUrl: '/auth/sign-in' })}>
+            Sign out
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

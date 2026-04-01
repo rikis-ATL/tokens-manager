@@ -161,7 +161,9 @@ export default tokens;
       // Add tokens from this group
       for (const token of group.tokens) {
         const varName = `--${globalNamespace}-${currentPath}-${token.path}`.replace(/\./g, '-');
-        css += `  ${varName}: ${this.formatCssValue(token.value)};\n`;
+        // Resolve token references to actual values for CSS output
+        const resolvedValue = tokenService.resolveTokenReference(String(token.value), groups);
+        css += `  ${varName}: ${this.formatCssValue(resolvedValue)};\n`;
       }
 
       // Process child groups
@@ -189,7 +191,9 @@ export default tokens;
       // Add tokens from this group
       for (const token of group.tokens) {
         const varName = `$${globalNamespace}-${currentPath}-${token.path}`.replace(/\./g, '-');
-        scss += `${varName}: ${this.formatScssValue(token.value)};\n`;
+        // Resolve token references to actual values for SCSS output
+        const resolvedValue = tokenService.resolveTokenReference(String(token.value), groups);
+        scss += `${varName}: ${this.formatScssValue(resolvedValue)};\n`;
       }
 
       // Process child groups
@@ -216,7 +220,9 @@ export default tokens;
       // Add tokens from this group
       for (const token of group.tokens) {
         const varName = `@${globalNamespace}-${currentPath}-${token.path}`.replace(/\./g, '-');
-        less += `${varName}: ${this.formatLessValue(token.value)};\n`;
+        // Resolve token references to actual values for LESS output
+        const resolvedValue = tokenService.resolveTokenReference(String(token.value), groups);
+        less += `${varName}: ${this.formatLessValue(resolvedValue)};\n`;
       }
 
       // Process child groups

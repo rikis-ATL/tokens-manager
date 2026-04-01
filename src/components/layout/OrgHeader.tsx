@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { ChevronLeft } from 'lucide-react';
 import { DATABASE_PROVIDERS } from '@/types/database.types';
 import { UserMenu } from '@/components/layout/UserMenu';
+import { useSession } from 'next-auth/react';
 
 type ConnectionState = 'connected' | 'local' | 'loading';
 
@@ -48,6 +49,8 @@ export function OrgHeader() {
   const db = useDbStatus();
   const pathname = usePathname();
   const isCollectionDetail = pathname.startsWith('/collections/');
+  const { data: session } = useSession();
+  const isDemoUser = session?.user?.role === 'Demo';
 
   return (
     <header className="flex items-center justify-between px-5 py-3 border-b border-gray-200 bg-white flex-shrink-0">
@@ -67,7 +70,7 @@ export function OrgHeader() {
       </div>
 
       <div className="flex items-center gap-3">
-        <DbPill status={db} />
+        {isDemoUser ? <DemoModeBadge /> : <DbPill status={db} />}
         <UserMenu />
       </div>
     </header>
@@ -92,6 +95,15 @@ function DbPill({ status }: { status: DbStatus }) {
         <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-amber-400'}`} />
       )}
       <span>{status.label}</span>
+    </div>
+  );
+}
+
+function DemoModeBadge() {
+  return (
+    <div className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition-colors text-orange-700 border-orange-200 bg-orange-50">
+      <span className="w-2 h-2 rounded-full bg-orange-500" />
+      <span>Demo Mode</span>
     </div>
   );
 }

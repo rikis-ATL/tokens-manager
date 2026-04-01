@@ -82,6 +82,8 @@ export function buildTreeFromFlat(flat: FlatNode[]): TokenGroup[] {
 export interface ApplyGroupMoveResult {
   groups: TokenGroup[];
   themes: ITheme[];
+  /** Map of old group IDs to new group IDs (only for reparented groups) */
+  idMapping?: Record<string, string>;
 }
 
 export type DropMode = 'before' | 'after' | 'into';
@@ -323,7 +325,21 @@ function applyReparentingCascade(
     return { ...migratedTheme, tokens: aliasedTokens };
   });
 
-  return { groups: finalGroups, themes: updatedThemes };
+  // Build ID mapping for reparented group and all descendants
+  const idMapping: Record<string, string> = {};
+  const collectIdMapping = (g: TokenGroup) => {
+    const oldId = g.id.replace(newSlashPrefix, oldSlashPrefix);
+    if (oldId !== g.id) {
+      idMapping[oldId] = g.id;
+    }
+    g.children?.forEach(collectIdMapping);
+  };
+  const reparentedGroup = findGroupInTree(finalGroups, rewrittenMoved.id);
+  if (reparentedGroup) {
+    collectIdMapping(reparentedGroup);
+  }
+
+  return { groups: finalGroups, themes: updatedThemes, idMapping };
 }
 
 /**
@@ -420,7 +436,8 @@ function rewriteSubtreeIds(
   const newTokens: GeneratedToken[] = group.tokens.map(t => ({
     ...t,
     id: t.id.replace(oldPrefix, newPrefix),
-    path: t.path ? t.path.replace(oldPrefix, newPrefix) : t.path,
+    // IMPORTANT: token.path is the local name (e.g., "100", "primary") and should NOT change during group moves
+    // Only the token.id needs to be updated as it contains the full group prefix
   }));
 
   const newChildren: TokenGroup[] = (group.children ?? []).map(child =>

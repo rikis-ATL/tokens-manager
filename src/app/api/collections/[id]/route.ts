@@ -54,6 +54,7 @@ export async function GET(
         githubRepo: doc.githubRepo ?? null,
         githubBranch: doc.githubBranch ?? null,
         graphState: doc.graphState ?? null,
+        isPlayground: doc.isPlayground ?? false,
       },
     });
   } catch (error) {
@@ -82,7 +83,9 @@ export async function PUT(
       body.figmaFileId === undefined &&
       body.githubRepo === undefined &&
       body.githubBranch === undefined &&
-      body.graphState === undefined
+      body.graphState === undefined &&
+      body.themes === undefined &&
+      body.isPlayground === undefined
     ) {
       return NextResponse.json({ error: 'Nothing to update' }, { status: 400 });
     }

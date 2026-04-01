@@ -22,7 +22,7 @@ const userSchema = new Schema<UserDoc>(
     displayName:  { type: String, required: true, trim: true },
     email:        { type: String, required: true, unique: true, lowercase: true, trim: true },
     passwordHash: { type: String, required: true },
-    role:         { type: String, enum: ['Admin', 'Editor', 'Viewer'], required: true },
+    role:         { type: String, enum: ['Admin', 'Editor', 'Viewer', 'Demo'], required: true },
     status:       { type: String, enum: ['active', 'invited', 'disabled'], required: true, default: 'invited' },
   },
   { timestamps: true }

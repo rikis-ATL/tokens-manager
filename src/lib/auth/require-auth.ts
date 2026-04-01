@@ -7,6 +7,8 @@ import { canPerform } from './permissions';
 import type { Role, ActionType } from './permissions';
 import dbConnect from '@/lib/mongodb';
 import CollectionPermission from '@/lib/db/models/CollectionPermission';
+import { isDemoMode, getDemoUserSession } from './demo';
+import TokenCollection from '@/lib/db/models/TokenCollection';
 
 export type AuthResult = Session | NextResponse;
 
@@ -25,6 +27,11 @@ export type AuthResult = Session | NextResponse;
  * Request/Response (not Node.js IncomingMessage/ServerResponse).
  */
 export async function requireAuth(): Promise<AuthResult> {
+  // Demo mode: Use demo user session
+  if (isDemoMode()) {
+    return getDemoUserSession();
+  }
+  
   const session = await getServerSession(authOptions);
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -33,10 +40,11 @@ export async function requireAuth(): Promise<AuthResult> {
 }
 
 /**
- * Collection-scoped role enforcement gate.
+ * Collection-scoped role enforcement gate with demo mode support.
  * Returns the Session on success, or a 401/403/404 NextResponse on failure.
  *
  * Logic:
+ * - Demo mode: Use getDemoUserSession(), enforce Demo role restrictions
  * - No session → 401 Unauthorized
  * - Admin org role + can perform action → Session (Admin bypasses collection grant check)
  * - Admin org role + cannot perform action → 403 Forbidden (data integrity edge case)
@@ -46,15 +54,63 @@ export async function requireAuth(): Promise<AuthResult> {
  * - Non-Admin + collectionId + grant found → use grant.role as effectiveRole
  * - effectiveRole can perform action → Session; otherwise → 403 Forbidden
  *
+ * Demo role special handling:
+ * - WritePlayground action: Only allowed if collection.isPlayground === true
+ * - All other actions: Checked via canPerform('Demo', action)
+ *
  * CRITICAL: Same single-argument getServerSession(authOptions) form required — see requireAuth() above.
  */
 export async function requireRole(action: ActionType, collectionId?: string): Promise<AuthResult> {
-  const session = await getServerSession(authOptions);
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  let session: Session;
+  
+  // Demo mode: Use demo user session
+  if (isDemoMode()) {
+    session = getDemoUserSession();
+  } else {
+    const authSession = await getServerSession(authOptions);
+    if (!authSession) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    session = authSession;
   }
 
   const orgRole = session.user.role as Role;
+
+  // Demo role special handling
+  if (orgRole === 'Demo') {
+    // Demo role can only perform WritePlayground action on playground collections
+    if (action === 'WritePlayground') {
+      if (!collectionId) {
+        return NextResponse.json({ error: 'Collection ID required' }, { status: 400 });
+      }
+      
+      // Check if collection is a playground
+      await dbConnect();
+      const collection = await TokenCollection.findById(collectionId).lean();
+      if (!collection) {
+        return NextResponse.json({ error: 'Collection not found' }, { status: 404 });
+      }
+      
+      if (!collection.isPlayground) {
+        return NextResponse.json({ 
+          error: 'Demo users can only edit playground collections',
+          demoMode: true 
+        }, { status: 403 });
+      }
+      
+      return session;
+    }
+    
+    // For other actions, check via canPerform
+    if (canPerform('Demo', action)) {
+      return session;
+    }
+    
+    return NextResponse.json({ 
+      error: 'Action not permitted in demo mode',
+      demoMode: true 
+    }, { status: 403 });
+  }
 
   if (orgRole === 'Admin') {
     if (canPerform('Admin', action)) {

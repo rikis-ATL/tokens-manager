@@ -1,8 +1,9 @@
-export type Role = 'Admin' | 'Editor' | 'Viewer';
+export type Role = 'Admin' | 'Editor' | 'Viewer' | 'Demo';
 
 export const Action = {
   Read:             'Read',
   Write:            'Write',
+  WritePlayground:  'WritePlayground',
   CreateCollection: 'CreateCollection',
   DeleteCollection: 'DeleteCollection',
   ManageUsers:      'ManageUsers',
@@ -16,6 +17,7 @@ const PERMISSIONS: Record<Role, Set<ActionType>> = {
   Admin:  new Set(Object.values(Action)),
   Editor: new Set([Action.Read, Action.Write, Action.CreateCollection, Action.PushGithub, Action.PushFigma]),
   Viewer: new Set([Action.Read]),
+  Demo:   new Set([Action.Read, Action.WritePlayground]),
 };
 
 export function canPerform(role: Role, action: ActionType): boolean {

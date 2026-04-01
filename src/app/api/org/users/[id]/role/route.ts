@@ -4,7 +4,7 @@ import User from '@/lib/db/models/User';
 import { requireRole } from '@/lib/auth/require-auth';
 import { Action } from '@/lib/auth/permissions';
 
-const VALID_ROLES = ['Admin', 'Editor', 'Viewer'] as const;
+const VALID_ROLES = ['Admin', 'Editor', 'Viewer', 'Demo'] as const;
 type Role = typeof VALID_ROLES[number];
 
 export async function PATCH(
@@ -18,7 +18,7 @@ export async function PATCH(
   const { role } = body;
 
   if (!role || !(VALID_ROLES as readonly string[]).includes(role)) {
-    return NextResponse.json({ error: 'Invalid role. Must be Admin, Editor, or Viewer.' }, { status: 400 });
+    return NextResponse.json({ error: 'Invalid role. Must be Admin, Editor, Viewer, or Demo.' }, { status: 400 });
   }
 
   await dbConnect();
@@ -30,6 +30,11 @@ export async function PATCH(
   // Superadmin protection — cannot change SUPER_ADMIN_EMAIL user's role
   if (targetUser.email === process.env.SUPER_ADMIN_EMAIL) {
     return NextResponse.json({ error: 'Cannot change the superadmin role' }, { status: 403 });
+  }
+
+  // Demo user protection — cannot change any Demo role user's role
+  if (targetUser.role === 'Demo') {
+    return NextResponse.json({ error: 'Cannot change demo user role' }, { status: 403 });
   }
 
   targetUser.role = role as Role;

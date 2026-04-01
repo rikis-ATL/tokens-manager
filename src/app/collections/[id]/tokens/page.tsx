@@ -85,6 +85,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   const [rawCollectionTokens, setRawCollectionTokens] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isPlayground, setIsPlayground] = useState(false);
 
   const { canEdit, canGitHub, canFigma } = usePermissions();
 
@@ -128,6 +129,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
 
   // Group reorder undo stack (max 20 steps) and debounced persist timer
   const undoStackRef = useRef<TokenGroup[][]>([]);
+  const redoStackRef = useRef<TokenGroup[][]>([]);
   const MAX_UNDO = 20;
   const groupReorderSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -236,6 +238,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       setRawCollectionTokens(rawTokens);
       rawCollectionTokensRef.current = rawTokens;
       setSelectedSourceMetadata(col.sourceMetadata ?? null);
+      setIsPlayground(col.isPlayground ?? false);
       // Load persisted graph state
       const gs = (col.graphState ?? {}) as CollectionGraphState;
       setCollectionGraphState(gs);
@@ -347,12 +350,14 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       masterGroups,
       ...undoStackRef.current.slice(0, MAX_UNDO - 1),
     ];
+    // Clear redo stack when new action is performed
+    redoStackRef.current = [];
 
     // Re-run applyGroupMove with themes so reparenting correctly rewrites
     // theme group IDs and alias paths. A match-by-ID sync would silently
     // drop any reparented group (its ID changes on reparent; the old ID
     // no longer exists in masterGroups after the move).
-    const { groups: newGroups, themes: updatedThemes } = applyGroupMove(
+    const { groups: newGroups, themes: updatedThemes, idMapping } = applyGroupMove(
       masterGroups,
       activeId,
       overId,
@@ -363,6 +368,11 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     // Update React state
     setMasterGroups(newGroups);
     setThemes(updatedThemes);
+
+    // If the selected group was reparented and has a new ID, update the selection
+    if (selectedGroupId && idMapping && idMapping[selectedGroupId]) {
+      setSelectedGroupId(idMapping[selectedGroupId]);
+    }
 
     // Persist to MongoDB (debounced 300ms)
     if (groupReorderSaveTimerRef.current) clearTimeout(groupReorderSaveTimerRef.current);
@@ -380,7 +390,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
         // Silent — mirrors existing auto-save error handling pattern
       }
     }, 300);
-  }, [masterGroups, themes, id, globalNamespace]);
+  }, [masterGroups, themes, id, globalNamespace, selectedGroupId]);
 
   // ── Group rename handler ────────────────────────────────────────────────
   const handleRenameGroup = useCallback(async (groupId: string, newLabel: string) => {
@@ -513,11 +523,18 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
         e.preventDefault();
         if (canEdit) handleSave();
       }
-      if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
+      // Undo: Ctrl/Cmd + Z (without Shift)
+      if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) {
         e.preventDefault();
         const previous = undoStackRef.current.shift();
         if (previous) {
+          // Push current state to redo stack before undoing
+          redoStackRef.current = [
+            masterGroups,
+            ...redoStackRef.current.slice(0, MAX_UNDO - 1),
+          ];
           setMasterGroups(previous);
+          showSuccessToast('Undo');
           if (groupReorderSaveTimerRef.current) clearTimeout(groupReorderSaveTimerRef.current);
           groupReorderSaveTimerRef.current = setTimeout(async () => {
             try {
@@ -535,10 +552,39 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
           }, 300);
         }
       }
+      // Redo: Ctrl/Cmd + Shift + Z
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'z') {
+        e.preventDefault();
+        const next = redoStackRef.current.shift();
+        if (next) {
+          // Push current state back to undo stack
+          undoStackRef.current = [
+            masterGroups,
+            ...undoStackRef.current.slice(0, MAX_UNDO - 1),
+          ];
+          setMasterGroups(next);
+          showSuccessToast('Redo');
+          if (groupReorderSaveTimerRef.current) clearTimeout(groupReorderSaveTimerRef.current);
+          groupReorderSaveTimerRef.current = setTimeout(async () => {
+            try {
+              const rawTokens = tokenService.generateStyleDictionaryOutput(next, globalNamespace);
+              await fetch(`/api/collections/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tokens: rawTokens }),
+              });
+              rawCollectionTokensRef.current = rawTokens as Record<string, unknown>;
+              setRawCollectionTokens(rawTokens as Record<string, unknown>);
+            } catch {
+              // Silent
+            }
+          }, 300);
+        }
+      }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [handleSave, id, globalNamespace]);
+  }, [handleSave, id, globalNamespace, masterGroups, canEdit]);
 
   const handleGroupsChange = useCallback(
     (groups: TokenGroup[]) => {
@@ -956,6 +1002,11 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
        
         </h1>
         <Badge variant="secondary">Prefix:{globalNamespace}</Badge>
+        {isPlayground && (
+          <Badge className="bg-amber-50 text-amber-700 border-amber-200">
+            Playground
+          </Badge>
+        )}
         </div> 
         <div className="flex gap-2 items-center">
           {/* Info/Generator Guide button */}

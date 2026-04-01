@@ -23,6 +23,11 @@ export async function DELETE(
     return NextResponse.json({ error: 'Cannot remove the superadmin' }, { status: 403 });
   }
 
+  // Demo user protection — cannot remove Demo role users
+  if (targetUser.role === 'Demo') {
+    return NextResponse.json({ error: 'Cannot remove demo users' }, { status: 403 });
+  }
+
   // Prevent self-removal — Admin cannot remove themselves
   if (params.id === session.user.id) {
     return NextResponse.json({ error: 'Cannot remove yourself' }, { status: 400 });

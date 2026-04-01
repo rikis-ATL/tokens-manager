@@ -71,7 +71,12 @@ export function TokenReferencePicker({ allGroups, onSelect }: TokenReferencePick
   }, [open]);
 
   const handleSelect = (flat: FlatToken) => {
-    onSelect(`{${flat.aliasPath}}`);
+    // DTCG standard requires .value suffix for token references
+    // Normalize to always include .value for compatibility
+    const ref = flat.aliasPath.endsWith('.value') 
+      ? flat.aliasPath 
+      : `${flat.aliasPath}.value`;
+    onSelect(`{${ref}}`);
     setOpen(false);
   };
 

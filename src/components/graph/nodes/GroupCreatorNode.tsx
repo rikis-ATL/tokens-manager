@@ -7,19 +7,13 @@ import {
   NodeWrapper, NodeHeader, Row, NativeSelect, TextInput, HANDLE_OUT,
 } from './nodeShared';
 import type { ComposableNodeData, GroupConfig } from '@/types/graph-nodes.types';
+import { TOKEN_TYPES } from '@/types/token.types';
 
-const TOKEN_TYPES = [
-  { value: 'color',        label: 'Color' },
-  { value: 'dimension',    label: 'Dimension' },
-  { value: 'fontSize',     label: 'Font Size' },
-  { value: 'borderRadius', label: 'Border Radius' },
-  { value: 'borderWidth',  label: 'Border Width' },
-  { value: 'lineHeight',   label: 'Line Height' },
-  { value: 'spacing',      label: 'Spacing' },
-  { value: 'fontWeight',   label: 'Font Weight' },
-  { value: 'string',       label: 'String' },
-  { value: 'number',       label: 'Number' },
-];
+// Convert TokenType[] to label/value format for NativeSelect
+const TOKEN_TYPE_OPTIONS = TOKEN_TYPES.map(type => ({
+  value: type,
+  label: type.charAt(0).toUpperCase() + type.slice(1).replace(/([A-Z])/g, ' $1').trim(),
+}));
 
 const TARGET_OPTIONS: { value: string; label: string }[] = [
   { value: 'currentGroup', label: 'Under current group' },
@@ -86,7 +80,7 @@ function GroupCreatorNodeComponent({ data }: NodeProps) {
         <NativeSelect
           value={cfg.tokenType || 'color'}
           onChange={v => update({ tokenType: v })}
-          options={TOKEN_TYPES}
+          options={TOKEN_TYPE_OPTIONS}
         />
       </Row>
 
