@@ -44,6 +44,7 @@ Theme 2
 ## Conventions
 
 - **Clean code**: Follow `.planning/codebase/CLEAN-CODE.md` — SOLID, separation of concerns, function/component size limits.
+- **Package manager**: ALWAYS use `yarn` for all package management operations. NEVER use `npm` as it corrupts lock files. Use `yarn add`, `yarn install`, `yarn remove`, etc.
 - **SOLID / separation of concerns**: Break large functions into smaller, focused functions; extract logic from components to utils/services.
 - **Refs for async**: `activeThemeIdRef` and `graphStateMapRef` stay in sync for debounced saves and unmount flushes.
 - **Graph state persistence**: `GroupStructureGraph` flushes on unmount with `flushImmediate: true` so the current theme’s state is saved before switching.

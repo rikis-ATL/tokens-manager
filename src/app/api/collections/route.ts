@@ -59,6 +59,7 @@ export async function POST(request: Request) {
     const body = await request.json() as {
       name?: string;
       namespace?: string;
+      colorFormat?: 'hex' | 'hsl' | 'oklch';
       tokens?: Record<string, unknown>;
       sourceMetadata?: ISourceMetadata | null;
     };
@@ -83,6 +84,7 @@ export async function POST(request: Request) {
     const doc = await repo.create({
       name: body.name,
       namespace: body.namespace,
+      colorFormat: body.colorFormat,
       tokens: body.tokens ?? {},
       sourceMetadata: body.sourceMetadata ?? null,
       userId: null,

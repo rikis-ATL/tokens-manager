@@ -182,6 +182,7 @@ export const validateTokenValue = (value: any, type: string): { isValid: boolean
 
 /**
  * Validate color value formats
+ * Supports hex, rgb, hsl, oklch, token references, and named colors
  */
 export const validateColorValue = (value: string): { isValid: boolean; error?: string } => {
   if (typeof value !== 'string') {
@@ -193,18 +194,23 @@ export const validateColorValue = (value: string): { isValid: boolean; error?: s
     return { isValid: true };
   }
 
-  // Check for hex color
+  // Check for hex color (3, 6, or 8 digits)
   if (value.match(/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/)) {
     return { isValid: true };
   }
 
   // Check for rgb/rgba
-  if (value.match(/^rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*(,\s*[\d.]+)?\s*\)$/)) {
+  if (value.match(/^rgba?\(\s*[\d.]+[\s,]+[\d.]+[\s,]+[\d.]+(\s*[,/]\s*[\d.]+%?)?\s*\)$/)) {
     return { isValid: true };
   }
 
   // Check for hsl/hsla
-  if (value.match(/^hsla?\(\s*\d+\s*,\s*\d+%\s*,\s*\d+%\s*(,\s*[\d.]+)?\s*\)$/)) {
+  if (value.match(/^hsla?\(\s*[\d.]+[\s,]+[\d.]+%?[\s,]+[\d.]+%?(\s*[,/]\s*[\d.]+%?)?\s*\)$/)) {
+    return { isValid: true };
+  }
+
+  // Check for oklch (L C H format)
+  if (value.match(/^oklch\(\s*[\d.]+%?\s+[\d.]+%?\s+[\d.]+(\s*[/]\s*[\d.]+%?)?\s*\)$/)) {
     return { isValid: true };
   }
 
@@ -214,7 +220,10 @@ export const validateColorValue = (value: string): { isValid: boolean; error?: s
     return { isValid: true };
   }
 
-  return { isValid: false, error: 'Invalid color format. Use hex (#FF0000), rgb(255,0,0), hsl(0,100%,50%), or token reference ({token.color.red.value})' };
+  return { 
+    isValid: false, 
+    error: 'Invalid color format. Use hex (#fff), rgb(255, 0, 0), hsl(180, 50%, 50%), oklch(0.5 0.1 180), or token reference ({color.primary})' 
+  };
 };
 
 /**

@@ -195,6 +195,15 @@ function PaletteNodeComponent({ data }: NodeProps) {
           </p>
         )}
 
+        {/* Format — always visible, works for both presets and generated palettes */}
+        <Row label="Format">
+          <NativeSelect
+            value={cfg.format}
+            onChange={v => update({ format: v as CssColorFormat })}
+            options={FORMAT_OPTIONS}
+          />
+        </Row>
+
         {/* Name — output handle on the right aligns with this row */}
         <Row
           label="Name"
@@ -332,15 +341,6 @@ function PaletteNodeComponent({ data }: NodeProps) {
                 ↳ Step names overridden by connected array
               </div>
             )}
-
-            {/* Format */}
-            <Row label="Format">
-              <NativeSelect
-                value={cfg.format}
-                onChange={v => update({ format: v as CssColorFormat })}
-                options={FORMAT_OPTIONS}
-              />
-            </Row>
           </>
         )}
 

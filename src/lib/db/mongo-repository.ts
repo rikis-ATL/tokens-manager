@@ -65,6 +65,7 @@ export class MongoCollectionRepository implements ICollectionRepository {
       userId: data.userId ?? null,
       description: data.description ?? null,
       tags: data.tags ?? [],
+      colorFormat: data.colorFormat ?? 'hex',
       figmaToken: data.figmaToken ?? null,
       figmaFileId: data.figmaFileId ?? null,
       githubRepo: data.githubRepo ?? null,

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { X, Trash2, ArrowRight } from 'lucide-react';
+import { X, Trash2, ArrowRight, Palette, Type } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -15,6 +15,8 @@ import {
 import { TokenGroup, TokenType, TOKEN_TYPES } from '@/types/token.types';
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
 import { GroupPickerModal } from './GroupPickerModal';
+import { ColorFormatDialog } from './ColorFormatDialog';
+import { type ColorFormat } from '@/lib/colorUtils';
 import { useState } from 'react';
 
 interface BulkActionBarProps {
@@ -23,9 +25,12 @@ interface BulkActionBarProps {
   sourceGroupId: string;
   isReadOnly: boolean;
   prefixValue: string;
+  selectedColorCount?: number;
+  selectedColorPreviews?: Array<{ path: string; value: string }>;
   onDelete: () => void;
   onMoveToGroup: (destGroupId: string) => void;
   onChangeType: (type: TokenType) => void;
+  onChangeColorFormat?: (format: ColorFormat) => void;
   onPrefixFocus: () => void;
   onPrefixChange: (value: string) => void;
   onPrefixBlur: () => void;
@@ -38,9 +43,12 @@ export function BulkActionBar({
   sourceGroupId,
   isReadOnly,
   prefixValue,
+  selectedColorCount = 0,
+  selectedColorPreviews = [],
   onDelete,
   onMoveToGroup,
   onChangeType,
+  onChangeColorFormat,
   onPrefixFocus,
   onPrefixChange,
   onPrefixBlur,
@@ -48,8 +56,11 @@ export function BulkActionBar({
 }: BulkActionBarProps) {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [moveOpen, setMoveOpen] = useState(false);
+  const [formatOpen, setFormatOpen] = useState(false);
 
   if (isReadOnly || selectedCount === 0) return null;
+
+  const hasColorTokens = selectedColorCount > 0;
 
   return (
     <>
@@ -71,28 +82,31 @@ export function BulkActionBar({
           <Button
             variant="ghost"
             size="sm"
-            className="h-7 px-2 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+            className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
             onClick={() => setDeleteOpen(true)}
+            title="Delete selected tokens"
           >
-            <Trash2 className="w-3.5 h-3.5 mr-1" />
-            Delete
+            <Trash2 className="w-3.5 h-3.5" />
           </Button>
 
           {/* Move */}
           <Button
             variant="ghost"
             size="sm"
-            className="h-7 px-2 text-xs"
+            className="h-7 w-7 p-0"
             onClick={() => setMoveOpen(true)}
+            title="Move to another group"
           >
-            <ArrowRight className="w-3.5 h-3.5 mr-1" />
-            Move
+            <ArrowRight className="w-3.5 h-3.5" />
           </Button>
 
           {/* Change type */}
           <MenubarMenu>
-            <MenubarTrigger className="h-7 px-2 text-xs font-normal cursor-pointer">
-              Change type
+            <MenubarTrigger 
+              className="h-7 w-7 p-0 font-normal cursor-pointer flex items-center justify-center" 
+              title="Change token type"
+            >
+              <Type className="w-3.5 h-3.5" />
             </MenubarTrigger>
             <MenubarContent>
               {TOKEN_TYPES.map((type) => (
@@ -106,6 +120,19 @@ export function BulkActionBar({
               ))}
             </MenubarContent>
           </MenubarMenu>
+
+          {/* Change format (only for color tokens) */}
+          {hasColorTokens && onChangeColorFormat && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 w-7 p-0"
+              onClick={() => setFormatOpen(true)}
+              title="Change color format"
+            >
+              <Palette className="w-3.5 h-3.5" />
+            </Button>
+          )}
 
           <div className="w-px h-4 bg-gray-200 mx-1" />
 
@@ -130,7 +157,7 @@ export function BulkActionBar({
             size="sm"
             className="h-7 w-7 p-0"
             onClick={onClearSelection}
-            aria-label="Clear selection"
+            title="Clear selection (Esc)"
           >
             <X className="w-3.5 h-3.5 text-gray-400" />
           </Button>
@@ -157,6 +184,20 @@ export function BulkActionBar({
         }}
         onCancel={() => setMoveOpen(false)}
       />
+
+      {hasColorTokens && onChangeColorFormat && (
+        <ColorFormatDialog
+          open={formatOpen}
+          selectedCount={selectedCount}
+          colorTokenCount={selectedColorCount}
+          previewTokens={selectedColorPreviews}
+          onConfirm={(format) => {
+            onChangeColorFormat(format);
+            setFormatOpen(false);
+          }}
+          onCancel={() => setFormatOpen(false)}
+        />
+      )}
     </>
   );
 }

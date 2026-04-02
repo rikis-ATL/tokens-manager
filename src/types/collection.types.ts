@@ -32,6 +32,8 @@ export interface ITokenCollection {
   // Metadata fields
   description: string | null;
   tags: string[];
+  // Color format preference for new color tokens
+  colorFormat: 'hex' | 'hsl' | 'oklch';
   // Per-collection integration config
   figmaToken: string | null;
   figmaFileId: string | null;
@@ -70,4 +72,4 @@ export type CreateTokenCollectionInput = Omit<ITokenCollection, '_id' | 'created
 /**
  * Shape for updating an existing collection.
  */
-export type UpdateTokenCollectionInput = Partial<Pick<ITokenCollection, 'name' | 'namespace' | 'tokens' | 'sourceMetadata' | 'description' | 'tags' | 'figmaToken' | 'figmaFileId' | 'githubRepo' | 'githubBranch' | 'githubPath' | 'graphState' | 'themes' | 'isPlayground'>>;
+export type UpdateTokenCollectionInput = Partial<Pick<ITokenCollection, 'name' | 'namespace' | 'tokens' | 'sourceMetadata' | 'description' | 'tags' | 'colorFormat' | 'figmaToken' | 'figmaFileId' | 'githubRepo' | 'githubBranch' | 'githubPath' | 'graphState' | 'themes' | 'isPlayground'>>;

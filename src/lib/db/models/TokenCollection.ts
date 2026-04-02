@@ -30,6 +30,7 @@ const tokenCollectionSchema = new Schema<TokenCollectionDoc>(
     userId:         { type: String, default: null, index: true },
     description:    { type: String, default: null },
     tags:           { type: [String], default: [] },
+    colorFormat:    { type: String, enum: ['hex', 'hsl', 'oklch'], default: 'hex' },
     figmaToken:     { type: String, default: null },
     figmaFileId:    { type: String, default: null },
     githubRepo:     { type: String, default: null },

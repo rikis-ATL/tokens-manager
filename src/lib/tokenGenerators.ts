@@ -62,81 +62,34 @@ function harmonicSteps(min: number, max: number, count: number): number[] {
 
 // ─── Color conversion ─────────────────────────────────────────────────────────
 
-function round2(n: number): number {
-  return Math.round(n * 100) / 100;
-}
+import {
+  hslToRgb,
+  rgbToHex,
+  formatHsl,
+  formatOklch,
+  rgbToOklch,
+} from './colorUtils';
 
 function clamp(n: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, n));
-}
-
-function hslToRgb(h: number, s: number, l: number): [number, number, number] {
-  const sn = s / 100;
-  const ln = l / 100;
-  const c = (1 - Math.abs(2 * ln - 1)) * sn;
-  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
-  const m = ln - c / 2;
-  let r = 0, g = 0, b = 0;
-  if (h < 60)       { r = c; g = x; b = 0; }
-  else if (h < 120) { r = x; g = c; b = 0; }
-  else if (h < 180) { r = 0; g = c; b = x; }
-  else if (h < 240) { r = 0; g = x; b = c; }
-  else if (h < 300) { r = x; g = 0; b = c; }
-  else              { r = c; g = 0; b = x; }
-  return [
-    Math.round((r + m) * 255),
-    Math.round((g + m) * 255),
-    Math.round((b + m) * 255),
-  ];
-}
-
-function rgbToHex(r: number, g: number, b: number): string {
-  return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
-}
-
-function hslToHex(h: number, s: number, l: number): string {
-  return rgbToHex(...hslToRgb(h, s, l));
-}
-
-function hslToRgbStr(h: number, s: number, l: number): string {
-  const [r, g, b] = hslToRgb(h, s, l);
-  return `rgb(${r}, ${g}, ${b})`;
-}
-
-// Very rough HSL → OKLCH approximation (for display; full conversion needs a color library)
-function hslToOklch(h: number, s: number, l: number): string {
-  const [r, g, b] = hslToRgb(h, s, l);
-  const rn = r / 255, gn = g / 255, bn = b / 255;
-  // linear sRGB
-  const rl = rn <= 0.04045 ? rn / 12.92 : Math.pow((rn + 0.055) / 1.055, 2.4);
-  const gl = gn <= 0.04045 ? gn / 12.92 : Math.pow((gn + 0.055) / 1.055, 2.4);
-  const bl = bn <= 0.04045 ? bn / 12.92 : Math.pow((bn + 0.055) / 1.055, 2.4);
-  // XYZ D65
-  const X = 0.4124 * rl + 0.3576 * gl + 0.1805 * bl;
-  const Y = 0.2126 * rl + 0.7152 * gl + 0.0722 * bl;
-  const Z = 0.0193 * rl + 0.1192 * gl + 0.9505 * bl;
-  // OKLab via Ottosson matrix (simplified)
-  const lm = Math.cbrt(0.8189330101 * X + 0.3618667424 * Y - 0.1288597137 * Z);
-  const mm = Math.cbrt(0.0329845436 * X + 0.9293118715 * Y + 0.0361456387 * Z);
-  const sm = Math.cbrt(0.0482003018 * X + 0.2643662691 * Y + 0.6338517070 * Z);
-  const L = 0.2104542553 * lm + 0.7936177850 * mm - 0.0040720468 * sm;
-  const a = 1.9779984951 * lm - 2.4285922050 * mm + 0.4505937099 * sm;
-  const bk = 0.0259040371 * lm + 0.7827717662 * mm - 0.8086757660 * sm;
-  const C = Math.sqrt(a * a + bk * bk);
-  const H = (Math.atan2(bk, a) * 180) / Math.PI;
-  return `oklch(${round2(L * 100)}% ${round2(C)} ${round2(H < 0 ? H + 360 : H)})`;
 }
 
 function formatColor(h: number, s: number, l: number, format: string): string {
   h = clamp(h, 0, 360);
   s = clamp(s, 0, 100);
   l = clamp(l, 0, 100);
+  
+  const rgb = hslToRgb(h, s, l);
+  
   switch (format) {
-    case 'hsl':   return `hsl(${Math.round(h)}, ${Math.round(s)}%, ${Math.round(l)}%)`;
-    case 'hex':   return hslToHex(h, s, l);
-    case 'rgb':   return hslToRgbStr(h, s, l);
-    case 'oklch': return hslToOklch(h, s, l);
-    default:      return `hsl(${Math.round(h)}, ${Math.round(s)}%, ${Math.round(l)}%)`;
+    case 'hsl':   return formatHsl(h, s, l);
+    case 'hex':   return rgbToHex(rgb.r, rgb.g, rgb.b);
+    case 'rgb':   return `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+    case 'oklch': {
+      const oklch = rgbToOklch(rgb.r, rgb.g, rgb.b);
+      return formatOklch(oklch.l, oklch.c, oklch.h);
+    }
+    default:      return formatHsl(h, s, l);
   }
 }
 

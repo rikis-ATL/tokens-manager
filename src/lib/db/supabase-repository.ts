@@ -15,6 +15,7 @@ interface SupabaseRow {
   user_id: string | null;
   description: string | null;
   tags: string[];
+  color_format: string | null;
   figma_token: string | null;
   figma_file_id: string | null;
   github_repo: string | null;
@@ -37,6 +38,7 @@ function rowToDoc(row: SupabaseRow): CollectionDoc {
     userId: row.user_id ?? null,
     description: row.description ?? null,
     tags: row.tags ?? [],
+    colorFormat: (row.color_format as 'hex' | 'hsl' | 'oklch') ?? 'hex',
     figmaToken: row.figma_token ?? null,
     figmaFileId: row.figma_file_id ?? null,
     githubRepo: row.github_repo ?? null,
@@ -58,6 +60,7 @@ function toInsertRow(data: CreateCollectionInput) {
     user_id: data.userId ?? null,
     description: data.description ?? null,
     tags: data.tags ?? [],
+    color_format: data.colorFormat ?? 'hex',
     figma_token: data.figmaToken ?? null,
     figma_file_id: data.figmaFileId ?? null,
     github_repo: data.githubRepo ?? null,
@@ -74,6 +77,7 @@ function toUpdateRow(data: UpdateTokenCollectionInput) {
   if (data.sourceMetadata !== undefined) row.source_metadata = data.sourceMetadata;
   if (data.description !== undefined) row.description = data.description;
   if (data.tags !== undefined) row.tags = data.tags;
+  if (data.colorFormat !== undefined) row.color_format = data.colorFormat;
   if (data.figmaToken !== undefined) row.figma_token = data.figmaToken;
   if (data.figmaFileId !== undefined) row.figma_file_id = data.figmaFileId;
   if (data.githubRepo !== undefined) row.github_repo = data.githubRepo;

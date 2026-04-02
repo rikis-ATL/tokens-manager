@@ -1,13 +1,14 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { HexColorPicker, HexColorInput } from "react-colorful";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { ChevronDown, ChevronUp, Trash2, RotateCcw, Lock, EllipsisVertical } from "lucide-react";
 import { LoadingIndicator } from "@/components/layout/LoadingIndicator";
 import { showSuccessToast, showErrorToast } from "@/utils/toast.utils";
 import { JsonPreviewDialog } from "@/components/dev/JsonPreviewDialog";
 import { LoadCollectionDialog } from "@/components/collections/LoadCollectionDialog";
 import { TokenReferencePicker } from "@/components/tokens/TokenReferencePicker";
+import { MultiFormatColorPicker } from "@/components/ui/MultiFormatColorPicker";
+import { detectColorFormat } from "@/lib/colorUtils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -56,10 +57,12 @@ import {
   bulkDeleteTokens,
   bulkMoveTokens,
   bulkChangeType,
+  bulkChangeColorFormat,
   bulkAddPrefix,
   bulkRemovePrefix,
   detectCommonPrefix,
 } from "../../utils";
+import { type ColorFormat } from "@/lib/colorUtils";
 import { createLoadingState } from "../../utils";
 import { BulkActionBar } from "./BulkActionBar";
 
@@ -298,23 +301,16 @@ function TokenTableRow({
                   />
                 </PopoverTrigger>
                 <PopoverContent
-                  className="w-auto p-3 flex flex-col gap-2"
+                  className="w-auto p-3"
                   align="start"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <HexColorPicker
-                    color={swatchBg.startsWith("#") ? swatchBg : "#000000"}
-                    onChange={(hex) =>
-                      onUpdateToken(group.id, token.id, "value", hex)
+                  <MultiFormatColorPicker
+                    value={token.value?.toString() ?? "#000000"}
+                    defaultFormat={detectColorFormat(token.value?.toString() ?? "") ?? "hex"}
+                    onChange={(newValue) =>
+                      onUpdateToken(group.id, token.id, "value", newValue)
                     }
-                  />
-                  <HexColorInput
-                    color={swatchBg.startsWith("#") ? swatchBg : "#000000"}
-                    onChange={(hex) =>
-                      onUpdateToken(group.id, token.id, "value", hex)
-                    }
-                    prefixed
-                    className="w-full border border-gray-200 rounded px-2 py-1 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-blue-400"
                   />
                 </PopoverContent>
               </Popover>
@@ -1397,6 +1393,33 @@ export function TokenGeneratorForm({
     applyBulkMutation(groups => bulkChangeType(groups, selectedGroupId, selectedTokenIds, newType));
   }, [applyBulkMutation, selectedGroupId, selectedTokenIds]);
 
+  const handleBulkChangeColorFormat = useCallback((format: ColorFormat) => {
+    if (!selectedGroupId) return;
+    applyBulkMutation(groups => bulkChangeColorFormat(groups, selectedGroupId, selectedTokenIds, format));
+  }, [applyBulkMutation, selectedGroupId, selectedTokenIds]);
+
+  // Count color tokens in selection for bulk action bar
+  const selectedColorInfo = useMemo(() => {
+    if (!selectedGroupId || selectedTokenIds.size === 0) {
+      return { count: 0, previews: [] };
+    }
+    
+    const group = findGroupById(tokenGroups, selectedGroupId);
+    if (!group) return { count: 0, previews: [] };
+    
+    const colorTokens = group.tokens.filter(t => 
+      selectedTokenIds.has(t.id) && t.type === 'color'
+    );
+    
+    return {
+      count: colorTokens.length,
+      previews: colorTokens.slice(0, 5).map(t => ({
+        path: t.path,
+        value: String(t.value || ''),
+      })),
+    };
+  }, [selectedGroupId, selectedTokenIds, tokenGroups]);
+
   // ─── Live prefix edit handlers ───────────────────────────────────────────────
   const handlePrefixFocus = useCallback(() => {
     isPrefixEditingRef.current = true;
@@ -1657,6 +1680,8 @@ export function TokenGeneratorForm({
       {selectedGroupId && (
         <BulkActionBar
           selectedCount={selectedTokenIds.size}
+          selectedColorCount={selectedColorInfo.count}
+          selectedColorPreviews={selectedColorInfo.previews}
           groups={tokenGroups}
           sourceGroupId={selectedGroupId}
           isReadOnly={!!isReadOnly}
@@ -1664,6 +1689,7 @@ export function TokenGeneratorForm({
           onDelete={handleBulkDelete}
           onMoveToGroup={handleBulkMove}
           onChangeType={handleBulkChangeType}
+          onChangeColorFormat={handleBulkChangeColorFormat}
           onPrefixFocus={handlePrefixFocus}
           onPrefixChange={handlePrefixChange}
           onPrefixBlur={handlePrefixBlur}

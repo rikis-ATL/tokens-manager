@@ -30,6 +30,7 @@ export function NewCollectionDialog({
 }: NewCollectionDialogProps) {
   const [name, setName] = useState('');
   const [namespace, setNamespace] = useState('');
+  const [colorFormat, setColorFormat] = useState<'hex' | 'hsl' | 'oklch'>('hex');
   const [duplicateSourceId, setDuplicateSourceId] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState('');
@@ -44,6 +45,7 @@ export function NewCollectionDialog({
   const resetForm = () => {
     setName('');
     setNamespace('');
+    setColorFormat('hex');
     setDuplicateSourceId('');
     setError('');
     setPalettePresetId('none');
@@ -102,7 +104,12 @@ export function NewCollectionDialog({
         const res = await fetch('/api/collections', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: trimmedName, namespace: namespace.trim() || undefined, tokens }),
+          body: JSON.stringify({ 
+            name: trimmedName, 
+            namespace: namespace.trim() || undefined, 
+            colorFormat,
+            tokens 
+          }),
         });
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
@@ -156,6 +163,30 @@ export function NewCollectionDialog({
               Namespace prepended to token paths in CSS output (e.g. <code className="font-mono">--token-color-slate-50</code>).
             </p>
           </div>
+
+          {!isDuplicating && (
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-700">
+                Color format
+                <span className="font-normal text-gray-500 ml-1">(default for new color tokens)</span>
+              </label>
+              <Select value={colorFormat} onValueChange={(val) => setColorFormat(val as 'hex' | 'hsl' | 'oklch')}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="hex">Hex - Universal format (#ffffff)</SelectItem>
+                  <SelectItem value="hsl">HSL - Designer-friendly (hsl(180, 50%, 50%))</SelectItem>
+                  <SelectItem value="oklch">OKLCH - Perceptually uniform (oklch(0.5 0.1 180))</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500">
+                {colorFormat === 'hex' && 'Hex is the most universal format, supported everywhere.'}
+                {colorFormat === 'hsl' && 'HSL is intuitive for designers - adjust hue, saturation, and lightness independently.'}
+                {colorFormat === 'oklch' && 'OKLCH maintains perceptual uniformity - equal lightness values look equally bright across all hues.'}
+              </p>
+            </div>
+          )}
 
           {existingCollections.length > 0 && (
             <div className="space-y-1">

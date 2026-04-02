@@ -17,6 +17,7 @@ export interface CreateCollectionInput {
   userId?: string | null;
   description?: string | null;
   tags?: string[];
+  colorFormat?: 'hex' | 'hsl' | 'oklch';
   figmaToken?: string | null;
   figmaFileId?: string | null;
   githubRepo?: string | null;

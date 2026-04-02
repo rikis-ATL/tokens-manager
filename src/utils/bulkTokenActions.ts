@@ -4,10 +4,11 @@
  *
  * All functions are free of side-effects and React dependencies.
  * Exports: bulkDeleteTokens, bulkMoveTokens, bulkChangeType, bulkAddPrefix,
- *          bulkRemovePrefix, detectCommonPrefix
+ *          bulkRemovePrefix, detectCommonPrefix, bulkChangeColorFormat
  */
 
 import { TokenGroup, GeneratedToken, TokenType } from '@/types/token.types';
+import { convertColorFormat, isValidColor, type ColorFormat } from '@/lib/colorUtils';
 
 // ---------------------------------------------------------------------------
 // Private helpers
@@ -300,4 +301,44 @@ export function bulkRemovePrefix(
 
     return { ...group, tokens: finalTokens };
   });
+}
+
+/**
+ * Convert the color values of selected color tokens to a new format.
+ * Only affects tokens with type='color' and valid color values.
+ * Token references (e.g., {color.primary}) are skipped.
+ */
+export function bulkChangeColorFormat(
+  groups: TokenGroup[],
+  groupId: string,
+  tokenIds: Set<string>,
+  targetFormat: ColorFormat
+): TokenGroup[] {
+  if (!findGroupInTree(groups, groupId)) return groups;
+
+  return updateGroupInTree(groups, groupId, group => ({
+    ...group,
+    tokens: group.tokens.map(token => {
+      // Only process selected tokens with type='color'
+      if (!tokenIds.has(token.id) || token.type !== 'color') {
+        return token;
+      }
+
+      const value = String(token.value || '');
+      
+      // Skip token references
+      if (value.startsWith('{') && value.endsWith('}')) {
+        return token;
+      }
+
+      // Skip invalid colors
+      if (!isValidColor(value)) {
+        return token;
+      }
+
+      // Convert to target format
+      const newValue = convertColorFormat(value, targetFormat);
+      return { ...token, value: newValue };
+    }),
+  }));
 }

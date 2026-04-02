@@ -24,6 +24,20 @@ import { previewGeneratedTokens } from './tokenGenerators';
 import { parseArrayToValues } from './jsonTokenParser';
 import type { GeneratorConfig, ColorGeneratorConfig, DimensionGeneratorConfig } from '@/types/generator.types';
 import { getPaletteFamilyColors } from '@/lib/presets';
+import {
+  parseColor,
+  parseHex,
+  parseRgb,
+  parseHsl,
+  parseOklch,
+  hslToRgb,
+  rgbToHsl,
+  rgbToHex,
+  rgbToOklch,
+  formatHsl,
+  formatOklch,
+  type RGB,
+} from '@/lib/colorUtils';
 
 // ── Math helpers ──────────────────────────────────────────────────────────────
 
@@ -32,120 +46,55 @@ function roundTo(value: number, precision: number): number {
   return Math.round(value * factor) / factor;
 }
 
-// ── Color utilities ───────────────────────────────────────────────────────────
+// ── Color conversion for graph nodes ──────────────────────────────────────────
 
-function parseHex(hex: string): [number, number, number] | null {
-  const clean = hex.replace('#', '');
-  if (clean.length !== 6 && clean.length !== 3) return null;
-  const full = clean.length === 3
-    ? clean.split('').map(c => c + c).join('')
-    : clean;
-  return [
-    parseInt(full.slice(0, 2), 16),
-    parseInt(full.slice(2, 4), 16),
-    parseInt(full.slice(4, 6), 16),
-  ];
-}
-
-function parseRgb(str: string): [number, number, number] | null {
-  const m = str.match(/rgb\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)\s*\)/i);
-  if (!m) return null;
-  return [Math.round(parseFloat(m[1])), Math.round(parseFloat(m[2])), Math.round(parseFloat(m[3]))];
-}
-
-function hslToRgb(h: number, s: number, l: number): [number, number, number] {
-  const sn = s / 100, ln = l / 100;
-  const c = (1 - Math.abs(2 * ln - 1)) * sn;
-  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
-  const m = ln - c / 2;
-  let r = 0, g = 0, b = 0;
-  if (h < 60)       { r = c; g = x; b = 0; }
-  else if (h < 120) { r = x; g = c; b = 0; }
-  else if (h < 180) { r = 0; g = c; b = x; }
-  else if (h < 240) { r = 0; g = x; b = c; }
-  else if (h < 300) { r = x; g = 0; b = c; }
-  else              { r = c; g = 0; b = x; }
-  return [
-    Math.round((r + m) * 255),
-    Math.round((g + m) * 255),
-    Math.round((b + m) * 255),
-  ];
-}
-
-function parseHslToRgb(str: string): [number, number, number] | null {
-  const m = str.match(/hsl\(\s*([\d.]+)[\s,]+([\d.]+)%?[\s,]+([\d.]+)%?\s*\)/i);
-  if (!m) return null;
-  return hslToRgb(parseFloat(m[1]), parseFloat(m[2]), parseFloat(m[3]));
-}
-
-function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
-  const rn = r / 255, gn = g / 255, bn = b / 255;
-  const max = Math.max(rn, gn, bn), min = Math.min(rn, gn, bn);
-  const l = (max + min) / 2;
-  if (max === min) return [0, 0, Math.round(l * 100)];
-  const d = max - min;
-  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-  let h = 0;
-  if (max === rn) h = ((gn - bn) / d + (gn < bn ? 6 : 0)) / 6;
-  else if (max === gn) h = ((bn - rn) / d + 2) / 6;
-  else h = ((rn - gn) / d + 4) / 6;
-  return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)];
-}
-
-function rgbToHex(r: number, g: number, b: number): string {
-  return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
-}
-
-function rgbToOklch(r: number, g: number, b: number): string {
-  const lin = (v: number) =>
-    v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
-  const rl = lin(r / 255), gl = lin(g / 255), bl = lin(b / 255);
-  const lm = Math.cbrt(0.4122214708 * rl + 0.5363325363 * gl + 0.0514459929 * bl);
-  const mm = Math.cbrt(0.2119034982 * rl + 0.6806995451 * gl + 0.1073969566 * bl);
-  const sm = Math.cbrt(0.0883024619 * rl + 0.2817188376 * gl + 0.6299787005 * bl);
-  const L  = 0.2104542553 * lm + 0.7936177850 * mm - 0.0040720468 * sm;
-  const a  = 1.9779984951 * lm - 2.4285922050 * mm + 0.4505937099 * sm;
-  const bk = 0.0259040371 * lm + 0.7827717662 * mm - 0.8086757660 * sm;
-  const C  = Math.sqrt(a * a + bk * bk);
-  const H  = (Math.atan2(bk, a) * 180) / Math.PI;
-  const r2 = (n: number) => Math.round(n * 1000) / 1000;
-  return `oklch(${r2(L)} ${r2(C)} ${r2(H < 0 ? H + 360 : H)})`;
-}
-
-function parseToRgb(value: string, from: CssColorFormat): [number, number, number] | null {
+/** Parse any CSS color format to RGB tuple for graph operations */
+function parseToRgb(value: string, from: CssColorFormat): RGB | null {
   switch (from) {
-    case 'hex':  return parseHex(value);
-    case 'rgb':  return parseRgb(value);
-    case 'hsl':  return parseHslToRgb(value);
-    default:     return null; // oklch parse not supported
+    case 'hex':   return parseHex(value);
+    case 'rgb':   return parseRgb(value);
+    case 'hsl':   return parseHsl(value);
+    case 'oklch': return parseOklch(value);
+    default:      return null;
   }
 }
 
-function rgbToFormat(r: number, g: number, b: number, to: CssColorFormat): string {
+/** Convert RGB to specified CSS color format */
+function rgbToFormat(rgb: RGB, to: CssColorFormat): string {
   switch (to) {
-    case 'hex':  return rgbToHex(r, g, b);
-    case 'rgb':  return `rgb(${r}, ${g}, ${b})`;
+    case 'hex':   return rgbToHex(rgb.r, rgb.g, rgb.b);
+    case 'rgb':   return `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
     case 'hsl': {
-      const [h, s, l] = rgbToHsl(r, g, b);
-      return `hsl(${h}, ${s}%, ${l}%)`;
+      const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+      return formatHsl(hsl.h, hsl.s, hsl.l);
     }
-    case 'oklch': return rgbToOklch(r, g, b);
-    default:      return rgbToHex(r, g, b);
+    case 'oklch': {
+      const oklch = rgbToOklch(rgb.r, rgb.g, rgb.b);
+      return formatOklch(oklch.l, oklch.c, oklch.h);
+    }
+    default:      return rgbToHex(rgb.r, rgb.g, rgb.b);
   }
 }
 
+/** Convert color from one CSS format to another (used by ColorConvert node) */
 export function convertCssColor(value: string, from: CssColorFormat, to: CssColorFormat): string {
   if (from === to) return value;
-  const rgb = parseToRgb(value, from);
+  
+  // Try parsing with specified format first
+  let rgb = parseToRgb(value, from);
+  
+  // If that fails, try auto-detecting format
+  if (!rgb) {
+    rgb = parseColor(value);
+  }
+  
   if (!rgb) return value;
-  return rgbToFormat(...rgb, to);
+  return rgbToFormat(rgb, to);
 }
 
-// ── WCAG contrast helpers ─────────────────────────────────────────────────────
-
-/** Parse any CSS color string to RGB, trying all known formats. */
-function parseCssToRgb(value: string): [number, number, number] | null {
-  return parseHex(value) ?? parseRgb(value) ?? parseHslToRgb(value) ?? null;
+/** Parse any CSS color string to RGB for WCAG calculations */
+function parseCssToRgb(value: string): RGB | null {
+  return parseColor(value);
 }
 
 /** WCAG 2.1 relative luminance from sRGB 0–255 values. */
@@ -450,8 +399,17 @@ function evalPalette(
   if (config.presetId && config.presetFamily) {
     const presetColors = getPaletteFamilyColors(config.presetId, config.presetFamily);
     if (presetColors) {
+      // Convert preset colors to the selected format
+      const format = config.format || 'hex';
+      const convertedValues = format === 'hex' 
+        ? presetColors.values as string[]
+        : (presetColors.values as string[]).map(hexColor => {
+            const rgb = parseHex(hexColor);
+            return rgb ? rgbToFormat(rgb, format) : hexColor;
+          });
+      
       return {
-        values: presetColors.values as string[],
+        values: convertedValues,
         names: presetColors.names as string[],
         name: config.name ?? config.presetFamily,
       };
@@ -465,11 +423,11 @@ function evalPalette(
 
   // Parse base color to HSL so we can adjust only lightness
   let H = 234, S = 89;
-  const rgb = parseHex(baseColorInput) ?? parseRgb(baseColorInput) ?? parseHslToRgb(baseColorInput);
+  const rgb = parseColor(baseColorInput);
   if (rgb) {
-    const [h, s] = rgbToHsl(...rgb);
-    H = h;
-    S = s;
+    const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+    H = hsl.h;
+    S = hsl.s;
   }
 
   // Determine primary step names — wired array overrides naming setting
@@ -521,8 +479,8 @@ function evalPalette(
 
   // Generate primary scale
   const primaryColors = lightnessValues.map(L => {
-    const [r, g, b] = hslToRgb(H, S, Math.max(0, Math.min(100, L)));
-    return rgbToFormat(r, g, b, config.format);
+    const rgb = hslToRgb(H, S, Math.max(0, Math.min(100, L)));
+    return rgbToFormat(rgb, config.format);
   });
 
   // Merge primary + secondary entries, sorted by numeric step value
@@ -562,8 +520,8 @@ function evalColorConvert(
     const H = typeof inputs['hue']        === 'number' ? inputs['hue']        : config.hue;
     const S = typeof inputs['saturation'] === 'number' ? inputs['saturation'] : config.saturation;
     const compose = (l: number): string => {
-      const [r, g, b] = hslToRgb(H, S, Math.max(0, Math.min(100, l)));
-      return rgbToFormat(r, g, b, config.format);
+      const rgb = hslToRgb(H, S, Math.max(0, Math.min(100, l)));
+      return rgbToFormat(rgb, config.format);
     };
     if (Array.isArray(L)) {
       return { result: (L as (number | string)[]).map(n => compose(typeof n === 'number' ? n : parseFloat(String(n)))) as string[] };
@@ -596,8 +554,8 @@ function evalA11yContrast(
 
   if (!fgRgb || !bgRgb) return { ratio: null, level: 'unknown', passesAA: 0, passesAAA: 0 };
 
-  const fgL   = relativeLuminance(...fgRgb);
-  const bgL   = relativeLuminance(...bgRgb);
+  const fgL   = relativeLuminance(fgRgb.r, fgRgb.g, fgRgb.b);
+  const bgL   = relativeLuminance(bgRgb.r, bgRgb.g, bgRgb.b);
   const ratio = roundTo(contrastRatio(fgL, bgL), 2);
   const level = wcagLevel(ratio);
 
@@ -646,14 +604,11 @@ function evalGenerator(
     const col = { ...specificConfig } as ColorGeneratorConfig;
     if (typeof wiredBaseColor === 'string') {
       // Parse any CSS color string to extract HSL
-      const rgb =
-        parseHex(wiredBaseColor) ??
-        parseRgb(wiredBaseColor) ??
-        parseHslToRgb(wiredBaseColor);
+      const rgb = parseColor(wiredBaseColor);
       if (rgb) {
-        const [h, s] = rgbToHsl(rgb[0], rgb[1], rgb[2]);
-        col.baseHue = Math.round(h);
-        col.baseSaturation = Math.round(s);
+        const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+        col.baseHue = Math.round(hsl.h);
+        col.baseSaturation = Math.round(hsl.s);
       }
     }
     if (typeof wiredBaseValue === 'number') {
