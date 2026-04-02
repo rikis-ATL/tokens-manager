@@ -1,827 +1,657 @@
-# Architecture Research
+# Architecture Patterns — AI Agent Integration
 
-**Domain:** Multi-tenant SaaS billing integration — ATUI Tokens Manager v1.6
+**Domain:** AI agent with tool use in a Next.js 13.5.6 + Mongoose app
 **Researched:** 2026-03-30
-**Confidence:** HIGH for org model + scoping patterns; HIGH for Stripe webhook handling; HIGH for billing service isolation; MEDIUM for in-process rate limiting (no Redis dependency, trade-off acknowledged)
+**Confidence:** HIGH (Anthropic SDK docs, official Next.js docs, existing codebase verified)
 
 ---
 
-## Context: What This Research Covers
+## Recommended Architecture
 
-This is a SUBSEQUENT MILESTONE architecture document. The existing Next.js 13.5.6 + Mongoose + NextAuth v4 + JWT stack is locked. This document covers only the NEW structural decisions required for v1.6: Organization model, multi-tenant data scoping, `src/lib/billing/` isolation boundary, usage tracking, Stripe integration, and rate limiting.
-
-**Key constraint:** ALL Stripe and billing logic lives in `src/lib/billing/`. No payment code in `src/app/api/` route handlers directly. Route handlers call billing service functions and act on return values only.
-
----
-
-## System Overview
+The agent lives entirely server-side. The browser sends chat messages to a streaming route handler. The route handler runs the Anthropic agentic loop, executes tool calls by calling existing route handler logic directly (not via HTTP), streams events back as SSE, and updates the database through the existing service layer.
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                          Next.js App Router                          │
-│                                                                      │
-│  src/app/api/                                                        │
-│  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌───────────┐  │
-│  │ collections/ │ │  build-     │ │   export/    │ │ billing/  │  │
-│  │  [id]/...   │ │  tokens/    │ │ github|figma │ │ checkout  │  │
-│  │             │ │             │ │              │ │ portal    │  │
-│  │  (modified) │ │  (modified) │ │  (modified)  │ │ webhooks  │  │
-│  └──────┬──────┘ └──────┬──────┘ └──────┬───────┘ └─────┬─────┘  │
-│         │               │               │                │         │
-├─────────┴───────────────┴───────────────┴────────────────┴─────────┤
-│                     Limit Check Layer (NEW)                          │
-│         src/lib/billing/limits.ts — checkLimit(org, action)         │
-├─────────────────────────────────────────────────────────────────────┤
-│                     src/lib/billing/ (NEW — isolated)                │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐  │
-│  │  stripe.ts  │ │ checkout.ts │ │  webhooks/  │ │  usage.ts   │  │
-│  │ (singleton) │ │             │ │  handlers/  │ │             │  │
-│  └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘  │
-│  ┌─────────────┐ ┌─────────────┐ ┌───────────────┐                 │
-│  │  limits.ts  │ │  tiers.ts   │ │ rate-limit.ts │                 │
-│  │             │ │  (LIMITS    │ │               │                 │
-│  │             │ │  config)    │ │               │                 │
-│  └─────────────┘ └─────────────┘ └───────────────┘                 │
-├─────────────────────────────────────────────────────────────────────┤
-│                     src/lib/auth/ (existing, modified)               │
-│  ┌────────────────────────────────────────────────────────────┐     │
-│  │  require-auth.ts (extended with org lookup)                │     │
-│  │  nextauth.config.ts (organizationId injected into JWT)     │     │
-│  └────────────────────────────────────────────────────────────┘     │
-├─────────────────────────────────────────────────────────────────────┤
-│                     src/lib/db/models/ (modified + new)              │
-│  ┌──────────┐ ┌──────────────┐ ┌────────────┐ ┌───────────────┐   │
-│  │  User.ts │ │TokenCollect. │ │Organizati- │ │CollectionPerm │   │
-│  │ +orgId   │ │  +orgId      │ │  on.ts     │ │   (existing)  │   │
-│  │(modified)│ │ (modified)   │ │  (NEW)     │ │               │   │
-│  └──────────┘ └──────────────┘ └────────────┘ └───────────────┘   │
-├─────────────────────────────────────────────────────────────────────┤
-│                         MongoDB                                      │
-│  ┌────────────┐ ┌────────────┐ ┌───────────────┐                   │
-│  │organizations│ │  users     │ │tokencollections│                  │
-│  └────────────┘ └────────────┘ └───────────────┘                   │
-└─────────────────────────────────────────────────────────────────────┘
+Browser (AIChatPanel component)
+  │  POST /api/collections/[id]/chat (fetch + ReadableStream reader)
+  ▼
+Route Handler: src/app/api/collections/[id]/chat/route.ts
+  │  1. requireRole(Action.Write, collectionId)
+  │  2. Decrypt API key from User model
+  │  3. Build system prompt from collection snapshot
+  │  4. Run agentic loop (Anthropic SDK messages.stream)
+  │     ├─ Stream text deltas → SSE to browser
+  │     ├─ On tool_use → execute tool (call handler function directly)
+  │     │   ├─ tool: create_tokens      → PUT /api/collections/[id] handler fn
+  │     │   ├─ tool: update_token       → PUT /api/collections/[id] handler fn
+  │     │   ├─ tool: delete_tokens      → PUT /api/collections/[id] handler fn
+  │     │   ├─ tool: create_group       → PUT /api/collections/[id] handler fn
+  │     │   ├─ tool: rename_group       → PUT /api/collections/[id] handler fn
+  │     │   ├─ tool: delete_group       → PUT /api/collections/[id] handler fn
+  │     │   ├─ tool: create_theme       → POST /api/collections/[id]/themes handler fn
+  │     │   └─ tool: query_tokens       → read from in-memory snapshot (no DB call)
+  │     └─ Stream tool_call / tool_result events → SSE to browser
+  └── Return ReadableStream response (SSE)
 ```
 
 ---
 
-## Organization Model Design
-
-### IOrganization Schema (NEW)
-
-```typescript
-// src/lib/db/models/Organization.ts
-
-export type Plan = 'free' | 'pro' | 'team';
-export type SubscriptionStatus = 'active' | 'past_due' | 'canceled' | 'trialing' | 'none';
-
-export interface IOrganization {
-  _id: string;
-  name: string;
-  plan: Plan;
-  stripeCustomerId: string | null;
-  stripeSubscriptionId: string | null;
-  subscriptionStatus: SubscriptionStatus;
-  // Usage tracking
-  exportsThisMonth: number;
-  tokenCount: number;
-  usageResetAt: Date;          // When exportsThisMonth was last zeroed
-  // Seat tracking (Team plan)
-  seatCount: number;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-```
-
-**Rationale for embedded usage fields:** Token counts and export counts are read on every API request that might hit a limit. Embedding them in the Organization document means a single `Organization.findById()` call provides everything needed. A separate UsageEvent collection would require an aggregate query on every request — unnecessary for this scale.
-
-**Monthly reset strategy:** Lazy reset. When `usageResetAt` is older than 30 days (not the calendar month start), the billing service resets `exportsThisMonth = 0` and updates `usageResetAt` at the time of first export in the new period. This avoids a cron dependency while still being accurate enough for flat-subscription enforcement.
-
-### organizationId Propagation
-
-**User model modification (MODIFIED — not replaced):**
-
-```typescript
-// Add to existing IUser interface:
-organizationId: string;  // required, references Organization._id
-
-// Add to existing userSchema:
-organizationId: { type: String, required: true, index: true }
-```
-
-**TokenCollection model modification (MODIFIED — not replaced):**
-
-```typescript
-// Add to existing ITokenCollection interface:
-organizationId: string;  // required, references Organization._id
-
-// Add to existing tokenCollectionSchema:
-organizationId: { type: String, required: true, index: true }
-```
-
-**Migration strategy (TENANT-03):** On first boot, a bootstrap function (following the pattern of `collection-bootstrap.ts`) reads `INITIAL_ORG_NAME` env var, creates one Organization document if none exist, then patches all existing Users and TokenCollections with that org's `_id`. Idempotent — runs on every boot but no-ops if an org already exists. This follows the existing `bootstrapCollectionGrants()` precedent exactly.
-
-### JWT Session Extension
-
-```typescript
-// In nextauth.config.ts jwt callback — add organizationId to token:
-token.organizationId = user.organizationId;
-
-// In session callback — expose to session:
-session.user.organizationId = token.organizationId;
-```
-
-`next-auth.d.ts` must be extended to declare `organizationId` on both `JWT` and `Session['user']`. This is the established pattern already used for `id` and `role`.
-
-**Why put organizationId in the JWT:** The session is already the boundary where auth state is propagated. Adding `organizationId` here means every route handler has immediate access via `session.user.organizationId` after `requireRole()` — no extra DB call needed for the org ID itself.
-
----
-
-## Billing Service Isolation Pattern
-
-### Module Boundary: `src/lib/billing/`
-
-This directory is the only place Stripe SDK code may live. Route handlers import from `src/lib/billing/` and receive plain results. They never import `stripe` directly.
-
-```
-src/lib/billing/
-├── stripe.ts              # Stripe singleton — import stripe from './stripe'
-├── tiers.ts               # LIMITS config, plan definitions
-├── limits.ts              # checkLimit(), checkIntegrationAccess(), isSelfHosted()
-├── rate-limit.ts          # checkRateLimit() — in-process fixed window
-├── usage.ts               # incrementExports(), refreshTokenCount(), lazyResetIfDue()
-├── checkout.ts            # createCheckoutSession(), createBillingPortalSession()
-├── index.ts               # barrel export
-└── webhooks/
-    ├── index.ts           # constructStripeEvent() wrapper — raw body required
-    ├── checkout-completed.ts
-    ├── invoice-payment-failed.ts
-    └── subscription-deleted.ts
-```
-
-### stripe.ts — Singleton Pattern
-
-```typescript
-// src/lib/billing/stripe.ts
-import Stripe from 'stripe';
-
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('STRIPE_SECRET_KEY is not set');
-}
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2024-06-20',
-});
-
-export default stripe;
-```
-
-The singleton throws at module load time if the key is missing. In self-hosted mode (`SELF_HOSTED=true`), route handlers check `isSelfHosted()` before reaching any billing call, so this module is never imported in that mode.
-
-### tiers.ts — LIMITS Config (BILLING-01)
-
-```typescript
-// src/lib/billing/tiers.ts
-
-export type Plan = 'free' | 'pro' | 'team';
-
-export interface TierLimits {
-  maxCollections: number;
-  maxTokens: number;
-  maxThemesPerCollection: number;
-  maxExportsPerMonth: number;
-  maxExportSizeKb: number;
-  integrationsEnabled: boolean;
-  maxSeats: number;
-}
-
-export const LIMITS: Record<Plan, TierLimits> = {
-  free: {
-    maxCollections: 1,
-    maxTokens: 500,
-    maxThemesPerCollection: 1,
-    maxExportsPerMonth: 10,
-    maxExportSizeKb: 100,
-    integrationsEnabled: false,
-    maxSeats: 1,
-  },
-  pro: {
-    maxCollections: 10,
-    maxTokens: 5000,
-    maxThemesPerCollection: 5,
-    maxExportsPerMonth: 100,
-    maxExportSizeKb: Infinity,
-    integrationsEnabled: true,
-    maxSeats: 1,
-  },
-  team: {
-    maxCollections: 10,
-    maxTokens: 5000,
-    maxThemesPerCollection: 5,
-    maxExportsPerMonth: 100,
-    maxExportSizeKb: Infinity,
-    integrationsEnabled: true,
-    maxSeats: 10,
-  },
-};
-
-export const STRIPE_PRICE_IDS: Record<'pro' | 'team', string> = {
-  pro:  process.env.STRIPE_PRICE_ID_PRO  ?? '',
-  team: process.env.STRIPE_PRICE_ID_TEAM ?? '',
-};
-```
-
-All limits are in one place. When a tier changes, only `LIMITS` changes — not route handlers.
-
-### limits.ts — Limit Check Functions
-
-```typescript
-// src/lib/billing/limits.ts
-import type { IOrganization } from '@/lib/db/models/Organization';
-import { LIMITS } from './tiers';
-
-export type LimitCheckResult =
-  | { allowed: true }
-  | { allowed: false; reason: string; upgradeRequired: true };
-
-export function checkCollectionLimit(org: IOrganization, currentCount: number): LimitCheckResult {
-  if (isSelfHosted()) return { allowed: true };
-  const limit = LIMITS[org.plan].maxCollections;
-  if (currentCount >= limit) {
-    return { allowed: false, reason: `Plan allows ${limit} collection(s).`, upgradeRequired: true };
-  }
-  return { allowed: true };
-}
-
-export function checkTokenLimit(org: IOrganization, currentCount: number): LimitCheckResult { ... }
-export function checkThemeLimit(org: IOrganization, currentCount: number): LimitCheckResult { ... }
-export function checkExportLimit(org: IOrganization): LimitCheckResult { ... }
-export function checkExportSizeLimit(org: IOrganization, sizeKb: number): LimitCheckResult { ... }
-export function checkIntegrationAccess(org: IOrganization): LimitCheckResult { ... }
-
-export function isSelfHosted(): boolean {
-  return process.env.SELF_HOSTED === 'true';
-}
-```
-
-**How route handlers use this:**
-
-```typescript
-// POST /api/collections/route.ts — CREATE collection example:
-const authResult = await requireRole(Action.CreateCollection);
-if (authResult instanceof NextResponse) return authResult;
-
-const org = await Organization.findById(authResult.user.organizationId).lean();
-const collections = await repo.listByOrg(authResult.user.organizationId);
-const limitResult = checkCollectionLimit(org, collections.length);
-if (!limitResult.allowed) {
-  return NextResponse.json(
-    { error: limitResult.reason, upgradeRequired: true },
-    { status: 402 }
-  );
-}
-// ... proceed with collection creation
-```
-
-HTTP 402 signals the client to show the upgrade modal. The `upgradeRequired: true` field in the body distinguishes this from other 4xx errors.
-
----
-
-## Where Limits Are Checked: Service vs Route vs Middleware
-
-**Decision: limits are checked in route handlers, not middleware.**
-
-| Approach | Why Not |
-|----------|---------|
-| Next.js `middleware.ts` (Edge runtime) | Edge runtime cannot use Mongoose. `Organization.findById()` is a Node.js call. Additionally, `config.matcher` already excludes `api/` from middleware — adding billing enforcement there would require restructuring the existing auth separation. |
-| Generic middleware function wrapping all routes | Limits are per-action (collection count, token count, export count), not per-path. A generic wrapper cannot determine which limit to enforce without action context. |
-| Business logic service that calls route concerns | Violates the isolation boundary — billing service must not know about HTTP or routing. |
-
-**Correct pattern:** Route handler is responsible for:
-1. Auth check (`requireRole`)
-2. Load org from `session.user.organizationId`
-3. Call `checkXxxLimit(org, ...)` from `src/lib/billing/limits.ts`
-4. Return 402 if blocked
-5. Proceed with business logic if allowed
-6. Call usage update after success
-
-This keeps billing isolation intact: the billing module provides pure check functions and side-effecting usage mutations, but has no knowledge of HTTP.
-
----
-
-## Stripe Webhook Handler Security
-
-### Route: `POST /api/billing/webhooks/route.ts`
-
-The webhook handler is the one place where raw body access is mandatory. Next.js 13 App Router uses the Web API `Request` object — the body is a readable stream consumed once.
-
-```typescript
-// src/app/api/billing/webhooks/route.ts
-import { headers } from 'next/headers';
-import { constructStripeEvent } from '@/lib/billing/webhooks';
-import {
-  handleCheckoutCompleted,
-  handleInvoicePaymentFailed,
-  handleSubscriptionDeleted,
-} from '@/lib/billing/webhooks';
-
-export async function POST(req: Request): Promise<Response> {
-  const body = await req.text();            // raw string — NOT req.json()
-  const sig  = headers().get('stripe-signature') ?? '';
-
-  const event = constructStripeEvent(body, sig);
-  if (!event) {
-    return new Response('Webhook signature verification failed', { status: 400 });
-  }
-
-  switch (event.type) {
-    case 'checkout.session.completed':
-      await handleCheckoutCompleted(event.data.object);
-      break;
-    case 'invoice.payment_failed':
-      await handleInvoicePaymentFailed(event.data.object);
-      break;
-    case 'customer.subscription.deleted':
-      await handleSubscriptionDeleted(event.data.object);
-      break;
-    // Unknown events: return 200 — Stripe retries on non-2xx
-  }
-
-  return new Response('ok', { status: 200 });
-}
-```
-
-```typescript
-// src/lib/billing/webhooks/index.ts
-import stripe from '../stripe';
-import type Stripe from 'stripe';
-
-export function constructStripeEvent(
-  rawBody: string,
-  sig: string
-): Stripe.Event | null {
-  try {
-    return stripe.webhooks.constructEvent(
-      rawBody,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET!
-    );
-  } catch {
-    return null;
-  }
-}
-```
-
-**Critical constraint:** `req.text()` must be called before any other body access. Using `req.json()` consumes the stream; re-serializing the parsed object changes whitespace and breaks the Stripe HMAC signature match.
-
-**Do not call `requireAuth()`** on the webhook route. Stripe signs the payload — the signature check is the authentication mechanism. The endpoint is intentionally unauthenticated to HTTP session auth.
-
-### Webhook Handlers
-
-```typescript
-// src/lib/billing/webhooks/checkout-completed.ts
-export async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
-  const organizationId = session.metadata?.organizationId;
-  if (!organizationId) return;
-  await Organization.findByIdAndUpdate(organizationId, {
-    stripeCustomerId: session.customer as string,
-    stripeSubscriptionId: session.subscription as string,
-    plan: session.metadata?.plan ?? 'pro',
-    subscriptionStatus: 'active',
-  });
-}
-
-// src/lib/billing/webhooks/invoice-payment-failed.ts
-export async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
-  const customerId = invoice.customer as string;
-  await Organization.findOneAndUpdate(
-    { stripeCustomerId: customerId },
-    { subscriptionStatus: 'past_due' }
-  );
-}
-
-// src/lib/billing/webhooks/subscription-deleted.ts
-export async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
-  const customerId = subscription.customer as string;
-  await Organization.findOneAndUpdate(
-    { stripeCustomerId: customerId },
-    { plan: 'free', subscriptionStatus: 'canceled', stripeSubscriptionId: null }
-  );
-}
-```
-
-**organizationId in Stripe metadata:** Embed `organizationId` and `plan` when creating the checkout session. This is the only reliable bridge between Stripe's customer record and the app's Organization document across async webhook delivery — no session state is available in webhook context.
-
----
-
-## Usage Tracking Architecture
-
-### usage.ts
-
-```typescript
-// src/lib/billing/usage.ts
-import Organization from '@/lib/db/models/Organization';
-import type { IOrganization } from '@/lib/db/models/Organization';
-
-const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
-
-export async function lazyResetIfDue(org: IOrganization): Promise<IOrganization> {
-  if (Date.now() - org.usageResetAt.getTime() > THIRTY_DAYS_MS) {
-    return Organization.findByIdAndUpdate(
-      org._id,
-      { exportsThisMonth: 0, usageResetAt: new Date() },
-      { new: true }
-    ).lean() as Promise<IOrganization>;
-  }
-  return org;
-}
-
-export async function incrementExports(orgId: string): Promise<void> {
-  await Organization.findByIdAndUpdate(orgId, { $inc: { exportsThisMonth: 1 } });
-}
-
-export async function refreshTokenCount(orgId: string, count: number): Promise<void> {
-  await Organization.findByIdAndUpdate(orgId, { tokenCount: count });
-}
-```
-
-**Token count tracking:** `tokenCount` in Organization is updated whenever tokens are saved to a collection. The route handler for `PUT /api/collections/[id]` calculates the token count after save and calls `refreshTokenCount`. Counting at write time avoids an aggregate query at check time.
-
-**Export count:** Incremented atomically with `$inc` after a successful export. The check happens before the export using the current `org.exportsThisMonth` value. Minor race at concurrent requests — acceptable for flat-subscription enforcement at this scale.
-
----
-
-## Rate Limiting Architecture
-
-### Placement: In-Process Map in `src/lib/billing/rate-limit.ts`
-
-**Decision: in-process Map-based rate limiter, not Redis, not middleware.**
-
-| Option | Assessment |
-|--------|------------|
-| Next.js `middleware.ts` (Edge) | Excluded from `api/` in `config.matcher`. Restructuring the matcher to include api/ risks breaking the existing auth separation pattern. |
-| Upstash Redis + `@upstash/ratelimit` | Correct for serverless/multi-instance. Adds external dependency and Redis infrastructure cost — overkill for a single-instance self-hosted tool. |
-| In-process Map with fixed window | Zero dependencies. Works for single-process Node.js. Resets on server restart (acceptable — 60 req/min window means worst case is a 60-second reset). Future-proof: replace the implementation without changing call sites. |
-
-```typescript
-// src/lib/billing/rate-limit.ts
-
-interface BucketEntry { count: number; windowStart: number; }
-
-const WINDOW_MS = 60_000;
-const MAX_REQUESTS = 60;
-const buckets = new Map<string, BucketEntry>();
-
-// Prune stale entries every 5 minutes
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, entry] of buckets) {
-    if (now - entry.windowStart > WINDOW_MS * 2) buckets.delete(key);
-  }
-}, 5 * 60 * 1000);
-
-export type RateLimitResult =
-  | { allowed: true }
-  | { allowed: false; retryAfterMs: number };
-
-export function checkRateLimit(userId: string): RateLimitResult {
-  const now = Date.now();
-  const entry = buckets.get(userId);
-
-  if (!entry || now - entry.windowStart > WINDOW_MS) {
-    buckets.set(userId, { count: 1, windowStart: now });
-    return { allowed: true };
-  }
-  if (entry.count >= MAX_REQUESTS) {
-    return { allowed: false, retryAfterMs: WINDOW_MS - (now - entry.windowStart) };
-  }
-  entry.count++;
-  return { allowed: true };
-}
-```
-
-**Usage in route handlers (RATE-01):**
-
-```typescript
-const rl = checkRateLimit(authResult.user.id);
-if (!rl.allowed) {
-  return NextResponse.json(
-    { error: 'Rate limit exceeded. Try again shortly.' },
-    { status: 429, headers: { 'Retry-After': String(Math.ceil(rl.retryAfterMs / 1000)) } }
-  );
-}
-```
-
-**Affected routes:** `POST /api/build-tokens`, `POST /api/export/github`, `POST /api/export/figma`, `PUT /api/collections/[id]` (token save).
-
-**Upgrade path:** If the app moves to multi-instance deployment, replace `checkRateLimit()` body with `@upstash/ratelimit` behind the same function signature. Call sites in route handlers do not change.
-
----
-
-## Checkout and Billing Portal
-
-### New API Routes
-
-```
-src/app/api/billing/
-├── checkout/route.ts       # POST — creates Stripe Checkout session
-├── portal/route.ts         # POST — creates Stripe billing portal session
-└── webhooks/route.ts       # POST — receives Stripe events
-```
-
-### checkout.ts — Service Functions
-
-```typescript
-// src/lib/billing/checkout.ts
-export async function createCheckoutSession(
-  org: IOrganization,
-  plan: 'pro' | 'team',
-  returnUrl: string
-) {
-  return stripe.checkout.sessions.create({
-    mode: 'subscription',
-    payment_method_types: ['card'],
-    line_items: [{ price: STRIPE_PRICE_IDS[plan], quantity: 1 }],
-    customer: org.stripeCustomerId ?? undefined,
-    customer_creation: org.stripeCustomerId ? undefined : 'always',
-    success_url: `${returnUrl}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${returnUrl}/billing/cancel`,
-    metadata: {
-      organizationId: org._id.toString(),
-      plan,
-    },
-  });
-}
-
-export async function createBillingPortalSession(
-  org: IOrganization,
-  returnUrl: string
-) {
-  if (!org.stripeCustomerId) throw new Error('No Stripe customer — cannot open portal');
-  return stripe.billingPortal.sessions.create({
-    customer: org.stripeCustomerId,
-    return_url: returnUrl,
-  });
-}
-```
+## Component Boundaries
+
+| Component | Location | Responsibility | Communicates With |
+|-----------|----------|---------------|-------------------|
+| `AIChatPanel` | `src/components/tokens/AIChatPanel.tsx` | Chat UI, message list, input, tool call display, streaming reader | `POST /api/collections/[id]/chat` via fetch |
+| `chat/route.ts` | `src/app/api/collections/[id]/chat/route.ts` | Auth, agentic loop, SSE stream | `src/lib/ai/`, tool executor functions, `User` model |
+| `AIService` | `src/lib/ai/ai.service.ts` | Provider-agnostic interface + Claude implementation | `@anthropic-ai/sdk` |
+| `toolDefinitions` | `src/lib/ai/tools/index.ts` | JSON schemas for all agent tools | Read by `chat/route.ts` |
+| `toolExecutor` | `src/lib/ai/tools/executor.ts` | Maps tool name → implementation function, executes, returns result string | Collection handler functions, `TokenCollection` model |
+| `apiKeyService` | `src/lib/ai/api-key.service.ts` | Encrypt / decrypt user API keys | Node.js `crypto` (AES-256-GCM), `User` model |
+| `User` model | `src/lib/db/models/User.ts` | Store `encryptedApiKey` field | MongoDB via Mongoose |
 
 ---
 
 ## Data Flow
 
-### Collection Creation with Limit Check
+### Chat Request Lifecycle
 
 ```
-Client POST /api/collections
-    ↓
-requireRole(CreateCollection)         →  401/403 if unauthorized
-    ↓
-Organization.findById(session.user.organizationId)
-    ↓
-lazyResetIfDue(org)                   →  reset exportsThisMonth if > 30 days
-    ↓
-repo.listByOrg(orgId).length
-    ↓
-checkCollectionLimit(org, count)      →  402 { upgradeRequired: true } if at limit
-    ↓
-repo.create({ ...data, organizationId })
-    ↓
-200 OK
+1. User types message in AIChatPanel and submits
+2. Browser: POST /api/collections/[id]/chat
+   Body: { messages: ChatMessage[], activeThemeId?: string }
+3. Route handler:
+   a. requireRole(Action.Write, collectionId) — 401/403 on fail
+   b. Fetch User from DB; decrypt encryptedApiKey
+   c. GET collection snapshot (tokens + themes) for system prompt
+   d. Build system prompt (see Context Management section)
+   e. Instantiate AIService with decrypted key
+   f. Call aiService.streamWithTools(messages, tools, systemPrompt)
+   g. For each SSE event from AIService:
+      - text delta → enqueue { type:'text', delta } to ReadableStream
+      - tool_use start → enqueue { type:'tool_start', name, id }
+      - tool_use complete → execute tool → enqueue { type:'tool_result', id, result }
+      - error → enqueue { type:'error', message }
+      - done → controller.close()
+4. Browser streams response:
+   - Reads chunks via TextDecoderStream
+   - Parses JSON lines (one JSON object per SSE data line)
+   - Updates message state incrementally
 ```
 
-### Export with Rate Limit + Usage Limit Check
+### Tool Call Execution Flow (server-side)
 
-```
-Client POST /api/build-tokens
-    ↓
-requireRole(Write)                    →  401/403 if unauthorized
-    ↓
-checkRateLimit(session.user.id)       →  429 if > 60 req/min
-    ↓
-Organization.findById(organizationId)
-    ↓
-lazyResetIfDue(org)
-    ↓
-checkExportLimit(org)                 →  402 if exportsThisMonth >= limit
-    ↓
-buildTokens(...)                      →  ZIP buffer
-    ↓
-checkExportSizeLimit(org, sizeKb)     →  402 if over size limit (Free tier)
-    ↓
-incrementExports(orgId)               →  $inc exportsThisMonth
-    ↓
-200 OK + ZIP
-```
+The critical architectural decision: tool calls execute by calling handler functions directly, not by making HTTP requests to the app's own routes. This avoids network latency, simplifies auth forwarding, and keeps the agentic loop in a single process.
 
-### Stripe Webhook Flow
+```typescript
+// src/lib/ai/tools/executor.ts
 
-```
-Stripe POST /api/billing/webhooks
-    ↓
-req.text()                            →  raw body string (never req.json())
-    ↓
-headers().get('stripe-signature')
-    ↓
-constructStripeEvent(body, sig)       →  400 if HMAC signature invalid
-    ↓
-switch event.type
-    ├── checkout.session.completed    →  handleCheckoutCompleted()
-    │                                    update org: plan, stripeCustomerId,
-    │                                    subscriptionId, subscriptionStatus
-    ├── invoice.payment_failed        →  handleInvoicePaymentFailed()
-    │                                    update org: subscriptionStatus = 'past_due'
-    └── customer.subscription.deleted →  handleSubscriptionDeleted()
-                                         update org: plan = 'free', status = 'canceled'
-    ↓
-200 'ok'
+// Each tool maps to a function that accepts validated input
+// and returns { success: boolean; message: string; data?: unknown }
+
+async function executeCreateTokens(input: CreateTokensInput, ctx: ToolContext) {
+  // ctx contains: collectionId, session, activeThemeId
+  // Reuse the same business logic the PUT /api/collections/[id] route uses,
+  // but call it as a function rather than an HTTP endpoint.
+  // This means extracting the business logic from route handlers into
+  // service functions that both the route handler and the tool executor can call.
+  const repo = await getRepository();
+  const current = await repo.findById(ctx.collectionId);
+  // ... apply token mutations ...
+  await repo.update(ctx.collectionId, { tokens: updatedTokens });
+  return { success: true, message: `Created ${input.tokens.length} tokens in ${input.groupPath}` };
+}
 ```
 
-### Self-Serve Org Signup Flow
+This requires extracting mutation logic from existing route handlers into service functions. The route handlers become thin wrappers over those service functions.
+
+---
+
+## AI Service Layer Design
+
+### Provider Interface
+
+```typescript
+// src/lib/ai/types.ts
+
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string | ContentBlock[];
+}
+
+export interface StreamEvent {
+  type: 'text' | 'tool_start' | 'tool_result' | 'error' | 'done';
+  // text: delta string
+  // tool_start: { name: string; id: string; input: unknown }
+  // tool_result: { id: string; result: string; isError: boolean }
+  // error: { message: string }
+  [key: string]: unknown;
+}
+
+export interface AIProvider {
+  streamWithTools(
+    messages: ChatMessage[],
+    tools: ToolDefinition[],
+    systemPrompt: string,
+    onEvent: (event: StreamEvent) => void
+  ): Promise<void>;
+}
+```
+
+### Claude Implementation Pattern
+
+The ClaudeProvider implements the agentic loop internally. It uses `messages.stream()` to get streaming text deltas, then calls `stream.finalMessage()` to get the complete response for tool call extraction. If `stop_reason === 'tool_use'`, it executes each tool call and continues the loop with tool results appended to the conversation.
+
+Key pattern for the agentic loop:
 
 ```
-New user registers at POST /api/auth/signup
-    ↓
-Create Organization { name, plan: 'free' }
-    ↓
-Create User { organizationId: org._id, role: 'Admin', status: 'active' }
-    ↓
-Sign in → JWT contains { id, role, organizationId }
-    ↓
-All subsequent requests scope to organizationId from session
+while (true):
+  stream = client.messages.stream({ messages, tools, system })
+  emit text deltas as they arrive
+  finalMessage = await stream.finalMessage()
+  append assistant message to conversation history
+  if finalMessage.stop_reason !== 'tool_use': break
+  execute each tool_use block in finalMessage.content
+  emit tool_start + tool_result events
+  append { role: 'user', content: [tool_result blocks] } to conversation history
+  // loop continues with next Claude call
+```
+
+The loop exits on `stop_reason: 'end_turn'` (normal completion), `'max_tokens'`, or any stop reason other than `'tool_use'`.
+
+### AIService (provider-agnostic facade)
+
+```typescript
+// src/lib/ai/ai.service.ts
+
+export class AIService {
+  constructor(private provider: AIProvider) {}
+
+  streamWithTools(...args): Promise<void> {
+    return this.provider.streamWithTools(...args);
+  }
+}
+
+// Factory — returns Claude by default; extensible for OpenAI, Gemini etc.
+export function createAIService(apiKey: string, provider = 'claude'): AIService {
+  if (provider === 'claude') {
+    return new AIService(new ClaudeProvider(apiKey));
+  }
+  throw new Error(`Unknown AI provider: ${provider}`);
+}
+```
+
+Adding a second provider in the future means: implement `AIProvider`, register in the factory. No other code changes required.
+
+---
+
+## Tool Definition Schema
+
+Tools are defined using the Anthropic JSON Schema format. Each tool corresponds to one collection mutation operation.
+
+### Tool Call to API Endpoint Mapping
+
+| Tool Name | Corresponds To | Execution Mode |
+|-----------|---------------|----------------|
+| `create_tokens` | `PUT /api/collections/[id]` (tokens update) | Direct function call |
+| `update_token` | `PUT /api/collections/[id]` (tokens update) | Direct function call |
+| `delete_tokens` | `PUT /api/collections/[id]` (tokens update) | Direct function call |
+| `create_group` | `PUT /api/collections/[id]` (tokens update) | Direct function call |
+| `rename_group` | `PUT /api/collections/[id]` (tokens update) | Direct function call |
+| `delete_group` | `PUT /api/collections/[id]` (tokens update) | Direct function call |
+| `create_theme` | `POST /api/collections/[id]/themes` | Direct function call |
+| `query_tokens` | In-memory read of collection snapshot | No DB call |
+
+All mutation tools route through the same service functions the existing PUT route handler uses. The tool executor receives a `ToolContext` containing `{ collectionId, session, activeThemeId }` so it enforces the same auth model as the route handlers.
+
+The `query_tokens` tool operates on the in-memory collection snapshot loaded at the start of the request — no additional DB reads needed and no latency on queries.
+
+### Tool Definition Example
+
+```typescript
+// src/lib/ai/tools/index.ts
+
+{
+  name: 'create_tokens',
+  description: 'Create one or more design tokens in a specific group.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      groupPath: { type: 'string', description: 'e.g. "colors/brand"' },
+      tokens: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            name:  { type: 'string' },
+            value: { type: 'string' },
+            type:  { type: 'string', enum: ['color', 'dimension', 'fontFamily', ...] },
+          },
+          required: ['name', 'value', 'type'],
+        },
+      },
+      themeId: { type: 'string', description: 'Omit for collection default.' },
+    },
+    required: ['groupPath', 'tokens'],
+  },
+}
 ```
 
 ---
 
-## Recommended Project Structure (New + Modified Files)
+## Streaming Route Handler Design (Next.js 13.5.6)
+
+Next.js 13.5.6 App Router supports returning a `Response` (not `NextResponse`) with a `ReadableStream` body. Use SSE format — newline-delimited JSON, one object per `data:` line — because it parses cleanly on the client with no custom binary protocol.
+
+```typescript
+// src/app/api/collections/[id]/chat/route.ts
+
+export const dynamic = 'force-dynamic'; // Required: disable Next.js response caching
+
+export async function POST(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  // Auth
+  const authResult = await requireRole(Action.Write, params.id);
+  if (authResult instanceof NextResponse) return authResult;
+  const session = authResult;
+
+  // Decrypt API key
+  const user = await User.findById(session.user.id).lean();
+  if (!user?.encryptedApiKey) {
+    return NextResponse.json({ error: 'No API key configured' }, { status: 422 });
+  }
+  const apiKey = apiKeyService.decrypt(user.encryptedApiKey);
+
+  // Load collection snapshot for system prompt
+  const repo = await getRepository();
+  const collection = await repo.findById(params.id);
+  if (!collection) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
+  const body = await request.json() as { messages: ChatMessage[]; activeThemeId?: string };
+  const systemPrompt = buildSystemPrompt(collection, body.activeThemeId);
+  const encoder = new TextEncoder();
+  const aiService = createAIService(apiKey);
+  const toolCtx: ToolContext = { collectionId: params.id, session, activeThemeId: body.activeThemeId };
+
+  const stream = new ReadableStream({
+    async start(controller) {
+      try {
+        await aiService.streamWithTools(
+          body.messages,
+          TOKEN_TOOLS,
+          systemPrompt,
+          (event) => {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+          },
+          toolCtx
+        );
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Unknown error';
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'error', message })}\n\n`));
+      } finally {
+        controller.close();
+      }
+    },
+  });
+
+  // IMPORTANT: Use Response, not NextResponse — NextResponse buffers the body in 13.5.6
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream; charset=utf-8',
+      'Cache-Control': 'no-cache, no-transform',
+      'Connection': 'keep-alive',
+    },
+  });
+}
+```
+
+**Critical constraints for Next.js 13.5.6:**
+- `export const dynamic = 'force-dynamic'` must be present or Next.js may cache the streaming response.
+- Use `new Response(stream, ...)` (Web API), not `new NextResponse(stream, ...)`. NextResponse does not support streaming body in 13.5.6.
+- The route handler function signature `(request: Request, { params })` matches the existing pattern in the codebase.
+
+---
+
+## Chat Panel Component Design
+
+The `AIChatPanel` is a `'use client'` component added to the Tokens page layout. It is collapsible (hidden by default, toggled via a button in the toolbar).
+
+### State Shape
+
+```typescript
+interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  toolCalls?: ToolCallDisplay[];
+  isStreaming?: boolean;
+}
+
+interface ToolCallDisplay {
+  id: string;
+  name: string;
+  input: unknown;
+  result?: string;
+  isError?: boolean;
+  status: 'pending' | 'running' | 'done' | 'error';
+}
+```
+
+### Streaming Reader Pattern
+
+```typescript
+const sendMessage = async (userText: string) => {
+  const assistantMsgId = crypto.randomUUID();
+  // Optimistically append user + empty assistant messages
+  setMessages(prev => [...prev,
+    { id: crypto.randomUUID(), role: 'user', content: userText },
+    { id: assistantMsgId, role: 'assistant', content: '', isStreaming: true },
+  ]);
+
+  const response = await fetch(`/api/collections/${collectionId}/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messages: historyForApi, activeThemeId }),
+    signal: abortController.signal,
+  });
+
+  const reader = response.body!.pipeThrough(new TextDecoderStream()).getReader();
+
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+
+    for (const line of value.split('\n').filter(l => l.startsWith('data: '))) {
+      const event = JSON.parse(line.slice(6)) as StreamEvent;
+      // Dispatch to state update handlers per event.type
+    }
+  }
+};
+```
+
+### Triggering Page Refresh After Mutations
+
+When the panel receives a `tool_result` event for any mutating tool (all except `query_tokens`), it calls `props.onMutated()`. The Tokens page re-fetches the collection from the API and re-renders the token table. This keeps the page state in sync with what the agent actually wrote to the database without requiring a full page reload.
+
+### Tool Call Display
+
+Tool calls render inline within the assistant message bubble as a bordered block containing:
+- Human-readable label (e.g. "Creating 3 tokens in colors/brand")
+- Status icon (spinner → checkmark on success, X on error)
+- Collapsible detail showing input parameters and result message
+
+Use `sonner` (already in dependencies) for toast notifications on successful mutations.
+
+---
+
+## API Key Encryption
+
+Use Node.js built-in `crypto` with AES-256-GCM. The encryption secret is a 32-byte hex string stored in env var `AI_KEY_ENCRYPTION_SECRET`. AES-256-GCM provides authenticated encryption — decryption fails if the ciphertext is tampered with.
+
+```typescript
+// src/lib/ai/api-key.service.ts
+// Pattern: iv:authTag:ciphertext (all hex, colon-delimited)
+
+const ALGORITHM = 'aes-256-gcm';
+const KEY = Buffer.from(process.env.AI_KEY_ENCRYPTION_SECRET!, 'hex'); // 64 hex chars = 32 bytes
+
+export const apiKeyService = {
+  encrypt(plaintext: string): string { /* randomBytes(12) IV, GCM cipher, return hex composite */ },
+  decrypt(stored: string): string { /* split composite, reconstruct decipher, verify authTag */ },
+};
+```
+
+The `User` model gets two new optional fields: `encryptedApiKey?: string` and `aiProvider?: string` (defaults to `'claude'` when not set). A new `PUT /api/user/settings` route handles saving the key (encrypts before write; never returns plaintext after storage).
+
+---
+
+## Context Management
+
+### System Prompt Strategy
+
+The system prompt is built once per request from the live collection snapshot. It is the sole source of collection state for the agent — not the conversation history.
+
+**Token budget estimate:**
+- Claude Sonnet 4.5 context window: 200K tokens
+- Tool definitions: ~1,500 tokens (8 tools)
+- System prompt: target under 8,000 tokens
+- Conversation history: grows per turn; capped at 50 turns
+- 190K+ tokens remain for conversation — adequate for all realistic usage
+
+**System prompt structure:**
 
 ```
-src/
-├── lib/
-│   ├── billing/                         # NEW — complete billing isolation boundary
-│   │   ├── stripe.ts                    # NEW — Stripe SDK singleton
-│   │   ├── tiers.ts                     # NEW — LIMITS config, Plan + TierLimits types
-│   │   ├── limits.ts                    # NEW — pure check functions, isSelfHosted()
-│   │   ├── rate-limit.ts                # NEW — in-process fixed window rate limiter
-│   │   ├── usage.ts                     # NEW — incrementExports, refreshTokenCount, lazyResetIfDue
-│   │   ├── checkout.ts                  # NEW — createCheckoutSession, createBillingPortalSession
-│   │   ├── index.ts                     # NEW — barrel export
-│   │   └── webhooks/
-│   │       ├── index.ts                 # NEW — constructStripeEvent wrapper
-│   │       ├── checkout-completed.ts    # NEW
-│   │       ├── invoice-payment-failed.ts # NEW
-│   │       └── subscription-deleted.ts  # NEW
-│   ├── db/models/
-│   │   ├── Organization.ts              # NEW — org document, plan, Stripe IDs, usage fields
-│   │   ├── User.ts                      # MODIFIED — add organizationId field
-│   │   └── TokenCollection.ts           # MODIFIED — add organizationId field
-│   └── auth/
-│       ├── nextauth.config.ts           # MODIFIED — inject organizationId into JWT + session
-│       └── require-auth.ts              # MODIFIED — add org load helper (optional)
-├── app/api/
-│   ├── billing/                         # NEW — thin route handlers only
-│   │   ├── checkout/route.ts            # NEW — calls createCheckoutSession()
-│   │   ├── portal/route.ts              # NEW — calls createBillingPortalSession()
-│   │   └── webhooks/route.ts            # NEW — raw body + constructStripeEvent + dispatch
-│   ├── auth/
-│   │   └── signup/route.ts              # NEW — creates Org + User atomically
-│   ├── collections/route.ts             # MODIFIED — org scoping + collection limit check
-│   ├── collections/[id]/route.ts        # MODIFIED — org scoping + token count refresh on PUT
-│   ├── collections/[id]/themes/route.ts # MODIFIED — theme limit check on POST
-│   ├── build-tokens/route.ts            # MODIFIED — rate limit + export limit + size limit
-│   ├── export/github/route.ts           # MODIFIED — rate limit + integration check
-│   └── export/figma/route.ts            # MODIFIED — rate limit + integration check
-└── types/
-    └── next-auth.d.ts                   # MODIFIED — declare organizationId on JWT + Session['user']
+You are a design token assistant for the "[collectionName]" collection.
+You help users create, edit, query, and organize design tokens using W3C DTCG format.
+
+## Collection Overview
+Name: [name]  Groups: [N]  Tokens: [N]  Active theme: [name or "collection default"]
+
+## Token Structure
+[compact JSON of groups + tokens — truncated per strategy below]
+
+## Rules
+- Confirm before bulk deletes
+- Use canonical W3C DTCG type names (color, dimension, fontFamily, etc.)
+- Match existing naming conventions in the same group
+- For queries, list matching tokens with their values and group paths
+```
+
+### Truncation Strategy
+
+Collections with more than 500 tokens use selective inclusion:
+
+1. Group tree structure (names and paths, no values) — always included
+2. Active group's tokens with full detail — always included
+3. All other groups: token count only — included if space permits
+
+This ensures the agent understands the collection shape while the system prompt stays under 8,000 tokens even for collections with thousands of tokens.
+
+**Implementation in `src/lib/ai/context-builder.ts`:**
+
+```typescript
+export function buildSystemPrompt(collection: ITokenCollection, activeThemeId?: string): string {
+  const tokenCount = countAllTokens(collection.tokens);
+  const tokenStructure = tokenCount <= 500
+    ? JSON.stringify(collection.tokens, null, 2)
+    : buildCompactStructure(collection.tokens); // groups with counts only
+  return SYSTEM_PROMPT_TEMPLATE(collection.name, tokenStructure, /* ... */);
+}
+```
+
+### Conversation History Management
+
+The route handler enforces a 50-turn cap on the `messages` array passed from the client. If the client sends more than 50 turns, the handler keeps the most recent 50. This prevents context window exhaustion in very long sessions.
+
+The system prompt is rebuilt from the database on every request, so post-mutation state is always reflected even if the agent mutated tokens earlier in the conversation.
+
+---
+
+## New Files vs. Modified Files
+
+### New Files
+
+| File | Purpose |
+|------|---------|
+| `src/app/api/collections/[id]/chat/route.ts` | Streaming POST handler: auth, agentic loop, SSE |
+| `src/app/api/user/settings/route.ts` | GET/PUT for user AI settings (API key, provider) |
+| `src/lib/ai/types.ts` | Shared types: `ChatMessage`, `StreamEvent`, `AIProvider`, `ToolDefinition`, `ToolContext` |
+| `src/lib/ai/ai.service.ts` | Provider-agnostic `AIService` class + `createAIService` factory |
+| `src/lib/ai/providers/claude.provider.ts` | `ClaudeProvider`: agentic loop with streaming |
+| `src/lib/ai/tools/index.ts` | Anthropic tool definitions (`TOKEN_TOOLS` array) |
+| `src/lib/ai/tools/executor.ts` | `ToolExecutor`: maps tool name → implementation, runs it |
+| `src/lib/ai/tools/implementations/token-mutations.ts` | create/update/delete token business logic |
+| `src/lib/ai/tools/implementations/group-mutations.ts` | create/rename/delete group business logic |
+| `src/lib/ai/tools/implementations/theme-mutations.ts` | create_theme business logic |
+| `src/lib/ai/tools/implementations/query.ts` | In-memory token search for `query_tokens` |
+| `src/lib/ai/api-key.service.ts` | AES-256-GCM encrypt/decrypt for user API keys |
+| `src/lib/ai/context-builder.ts` | `buildSystemPrompt()`: collection → system prompt string |
+| `src/components/tokens/AIChatPanel.tsx` | Chat panel client component (top-level) |
+| `src/components/tokens/AIChatPanel/MessageBubble.tsx` | Individual message + tool call display |
+| `src/components/tokens/AIChatPanel/ToolCallBlock.tsx` | Inline tool call status and result display |
+
+### Modified Files
+
+| File | Change |
+|------|--------|
+| `src/lib/db/models/User.ts` | Add `encryptedApiKey?: string` and `aiProvider?: string` fields to schema |
+| `src/app/collections/[id]/tokens/page.tsx` | Add `<AIChatPanel>` to layout; pass `collectionId`, `activeThemeId`, `onMutated` callback |
+
+### No Changes Required
+
+| File | Reason |
+|------|--------|
+| `src/app/api/collections/[id]/route.ts` | Tool executor calls service functions directly; route unchanged |
+| `src/app/api/collections/[id]/themes/route.ts` | Same — create_theme tool calls handler logic directly |
+| `src/lib/auth/require-auth.ts` | Chat route calls `requireRole` the same way as all other routes |
+| All other Mongoose models | No schema changes needed |
+| All existing services | Tool implementations import repo/models directly |
+
+---
+
+## Build Order with Dependencies
+
+```
+Phase 1: Foundation (no UI, no AI calls)
+  1. User model: add encryptedApiKey + aiProvider fields
+  2. src/lib/ai/types.ts — shared interfaces (no deps)
+  3. src/lib/ai/api-key.service.ts — depends on types + env var
+  4. src/app/api/user/settings/route.ts — depends on User model + apiKeyService
+  GATE: API key can be stored and retrieved encrypted before anything else is built
+
+Phase 2: AI Service Layer (no route integration)
+  5. src/lib/ai/providers/claude.provider.ts — depends on @anthropic-ai/sdk + types
+  6. src/lib/ai/ai.service.ts — depends on claude.provider.ts
+  GATE: Provider unit-testable in isolation with a real API key
+
+Phase 3: Tool Definitions and Executor
+  7. src/lib/ai/tools/index.ts — tool JSON schemas (no deps beyond types)
+  8. src/lib/ai/tools/implementations/query.ts — read-only, no mutations
+  9. src/lib/ai/tools/implementations/token-mutations.ts — depends on repo + types
+  10. src/lib/ai/tools/implementations/group-mutations.ts — depends on repo + types
+  11. src/lib/ai/tools/implementations/theme-mutations.ts — depends on TokenCollection model
+  12. src/lib/ai/tools/executor.ts — depends on all implementations
+  GATE: Tools testable by calling executor.execute(toolName, input, ctx) directly
+
+Phase 4: Context Builder and Streaming Route
+  13. src/lib/ai/context-builder.ts — depends on collection types
+  14. src/app/api/collections/[id]/chat/route.ts — depends on Phases 1-3 + context-builder
+  GATE: Route testable end-to-end with curl before any UI is built
+
+Phase 5: Chat Panel UI
+  15. src/components/tokens/AIChatPanel/ToolCallBlock.tsx — no deps beyond UI primitives
+  16. src/components/tokens/AIChatPanel/MessageBubble.tsx — depends on ToolCallBlock
+  17. src/components/tokens/AIChatPanel.tsx — depends on MessageBubble + ToolCallBlock
+  18. Modify tokens/page.tsx — add AIChatPanel to layout
+  GATE: Full end-to-end flow works in the browser
 ```
 
 ---
 
-## Component Responsibilities
+## Patterns to Follow
 
-| Component | Responsibility | Status |
-|-----------|---------------|--------|
-| `Organization` model | Owns plan, Stripe IDs, usage counters, seat count | NEW |
-| `src/lib/billing/tiers.ts` | Single source of truth for all tier limits; only file changed when tiers change | NEW |
-| `src/lib/billing/limits.ts` | Pure check functions — no DB calls, no Stripe calls, no HTTP | NEW |
-| `src/lib/billing/rate-limit.ts` | In-process fixed window per user ID; isolated behind function boundary | NEW |
-| `src/lib/billing/usage.ts` | Sole writer of org usage counters; lazy reset logic | NEW |
-| `src/lib/billing/checkout.ts` | Creates Stripe session objects; only Stripe write operations | NEW |
-| `src/lib/billing/webhooks/` | Handles Stripe async events; updates org document from event payloads | NEW |
-| Route handlers | Auth → rate limit → org load → limit check → business logic → usage update | MODIFIED |
-| `nextauth.config.ts` | Injects `organizationId` into JWT at sign-in; re-fetches if stale (follow existing role re-fetch pattern) | MODIFIED |
-| Migration bootstrap | Creates seed org from `INITIAL_ORG_NAME`, patches existing users + collections; idempotent | NEW |
+### Pattern 1: Direct Function Calls (not HTTP) for Tool Execution
 
----
+**What:** Tool implementations call `getRepository()` and model methods directly, never `fetch('/api/...')`.
 
-## Build Order (Phase Dependencies)
+**When:** All mutation and query tool implementations.
 
-The following dependency order must be respected:
+**Rationale:** Eliminates one full HTTP round-trip per tool call inside the agentic loop; avoids cookie/header forwarding; makes the executor unit-testable without a running server.
 
-1. **Organization model** — everything else depends on org documents existing
-2. **Migration bootstrap** — patches existing users + collections before any request tries to read `organizationId`
-3. **LIMITS config (`tiers.ts`) + check functions (`limits.ts`)** — no deps; pure config; can be built early
-4. **User + TokenCollection schema modifications** — adds `organizationId` field
-5. **`nextauth.config.ts` + `next-auth.d.ts`** — injects `organizationId` into session
-6. **Self-serve signup route** — depends on Organization model + updated User model
-7. **Stripe singleton + checkout + webhooks** — depends on Organization model
-8. **Rate limiter** — depends only on session (step 5); no other deps
-9. **Route handler modifications** — depends on all of the above (steps 1-8)
+### Pattern 2: Tool Executor Context Injection
 
-**Do not build webhook handlers before the Organization model.** Handlers write to org documents; the model must exist and be migrated first.
+**What:** The route handler creates a `ToolContext` object and passes it to the executor. The executor trusts this context and does not re-authenticate.
 
----
+**When:** Every tool call execution inside the agentic loop.
 
-## Scaling Considerations
+**Rationale:** Auth is established once at the route handler boundary. Re-running `getServerSession()` on every tool call would add DB round-trips and is redundant — the loop runs inside a single authenticated request.
 
-| Scale | Architecture |
-|-------|-------------|
-| Current (single org / small team) | Embedded usage in org document; in-process rate limiter; no caching needed |
-| Small SaaS (< 100 orgs) | Same architecture holds; in-process rate limiter valid for single-instance deployment |
-| Medium SaaS (100–10k orgs) | Replace in-process rate limiter with `@upstash/ratelimit`; MongoDB indexes on `organizationId` already specified in schemas |
-| Large SaaS (10k+ orgs) | Move usage tracking to a separate events collection with time-series aggregation; consider read replicas for hot org documents |
+### Pattern 3: Whole-Array $set for Theme Mutations
 
-**First bottleneck:** The in-process rate limiter does not survive process restart and is not shared across multiple Node.js instances. If the app moves to multi-instance deployment, replace the `checkRateLimit()` body with a Redis-backed implementation. Call sites at route handlers do not change.
+**What:** When any theme mutation is needed, fetch the full themes array, mutate in memory, then `$set: { themes: updatedArray }`.
+
+**When:** The `create_theme` tool implementation.
+
+**Rationale:** Established codebase pattern. Positional `$set` operators are unreliable on `Schema.Types.Mixed` arrays (Mongoose bugs #14595, #12530). The tool implementation must follow the same pattern as `src/app/api/collections/[id]/themes/[themeId]/route.ts`.
+
+### Pattern 4: SSE JSON Lines Format
+
+**What:** Each event is serialized as `data: ${JSON.stringify(event)}\n\n`. The client splits on `\n`, filters for `data: ` prefix, and parses the JSON.
+
+**When:** All events from the streaming route handler.
+
+**Rationale:** Standard SSE format; works with `TextDecoderStream` + `.split('\n')` on the client; no custom binary protocol needed; readable in browser DevTools.
+
+### Pattern 5: System Prompt Rebuilt per Request
+
+**What:** `buildSystemPrompt()` is called at the start of each request, reading from the freshly-loaded collection snapshot.
+
+**When:** Every call to `POST /api/collections/[id]/chat`.
+
+**Rationale:** The system prompt must reflect the post-mutation state of the collection. If the agent created tokens in turn 3, the system prompt for turn 4 must include those tokens. Rebuilding from DB per request guarantees correctness without needing to patch the system prompt incrementally.
 
 ---
 
-## Anti-Patterns
+## Anti-Patterns to Avoid
 
-### Anti-Pattern 1: Billing Logic in Route Handlers
+### Anti-Pattern 1: Tool Calls via HTTP to Own Routes
 
-**What people do:** Import `stripe` directly in route files, write limit checks inline, update org state inline.
+**What:** `fetch('/api/collections/${id}', { method: 'PUT', ... })` inside a tool implementation.
 
-**Why it's wrong:** Billing logic scatters across 10+ route files. Tier limit changes require hunting every route. Webhook handlers cannot share logic with route-level enforcement. Violates BILLING-07.
+**Why bad:** Adds 100-300ms HTTP latency per tool call inside the agentic loop; requires session cookie forwarding; creates circular dependency; breaks in test environments.
 
-**Do this instead:** All Stripe imports and limit enforcement go in `src/lib/billing/`. Route handlers call service functions and act on typed results.
+**Instead:** Extract mutation logic into service functions callable directly by both route handlers and tool implementations.
 
-### Anti-Pattern 2: organizationId as Mongoose ObjectId with populate()
+### Anti-Pattern 2: Storing API Keys in Plaintext
 
-**What people do:** Define `organizationId` as `Schema.Types.ObjectId` with `ref: 'Organization'` and call `.populate('organizationId')`.
+**What:** `user.apiKey = req.body.apiKey` saved directly to MongoDB.
 
-**Why it's wrong:** The existing codebase uses plain string IDs for cross-document references (`userId`, `collectionId`, `createdBy`). Introducing `.populate()` on the hot path (every API request) adds query complexity inconsistent with the established pattern.
+**Why bad:** Database compromise exposes all user API keys, which have billing implications.
 
-**Do this instead:** `organizationId: { type: String, required: true, index: true }` — consistent with every other cross-document reference in the codebase.
+**Instead:** AES-256-GCM encrypt before write; store IV + authTag + ciphertext composite; decrypt only in the server-side route handler at request time.
 
-### Anti-Pattern 3: req.json() in Webhook Handler
+### Anti-Pattern 3: Full Token Tree in Every Conversation Turn
 
-**What people do:** `const body = await req.json()` then pass `JSON.stringify(body)` to `stripe.webhooks.constructEvent()`.
+**What:** Including `collection.tokens` as a user message on every chat turn so Claude "knows" the current state.
 
-**Why it's wrong:** Stripe's HMAC signature is computed over the original raw byte sequence. Re-serializing from a parsed object changes whitespace and key ordering, making it impossible to reproduce the original signature.
+**Why bad:** Rapidly fills the 200K context window across a multi-turn session; most content repeats.
 
-**Do this instead:** `const body = await req.text()` — read the stream once, pass the string directly to `constructStripeEvent()`.
+**Instead:** System prompt contains the collection snapshot (rebuilt per request from DB). Conversation history contains only user/assistant messages and tool results.
 
-### Anti-Pattern 4: Storing Tier Limits in the Organization Document
+### Anti-Pattern 4: Emitting tool_result Before Write Completes
 
-**What people do:** Copy `maxCollections`, `maxTokens`, etc. onto the org document at signup time.
+**What:** Optimistically enqueuing the `tool_result` SSE event before awaiting the DB write.
 
-**Why it's wrong:** When limits change for a tier, every org document must be migrated. Stale limit values on documents conflict with the intended tier config.
+**Why bad:** The UI shows "tokens created" but the write could fail; the token table won't match what the AI reported.
 
-**Do this instead:** Store only `plan: 'free' | 'pro' | 'team'` on the org. Look up limits at check time from `LIMITS[org.plan]` in `tiers.ts`. The config is the single source of truth.
+**Instead:** `await toolExecutor.execute(...)` resolves only after the DB write completes. Then emit the `tool_result` event. The added latency (one DB round-trip) is acceptable and produces correct UX.
 
-### Anti-Pattern 5: Limit Checks in Next.js Middleware
+### Anti-Pattern 5: Using NextResponse for Streaming
 
-**What people do:** Move billing limit enforcement to `src/middleware.ts` to intercept all API calls centrally.
+**What:** `return new NextResponse(stream, { headers: { 'Content-Type': 'text/event-stream' } })`.
 
-**Why it's wrong:** Next.js middleware runs on the Edge runtime, which does not support Mongoose (Node.js runtime). The existing `config.matcher` already excludes `api/` routes from middleware intentionally. Adding billing checks there would require restructuring the auth middleware pattern that currently works correctly.
+**Why bad:** `NextResponse` does not support streaming body in Next.js 13.5.6 — the body is buffered before sending, defeating the purpose.
 
-**Do this instead:** Keep limit checks in route handlers, called after `requireAuth()` returns a valid session.
+**Instead:** `return new Response(stream, { headers: ... })` using the Web API `Response` directly.
 
 ---
 
-## Integration Points
+## Scalability Considerations
 
-### External Services
-
-| Service | Integration Pattern | Notes |
-|---------|---------------------|-------|
-| Stripe Checkout | Server-only SDK call in `src/lib/billing/checkout.ts` | Never import Stripe SDK in client components. `STRIPE_SECRET_KEY` env var. |
-| Stripe Billing Portal | Same service module as checkout | Requires existing `stripeCustomerId` on org — only available after first subscription. |
-| Stripe Webhooks | `POST /api/billing/webhooks` — raw body via `req.text()` | `STRIPE_WEBHOOK_SECRET` is a separate env var from `STRIPE_SECRET_KEY`. Register endpoint in Stripe dashboard. |
-| MongoDB / Mongoose | Organization model added to existing connection | Follows hot-reload guard: `mongoose.models.Organization \|\| mongoose.model(...)`. |
-
-### Internal Boundaries
-
-| Boundary | Communication | Rule |
-|----------|---------------|------|
-| `src/lib/billing/` → route handlers | Typed return values (`LimitCheckResult`, `RateLimitResult`, Stripe objects) | Billing module never imports from `src/app/` |
-| Route handlers → `src/lib/billing/` | Direct function calls | Routes call billing; billing does not call routes |
-| `Organization` ↔ `User` / `TokenCollection` | `organizationId` string field (not ObjectId ref) | Matches existing `userId` / `collectionId` string-key pattern |
-| JWT session → route handlers | `session.user.organizationId` (string) | Injected at sign-in; follow existing role re-fetch pattern for staleness |
-| Webhook route → webhook handlers | Function calls with typed Stripe event objects | Raw body stays in route handler; parsed event passed to handlers |
+| Concern | At 100 users | At 10K users | At 1M users |
+|---------|-------------|-------------|-------------|
+| Streaming connections | Fine — Node.js handles concurrent SSE natively | Fine — serverless-compatible | Requires edge runtime or dedicated streaming infrastructure |
+| Context window per request | System prompt fixed; conversation capped at 50 turns | No issue | No issue |
+| API key decryption | Synchronous microseconds | No issue | No issue |
+| Agentic loop turns | Bounded (typically 1-3 tool calls per user request) | No issue | No issue |
+| DB writes per tool call | 1-2 queries per mutation | Add read replica for query_tokens | Sharding + connection pooling |
 
 ---
 
 ## Sources
 
-- [Stripe Webhook Signature Verification — Official Docs](https://docs.stripe.com/webhooks/signature) — HIGH confidence
-- [Receive Stripe Events — Official Docs](https://docs.stripe.com/webhooks) — HIGH confidence
-- [Next.js App Router + Stripe Webhook Signature Verification](https://kitson-broadhurst.medium.com/next-js-app-router-stripe-webhook-signature-verification-ea9d59f3593f) — MEDIUM confidence (community; aligns with official docs pattern)
-- [Next.js 13 App Router: Fix Stripe Webhook Signature Verification Failure](https://openillumi.com/en/en-nextjs13-stripe-webhook-signature-error-fix/) — MEDIUM confidence
-- [Build a Multi-Tenant Architecture — MongoDB Official Docs](https://www.mongodb.com/docs/atlas/build-multi-tenant-arch/) — HIGH confidence
-- [Upstash Rate Limiting for Next.js](https://upstash.com/blog/nextjs-ratelimiting) — MEDIUM confidence (vendor docs; alternative to chosen in-process approach, documented for upgrade path)
-- [How to Build an In-Memory Rate Limiter in Next.js — freeCodeCamp](https://www.freecodecamp.org/news/how-to-build-an-in-memory-rate-limiter-in-nextjs/) — MEDIUM confidence
-
----
-
-*Architecture research for: Multi-tenant SaaS billing integration — ATUI Tokens Manager v1.6*
-*Researched: 2026-03-30*
+- [Anthropic tool use — how it works](https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works) — HIGH confidence (official docs)
+- [Anthropic TypeScript SDK streaming helpers](https://github.com/anthropics/anthropic-sdk-typescript/blob/main/helpers.md) — HIGH confidence (official SDK repo)
+- [Anthropic streaming messages](https://platform.claude.com/docs/en/api/messages-streaming) — HIGH confidence (official docs)
+- [SSE streaming in Next.js route handlers](https://upstash.com/blog/sse-streaming-llm-responses) — MEDIUM confidence (verified against Next.js docs)
+- [Node.js crypto module](https://nodejs.org/api/crypto.html) — HIGH confidence (official docs)
+- Existing codebase: `src/app/api/collections/[id]/route.ts`, `src/lib/auth/require-auth.ts`, `src/lib/db/models/User.ts`, `src/app/api/collections/[id]/themes/[themeId]/route.ts` — HIGH confidence (directly verified)

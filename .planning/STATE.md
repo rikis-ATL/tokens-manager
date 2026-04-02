@@ -179,6 +179,10 @@ Key decisions relevant to v1.6 (from research):
 - Confirm deployment target (single-instance vs. Vercel serverless) before Phase 23 — determines whether in-process Map or `RateLimiterMongo` is appropriate for rate limiting
 - Create Stripe price IDs in Dashboard (ops step) before Phase 24 begins
 
+### Roadmap Evolution
+
+- Phase 25 added: enhance read-only view of token collections
+
 ### Blockers/Concerns
 
 - ~~CVE-2025-29927: Next.js 13.5.6 middleware auth bypass (CVSS 9.1)~~ — RESOLVED in 16-01: patched to next@13.5.9
