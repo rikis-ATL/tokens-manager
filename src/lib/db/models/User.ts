@@ -11,6 +11,8 @@ export interface IUser {
   passwordHash:string;
   role:        Role;
   status:      UserStatus;
+  encryptedApiKey?: string;  // Phase 26 addition — AES-256-GCM encrypted API key
+  apiKeyIv?: string;         // Phase 26 addition — IV for encrypted API key
   createdAt?:  Date;
   updatedAt?:  Date;
 }
@@ -24,6 +26,8 @@ const userSchema = new Schema<UserDoc>(
     passwordHash: { type: String, required: true },
     role:         { type: String, enum: ['Admin', 'Editor', 'Viewer', 'Demo'], required: true },
     status:       { type: String, enum: ['active', 'invited', 'disabled'], required: true, default: 'invited' },
+    encryptedApiKey: { type: String, default: undefined },
+    apiKeyIv:        { type: String, default: undefined },
   },
   { timestamps: true }
 );
