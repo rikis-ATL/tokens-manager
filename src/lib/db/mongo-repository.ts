@@ -23,7 +23,6 @@ function toDoc(raw: Record<string, unknown>): CollectionDoc {
     githubPath: (raw.githubPath as string | null) ?? null,
     graphState: (raw.graphState as CollectionDoc['graphState']) ?? null,
     isPlayground: (raw.isPlayground as boolean) ?? false,
-    sandboxUrl: (raw.sandboxUrl as string | null) ?? null,
     themes: ((raw.themes as Array<Record<string, unknown>>) ?? []).map((t) => ({
       ...t,
       tokens: (t.tokens as TokenGroup[]) ?? [],
@@ -74,7 +73,6 @@ export class MongoCollectionRepository implements ICollectionRepository {
       githubBranch: data.githubBranch ?? null,
       githubPath: data.githubPath ?? null,
       isPlayground: data.isPlayground ?? false,
-      sandboxUrl: data.sandboxUrl ?? null,
     });
     return toDoc(doc.toObject() as Record<string, unknown>);
   }

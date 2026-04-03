@@ -10,6 +10,7 @@ import { GitHubDirectoryPicker } from '@/components/github/GitHubDirectoryPicker
 import { ExportToFigmaDialog } from '@/components/figma/ExportToFigmaDialog';
 import { ImportFromFigmaDialog } from '@/components/figma/ImportFromFigmaDialog';
 import { githubService } from '@/services';
+import { Copy, Check } from 'lucide-react';
 
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
@@ -29,7 +30,6 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
   const [githubPath, setGithubPath] = useState('');
   const [githubToken, setGithubToken] = useState('');
   const [isPlayground, setIsPlayground] = useState(false);
-  const [sandboxUrl, setSandboxUrl] = useState('');
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [loading, setLoading] = useState(true);
   const [collectionTokens, setCollectionTokens] = useState<Record<string, unknown>>({});
@@ -40,6 +40,7 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
   const [availableBranches, setAvailableBranches] = useState<string[]>([]);
   const [showExportFigmaDialog, setShowExportFigmaDialog] = useState(false);
   const [showImportFigmaDialog, setShowImportFigmaDialog] = useState(false);
+  const [embedScriptCopied, setEmbedScriptCopied] = useState(false);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const didMountRef = useRef(false);
@@ -75,7 +76,6 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
         setGithubToken(savedGithubToken);
         
         setIsPlayground(col.isPlayground ?? false);
-        setSandboxUrl(col.sandboxUrl ?? '');
       } catch (err) {
         console.error('[CollectionSettingsPage] Failed to load collection:', err);
       } finally {
@@ -102,7 +102,7 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
     setSaveStatus('saving');
 
     debounceRef.current = setTimeout(async () => {
-      await saveToDb({ figmaToken, figmaFileId, githubRepo, githubBranch, githubPath, isPlayground, sandboxUrl });
+      await saveToDb({ figmaToken, figmaFileId, githubRepo, githubBranch, githubPath, isPlayground });
     }, 800);
 
     return () => {
@@ -110,7 +110,7 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
     };
     // Note: githubToken is intentionally excluded — it's stored in localStorage only
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [figmaToken, figmaFileId, githubRepo, githubBranch, githubPath, isPlayground, sandboxUrl]);
+  }, [figmaToken, figmaFileId, githubRepo, githubBranch, githubPath, isPlayground]);
 
   // Once loading finishes, mark mount as done so subsequent changes trigger auto-save
   useEffect(() => {
@@ -133,7 +133,6 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
     githubBranch: string;
     githubPath: string;
     isPlayground: boolean;
-    sandboxUrl: string;
   }) {
     try {
       const res = await fetch(`/api/collections/${id}`, {
@@ -146,7 +145,6 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
           githubBranch: fields.githubBranch || null,
           githubPath: fields.githubPath || null,
           isPlayground: fields.isPlayground,
-          sandboxUrl: fields.sandboxUrl || null,
         }),
       });
 
@@ -168,7 +166,7 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
     setFigmaToken('');
     setFigmaFileId('');
     setSaveStatus('saving');
-    saveToDb({ figmaToken: '', figmaFileId: '', githubRepo, githubBranch, githubPath, isPlayground, sandboxUrl });
+    saveToDb({ figmaToken: '', figmaFileId: '', githubRepo, githubBranch, githubPath, isPlayground });
   }
 
   function clearGithubFields() {
@@ -177,7 +175,7 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
     setGithubBranch('');
     setGithubPath('');
     setSaveStatus('saving');
-    saveToDb({ figmaToken, figmaFileId, githubRepo: '', githubBranch: '', githubPath: '', isPlayground, sandboxUrl });
+    saveToDb({ figmaToken, figmaFileId, githubRepo: '', githubBranch: '', githubPath: '', isPlayground });
   }
 
   // ── GitHub sync actions ────────────────────────────────────────────
@@ -401,6 +399,20 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
     } catch (err) {
       console.error('Failed to apply imported tokens:', err);
       showErrorToast('Failed to apply imported tokens');
+    }
+  };
+
+  // Copy embed script to clipboard
+  const copyEmbedScript = async () => {
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://your-domain.com';
+    const scriptTag = `<script src="${origin}/embed/${id}/tokens.js"></script>`;
+    
+    try {
+      await navigator.clipboard.writeText(scriptTag);
+      setEmbedScriptCopied(true);
+      setTimeout(() => setEmbedScriptCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
     }
   };
 
@@ -694,32 +706,69 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
           </section>
         )}
 
-        {/* Live Preview Sandbox section */}
+        {/* Embed Script section */}
         <section>
           <div className="flex items-center mb-4">
             <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
-              Live Preview Sandbox
+              Embed in Your Project
             </h2>
           </div>
 
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Sandbox URL
-              </label>
-              <Input
-                type="url"
-                value={sandboxUrl}
-                onChange={(e) => setSandboxUrl(e.target.value)}
-                placeholder="https://stackblitz.com/edit/... or http://localhost:3000"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                URL to your live preview environment (Stackblitz, CodeSandbox, GitHub Codespaces, or localhost)
-              </p>
-              <p className="text-xs text-gray-400 mt-1">
-                Your sandbox must include a script to listen for token updates via PostMessage API. See documentation for integration instructions.
-              </p>
+            <p className="text-sm text-gray-600">
+              Add this script tag to your HTML to inject tokens as CSS variables. Works with any framework or vanilla HTML.
+            </p>
+
+            <div className="relative">
+              <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg text-sm overflow-x-auto">
+                <code>{`<script src="${typeof window !== 'undefined' ? window.location.origin : 'https://your-domain.com'}/embed/${id}/tokens.js"></script>`}</code>
+              </pre>
+              <Button
+                onClick={copyEmbedScript}
+                variant="ghost"
+                size="sm"
+                className="absolute top-2 right-2 text-gray-400 hover:text-gray-100"
+              >
+                {embedScriptCopied ? (
+                  <>
+                    <Check size={16} className="mr-1" />
+                    Copied!
+                  </>
+                ) : (
+                  <>
+                    <Copy size={16} className="mr-1" />
+                    Copy
+                  </>
+                )}
+              </Button>
             </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-3 space-y-2">
+              <p className="text-xs font-medium text-blue-900">Usage:</p>
+              <ol className="text-xs text-blue-800 space-y-1 list-decimal list-inside">
+                <li>Copy the script tag above</li>
+                <li>Paste it into your HTML <code className="bg-blue-100 px-1 rounded">&lt;head&gt;</code> section</li>
+                <li>Tokens load automatically as CSS variables (e.g., <code className="bg-blue-100 px-1 rounded">--token-color-primary</code>)</li>
+                <li>Refresh your page to see token updates</li>
+              </ol>
+            </div>
+
+            <details className="text-sm">
+              <summary className="cursor-pointer text-gray-700 font-medium hover:text-gray-900">
+                Using a specific theme?
+              </summary>
+              <div className="mt-2 p-3 bg-gray-50 rounded space-y-2">
+                <p className="text-xs text-gray-600">
+                  Add <code className="bg-white px-1 py-0.5 rounded border">?theme=THEME_ID</code> to the script URL:
+                </p>
+                <pre className="bg-gray-900 text-gray-100 p-3 rounded text-xs overflow-x-auto">
+                  <code>{`<script src="${typeof window !== 'undefined' ? window.location.origin : 'https://your-domain.com'}/embed/${id}/tokens.js?theme=YOUR_THEME_ID"></script>`}</code>
+                </pre>
+                <p className="text-xs text-gray-500">
+                  Find theme IDs in the Tokens page theme selector
+                </p>
+              </div>
+            </details>
           </div>
         </section>
       </div>

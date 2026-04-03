@@ -88,7 +88,6 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isPlayground, setIsPlayground] = useState(false);
-  const [sandboxUrl, setSandboxUrl] = useState<string | null>(null);
 
   const { canEdit, canGitHub, canFigma } = usePermissions();
 
@@ -197,19 +196,11 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   const [selectedGroupId, setSelectedGroupId] = useState('');
   const [selectedToken, setSelectedToken] = useState<{ token: GeneratedToken; groupPath: string } | null>(null);
 
-  const styleGuideTokens = useMemo(() => {
-    const selectedGroup = findGroupById(filteredGroups, selectedGroupId);
-    return selectedGroup?.tokens ?? [];
-  }, [filteredGroups, selectedGroupId]);
-
-  const styleGuideAllGroups = useMemo(() => {
-    return filteredGroups;
+  const allCollectionTokens = useMemo(() => {
+    const flattenGroups = (groups: TokenGroup[]): GeneratedToken[] =>
+      groups.flatMap(g => [...(g.tokens ?? []), ...(g.children ? flattenGroups(g.children) : [])]);
+    return flattenGroups(filteredGroups);
   }, [filteredGroups]);
-
-  const selectedGroupName = useMemo(() => {
-    const selectedGroup = findGroupById(filteredGroups, selectedGroupId);
-    return selectedGroup?.name;
-  }, [filteredGroups, selectedGroupId]);
   const [pendingNewGroup, setPendingNewGroup] = useState<string | null>(null);
   const [pendingBulkInsert, setPendingBulkInsert] = useState<{ groupId: string; tokens: GeneratedToken[]; subgroupName?: string } | null>(null);
   const [pendingGroupCreation, setPendingGroupCreation] = useState<{ parentGroupId: string | null; groupData: { name: string; tokens: GeneratedToken[] } } | null>(null);
@@ -256,7 +247,6 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       rawCollectionTokensRef.current = rawTokens;
       setSelectedSourceMetadata(col.sourceMetadata ?? null);
       setIsPlayground(col.isPlayground ?? false);
-      setSandboxUrl(col.sandboxUrl ?? null);
       // Load persisted graph state
       const gs = (col.graphState ?? {}) as CollectionGraphState;
       setCollectionGraphState(gs);
@@ -1202,6 +1192,16 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
 
 
 
+      {/* Collection-level view tabs */}
+      <Tabs defaultValue="tokens" className="flex flex-col flex-1 overflow-hidden">
+        <div className="px-6 pt-2 border-b border-gray-200 flex-shrink-0">
+          <TabsList className="w-fit">
+            <TabsTrigger value="tokens">Tokens</TabsTrigger>
+            <TabsTrigger value="style-guide">Style Guide</TabsTrigger>
+          </TabsList>
+        </div>
+
+        <TabsContent value="tokens" className="flex flex-1 overflow-hidden m-0 p-0">
       {/* Master-detail layout */}
       <div className="flex flex-1 overflow-hidden">
         {/* Master: token groups sidebar — collapsible */}
@@ -1285,12 +1285,6 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
             selectedGroupId={selectedGroupId}
             onSelect={(id) => { setSelectedGroupId(id); setSelectedToken(null); }}
           />
-                <Tabs defaultValue="tokens" className="flex flex-col flex-1 min-h-0">
-                  <TabsList className="w-fit">
-                    <TabsTrigger value="tokens">Tokens</TabsTrigger>
-                    <TabsTrigger value="style-guide">Style Guide</TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="tokens" className="flex-1 min-h-0">
                     <TokenGeneratorForm
                       key={`${id}-${activeThemeId ?? 'default'}`}
                       githubConfig={null}
@@ -1333,15 +1327,6 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
                         undoStackRef.current = [snapshot, ...undoStackRef.current.slice(0, MAX_UNDO - 1)];
                       }}
                     />
-                  </TabsContent>
-                  <TabsContent value="style-guide" className="flex-1 min-h-0">
-                    <StyleGuidePanel
-                      tokens={styleGuideTokens}
-                      allGroups={styleGuideAllGroups}
-                      groupName={selectedGroupName}
-                    />
-                  </TabsContent>
-                </Tabs>
               </main>
             </ResizablePanel>
 
@@ -1362,17 +1347,21 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
                   allTokens={allFlatTokens}
                   flatGroups={allFlatGroups}
                   activeThemeId={activeThemeId}
-                  sandboxUrl={sandboxUrl}
-                  tokens={activeThemeTokens}
-                  collectionId={id}
-                  collectionName={collectionName}
-                  themeName={activeThemeId === '__default__' ? 'Default' : themes.find(t => t.id === activeThemeId)?.name}
                 />
               </div>
             </ResizablePanel>
           </ResizablePanelGroup>
         </div>
       </div>
+        </TabsContent>
+
+        <TabsContent value="style-guide" className="flex flex-1 overflow-hidden m-0 p-0">
+          <StyleGuidePanel
+            tokens={allCollectionTokens}
+            allGroups={filteredGroups}
+          />
+        </TabsContent>
+      </Tabs>
 
 
       <SaveCollectionDialog

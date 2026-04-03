@@ -55,7 +55,6 @@ export async function GET(
         githubBranch: doc.githubBranch ?? null,
         graphState: doc.graphState ?? null,
         isPlayground: doc.isPlayground ?? false,
-        sandboxUrl: doc.sandboxUrl ?? null,
       },
     });
   } catch (error) {
@@ -86,8 +85,7 @@ export async function PUT(
       body.githubBranch === undefined &&
       body.graphState === undefined &&
       body.themes === undefined &&
-      body.isPlayground === undefined &&
-      body.sandboxUrl === undefined
+      body.isPlayground === undefined
     ) {
       return NextResponse.json({ error: 'Nothing to update' }, { status: 400 });
     }

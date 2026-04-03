@@ -65,6 +65,6 @@ export const config = {
      * redirects only. API routes return 401 JSON from requireAuth() — not HTML redirects
      * (which would break fetch() callers). Separation per CONTEXT.md.
      */
-    '/((?!api|_next/static|_next/image|favicon\\.ico).*)',
+    '/((?!api|embed|_next/static|_next/image|favicon\\.ico).*)',
   ],
 };
