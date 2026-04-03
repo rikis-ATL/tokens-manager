@@ -15,7 +15,7 @@ import {
   rgbToHsl,
   rgbToOklch,
   type ColorFormat 
-} from '@/lib/colorUtils';
+} from '@/utils/color.utils';
 
 export interface MultiFormatColorPickerProps {
   value: string;

@@ -37,7 +37,7 @@ import {
   formatHsl,
   formatOklch,
   type RGB,
-} from '@/lib/colorUtils';
+} from '@/utils/color.utils';
 
 // ── Math helpers ──────────────────────────────────────────────────────────────
 

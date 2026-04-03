@@ -6,6 +6,7 @@ import { requireRole } from '@/lib/auth/require-auth';
 import { Action } from '@/lib/auth/permissions';
 import { authOptions } from '@/lib/auth/nextauth.config';
 import CollectionPermission from '@/lib/db/models/CollectionPermission';
+import { broadcastTokenUpdate } from '@/services/websocket/socket.service';
 import type { UpdateTokenCollectionInput } from '@/types/collection.types';
 
 export async function GET(
@@ -95,6 +96,11 @@ export async function PUT(
 
     if (!doc) {
       return NextResponse.json({ error: 'Collection not found' }, { status: 404 });
+    }
+
+    // Broadcast token update via WebSocket if tokens, graphState, or themes changed
+    if (body.tokens !== undefined || body.graphState !== undefined || body.themes !== undefined) {
+      broadcastTokenUpdate(params.id);
     }
 
     return NextResponse.json({

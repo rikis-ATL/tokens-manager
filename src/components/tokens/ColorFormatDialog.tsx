@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { convertColorFormat, isValidColor, type ColorFormat } from '@/lib/colorUtils';
+import { convertColorFormat, isValidColor, type ColorFormat } from '@/utils/color.utils';
 
 interface ColorFormatDialogProps {
   open: boolean;

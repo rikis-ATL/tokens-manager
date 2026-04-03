@@ -8,7 +8,7 @@ import { JsonPreviewDialog } from "@/components/dev/JsonPreviewDialog";
 import { LoadCollectionDialog } from "@/components/collections/LoadCollectionDialog";
 import { TokenReferencePicker } from "@/components/tokens/TokenReferencePicker";
 import { MultiFormatColorPicker } from "@/components/ui/MultiFormatColorPicker";
-import { detectColorFormat } from "@/lib/colorUtils";
+import { detectColorFormat } from "@/utils/color.utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -62,7 +62,7 @@ import {
   bulkRemovePrefix,
   detectCommonPrefix,
 } from "../../utils";
-import { type ColorFormat } from "@/lib/colorUtils";
+import { type ColorFormat } from "@/utils/color.utils";
 import { createLoadingState } from "../../utils";
 import { BulkActionBar } from "./BulkActionBar";
 

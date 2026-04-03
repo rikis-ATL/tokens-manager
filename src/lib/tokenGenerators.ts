@@ -74,7 +74,7 @@ import {
   formatHsl,
   formatOklch,
   rgbToOklch,
-} from './colorUtils';
+} from '@/utils/color.utils';
 
 function clamp(n: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, n));

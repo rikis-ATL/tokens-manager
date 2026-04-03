@@ -8,7 +8,7 @@
  */
 
 import { TokenGroup, GeneratedToken, TokenType } from '@/types/token.types';
-import { convertColorFormat, isValidColor, type ColorFormat } from '@/lib/colorUtils';
+import { convertColorFormat, isValidColor, type ColorFormat } from '@/utils/color.utils';
 
 // ---------------------------------------------------------------------------
 // Private helpers

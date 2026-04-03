@@ -16,7 +16,7 @@ import { TokenGroup, TokenType, TOKEN_TYPES } from '@/types/token.types';
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
 import { GroupPickerModal } from './GroupPickerModal';
 import { ColorFormatDialog } from './ColorFormatDialog';
-import { type ColorFormat } from '@/lib/colorUtils';
+import { type ColorFormat } from '@/utils/color.utils';
 import { useState } from 'react';
 
 interface BulkActionBarProps {

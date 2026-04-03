@@ -4,6 +4,7 @@ import TokenCollection from '@/lib/db/models/TokenCollection';
 import type { TokenGroup } from '@/types';
 import { requireRole } from '@/lib/auth/require-auth';
 import { Action } from '@/lib/auth/permissions';
+import { broadcastTokenUpdate } from '@/services/websocket/socket.service';
 
 export async function PATCH(
   request: Request,
@@ -59,6 +60,9 @@ export async function PATCH(
       params.id,
       { $set: { themes: updatedThemes } }
     ).lean();
+
+    // Broadcast token update for this specific theme
+    broadcastTokenUpdate(params.id, params.themeId);
 
     return NextResponse.json({ tokens: body.tokens });
   } catch (error) {

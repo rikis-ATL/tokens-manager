@@ -1,6 +1,6 @@
 # Embed Tokens in Your Project
 
-This guide shows you how to embed design tokens from ATUI Token Manager into your project using a simple script tag.
+This guide shows you how to embed design tokens from ATUI Token Manager into your project using a simple script tag with **real-time automatic updates**.
 
 ## Quick Start
 
@@ -10,7 +10,7 @@ Add this single line to your HTML `<head>`:
 <script src="https://your-token-manager.com/embed/COLLECTION_ID/tokens.js"></script>
 ```
 
-That's it! Your tokens are now available as CSS variables.
+That's it! Your tokens are now available as CSS variables and will **automatically update** when you change them in the Token Manager.
 
 ## How It Works
 
@@ -18,7 +18,12 @@ The embed script:
 1. Fetches your token collection from the Token Manager
 2. Converts tokens to CSS variables
 3. Injects them into a `<style>` tag in your document head
-4. Makes them available to your entire application
+4. **Connects via WebSocket** for real-time updates (no page refresh needed!)
+5. Automatically reconnects if the connection drops
+
+### Real-Time Updates
+
+When you edit tokens in the Token Manager, the changes are **instantly pushed** to all connected pages via WebSocket. No manual refresh required!
 
 ### Generated CSS Variables
 
@@ -127,26 +132,32 @@ loadTheme('dark-theme-id');
 
 ## Getting Updates
 
-### Manual Refresh
+### Automatic Real-Time Updates (Default)
 
-To see token updates, refresh your page:
-- The script fetches the latest tokens on every page load
-- No cache busting needed (CDN cache is 60 seconds)
+The embed script automatically receives updates via WebSocket:
+- Edit a token in the Token Manager
+- Changes appear **instantly** in all connected pages
+- No page refresh needed
+- Automatic reconnection if connection drops
 
-### Auto-Refresh (Advanced)
-
-For a live development experience, you can poll for updates:
-
-```javascript
-// Poll every 5 seconds for token updates
-setInterval(() => {
-  const script = document.createElement('script');
-  script.src = `https://your-token-manager.com/embed/COLLECTION_ID/tokens.js?t=${Date.now()}`;
-  document.head.appendChild(script);
-}, 5000);
+```
+[ATUI Tokens] WebSocket connected
+[ATUI Tokens] Received update: {...}
+[ATUI Tokens] ✨ Tokens updated automatically
 ```
 
-**Note**: This creates multiple `<style>` tags. For production, use manual refresh or wait for WebSocket support (coming soon).
+### Connection Status
+
+Check the browser console to see WebSocket status:
+- `WebSocket connected` - Real-time updates enabled
+- `WebSocket disconnected` - Will auto-reconnect
+- `Failed to load Socket.IO client` - Fallback to manual refresh
+
+### Manual Refresh (Fallback)
+
+If WebSocket fails to load, refresh the page to see updates:
+- The script fetches the latest tokens on every page load
+- No cache busting needed (CDN cache is 60 seconds)
 
 ## Configuration
 
@@ -248,15 +259,31 @@ export default function RootLayout({ children }) {
 3. Ensure the Token Manager is accessible from your domain
 4. Check CORS settings if using a different domain
 
+### WebSocket Not Connecting
+
+Check console for:
+- `Failed to load Socket.IO client` - CDN blocked, check network
+- `WebSocket connection error` - Token Manager server down or unreachable
+- `Max reconnection attempts reached` - Server offline for extended period
+
+WebSocket failures don't break token loading - tokens still load initially, just without real-time updates.
+
 ### Console Messages
 
 The script logs when tokens are loaded:
 
 ```
 [ATUI Tokens] Loaded: My Collection (Default)
+[ATUI Tokens] WebSocket connected
 ```
 
-If you see this, tokens are working correctly.
+If you see these, everything is working correctly.
+
+Real-time update logs:
+```
+[ATUI Tokens] Received update: {collectionId: "...", themeId: "..."}
+[ATUI Tokens] ✨ Tokens updated automatically
+```
 
 ### Inspecting Injected Tokens
 
@@ -287,17 +314,32 @@ If the script fails to load:
 
 ## Limitations
 
-- **Manual refresh required**: Page refresh needed to see token updates (WebSocket support coming soon)
+- **WebSocket requires Socket.IO CDN**: Loads from `cdn.socket.io` (fallback if blocked)
+- **60-second cache**: Initial load may be cached for up to 1 minute
 - **No authentication**: Embed endpoint is public (by design for ease of use)
-- **60-second cache**: Updates may take up to 1 minute to propagate via CDN
+
+## Technical Details
+
+### WebSocket Implementation
+
+- **Protocol**: Socket.IO over WebSocket (with polling fallback)
+- **Reconnection**: Automatic with exponential backoff (max 10 attempts)
+- **Room-based**: Each collection has its own WebSocket room
+- **Efficient**: Only broadcasts to subscribed clients
+
+### Security
+
+- **Public endpoint**: No authentication required for embed
+- **CORS enabled**: Works from any origin
+- **Read-only**: Embed script cannot modify tokens
 
 ## Future Features
 
-Coming soon:
-- **WebSocket support**: Real-time updates without page refresh
+Planned enhancements:
 - **Scoped injection**: Load tokens only for specific components
 - **Subset loading**: Load only specific token groups for performance
 - **TypeScript definitions**: Auto-generated types for tokens
+- **Offline support**: Service worker caching
 
 ## Support
 
