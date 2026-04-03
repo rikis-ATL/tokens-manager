@@ -255,4 +255,9 @@ The Tokens page includes a **visual graph editor** (React Flow) in the right-han
 | Prefix control: single input replacing add/remove buttons | Shows current common prefix; editing applies live; no preview list needed (table updates live) | ✓ Good — simpler, more direct UX |
 
 ---
-*Last updated: 2026-03-31 after v1.7 milestone start*
+| AES-256-GCM for per-user API key encryption | Key never leaves server; auth tag appended to ciphertext for tamper detection | Validated in Phase 26: ai-service-layer-foundation |
+| Provider-agnostic AI service via interface injection | Swapping providers (Claude → other) requires only a new *.provider.ts file | Validated in Phase 26: ai-service-layer-foundation |
+| MCP server over stdio transport | Enables Claude Desktop/Code to manage tokens via natural language; stdout is JSON-RPC channel | Validated in Phase 26: ai-service-layer-foundation |
+
+---
+*Last updated: 2026-04-03 after Phase 26: ai-service-layer-foundation complete*
