@@ -4,7 +4,7 @@ milestone: v1.6
 milestone_name: Multi-Tenant SaaS
 status: executing
 stopped_at: Completed 25-02-PLAN.md
-last_updated: "2026-04-03T04:43:42.971Z"
+last_updated: "2026-04-03T06:01:08.766Z"
 last_activity: 2026-04-03
 progress:
   total_phases: 10
@@ -25,8 +25,8 @@ See: .planning/PROJECT.md (updated 2026-03-31)
 
 ## Current Position
 
-Phase: 25 (enhance-read-only-view-of-token-collections) — EXECUTING
-Plan: 2 of 2
+Phase: 25
+Plan: Not started
 Status: Ready to execute
 Last activity: 2026-04-03
 

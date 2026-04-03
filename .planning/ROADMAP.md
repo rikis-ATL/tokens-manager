@@ -278,7 +278,7 @@ Plans:
 | 22. Org Model and Multi-Tenant Foundation | v1.6 | 0/TBD | Not started | - |
 | 23. Billing Module and Limit Enforcement | v1.6 | 0/TBD | Not started | - |
 | 24. Stripe Checkout and Webhook Integration | v1.6 | 0/TBD | Not started | - |
-| 25. Enhance Read-Only View | - | 2/2 | Complete   | 2026-04-03 |
+| 25. Enhance Read-Only View | - | 2/2 | Complete    | 2026-04-03 |
 
 ### Phase 25: Enhance Read-Only View of Token Collections
 
