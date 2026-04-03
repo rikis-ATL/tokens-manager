@@ -46,6 +46,8 @@ export interface ITokenCollection {
   themes: ITheme[];
   // Playground mode — session-based edits (not persisted to DB)
   isPlayground: boolean;
+  // Live preview sandbox URL (Stackblitz, CodeSandbox, localhost, etc.)
+  sandboxUrl: string | null;
 }
 
 /**
@@ -72,4 +74,4 @@ export type CreateTokenCollectionInput = Omit<ITokenCollection, '_id' | 'created
 /**
  * Shape for updating an existing collection.
  */
-export type UpdateTokenCollectionInput = Partial<Pick<ITokenCollection, 'name' | 'namespace' | 'tokens' | 'sourceMetadata' | 'description' | 'tags' | 'colorFormat' | 'figmaToken' | 'figmaFileId' | 'githubRepo' | 'githubBranch' | 'githubPath' | 'graphState' | 'themes' | 'isPlayground'>>;
+export type UpdateTokenCollectionInput = Partial<Pick<ITokenCollection, 'name' | 'namespace' | 'tokens' | 'sourceMetadata' | 'description' | 'tags' | 'colorFormat' | 'figmaToken' | 'figmaFileId' | 'githubRepo' | 'githubBranch' | 'githubPath' | 'graphState' | 'themes' | 'isPlayground' | 'sandboxUrl'>>;

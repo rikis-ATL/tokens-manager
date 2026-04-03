@@ -29,6 +29,7 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
   const [githubPath, setGithubPath] = useState('');
   const [githubToken, setGithubToken] = useState('');
   const [isPlayground, setIsPlayground] = useState(false);
+  const [sandboxUrl, setSandboxUrl] = useState('');
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [loading, setLoading] = useState(true);
   const [collectionTokens, setCollectionTokens] = useState<Record<string, unknown>>({});
@@ -74,6 +75,7 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
         setGithubToken(savedGithubToken);
         
         setIsPlayground(col.isPlayground ?? false);
+        setSandboxUrl(col.sandboxUrl ?? '');
       } catch (err) {
         console.error('[CollectionSettingsPage] Failed to load collection:', err);
       } finally {
@@ -100,7 +102,7 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
     setSaveStatus('saving');
 
     debounceRef.current = setTimeout(async () => {
-      await saveToDb({ figmaToken, figmaFileId, githubRepo, githubBranch, githubPath, isPlayground });
+      await saveToDb({ figmaToken, figmaFileId, githubRepo, githubBranch, githubPath, isPlayground, sandboxUrl });
     }, 800);
 
     return () => {
@@ -108,7 +110,7 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
     };
     // Note: githubToken is intentionally excluded — it's stored in localStorage only
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [figmaToken, figmaFileId, githubRepo, githubBranch, githubPath, isPlayground]);
+  }, [figmaToken, figmaFileId, githubRepo, githubBranch, githubPath, isPlayground, sandboxUrl]);
 
   // Once loading finishes, mark mount as done so subsequent changes trigger auto-save
   useEffect(() => {
@@ -131,6 +133,7 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
     githubBranch: string;
     githubPath: string;
     isPlayground: boolean;
+    sandboxUrl: string;
   }) {
     try {
       const res = await fetch(`/api/collections/${id}`, {
@@ -143,6 +146,7 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
           githubBranch: fields.githubBranch || null,
           githubPath: fields.githubPath || null,
           isPlayground: fields.isPlayground,
+          sandboxUrl: fields.sandboxUrl || null,
         }),
       });
 
@@ -164,7 +168,7 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
     setFigmaToken('');
     setFigmaFileId('');
     setSaveStatus('saving');
-    saveToDb({ figmaToken: '', figmaFileId: '', githubRepo, githubBranch, githubPath, isPlayground });
+    saveToDb({ figmaToken: '', figmaFileId: '', githubRepo, githubBranch, githubPath, isPlayground, sandboxUrl });
   }
 
   function clearGithubFields() {
@@ -173,7 +177,7 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
     setGithubBranch('');
     setGithubPath('');
     setSaveStatus('saving');
-    saveToDb({ figmaToken, figmaFileId, githubRepo: '', githubBranch: '', githubPath: '', isPlayground });
+    saveToDb({ figmaToken, figmaFileId, githubRepo: '', githubBranch: '', githubPath: '', isPlayground, sandboxUrl });
   }
 
   // ── GitHub sync actions ────────────────────────────────────────────
@@ -689,6 +693,35 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
             </div>
           </section>
         )}
+
+        {/* Live Preview Sandbox section */}
+        <section>
+          <div className="flex items-center mb-4">
+            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
+              Live Preview Sandbox
+            </h2>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Sandbox URL
+              </label>
+              <Input
+                type="url"
+                value={sandboxUrl}
+                onChange={(e) => setSandboxUrl(e.target.value)}
+                placeholder="https://stackblitz.com/edit/... or http://localhost:3000"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                URL to your live preview environment (Stackblitz, CodeSandbox, GitHub Codespaces, or localhost)
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                Your sandbox must include a script to listen for token updates via PostMessage API. See documentation for integration instructions.
+              </p>
+            </div>
+          </div>
+        </section>
       </div>
 
       {/* GitHub Directory Picker Dialog */}

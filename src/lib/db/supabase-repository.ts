@@ -24,6 +24,7 @@ interface SupabaseRow {
   graph_state: Record<string, unknown> | null;
   themes: ITheme[] | null;
   is_playground: boolean | null;
+  sandbox_url: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -46,6 +47,7 @@ function rowToDoc(row: SupabaseRow): CollectionDoc {
     githubPath: row.github_path ?? null,
     graphState: (row.graph_state as CollectionDoc['graphState']) ?? null,
     isPlayground: row.is_playground ?? false,
+    sandboxUrl: row.sandbox_url ?? null,
     themes: row.themes ?? [],
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -67,6 +69,7 @@ function toInsertRow(data: CreateCollectionInput) {
     github_branch: data.githubBranch ?? null,
     github_path: data.githubPath ?? null,
     is_playground: data.isPlayground ?? false,
+    sandbox_url: data.sandboxUrl ?? null,
   };
 }
 
@@ -86,6 +89,7 @@ function toUpdateRow(data: UpdateTokenCollectionInput) {
   if (data.graphState !== undefined) row.graph_state = data.graphState;
   if (data.themes !== undefined) row.themes = data.themes;
   if (data.isPlayground !== undefined) row.is_playground = data.isPlayground;
+  if (data.sandboxUrl !== undefined) row.sandbox_url = data.sandboxUrl;
   return row;
 }
 

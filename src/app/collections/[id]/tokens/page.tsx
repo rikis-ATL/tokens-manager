@@ -86,6 +86,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isPlayground, setIsPlayground] = useState(false);
+  const [sandboxUrl, setSandboxUrl] = useState<string | null>(null);
 
   const { canEdit, canGitHub, canFigma } = usePermissions();
 
@@ -239,6 +240,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       rawCollectionTokensRef.current = rawTokens;
       setSelectedSourceMetadata(col.sourceMetadata ?? null);
       setIsPlayground(col.isPlayground ?? false);
+      setSandboxUrl(col.sandboxUrl ?? null);
       // Load persisted graph state
       const gs = (col.graphState ?? {}) as CollectionGraphState;
       setCollectionGraphState(gs);
@@ -651,6 +653,48 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     const theme = themes.find(t => t.id === activeThemeId);
     setActiveThemeTokens(theme ? JSON.parse(JSON.stringify(theme.tokens)) : []);
   }, [activeThemeId, themes]);
+
+  // ── Compute effective theme tokens: merge theme + master groups by state ────
+  // For display in TokenGeneratorForm - includes all enabled/source groups even if not yet edited
+  const effectiveThemeTokens = useMemo(() => {
+    if (!activeThemeId) return [];
+    const theme = themes.find(t => t.id === activeThemeId);
+    if (!theme) return [];
+    
+    // Build lookup map for theme's edited groups
+    const themeGroupMap = new Map(theme.tokens.map(g => [g.id, g]));
+    const themeGroups = theme.groups; // Capture for closure to avoid "possibly undefined"
+    
+    // Recursively process groups to maintain tree structure
+    function processGroups(groups: TokenGroup[]): TokenGroup[] {
+      return groups
+        .map(masterGroup => {
+          const state = themeGroups[masterGroup.id] ?? 'disabled';
+          if (state === 'disabled') return null;
+          
+          if (state === 'source') {
+            // Read-only collection default
+            return masterGroup;
+          } else {
+            // 'enabled': use theme snapshot if exists, else collection default
+            const themeGroup = themeGroupMap.get(masterGroup.id);
+            const baseGroup = themeGroup ?? masterGroup;
+            
+            // Process children recursively
+            if (baseGroup.children && baseGroup.children.length > 0) {
+              return {
+                ...baseGroup,
+                children: processGroups(baseGroup.children)
+              };
+            }
+            return baseGroup;
+          }
+        })
+        .filter((g): g is TokenGroup => g !== null);
+    }
+    
+    return processGroups(masterGroups);
+  }, [activeThemeId, themes, masterGroups]);
 
   // ── Theme selector change with group fallback ───────────────────────────
   const handleThemeChange = useCallback((newThemeId: string | null) => {
@@ -1253,7 +1297,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
                   onGroupCreationProcessed={() => setPendingGroupCreation(null)}
                   pendingGroupAction={pendingGroupAction}
                   onGroupActionProcessed={() => setPendingGroupAction(null)}
-                  themeTokens={activeThemeId ? activeThemeTokens : undefined}
+                  themeTokens={activeThemeId ? effectiveThemeTokens : undefined}
                   onThemeTokensChange={activeThemeId ? handleThemeTokenChange : undefined}
                   isReadOnly={isThemeReadOnly || !canEdit}
                   findMasterValue={activeThemeId ? findMasterValue : undefined}
@@ -1287,6 +1331,11 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
                   allTokens={allFlatTokens}
                   flatGroups={allFlatGroups}
                   activeThemeId={activeThemeId}
+                  sandboxUrl={sandboxUrl}
+                  tokens={activeThemeTokens}
+                  collectionId={id}
+                  collectionName={collectionName}
+                  themeName={activeThemeId === '__default__' ? 'Default' : themes.find(t => t.id === activeThemeId)?.name}
                 />
               </div>
             </ResizablePanel>

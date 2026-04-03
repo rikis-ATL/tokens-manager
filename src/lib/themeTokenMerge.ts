@@ -41,7 +41,8 @@ export function mergeThemeTokens(
     if (state === 'source') {
       mergedGroups.push(masterGroup); // collection-default values
     } else {
-      // 'enabled': use theme snapshot, fall back to master if not found
+      // 'enabled': use theme snapshot if group has been edited, else collection default
+      // This ensures newly-enabled groups (not yet edited) still appear in exports
       const themeGroup = themeGroupMap.get(masterGroup.id);
       mergedGroups.push(themeGroup ?? masterGroup);
     }

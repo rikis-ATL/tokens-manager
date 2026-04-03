@@ -24,6 +24,7 @@ export interface CreateCollectionInput {
   githubBranch?: string | null;
   githubPath?: string | null;
   isPlayground?: boolean;
+  sandboxUrl?: string | null;
 }
 
 /**

@@ -119,6 +119,10 @@ function generateColorTokens(
 
 // ─── Dimension generation ─────────────────────────────────────────────────────
 
+function round2(value: number): number {
+  return Math.round(value * 100) / 100;
+}
+
 function formatDimension(value: number, format: string): string {
   const r = round2(value);
   return format === 'unitless' ? String(r) : `${r}${format}`;

@@ -96,6 +96,7 @@ interface TokenTableRowProps {
   parseValue: (raw: string, type: TokenType) => unknown;
   isReadOnly?: boolean;
   isPathLocked?: boolean;
+  isSourceGroup?: boolean;
   masterValue?: string;
   onResetToDefault?: (
     groupId: string,
@@ -152,6 +153,7 @@ function TokenTableRow({
   parseValue,
   isReadOnly,
   isPathLocked,
+  isSourceGroup,
   masterValue,
   onResetToDefault,
   isMultiSelected,
@@ -238,6 +240,9 @@ function TokenTableRow({
                 isReadOnly || isPathLocked ? undefined : enterEdit("path")
               }
             >
+              {isSourceGroup && (
+                <Lock size={12} className="mr-1.5 text-gray-400 flex-shrink-0" />
+              )}
               <span className="truncate">
                 {token.path || <span className="text-gray-300">—</span>}
               </span>
@@ -1639,6 +1644,7 @@ export function TokenGeneratorForm({
                       parseValue={parseTokenValue}
                       isReadOnly={isReadOnly}
                       isPathLocked={Boolean(themeTokens)}
+                      isSourceGroup={isGroupSource?.(group.id)}
                       masterValue={findMasterValue?.(group.id, token.path)}
                       onResetToDefault={onResetToDefault}
                       isMultiSelected={selectedTokenIds.has(token.id)}
