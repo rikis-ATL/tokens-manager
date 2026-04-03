@@ -280,7 +280,7 @@ Plans:
 | 23. Billing Module and Limit Enforcement | v1.6 ⏸ | 0/TBD | Deferred | - |
 | 24. Stripe Checkout and Webhook Integration | v1.6 ⏸ | 0/TBD | Deferred | - |
 | 25. Enhance Read-Only View | - | 2/2 | Complete | 2026-04-03 |
-| 26. AI Service Layer Foundation | v1.7 | 1/4 | In Progress|  |
+| 26. AI Service Layer Foundation | v1.7 | 2/4 | In Progress|  |
 | 27. AI Chat Panel UI | v1.7 | 0/TBD | Not started | - |
 | 28. AI Tool Use — Token and Group CRUD | v1.7 | 0/TBD | Not started | - |
 | 29. AI-Assisted Naming and Queries | v1.7 | 0/TBD | Not started | - |
@@ -323,7 +323,7 @@ Plans:
 
 Plans:
 - [x] 26-01-PLAN.md — Install packages, AI provider interface + Claude implementation + AIService + encryption utility
-- [ ] 26-02-PLAN.md — PUT /api/user/settings (encrypted key storage) + POST /api/ai/chat (AI chat proxy)
+- [x] 26-02-PLAN.md — PUT /api/user/settings (encrypted key storage) + POST /api/ai/chat (AI chat proxy)
 - [ ] 26-03-PLAN.md — MCP server entry point + token CRUD tools + group tools
 - [ ] 26-04-PLAN.md — MCP architecture documentation + educational inline comments
 
