@@ -8,7 +8,8 @@
 - ✅ **v1.3 Add Tokens Modes** — Phases 8-9 (shipped 2026-03-19)
 - ✅ **v1.4 Theme Token Sets** — Phases 10-15 (shipped 2026-03-27)
 - ✅ **v1.5 Org User Management** — Phases 16-21 (shipped 2026-03-29)
-- 🚧 **v1.6 Multi-Tenant SaaS** — Phases 22-24 (in progress)
+- ⏸ **v1.6 Multi-Tenant SaaS** — Phases 22-24 (deferred — resume after v1.7)
+- 🚧 **v1.7 AI Integration** — Phases 26-29 (in progress)
 
 ## Phases
 
@@ -86,7 +87,7 @@ See: `.planning/milestones/v1.4-ROADMAP.md` for full phase details.
 
 </details>
 
-### v1.6 Multi-Tenant SaaS (In Progress)
+### v1.6 Multi-Tenant SaaS (Deferred — resumes after v1.7)
 
 **Milestone Goal:** Convert the app into a multi-org SaaS with configurable free/pro/team tiers enforced at the API layer and paid upgrades via Stripe Checkout.
 
@@ -275,10 +276,14 @@ Plans:
 | 19. RBAC and Permissions Context | v1.5 | 6/6 | Complete | 2026-03-28 |
 | 20. Email Invite Flow and Account Setup | v1.5 | 4/4 | Complete | 2026-03-28 |
 | 21. Org Users Admin UI and Permission-Gated UI | v1.5 | 5/5 | Complete | 2026-03-29 |
-| 22. Org Model and Multi-Tenant Foundation | v1.6 | 0/TBD | Not started | - |
-| 23. Billing Module and Limit Enforcement | v1.6 | 0/TBD | Not started | - |
-| 24. Stripe Checkout and Webhook Integration | v1.6 | 0/TBD | Not started | - |
-| 25. Enhance Read-Only View | - | 2/2 | Complete    | 2026-04-03 |
+| 22. Org Model and Multi-Tenant Foundation | v1.6 ⏸ | 0/TBD | Deferred | - |
+| 23. Billing Module and Limit Enforcement | v1.6 ⏸ | 0/TBD | Deferred | - |
+| 24. Stripe Checkout and Webhook Integration | v1.6 ⏸ | 0/TBD | Deferred | - |
+| 25. Enhance Read-Only View | - | 2/2 | Complete | 2026-04-03 |
+| 26. AI Service Layer Foundation | v1.7 | 0/4 | Planning | - |
+| 27. AI Chat Panel UI | v1.7 | 0/TBD | Not started | - |
+| 28. AI Tool Use — Token and Group CRUD | v1.7 | 0/TBD | Not started | - |
+| 29. AI-Assisted Naming and Queries | v1.7 | 0/TBD | Not started | - |
 
 ### Phase 25: Enhance Read-Only View of Token Collections
 
@@ -290,3 +295,69 @@ Plans:
 Plans:
 - [x] 25-01-PLAN.md — Install Tooltip, create StyleGuidePanel + 6 per-type sub-components (ColorPaletteRow, SpacingPreview, TypographySpecimen, ShadowPreview, BorderRadiusPreview, TokenValueCard)
 - [x] 25-02-PLAN.md — Wire StyleGuidePanel into Tokens page with Tabs + human verification checkpoint
+
+---
+
+### v1.7 AI Integration (In Progress)
+
+**Milestone Goal:** Embed a Claude-powered AI agent in each collection's Tokens page that understands natural language and uses tool calls to create, edit, and delete tokens and groups directly in the app.
+
+**Key decisions:**
+- Claude (Anthropic SDK) is the initial provider; architecture is provider-agnostic for future extensibility
+- Per-user API key stored encrypted in MongoDB; all AI calls are server-side only — key never exposed to the browser
+- AI tool calls map to existing app API endpoints — AI does not write to the database directly
+- Provider-agnostic service layer in `src/services/ai/` — provider implementations swappable behind a common interface
+
+---
+
+### Phase 26: AI Service Layer Foundation
+**Goal**: Provider-agnostic AI service is in place — Claude (Anthropic SDK) is wired as the first provider, per-user API keys are stored encrypted in MongoDB, and all AI calls route through a server-side service with zero browser exposure
+**Depends on**: Phase 25
+**Requirements**: AI-02, AI-03, AI-04
+**Success Criteria** (what must be TRUE):
+  1. `src/services/ai/` module exists with a provider interface and a Claude implementation using the Anthropic SDK — swapping providers requires only a new implementation file, not route changes
+  2. Per-user API key is stored AES-256 encrypted in MongoDB via a `UserSettings` model; the plaintext key is never returned in any API response
+  3. A `POST /api/ai/chat` route handler calls the AI service server-side using the authenticated user's decrypted key; no AI SDK code runs in any Client Component
+  4. `SELF_HOSTED=true` bypass: when set, a built-in default key is used and per-user key storage is skipped
+**Plans**: 4 plans
+
+Plans:
+- [ ] 26-01-PLAN.md — Install packages, AI provider interface + Claude implementation + AIService + encryption utility
+- [ ] 26-02-PLAN.md — PUT /api/user/settings (encrypted key storage) + POST /api/ai/chat (AI chat proxy)
+- [ ] 26-03-PLAN.md — MCP server entry point + token CRUD tools + group tools
+- [ ] 26-04-PLAN.md — MCP architecture documentation + educational inline comments
+
+### Phase 27: AI Chat Panel UI
+**Goal**: The AI chat panel is visible and functional on the Tokens page — user can open it, send messages, receive streamed responses, and set their API key from a settings page
+**Depends on**: Phase 26
+**Requirements**: AI-01, AI-02
+**Success Criteria** (what must be TRUE):
+  1. A collapsible AI chat panel is accessible from the Tokens page (button or sidebar toggle) without navigating away from the collection
+  2. User can type a message, send it, and receive a streamed text response from Claude in the chat panel
+  3. User can navigate to a settings page, enter their Anthropic API key, and save it — the key persists across sessions
+  4. If no API key is configured, the chat panel surfaces a prompt to set one with a link to the settings page
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 28: AI Tool Use — Token and Group CRUD
+**Goal**: The AI agent can create, edit, delete tokens and groups in the active collection by calling tool functions that route through existing app API endpoints — no direct DB writes
+**Depends on**: Phase 27
+**Requirements**: AI-05, AI-06, AI-07, AI-08, AI-09, AI-10, AI-15
+**Success Criteria** (what must be TRUE):
+  1. User can ask "create a token called `color.brand.primary` with value `#0056D2`" and the token appears in the collection after the AI confirms
+  2. User can ask "delete all tokens with 'deprecated' in the name" and the AI calls the delete tool for each matching token after requesting confirmation
+  3. User can ask "rename the group `spacing/old` to `spacing/legacy`" and the group is renamed in the tree
+  4. All tool calls use the existing API endpoints (e.g. `PATCH /api/collections/[id]/themes/[themeId]/tokens`) — no Mongoose models imported in AI service layer
+  5. Failed tool calls (404, 403, validation errors) are surfaced to the user as readable error messages in the chat panel
+**Plans**: TBD
+
+### Phase 29: AI-Assisted Naming and Queries
+**Goal**: User can query tokens in natural language, request bulk natural language edits, paste raw values to get AI-suggested canonical names, and create AI-seeded themes
+**Depends on**: Phase 28
+**Requirements**: AI-11, AI-12, AI-13, AI-14
+**Success Criteria** (what must be TRUE):
+  1. User can ask "which tokens use #0056D2?" and receive a list of matching tokens with their paths
+  2. User can ask "rename all `sm` spacing tokens to `small`" and the AI executes the bulk rename via tool calls, reporting each change
+  3. User can paste a list of hex values into the chat and receive back AI-suggested canonical token names and a group structure proposal
+  4. User can ask "create a dark theme based on the current token set" and the AI creates a new theme with AI-suggested dark-mode values for color tokens
+**Plans**: TBD
