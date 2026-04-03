@@ -15,6 +15,7 @@ function toDoc(raw: Record<string, unknown>): CollectionDoc {
     userId: (raw.userId as string | null) ?? null,
     description: (raw.description as string | null) ?? null,
     tags: (raw.tags as string[]) ?? [],
+    colorFormat: (raw.colorFormat as 'hex' | 'hsl' | 'oklch') ?? 'hex',
     figmaToken: (raw.figmaToken as string | null) ?? null,
     figmaFileId: (raw.figmaFileId as string | null) ?? null,
     githubRepo: (raw.githubRepo as string | null) ?? null,
