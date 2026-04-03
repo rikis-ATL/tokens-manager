@@ -8,3 +8,4 @@ export { ClearFormDialog } from './ClearFormDialog';
 export { DeleteConfirmDialog } from './DeleteConfirmDialog';
 export { GroupPickerModal } from './GroupPickerModal';
 export { BulkActionBar } from './BulkActionBar';
+export { StyleGuidePanel } from './StyleGuidePanel';
