@@ -13,6 +13,12 @@ import {
 import type { GeneratedToken } from '@/types';
 import { generateId } from '@/utils';
 
+// ─── Utilities ───────────────────────────────────────────────────────────────
+
+function round2(value: number): number {
+  return Math.round(value * 100) / 100;
+}
+
 // ─── Naming helpers ───────────────────────────────────────────────────────────
 
 function buildNames(count: number, naming: GeneratorConfig['naming']): string[] {
