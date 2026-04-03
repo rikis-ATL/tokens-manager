@@ -282,7 +282,7 @@ Plans:
 | 25. Enhance Read-Only View | - | 2/2 | Complete | 2026-04-03 |
 | 26. AI Service Layer Foundation | v1.7 | 2/4 | Complete    | 2026-04-03 |
 | 27. AI Chat Panel UI | v1.7 | 0/TBD | Not started | - |
-| 28. AI Tool Use — Token and Group CRUD | v1.7 | 0/TBD | Not started | - |
+| 28. AI Tool Use — Token and Group CRUD | v1.7 | 0/4 | Not started | - |
 | 29. AI-Assisted Naming and Queries | v1.7 | 0/TBD | Not started | - |
 
 ### Phase 25: Enhance Read-Only View of Token Collections
@@ -349,7 +349,13 @@ Plans:
   3. User can ask "rename the group `spacing/old` to `spacing/legacy`" and the group is renamed in the tree
   4. All tool calls use the existing API endpoints (e.g. `PATCH /api/collections/[id]/themes/[themeId]/tokens`) — no Mongoose models imported in AI service layer
   5. Failed tool calls (404, 403, validation errors) are surfaced to the user as readable error messages in the chat panel
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 28-01-PLAN.md — Granular token/group API endpoints + AI tool definitions and handler map
+- [ ] 28-02-PLAN.md — MCP tool completions: bulk_create_tokens, rename/delete group, generators, theme read tools
+- [ ] 28-03-PLAN.md — ClaudeProvider tool use loop + chat route collection context + AIChatPanel wiring
+- [ ] 28-04-PLAN.md — Human verification of AI tool use end-to-end
 
 ### Phase 29: AI-Assisted Naming and Queries
 **Goal**: User can query tokens in natural language, request bulk natural language edits, paste raw values to get AI-suggested canonical names, and create AI-seeded themes
