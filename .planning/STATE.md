@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.7
 milestone_name: AI Integration
 status: executing
-stopped_at: Completed 26-03-PLAN.md
-last_updated: "2026-04-03T11:17:19.480Z"
+stopped_at: Completed 28-02-PLAN.md
+last_updated: "2026-04-03T21:38:45.707Z"
 last_activity: 2026-04-03
 progress:
   total_phases: 10
@@ -21,12 +21,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-31)
 
 **Core value:** Token collections are always available and editable: stored in MongoDB, accessible via collection-scoped URLs, with per-collection Figma/GitHub config, full CRUD from the collections grid, Figma import/export fully integrated, and a Themes system where each theme is a complete token value set with per-group edit permissions, dark-mode awareness, and theme-targeted export.
-**Current focus:** Phase 26 — ai-service-layer-foundation
+**Current focus:** Phase 28 — ai-tool-use-token-and-group-crud
 
 ## Current Position
 
-Phase: 26
-Plan: Not started
+Phase: 28 (ai-tool-use-token-and-group-crud) — EXECUTING
+Plan: 2 of 4
 Status: Ready to execute
 Last activity: 2026-04-03
 
@@ -81,6 +81,7 @@ Progress: [░░░░░░░░░░] 0% (0/? phases complete)
 | Phase 26-ai-service-layer-foundation P01 | 8 | 2 tasks | 8 files |
 | Phase 26 P02 | 1 | 2 tasks | 2 files |
 | Phase 26 P03 | 18 | 2 tasks | 4 files |
+| Phase 28 P02 | 8 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -191,6 +192,7 @@ Key decisions relevant to v1.6 (from research):
 - [Phase 26]: SELF_HOSTED=true skips User DB lookup in chat route — AIService handles env key; dual-gate is intentional to avoid unnecessary DB round-trip
 - [Phase 26]: MCP tools use console.error only — stdout is the JSON-RPC channel for StdioServerTransport
 - [Phase 26]: tsx used for local MCP server execution via mcp:dev script — no separate compile step needed for development
+- [Phase 28]: Generator tools delegate to previewGeneratedTokens() from tokenGenerators.ts — no algorithm re-implementation
 
 ### Pending Todos
 
@@ -211,8 +213,8 @@ Key decisions relevant to v1.6 (from research):
 
 ## Session Continuity
 
-Last session: 2026-04-03T11:01:59.030Z
-Stopped at: Completed 26-03-PLAN.md
+Last session: 2026-04-03T21:38:45.703Z
+Stopped at: Completed 28-02-PLAN.md
 Resume file: None
 Next action: `/gsd:discuss-phase 26` to begin AI Service Layer Foundation (v1.7)
 Note: v1.6 (phases 22-24) deferred — resume after v1.7 AI Integration is complete

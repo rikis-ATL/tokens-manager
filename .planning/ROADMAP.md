@@ -282,7 +282,7 @@ Plans:
 | 25. Enhance Read-Only View | - | 2/2 | Complete | 2026-04-03 |
 | 26. AI Service Layer Foundation | v1.7 | 2/4 | Complete    | 2026-04-03 |
 | 27. AI Chat Panel UI | v1.7 | 0/TBD | Not started | - |
-| 28. AI Tool Use — Token and Group CRUD | v1.7 | 0/4 | Not started | - |
+| 28. AI Tool Use — Token and Group CRUD | v1.7 | 1/4 | In Progress|  |
 | 29. AI-Assisted Naming and Queries | v1.7 | 0/TBD | Not started | - |
 
 ### Phase 25: Enhance Read-Only View of Token Collections
@@ -353,7 +353,7 @@ Plans:
 
 Plans:
 - [ ] 28-01-PLAN.md — Granular token/group API endpoints + AI tool definitions and handler map
-- [ ] 28-02-PLAN.md — MCP tool completions: bulk_create_tokens, rename/delete group, generators, theme read tools
+- [x] 28-02-PLAN.md — MCP tool completions: bulk_create_tokens, rename/delete group, generators, theme read tools
 - [ ] 28-03-PLAN.md — ClaudeProvider tool use loop + chat route collection context + AIChatPanel wiring
 - [ ] 28-04-PLAN.md — Human verification of AI tool use end-to-end
 
