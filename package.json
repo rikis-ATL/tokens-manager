@@ -21,7 +21,8 @@
     "start:stencil": "yarn workspace token-manager-stencil start",
     "dev:vite": "yarn workspace token-manager-vite dev",
     "build:vite": "yarn workspace token-manager-vite build",
-    "preview:vite": "yarn workspace token-manager-vite preview"
+    "preview:vite": "yarn workspace token-manager-vite preview",
+    "mcp:dev": "DOTENV_CONFIG_PATH=.env.local tsx -r dotenv/config --tsconfig tsconfig.scripts.json src/mcp/server.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.82.0",
