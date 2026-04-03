@@ -316,7 +316,7 @@ Plans:
 **Requirements**: AI-02, AI-03, AI-04
 **Success Criteria** (what must be TRUE):
   1. `src/services/ai/` module exists with a provider interface and a Claude implementation using the Anthropic SDK — swapping providers requires only a new implementation file, not route changes
-  2. Per-user API key is stored AES-256 encrypted in MongoDB via a `UserSettings` model; the plaintext key is never returned in any API response
+  2. Per-user API key is stored AES-256 encrypted in MongoDB on the User document (`encryptedApiKey` + `apiKeyIv` fields); the plaintext key is never returned in any API response
   3. A `POST /api/ai/chat` route handler calls the AI service server-side using the authenticated user's decrypted key; no AI SDK code runs in any Client Component
   4. `SELF_HOSTED=true` bypass: when set, a built-in default key is used and per-user key storage is skipped
 **Plans**: 4 plans
