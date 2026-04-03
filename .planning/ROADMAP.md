@@ -278,15 +278,15 @@ Plans:
 | 22. Org Model and Multi-Tenant Foundation | v1.6 | 0/TBD | Not started | - |
 | 23. Billing Module and Limit Enforcement | v1.6 | 0/TBD | Not started | - |
 | 24. Stripe Checkout and Webhook Integration | v1.6 | 0/TBD | Not started | - |
-| 25. Enhance Read-Only View | - | 0/2 | Not started | - |
+| 25. Enhance Read-Only View | - | 1/2 | In Progress|  |
 
 ### Phase 25: Enhance Read-Only View of Token Collections
 
 **Goal:** Add a "Style Guide" tab to the Tokens page that renders token values visually by type (color palettes, spacing bars, typography specimens, shadow/border-radius previews) with theme and group selection support
 **Requirements**: D-01, D-02, D-03, D-04, D-05, D-06, D-07, D-08, D-09, D-10, D-11, D-12
 **Depends on:** Phase 24
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
-- [ ] 25-01-PLAN.md — Install Tooltip, create StyleGuidePanel + 6 per-type sub-components (ColorPaletteRow, SpacingPreview, TypographySpecimen, ShadowPreview, BorderRadiusPreview, TokenValueCard)
+- [x] 25-01-PLAN.md — Install Tooltip, create StyleGuidePanel + 6 per-type sub-components (ColorPaletteRow, SpacingPreview, TypographySpecimen, ShadowPreview, BorderRadiusPreview, TokenValueCard)
 - [ ] 25-02-PLAN.md — Wire StyleGuidePanel into Tokens page with Tabs + human verification checkpoint

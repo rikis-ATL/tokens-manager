@@ -1,14 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.7
-milestone_name: AI Integration
-status: planning
-last_updated: "2026-03-31T00:00:00Z"
+milestone: v1.6
+milestone_name: Multi-Tenant SaaS
+status: Defining requirements — Milestone v1.7 started 2026-03-31
+stopped_at: Completed 25-01-PLAN.md
+last_updated: "2026-04-03T00:12:32.660Z"
+last_activity: 2026-03-31 — Milestone v1.7 AI Integration started
 progress:
-  total_phases: 0
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_phases: 10
+  completed_phases: 6
+  total_plans: 27
+  completed_plans: 26
+  percent: 0
 ---
 
 # Project State
@@ -32,6 +35,7 @@ Progress: [░░░░░░░░░░] 0% (0/? phases complete)
 ## Performance Metrics
 
 **Velocity (v1.4 reference):**
+
 - Total plans completed (v1.4): 21
 - Average duration: ~3-5 min/plan
 - Total execution time: ~8 days
@@ -72,6 +76,7 @@ Progress: [░░░░░░░░░░] 0% (0/? phases complete)
 | Phase 21 P03 | 4 | 2 tasks | 2 files |
 | Phase 21-org-users-admin-ui-and-permission-gated-ui P04 | 2 | 1 task | 2 files |
 | Phase 21 P05 | 5 | 2 tasks | 0 files |
+| Phase 25-enhance-read-only-view-of-token-collections P01 | 10 | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -80,6 +85,7 @@ Progress: [░░░░░░░░░░] 0% (0/? phases complete)
 All decisions logged in PROJECT.md Key Decisions table.
 
 Key decisions relevant to v1.5 (from research and 16-01 execution):
+
 - `next@13.5.9` — CVE-2025-29927 (CVSS 9.1) patched; 16-01 also fixed 5 pre-existing TypeScript errors exposed by stricter type checking
 - `next-auth@^4.24.13` (not v5) — v5 requires Next.js 14+; project locked at 13.5.6 → 13.5.9
 - No `@auth/mongodb-adapter` — Credentials provider requires JWT sessions; adapter is incompatible and creates conflicting MongoClient
@@ -157,6 +163,7 @@ Key decisions relevant to v1.5 (from research and 16-01 execution):
 - [Phase 21]: All 7 Phase 21 success criteria verified by human: org members list, role change propagation, user removal, superadmin/self protection, Viewer collection page gating, Viewer GitHub/Figma dropdown gating, Viewer token editing disabled
 
 Key decisions relevant to v1.6 (from research):
+
 - `stripe@^17.7.0` pinned below v18 — v18 introduces `2025-03-31.basil` API breaking changes; v21 has `Stripe.Decimal` type overhaul; v17 covers all needed APIs
 - `rate-limiter-flexible@^10.0.1` with `RateLimiterMongo` — backed by existing Mongoose connection; zero new infrastructure; avoids Redis dependency
 - No `@stripe/stripe-js` or `@stripe/react-stripe-js` — server-side `session.url` redirect is current Stripe pattern; client packages not needed
@@ -171,6 +178,7 @@ Key decisions relevant to v1.6 (from research):
 - SELF_HOSTED bypass checked first in all limit functions — short-circuits before any DB read or Stripe call
 - Compound `{ _id, organizationId }` indexes on User and TokenCollection — prevents COLLSCAN on collection list queries; added in same commit as the field
 - org created atomically with user at registration — no orphaned users without an org; organizationId in JWT from first sign-in
+- [Phase 25]: StyleGuidePanel uses useMemo for token grouping; ColorPaletteRow uses single TooltipProvider; #cccccc fallback for unresolved color refs
 
 ### Pending Todos
 
@@ -191,7 +199,7 @@ Key decisions relevant to v1.6 (from research):
 
 ## Session Continuity
 
-Last session: 2026-03-30T00:00:00Z
-Stopped at: v1.6 roadmap created — Phases 22-24 defined, all 22 requirements mapped, files written
+Last session: 2026-04-03T00:12:32.657Z
+Stopped at: Completed 25-01-PLAN.md
 Resume file: None
 Next action: `/gsd:plan-phase 22` to begin Org Model and Multi-Tenant Foundation
