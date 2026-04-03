@@ -25,6 +25,8 @@ import "@/lib/db/models/TokenCollection";
 
 import { registerTokenTools } from "./tools/tokens";
 import { registerGroupTools } from "./tools/groups";
+import { registerGeneratorTools } from "./tools/generators";
+import { registerThemeTools } from "./tools/themes";
 
 // Create the MCP server instance.
 // The name and version are advertised to MCP clients during handshake.
@@ -37,6 +39,8 @@ const server = new McpServer({
 // Tools must be registered synchronously before server.connect() is called.
 registerTokenTools(server);
 registerGroupTools(server);
+registerGeneratorTools(server);
+registerThemeTools(server);
 
 async function main() {
   // Connect to MongoDB before accepting any tool calls.
