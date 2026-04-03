@@ -40,6 +40,8 @@ import { ClearFormDialog } from '@/components/tokens/ClearFormDialog';
 import { JsonPreviewDialog } from '@/components/dev/JsonPreviewDialog';
 import type { GitHubConfig } from '@/types';
 import { usePermissions } from '@/context/PermissionsContext';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { StyleGuidePanel } from '@/components/tokens/StyleGuidePanel';
 
 
 /** Pure helper: update a single token value within a recursive group tree */
@@ -194,6 +196,20 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
 
   const [selectedGroupId, setSelectedGroupId] = useState('');
   const [selectedToken, setSelectedToken] = useState<{ token: GeneratedToken; groupPath: string } | null>(null);
+
+  const styleGuideTokens = useMemo(() => {
+    const selectedGroup = findGroupById(filteredGroups, selectedGroupId);
+    return selectedGroup?.tokens ?? [];
+  }, [filteredGroups, selectedGroupId]);
+
+  const styleGuideAllGroups = useMemo(() => {
+    return filteredGroups;
+  }, [filteredGroups]);
+
+  const selectedGroupName = useMemo(() => {
+    const selectedGroup = findGroupById(filteredGroups, selectedGroupId);
+    return selectedGroup?.name;
+  }, [filteredGroups, selectedGroupId]);
   const [pendingNewGroup, setPendingNewGroup] = useState<string | null>(null);
   const [pendingBulkInsert, setPendingBulkInsert] = useState<{ groupId: string; tokens: GeneratedToken[]; subgroupName?: string } | null>(null);
   const [pendingGroupCreation, setPendingGroupCreation] = useState<{ parentGroupId: string | null; groupData: { name: string; tokens: GeneratedToken[] } } | null>(null);
@@ -1269,48 +1285,63 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
             selectedGroupId={selectedGroupId}
             onSelect={(id) => { setSelectedGroupId(id); setSelectedToken(null); }}
           />
-                <TokenGeneratorForm
-                  key={`${id}-${activeThemeId ?? 'default'}`}
-                  githubConfig={null}
-                  collectionToLoad={!activeThemeId && rawCollectionTokens ? { 
-                    id, 
-                    name: collectionName, 
-                    tokens: rawCollectionTokens 
-                  } : null}
-                  onTokensChange={handleTokensChange}
-                  namespace={globalNamespace}
-                  onNamespaceChange={setGlobalNamespace}
-                  onGroupsChange={activeThemeId ? undefined : handleGroupsChange}
-                  onGroupSelect={(gid) => { setSelectedGroupId(gid); setSelectedToken(null); }}
-                  selectedGroupId={selectedGroupId}
-                  pendingNewGroup={pendingNewGroup}
-                  onGroupAdded={handleGroupAdded}
-                  hideNamespaceAndActions={true}
-                  hideAddGroupButton={true}
-                  selectedTokenId={selectedToken?.token.id ?? null}
-                  onTokenSelect={(token, groupPath) =>
-                    setSelectedToken(token ? { token, groupPath } : null)
-                  }
-                  pendingBulkInsert={pendingBulkInsert}
-                  onBulkInsertProcessed={() => setPendingBulkInsert(null)}
-                  pendingGroupCreation={pendingGroupCreation}
-                  onGroupCreationProcessed={() => setPendingGroupCreation(null)}
-                  pendingGroupAction={pendingGroupAction}
-                  onGroupActionProcessed={() => setPendingGroupAction(null)}
-                  themeTokens={activeThemeId ? effectiveThemeTokens : undefined}
-                  onThemeTokensChange={activeThemeId ? handleThemeTokenChange : undefined}
-                  isReadOnly={isThemeReadOnly || !canEdit}
-                  findMasterValue={activeThemeId ? findMasterValue : undefined}
-                  onResetToDefault={activeThemeId && !isThemeReadOnly ? handleResetToDefault : undefined}
-                  onResetGroupToSource={activeThemeId ? handleResetGroupToSource : undefined}
-                  isGroupSource={activeThemeId ? isGroupSource : undefined}
-                  tokenNameMismatch={tokenNameMismatch}
-                  onPreviewJSON={handlePreviewJSON}
-                  onDownloadJSON={handleDownloadJSONFromHeader}
-                  onUndoSnapshot={(snapshot) => {
-                    undoStackRef.current = [snapshot, ...undoStackRef.current.slice(0, MAX_UNDO - 1)];
-                  }}
-                />
+                <Tabs defaultValue="tokens" className="flex flex-col flex-1 min-h-0">
+                  <TabsList className="w-fit">
+                    <TabsTrigger value="tokens">Tokens</TabsTrigger>
+                    <TabsTrigger value="style-guide">Style Guide</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="tokens" className="flex-1 min-h-0">
+                    <TokenGeneratorForm
+                      key={`${id}-${activeThemeId ?? 'default'}`}
+                      githubConfig={null}
+                      collectionToLoad={!activeThemeId && rawCollectionTokens ? {
+                        id,
+                        name: collectionName,
+                        tokens: rawCollectionTokens
+                      } : null}
+                      onTokensChange={handleTokensChange}
+                      namespace={globalNamespace}
+                      onNamespaceChange={setGlobalNamespace}
+                      onGroupsChange={activeThemeId ? undefined : handleGroupsChange}
+                      onGroupSelect={(gid) => { setSelectedGroupId(gid); setSelectedToken(null); }}
+                      selectedGroupId={selectedGroupId}
+                      pendingNewGroup={pendingNewGroup}
+                      onGroupAdded={handleGroupAdded}
+                      hideNamespaceAndActions={true}
+                      hideAddGroupButton={true}
+                      selectedTokenId={selectedToken?.token.id ?? null}
+                      onTokenSelect={(token, groupPath) =>
+                        setSelectedToken(token ? { token, groupPath } : null)
+                      }
+                      pendingBulkInsert={pendingBulkInsert}
+                      onBulkInsertProcessed={() => setPendingBulkInsert(null)}
+                      pendingGroupCreation={pendingGroupCreation}
+                      onGroupCreationProcessed={() => setPendingGroupCreation(null)}
+                      pendingGroupAction={pendingGroupAction}
+                      onGroupActionProcessed={() => setPendingGroupAction(null)}
+                      themeTokens={activeThemeId ? effectiveThemeTokens : undefined}
+                      onThemeTokensChange={activeThemeId ? handleThemeTokenChange : undefined}
+                      isReadOnly={isThemeReadOnly || !canEdit}
+                      findMasterValue={activeThemeId ? findMasterValue : undefined}
+                      onResetToDefault={activeThemeId && !isThemeReadOnly ? handleResetToDefault : undefined}
+                      onResetGroupToSource={activeThemeId ? handleResetGroupToSource : undefined}
+                      isGroupSource={activeThemeId ? isGroupSource : undefined}
+                      tokenNameMismatch={tokenNameMismatch}
+                      onPreviewJSON={handlePreviewJSON}
+                      onDownloadJSON={handleDownloadJSONFromHeader}
+                      onUndoSnapshot={(snapshot) => {
+                        undoStackRef.current = [snapshot, ...undoStackRef.current.slice(0, MAX_UNDO - 1)];
+                      }}
+                    />
+                  </TabsContent>
+                  <TabsContent value="style-guide" className="flex-1 min-h-0">
+                    <StyleGuidePanel
+                      tokens={styleGuideTokens}
+                      allGroups={styleGuideAllGroups}
+                      groupName={selectedGroupName}
+                    />
+                  </TabsContent>
+                </Tabs>
               </main>
             </ResizablePanel>
 
