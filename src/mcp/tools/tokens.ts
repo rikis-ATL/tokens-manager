@@ -593,4 +593,98 @@ export function registerTokenTools(server: McpServer): void {
       }
     }
   );
+
+  /**
+   * TOOL: bulk_create_tokens
+   *
+   * Parameters:
+   *   - collectionId: MongoDB ObjectId string for the collection.
+   *   - tokens: array of { path, value, type } objects.
+   *
+   * Creates multiple tokens in a single atomic MongoDB $set operation.
+   * All tokens in the array are written together — useful for seeding an
+   * entire group at once (e.g., a generated color scale).
+   *
+   * If a token already exists at a given path, it will be overwritten.
+   * Parent group objects are created automatically by MongoDB dot notation.
+   */
+  server.registerTool(
+    "bulk_create_tokens",
+    {
+      description:
+        "Create multiple tokens in a single batch operation. Accepts an array of {path, value, type} objects. " +
+        "All tokens are created atomically using a single MongoDB $set. Useful for seeding entire groups. " +
+        "Use list_collections to get valid collectionId values.",
+      inputSchema: z.object({
+        collectionId: z
+          .string()
+          .describe("MongoDB ObjectId of the collection"),
+        tokens: z
+          .array(
+            z.object({
+              path: z.string().describe("Dot-separated token path"),
+              value: z.string().describe("Token value"),
+              type: z.string().optional().describe("W3C token type, defaults to 'color'"),
+            })
+          )
+          .describe("Array of tokens to create"),
+      }),
+    },
+    async ({ collectionId, tokens }) => {
+      try {
+        const setFields: Record<string, string> = {};
+        for (const t of tokens) {
+          setFields[`tokens.${t.path}.$value`] = t.value;
+          setFields[`tokens.${t.path}.$type`] = t.type || "color";
+        }
+
+        const result = await TokenCollection.findByIdAndUpdate(
+          collectionId,
+          { $set: setFields },
+          { new: true }
+        );
+
+        if (!result) {
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: `Collection not found: ${collectionId}`,
+              },
+            ],
+            isError: true,
+          };
+        }
+
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify(
+                {
+                  success: true,
+                  message: `Created ${tokens.length} token(s) in collection`,
+                  count: tokens.length,
+                  paths: tokens.map((t) => t.path),
+                },
+                null,
+                2
+              ),
+            },
+          ],
+        };
+      } catch (err) {
+        console.error("[MCP] bulk_create_tokens error:", err);
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Error bulk creating tokens: ${err instanceof Error ? err.message : String(err)}`,
+            },
+          ],
+          isError: true,
+        };
+      }
+    }
+  );
 }

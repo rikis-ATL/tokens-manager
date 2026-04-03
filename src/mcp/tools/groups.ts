@@ -70,6 +70,19 @@ function collectGroupPaths(
 }
 
 // ---------------------------------------------------------------------------
+// Helper: safely navigate a nested object via dot-path
+// e.g. getNestedValue({ colors: { brand: { $value: "#fff" } } }, "colors.brand")
+// ---------------------------------------------------------------------------
+function getNestedValue(obj: Record<string, unknown>, path: string): unknown {
+  return path.split(".").reduce((current: unknown, key: string) => {
+    if (current && typeof current === "object") {
+      return (current as Record<string, unknown>)[key];
+    }
+    return undefined;
+  }, obj);
+}
+
+// ---------------------------------------------------------------------------
 // Exported registration function
 // ---------------------------------------------------------------------------
 
@@ -282,6 +295,185 @@ export function registerGroupTools(server: McpServer): void {
             {
               type: "text" as const,
               text: `Error creating group: ${err instanceof Error ? err.message : String(err)}`,
+            },
+          ],
+          isError: true,
+        };
+      }
+    }
+  );
+
+  /**
+   * TOOL: rename_group
+   *
+   * Parameters:
+   *   - collectionId: MongoDB ObjectId string for the collection.
+   *   - oldPath: current dot-separated group path.
+   *   - newPath: new dot-separated group path.
+   *
+   * Moves a group and all its tokens to a new path using a combined MongoDB
+   * $set (new path = group value) and $unset (remove old path) in a single update.
+   * All tokens under the old path are preserved under the new path.
+   */
+  server.registerTool(
+    "rename_group",
+    {
+      description:
+        "Rename or move a group and all its tokens to a new path. " +
+        "All tokens under the old path are preserved under the new path. " +
+        "Use list_groups to get valid group paths. Use list_collections to get valid collectionId values.",
+      inputSchema: z.object({
+        collectionId: z
+          .string()
+          .describe("MongoDB ObjectId of the collection"),
+        oldPath: z
+          .string()
+          .describe("Current dot-separated group path"),
+        newPath: z
+          .string()
+          .describe("New dot-separated group path"),
+      }),
+    },
+    async ({ collectionId, oldPath, newPath }) => {
+      try {
+        const collection = await TokenCollection.findById(collectionId).lean();
+        if (!collection) {
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: `Collection not found: ${collectionId}`,
+              },
+            ],
+            isError: true,
+          };
+        }
+
+        const tokens = collection.tokens as Record<string, unknown>;
+        const groupValue = getNestedValue(tokens, oldPath);
+
+        if (groupValue === undefined) {
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: `Group path '${oldPath}' not found in collection.`,
+              },
+            ],
+            isError: true,
+          };
+        }
+
+        await TokenCollection.findByIdAndUpdate(
+          collectionId,
+          {
+            $set: { [`tokens.${newPath}`]: groupValue },
+            $unset: { [`tokens.${oldPath}`]: "" },
+          },
+          { new: true }
+        );
+
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify(
+                {
+                  success: true,
+                  message: `Group renamed from '${oldPath}' to '${newPath}'`,
+                  oldPath,
+                  newPath,
+                },
+                null,
+                2
+              ),
+            },
+          ],
+        };
+      } catch (err) {
+        console.error("[MCP] rename_group error:", err);
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Error renaming group: ${err instanceof Error ? err.message : String(err)}`,
+            },
+          ],
+          isError: true,
+        };
+      }
+    }
+  );
+
+  /**
+   * TOOL: delete_group
+   *
+   * Parameters:
+   *   - collectionId: MongoDB ObjectId string for the collection.
+   *   - groupPath: dot-separated group path to delete.
+   *
+   * Permanently removes the group and all nested tokens using MongoDB $unset.
+   * This operation cannot be undone — use list_tokens to review contents first.
+   */
+  server.registerTool(
+    "delete_group",
+    {
+      description:
+        "Delete a group and all tokens within it. This permanently removes the group and all nested tokens. " +
+        "Use list_tokens with the groupPath to review contents before deleting. " +
+        "Use list_collections to get valid collectionId values.",
+      inputSchema: z.object({
+        collectionId: z
+          .string()
+          .describe("MongoDB ObjectId of the collection"),
+        groupPath: z
+          .string()
+          .describe("Dot-separated group path to delete"),
+      }),
+    },
+    async ({ collectionId, groupPath }) => {
+      try {
+        const result = await TokenCollection.findByIdAndUpdate(
+          collectionId,
+          { $unset: { [`tokens.${groupPath}`]: "" } },
+          { new: true }
+        );
+
+        if (!result) {
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: `Collection not found: ${collectionId}`,
+              },
+            ],
+            isError: true,
+          };
+        }
+
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify(
+                {
+                  success: true,
+                  message: `Group deleted at path '${groupPath}'`,
+                  groupPath,
+                },
+                null,
+                2
+              ),
+            },
+          ],
+        };
+      } catch (err) {
+        console.error("[MCP] delete_group error:", err);
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Error deleting group: ${err instanceof Error ? err.message : String(err)}`,
             },
           ],
           isError: true,
