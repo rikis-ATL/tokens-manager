@@ -196,11 +196,6 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   const [selectedGroupId, setSelectedGroupId] = useState('');
   const [selectedToken, setSelectedToken] = useState<{ token: GeneratedToken; groupPath: string } | null>(null);
 
-  const allCollectionTokens = useMemo(() => {
-    const flattenGroups = (groups: TokenGroup[]): GeneratedToken[] =>
-      groups.flatMap(g => [...(g.tokens ?? []), ...(g.children ? flattenGroups(g.children) : [])]);
-    return flattenGroups(filteredGroups);
-  }, [filteredGroups]);
   const [pendingNewGroup, setPendingNewGroup] = useState<string | null>(null);
   const [pendingBulkInsert, setPendingBulkInsert] = useState<{ groupId: string; tokens: GeneratedToken[]; subgroupName?: string } | null>(null);
   const [pendingGroupCreation, setPendingGroupCreation] = useState<{ parentGroupId: string | null; groupData: { name: string; tokens: GeneratedToken[] } } | null>(null);
@@ -702,6 +697,13 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     return processGroups(masterGroups);
   }, [activeThemeId, themes, masterGroups]);
 
+  const allCollectionTokens = useMemo(() => {
+    const flattenGroups = (groups: TokenGroup[]): GeneratedToken[] =>
+      groups.flatMap(g => [...(g.tokens ?? []), ...(g.children ? flattenGroups(g.children) : [])]);
+    const source = activeThemeId ? effectiveThemeTokens : filteredGroups;
+    return flattenGroups(source);
+  }, [activeThemeId, effectiveThemeTokens, filteredGroups]);
+
   // ── Theme selector change with group fallback ───────────────────────────
   const handleThemeChange = useCallback((newThemeId: string | null) => {
     // Sync graphStateMap BEFORE setActiveThemeId so the next render passes correct initialGraphState
@@ -1194,37 +1196,18 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
 
       {/* Collection-level view tabs */}
       <Tabs defaultValue="tokens" className="flex flex-col flex-1 overflow-hidden">
-        <div className="px-6 pt-2 border-b border-gray-200 flex-shrink-0">
+        <div className="px-6 pt-2 border-b border-gray-200 flex-shrink-0 flex items-center justify-between">
           <TabsList className="w-fit">
             <TabsTrigger value="tokens">Tokens</TabsTrigger>
             <TabsTrigger value="style-guide">Style Guide</TabsTrigger>
           </TabsList>
-        </div>
-
-        <TabsContent value="tokens" className="flex flex-1 overflow-hidden m-0 p-0">
-      {/* Master-detail layout */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Master: token groups sidebar — collapsible */}
-        <aside
-          className={`border-r border-gray-200 bg-gray-50 flex-shrink-0 flex flex-col transition-all duration-200 w-56`}
-    
-        >
-         
-         {themes.length > 0 && (
-         <div className="flex flex-col gap-1 py-4">
-          <div className="px-4 flex items-center justify-between flex-shrink-0">
-            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Themes</span>
-          </div>
-
-
-          <div className="flex flex-col px-3">
-              {/* <label className="text-xs text-black whitespace-nowrap">Theme:</label> */}
+          {themes.length > 0 && (
             <Select
               key={activeThemeId ?? '__default__'}
               value={activeThemeId ?? '__default__'}
               onValueChange={(v) => handleThemeChange(v === '__default__' ? null : v)}
             >
-              <SelectTrigger className="w-full h-8 text-sm">
+              <SelectTrigger className="w-40 h-8 text-sm">
                 <SelectValue placeholder="Default" />
               </SelectTrigger>
               <SelectContent>
@@ -1239,9 +1222,18 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
                 ))}
               </SelectContent>
             </Select>
-          </div>
-          </div>
-        )}
+          )}
+        </div>
+
+        <TabsContent value="tokens" className="flex flex-1 overflow-hidden m-0 p-0">
+      {/* Master-detail layout */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Master: token groups sidebar — collapsible */}
+        <aside
+          className={`border-r border-gray-200 bg-gray-50 flex-shrink-0 flex flex-col transition-all duration-200 w-56`}
+    
+        >
+         
             <div className="flex flex-col h-full" onClick={e => e.stopPropagation()}>
 
 
