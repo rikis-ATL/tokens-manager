@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Multi-Tenant SaaS
 status: executing
-stopped_at: Completed 25-01-PLAN.md
-last_updated: "2026-04-03T00:12:32.660Z"
-last_activity: 2026-04-03 — Phase 25 execution started
+stopped_at: Completed 25-02-PLAN.md
+last_updated: "2026-04-03T04:43:42.971Z"
+last_activity: 2026-04-03
 progress:
   total_phases: 10
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 27
-  completed_plans: 26
+  completed_plans: 27
   percent: 0
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-03-31)
 ## Current Position
 
 Phase: 25 (enhance-read-only-view-of-token-collections) — EXECUTING
-Plan: 1 of 2
-Status: Executing Phase 25
-Last activity: 2026-04-03 -- Phase 25 execution started
+Plan: 2 of 2
+Status: Ready to execute
+Last activity: 2026-04-03
 
 Progress: [░░░░░░░░░░] 0% (0/? phases complete)
 
@@ -77,6 +77,7 @@ Progress: [░░░░░░░░░░] 0% (0/? phases complete)
 | Phase 21-org-users-admin-ui-and-permission-gated-ui P04 | 2 | 1 task | 2 files |
 | Phase 21 P05 | 5 | 2 tasks | 0 files |
 | Phase 25-enhance-read-only-view-of-token-collections P01 | 10 | 2 tasks | 8 files |
+| Phase 25 P02 | 15 | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -179,6 +180,8 @@ Key decisions relevant to v1.6 (from research):
 - Compound `{ _id, organizationId }` indexes on User and TokenCollection — prevents COLLSCAN on collection list queries; added in same commit as the field
 - org created atomically with user at registration — no orphaned users without an org; organizationId in JWT from first sign-in
 - [Phase 25]: StyleGuidePanel uses useMemo for token grouping; ColorPaletteRow uses single TooltipProvider; #cccccc fallback for unresolved color refs
+- [Phase 25]: filteredGroups used as StyleGuidePanel token source — applies group visibility rules (D-05 compliant) without extra filtering logic
+- [Phase 25]: Style Guide tab placed at collection level wrapping entire master-detail layout — shows all collection tokens, not per-group scoped
 
 ### Pending Todos
 
@@ -199,7 +202,7 @@ Key decisions relevant to v1.6 (from research):
 
 ## Session Continuity
 
-Last session: 2026-04-03T00:12:32.657Z
-Stopped at: Completed 25-01-PLAN.md
+Last session: 2026-04-03T04:43:42.968Z
+Stopped at: Completed 25-02-PLAN.md
 Resume file: None
 Next action: `/gsd:plan-phase 22` to begin Org Model and Multi-Tenant Foundation
