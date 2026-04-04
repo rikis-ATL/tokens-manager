@@ -37,7 +37,7 @@ function buildCollectionContext(
   collection: Record<string, unknown>,
   themeId?: string | null
 ): string {
-  const tokens = collection.tokens as Record<string, unknown>;
+  const tokens = (collection.tokens as Record<string, unknown>) ?? {};
   const themes = (collection.themes as Array<Record<string, unknown>>) ?? [];
 
   const groupPaths = collectGroupPaths(tokens);
@@ -159,10 +159,11 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ reply });
   } catch (error) {
-    // "No API key available" error from AIService → 402
+    // API key errors → 402
     if (
       error instanceof Error &&
-      error.message.includes("No API key available")
+      (error.message.includes("No API key available") ||
+        error.message.includes("not configured"))
     ) {
       return NextResponse.json(
         { error: "API key not configured" },
