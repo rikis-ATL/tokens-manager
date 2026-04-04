@@ -9,9 +9,10 @@ interface AIChatPanelProps {
   collectionId: string;
   collectionName: string;
   activeThemeId?: string | null;
+  onToolsExecuted?: () => void;
 }
 
-export function AIChatPanel({ collectionId, collectionName, activeThemeId }: AIChatPanelProps) {
+export function AIChatPanel({ collectionId, collectionName, activeThemeId, onToolsExecuted }: AIChatPanelProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -58,6 +59,7 @@ export function AIChatPanel({ collectionId, collectionName, activeThemeId }: AIC
 
       const data = await response.json() as { reply: string };
       setMessages(prev => [...prev, { role: "assistant", content: data.reply }]);
+      onToolsExecuted?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Network error. Please try again.");
     } finally {

@@ -43,7 +43,6 @@ import { usePermissions } from '@/context/PermissionsContext';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { StyleGuidePanel } from '@/components/tokens/StyleGuidePanel';
 import { AIChatPanel } from '@/components/ai/AIChatPanel';
-import { io } from 'socket.io-client';
 
 
 /** Pure helper: update a single token value within a recursive group tree */
@@ -221,14 +220,6 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  // Reload tokens when AI tool calls mutate the collection via the API
-  useEffect(() => {
-    const socket = io({ path: '/api/socketio' });
-    socket.emit('subscribe', id);
-    socket.on('token-update', () => { loadCollection(); });
-    return () => { socket.disconnect(); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
 
   const loadCollection = async () => {
     abortControllerRef.current?.abort();
@@ -1341,6 +1332,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
                 collectionId={id}
                 collectionName={collectionName}
                 activeThemeId={activeThemeId}
+                onToolsExecuted={loadCollection}
               />
             </ResizablePanel>
 
@@ -1373,6 +1365,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
                 collectionId={id}
                 collectionName={collectionName}
                 activeThemeId={activeThemeId}
+                onToolsExecuted={loadCollection}
               />
             </ResizablePanel>
           </ResizablePanelGroup>
