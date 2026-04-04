@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Info, MoreHorizontal, RotateCcw, Save, Sun, Moon, Eye, Download, EllipsisVertical } from 'lucide-react';
+import { Info, MoreHorizontal, RotateCcw, Save, Sun, Moon, Eye, Download, EllipsisVertical, MessageSquare, X } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { showSuccessToast, showErrorToast } from '@/utils/toast.utils';
 import { SaveCollectionDialog } from '@/components/collections/SaveCollectionDialog';
@@ -207,7 +207,26 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   const [addSubGroupParentId, setAddSubGroupParentId] = useState<string | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
+  const [isChatOpen, setIsChatOpen] = useState(false);
+
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  const refreshTokens = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/collections/${id}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      const col = data.collection ?? data;
+      const rawTokens = (col.tokens ?? {}) as Record<string, unknown>;
+      setRawCollectionTokens(rawTokens);
+      rawCollectionTokensRef.current = rawTokens;
+      const { groups } = tokenService.processImportedTokens(rawTokens, col.namespace ?? globalNamespace);
+      setMasterGroups(groups);
+    } catch {
+      // silent — user can manually refresh if needed
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   useEffect(() => {
     loadCollection();
@@ -1109,6 +1128,17 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
             </Button>
           )}
 
+          {/* AI Chat toggle */}
+          <Button
+            variant={isChatOpen ? 'default' : 'outline'}
+            size="sm"
+            className="px-2"
+            onClick={() => setIsChatOpen(v => !v)}
+            title="AI Assistant"
+          >
+            <MessageSquare size={16} />
+          </Button>
+
           {/* More actions dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -1326,18 +1356,6 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
 
             <ResizableHandle withHandle />
 
-            {/* AI Chat panel */}
-            <ResizablePanel defaultSize={30} minSize={20}>
-              <AIChatPanel
-                collectionId={id}
-                collectionName={collectionName}
-                activeThemeId={activeThemeId}
-                onToolsExecuted={loadCollection}
-              />
-            </ResizablePanel>
-
-            <ResizableHandle withHandle />
-
             {/* Graph panel */}
             <ResizablePanel defaultSize={30} minSize={20}>
               <div className="h-full border-l border-gray-200 bg-gray-50">
@@ -1357,17 +1375,6 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
               </div>
             </ResizablePanel>
 
-            <ResizableHandle withHandle />
-
-            {/* AI Chat panel */}
-            <ResizablePanel defaultSize="25%" minSize="15%">
-              <AIChatPanel
-                collectionId={id}
-                collectionName={collectionName}
-                activeThemeId={activeThemeId}
-                onToolsExecuted={loadCollection}
-              />
-            </ResizablePanel>
           </ResizablePanelGroup>
         </div>
       </div>
@@ -1381,6 +1388,24 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
         </TabsContent>
       </Tabs>
 
+
+      {/* AI Chat slide-over */}
+      <div className={`fixed top-0 right-0 h-full w-96 z-50 shadow-2xl transition-transform duration-300 ${isChatOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className="flex items-center justify-between px-4 py-3 border-b bg-white">
+          <span className="text-sm font-medium">AI Assistant — {collectionName}</span>
+          <Button variant="ghost" size="sm" className="px-1" onClick={() => setIsChatOpen(false)}>
+            <X size={16} />
+          </Button>
+        </div>
+        <div className="h-[calc(100%-48px)]">
+          <AIChatPanel
+            collectionId={id}
+            collectionName={collectionName}
+            activeThemeId={activeThemeId}
+            onToolsExecuted={refreshTokens}
+          />
+        </div>
+      </div>
 
       <SaveCollectionDialog
         isOpen={saveAsDialogOpen}
