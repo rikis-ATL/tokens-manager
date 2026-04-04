@@ -135,9 +135,9 @@ export async function POST(request: Request) {
         tools = getToolDefinitions() as ToolDefinition[];
 
         const cookieHeader = request.headers.get("cookie") || "";
-        const baseUrl =
-          process.env.NEXTAUTH_URL ||
-          `http://localhost:${process.env.PORT || 3000}`;
+        const host = request.headers.get("host") || "localhost:3000";
+        const protocol = host.startsWith("localhost") ? "http" : "https";
+        const baseUrl = `${protocol}://${host}`;
 
         toolExecutor = (name: string, input: Record<string, unknown>) =>
           executeToolCall(name, input, {
