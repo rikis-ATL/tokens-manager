@@ -175,10 +175,6 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     const activeTheme = themes.find(t => t.id === activeThemeId);
     if (!activeTheme) return masterGroups;
 
-    // #region agent log
-    fetch('http://127.0.0.1:7904/ingest/42ab2957-6639-4a7b-8f90-226fafaea52f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6eabf0'},body:JSON.stringify({sessionId:'6eabf0',location:'page.tsx:filteredGroups',message:'filter computed',data:{activeThemeId,themeGroupsKeys:Object.keys(activeTheme.groups??{}),themeGroupsSample:Object.entries(activeTheme.groups??{}).slice(0,5),masterGroupIds:masterGroups.map(g=>g.id)},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
-    // #endregion
-
     function filterGroups(groups: TokenGroup[]): TokenGroup[] {
       return groups
         .filter(g => {
@@ -253,10 +249,6 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       const col = data.collection ?? data;
       const rawTokens = (col.tokens ?? {}) as Record<string, unknown>;
 
-      // #region agent log
-      fetch('http://127.0.0.1:7904/ingest/42ab2957-6639-4a7b-8f90-226fafaea52f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6eabf0'},body:JSON.stringify({sessionId:'6eabf0',location:'page.tsx:loadCollection',message:'raw collection data',data:{collectionName:col.name,rawTokensKeys:Object.keys(rawTokens),rawTokensEmpty:Object.keys(rawTokens).length===0,rawTokensSample:Object.entries(rawTokens).slice(0,3)},timestamp:Date.now(),hypothesisId:'H3'})}).catch(()=>{});
-      // #endregion
-
       setCollectionName(col.name ?? '');
       if (col.namespace) setGlobalNamespace(col.namespace);
       setRawCollectionTokens(rawTokens);
@@ -272,10 +264,6 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       const { groups: defaultGroups } = tokenService.processImportedTokens(rawTokens, col.namespace ?? '');
       setMasterGroups(defaultGroups);
 
-      // #region agent log
-      fetch('http://127.0.0.1:7904/ingest/42ab2957-6639-4a7b-8f90-226fafaea52f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6eabf0'},body:JSON.stringify({sessionId:'6eabf0',location:'page.tsx:loadCollection',message:'masterGroups set',data:{groupCount:defaultGroups.length,groupIds:defaultGroups.map((g: TokenGroup)=>g.id)},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
-      // #endregion
-
       // Load custom themes for the theme selector
       const themesRes = await fetch(`/api/collections/${id}/themes`, {
         signal: abortControllerRef.current?.signal,
@@ -283,10 +271,6 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       if (themesRes.ok) {
         const themesData = await themesRes.json();
         const apiThemes: ITheme[] = themesData.themes ?? [];
-
-        // #region agent log
-        fetch('http://127.0.0.1:7904/ingest/42ab2957-6639-4a7b-8f90-226fafaea52f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6eabf0'},body:JSON.stringify({sessionId:'6eabf0',location:'page.tsx:loadCollection',message:'themes loaded',data:{themeCount:apiThemes.length,themes:apiThemes.map((t: ITheme)=>({id:t.id,name:t.name,groupsKeys:Object.keys(t.groups??{}),tokenCount:t.tokens?.length??0}))},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
-        // #endregion
 
         setThemes(apiThemes);
       }
@@ -732,9 +716,6 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     // mount with the previous theme's graph.
     const newTheme = newThemeId ? themes.find(t => t.id === newThemeId) : null;
 
-    // #region agent log
-    fetch('http://127.0.0.1:7904/ingest/42ab2957-6639-4a7b-8f90-226fafaea52f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6eabf0'},body:JSON.stringify({sessionId:'6eabf0',location:'page.tsx:handleThemeChange',message:'theme change',data:{newThemeId,themeFound:!!newTheme,themeGroupsKeys:Object.keys(newTheme?.groups??{}),themeTokenCount:newTheme?.tokens?.length??0,masterGroupIds:masterGroups.map(g=>g.id)},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
-    // #endregion
     const gs = newThemeId
       ? ((newTheme?.graphState ?? {}) as CollectionGraphState)
       : collectionGraphState;
