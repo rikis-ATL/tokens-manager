@@ -78,6 +78,8 @@ created: 2026-04-04
 
 **Approval:** approved 2026-04-04
 
+**Human wave:** `wave_0_complete` stays `false` until Plan **28-04** is executed and signed off (see `28-VERIFICATION.md` and `.planning/v1.7-HUMAN-GATES.md`).
+
 ---
 
 ## Validation Audit 2026-04-04
