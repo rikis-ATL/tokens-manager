@@ -2,8 +2,85 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth/require-auth";
 import dbConnect from "@/lib/mongodb";
 import User from "@/lib/db/models/User";
+import TokenCollection from "@/lib/db/models/TokenCollection";
 import { aiService } from "@/services/ai";
-import type { Message } from "@/services/ai/provider.interface";
+import { getToolDefinitions, executeToolCall } from "@/services/ai/tools";
+import type { Message, ToolDefinition, ToolExecutor } from "@/services/ai/provider.interface";
+
+// ---------------------------------------------------------------------------
+// System prompt builder — injects full collection context into each turn
+// ---------------------------------------------------------------------------
+
+function collectGroupPaths(
+  obj: Record<string, unknown>,
+  prefix = ""
+): string[] {
+  const paths: string[] = [];
+  for (const key of Object.keys(obj)) {
+    if (key.startsWith("$")) continue;
+    const value = obj[key];
+    if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+      const hasValue = "$value" in (value as Record<string, unknown>);
+      if (!hasValue) {
+        const currentPath = prefix ? `${prefix}.${key}` : key;
+        paths.push(currentPath);
+        paths.push(
+          ...collectGroupPaths(value as Record<string, unknown>, currentPath)
+        );
+      }
+    }
+  }
+  return paths;
+}
+
+function buildCollectionContext(
+  collection: Record<string, unknown>,
+  themeId?: string | null
+): string {
+  const tokens = collection.tokens as Record<string, unknown>;
+  const themes = (collection.themes as Array<Record<string, unknown>>) ?? [];
+
+  const groupPaths = collectGroupPaths(tokens);
+
+  let context = `You are an AI assistant for the ATUI Tokens Manager design system tool.
+You are working with the collection "${collection.name}".
+
+## Current Token Structure
+The collection contains the following token groups: ${groupPaths.join(", ") || "(empty collection)"}
+
+Full token data (W3C Design Token format):
+\`\`\`json
+${JSON.stringify(tokens, null, 2)}
+\`\`\`
+
+## Available Tools
+You can create, update, and delete tokens and groups using the provided tools.
+- Token paths use dot notation: "colors.brand.primary"
+- Tokens follow W3C format with $value and $type properties
+- Common types: color, dimension, number, string, duration, fontSize, borderRadius
+
+## Rules
+- ALWAYS describe what you plan to do BEFORE calling any tool
+- For DELETE operations, list what will be deleted and ask "Shall I proceed?" before calling the delete tool
+- Use the existing naming conventions visible in the token structure
+- When creating tokens, infer the $type from context (e.g., hex values are "color", px/rem values are "dimension")
+- If a tool call fails, explain the error in plain language and suggest alternatives`;
+
+  // Add theme context if active
+  if (themeId && themeId !== "__default__") {
+    const activeTheme = themes.find((t) => (t.id as string) === themeId);
+    if (activeTheme) {
+      context += `\n\n## Active Theme: ${activeTheme.name}
+Theme token overrides are present. Currently operating on the collection's default tokens.`;
+    }
+  }
+
+  return context;
+}
+
+// ---------------------------------------------------------------------------
+// Route handler
+// ---------------------------------------------------------------------------
 
 export async function POST(request: Request) {
   const authResult = await requireAuth();
@@ -11,7 +88,11 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { messages } = body as { messages: Message[] };
+    const { messages, collectionId, themeId } = body as {
+      messages: Message[];
+      collectionId?: string;
+      themeId?: string | null;
+    };
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return NextResponse.json(
@@ -20,7 +101,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // SELF_HOSTED check here skips the DB round-trip entirely.
+    // SELF_HOSTED check here skips the DB round-trip for user key lookup.
     // AIService.chat() also checks SELF_HOSTED internally to pick the right key source.
     // This is intentional dual-gate design: the route avoids loading User from DB when
     // it's not needed, rather than fetching the key and passing it to a service that
@@ -38,15 +119,51 @@ export async function POST(request: Request) {
       userIv = user?.apiKeyIv ?? undefined;
     }
 
+    // Build collection context and tools if collectionId is provided
+    let systemPrompt: string | undefined;
+    let tools: ToolDefinition[] | undefined;
+    let toolExecutor: ToolExecutor | undefined;
+
+    if (collectionId) {
+      await dbConnect();
+      const collection = await TokenCollection.findById(collectionId).lean();
+      if (collection) {
+        systemPrompt = buildCollectionContext(
+          collection as unknown as Record<string, unknown>,
+          themeId
+        );
+        tools = getToolDefinitions() as ToolDefinition[];
+
+        const cookieHeader = request.headers.get("cookie") || "";
+        const baseUrl =
+          process.env.NEXTAUTH_URL ||
+          `http://localhost:${process.env.PORT || 3000}`;
+
+        toolExecutor = (name: string, input: Record<string, unknown>) =>
+          executeToolCall(name, input, {
+            collectionId,
+            themeId: themeId || null,
+            cookieHeader,
+            baseUrl,
+          });
+      }
+    }
+
     const reply = await aiService.chat(messages, {
       userEncryptedKey,
       userIv,
+      systemPrompt,
+      tools,
+      toolExecutor,
     });
 
     return NextResponse.json({ reply });
   } catch (error) {
     // "No API key available" error from AIService → 402
-    if (error instanceof Error && error.message.includes("No API key available")) {
+    if (
+      error instanceof Error &&
+      error.message.includes("No API key available")
+    ) {
       return NextResponse.json(
         { error: "API key not configured" },
         { status: 402 }
@@ -54,9 +171,6 @@ export async function POST(request: Request) {
     }
 
     console.error("[API] POST /api/ai/chat error:", error);
-    return NextResponse.json(
-      { error: "AI request failed" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "AI request failed" }, { status: 500 });
   }
 }
