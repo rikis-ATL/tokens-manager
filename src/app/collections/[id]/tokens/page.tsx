@@ -1270,7 +1270,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
 
           <ResizablePanelGroup orientation="horizontal" className="flex-1 min-h-0">
             {/* Form panel */}
-            <ResizablePanel defaultSize="60%" minSize="25%">
+            <ResizablePanel defaultSize={40} minSize={25}>
               <main className="h-full overflow-y-auto p-6 flex flex-col gap-4">
 
               <GroupBreadcrumb
@@ -1325,8 +1325,19 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
 
             <ResizableHandle withHandle />
 
+            {/* AI Chat panel */}
+            <ResizablePanel defaultSize={30} minSize={20}>
+              <AIChatPanel
+                collectionId={id}
+                collectionName={collectionName}
+                activeThemeId={activeThemeId}
+              />
+            </ResizablePanel>
+
+            <ResizableHandle withHandle />
+
             {/* Graph panel */}
-            <ResizablePanel defaultSize="30%" minSize="20%">
+            <ResizablePanel defaultSize={30} minSize={20}>
               <div className="h-full border-l border-gray-200 bg-gray-50">
                 <TokenGraphPanel
                   allGroups={masterGroups}

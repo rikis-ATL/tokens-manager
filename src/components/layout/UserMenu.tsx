@@ -1,10 +1,12 @@
 'use client';
 
 import { useSession, signOut } from 'next-auth/react';
+import Link from 'next/link';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
@@ -52,9 +54,17 @@ export function UserMenu() {
             Exit Demo
           </DropdownMenuItem>
         ) : (
-          <DropdownMenuItem onClick={() => signOut({ callbackUrl: '/auth/sign-in' })}>
-            Sign out
-          </DropdownMenuItem>
+          <>
+            <Link href="/settings" passHref legacyBehavior>
+              <DropdownMenuItem asChild>
+                <a>Settings</a>
+              </DropdownMenuItem>
+            </Link>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => signOut({ callbackUrl: '/auth/sign-in' })}>
+              Sign out
+            </DropdownMenuItem>
+          </>
         )}
       </DropdownMenuContent>
     </DropdownMenu>
