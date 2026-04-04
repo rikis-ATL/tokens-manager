@@ -41,7 +41,8 @@ key_decisions:
   - "toolExecutor is optional in ChatOptions — when absent, tool_use stop_reason returns text as-is (backward compatible)"
   - "buildCollectionContext injects full W3C token JSON to give AI complete reasoning context without requiring get_token list tools"
   - "collectGroupPaths traverses token tree to show AI the group hierarchy in system prompt header"
-  - "AIChatPanel added as fourth panel in ResizablePanelGroup alongside graph panel"
+  - "AIChatPanel implemented as fixed slide-over panel (shadcn Sheet) triggered by MessageSquare button in header, not ResizablePanel"
+  - "Slide-over approach chosen for simpler state management, better mobile UX, and no screen space competition with tokens table"
   - "TSC full project check OOMs on this machine; isolated module checks pass — pre-existing project-wide memory issue"
 
 metrics:
@@ -103,7 +104,7 @@ metrics:
 - Error handling: 402 → API key not configured message; other errors → error message in chat
 - Auto-scroll to bottom on new messages
 
-**src/app/collections/[id]/tokens/page.tsx**: Added `AIChatPanel` import and added the component as a fourth `ResizablePanel` in the `ResizablePanelGroup` (after graph panel, with `ResizableHandle`). Passes `collectionId={id}`, `collectionName={collectionName}`, `activeThemeId={activeThemeId}`.
+**src/app/collections/[id]/tokens/page.tsx**: Added `AIChatPanel` import and integrated as a slide-over panel triggered by a `MessageSquare` button in the page header. The panel uses shadcn's Sheet component for a fixed slide-over layout (not ResizablePanel). Passes `collectionId={id}`, `collectionName={collectionName}`, `activeThemeId={activeThemeId}`.
 
 ## Decisions Made
 
