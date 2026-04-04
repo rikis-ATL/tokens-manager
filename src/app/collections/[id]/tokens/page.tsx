@@ -42,6 +42,7 @@ import type { GitHubConfig } from '@/types';
 import { usePermissions } from '@/context/PermissionsContext';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { StyleGuidePanel } from '@/components/tokens/StyleGuidePanel';
+import { AIChatPanel } from '@/components/ai/AIChatPanel';
 
 
 /** Pure helper: update a single token value within a recursive group tree */
@@ -1325,7 +1326,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
             <ResizableHandle withHandle />
 
             {/* Graph panel */}
-            <ResizablePanel defaultSize="40%" minSize="20%">
+            <ResizablePanel defaultSize="30%" minSize="20%">
               <div className="h-full border-l border-gray-200 bg-gray-50">
                 <TokenGraphPanel
                   allGroups={masterGroups}
@@ -1341,6 +1342,17 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
                   activeThemeId={activeThemeId}
                 />
               </div>
+            </ResizablePanel>
+
+            <ResizableHandle withHandle />
+
+            {/* AI Chat panel */}
+            <ResizablePanel defaultSize="25%" minSize="15%">
+              <AIChatPanel
+                collectionId={id}
+                collectionName={collectionName}
+                activeThemeId={activeThemeId}
+              />
             </ResizablePanel>
           </ResizablePanelGroup>
         </div>
