@@ -30,13 +30,33 @@ export async function POST(
 
     const { groupPath, description } = body;
 
+    await dbConnect();
+
+    // Check if the group already exists before writing — this operation is
+    // idempotent: if the group exists, return success without overwriting its
+    // contents. Without this guard, $set would replace the entire group object
+    // with {}, clearing all tokens nested under it.
+    const existing = await TokenCollection.findById(params.id)
+      .select(`tokens.${groupPath.split('.').join('.')}`)
+      .lean() as Record<string, unknown> | null;
+
+    if (!existing) {
+      return NextResponse.json({ error: 'Collection not found' }, { status: 404 });
+    }
+
+    const existingTokens = existing.tokens as Record<string, unknown> | undefined;
+    const groupValue = existingTokens ? getNestedValue(existingTokens, groupPath) : undefined;
+
+    if (groupValue !== undefined) {
+      // Group already exists — idempotent, no modification needed
+      return NextResponse.json({ success: true, groupPath, description: description ?? null });
+    }
+
     // Build the initial group object — optionally include $description
     const groupObject: Record<string, unknown> = {};
     if (description) {
       groupObject['$description'] = description;
     }
-
-    await dbConnect();
 
     const result = await TokenCollection.findByIdAndUpdate(
       params.id,

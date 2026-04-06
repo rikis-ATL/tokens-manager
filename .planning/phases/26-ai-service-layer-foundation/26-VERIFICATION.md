@@ -158,6 +158,10 @@ All implementations are substantive. The only `console.log` match in `src/mcp/` 
 **Expected:** Claude calls `list_collections` and returns real collection names from MongoDB.
 **Why human:** Requires Claude Desktop, local MongoDB, and manual path substitution.
 
+#### Status (2026-04-04)
+
+These three checks are **optional hardening** (live MongoDB, env toggles, Claude Desktop). They do **not** change the phase **passed** sign-off from 2026-04-03. Re-run them after material changes to `settings/route.ts`, `chat/route.ts`, `ai.service.ts`, or `src/mcp/`.
+
 ---
 
 ### Gaps Summary

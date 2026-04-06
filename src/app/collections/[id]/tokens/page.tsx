@@ -26,6 +26,7 @@ import type { CollectionGraphState, GraphGroupState } from '@/types/graph-state.
 import type { FlatToken, FlatGroup } from '@/types/graph-nodes.types';
 import type { ITheme, ColorMode } from '@/types/theme.types';
 import { getAllGroups, findGroupById, generateId } from '@/utils';
+import { filterGroupsForActiveTheme } from '@/utils/filterGroupsForActiveTheme';
 import { applyGroupMove, applyGroupRename, type DropMode } from '@/utils/groupMove';
 import {
   getTokenPathsFromGraphState,
@@ -173,20 +174,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   const filteredGroups = useMemo(() => {
     if (!activeThemeId) return masterGroups;
     const activeTheme = themes.find(t => t.id === activeThemeId);
-    if (!activeTheme) return masterGroups;
-
-    function filterGroups(groups: TokenGroup[]): TokenGroup[] {
-      return groups
-        .filter(g => {
-          const state = activeTheme!.groups[g.id] ?? 'disabled';
-          return state !== 'disabled';
-        })
-        .map(g => ({
-          ...g,
-          children: g.children ? filterGroups(g.children) : undefined,
-        }));
-    }
-    return filterGroups(masterGroups);
+    return filterGroupsForActiveTheme(masterGroups, activeTheme);
   }, [masterGroups, activeThemeId, themes]);
 
 

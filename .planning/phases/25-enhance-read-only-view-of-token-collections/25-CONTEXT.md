@@ -1,7 +1,7 @@
 # Phase 25: Enhance Read-Only View of Token Collections - Context
 
 **Gathered:** 2026-04-03
-**Status:** Ready for planning
+**Status:** Closed (2026-04-04) — verification passed; see `25-VERIFICATION.md` and `25-VALIDATION.md`
 
 <domain>
 ## Phase Boundary

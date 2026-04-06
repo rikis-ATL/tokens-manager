@@ -1,10 +1,11 @@
 ---
 phase: 25
 slug: enhance-read-only-view-of-token-collections
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-04-03
+updated: 2026-04-04
 ---
 
 # Phase 25 — Validation Strategy
@@ -17,11 +18,11 @@ created: 2026-04-03
 
 | Property | Value |
 |----------|-------|
-| **Framework** | TypeScript compile gate (no jest/vitest/pytest detected) |
-| **Config file** | none — using `yarn build` as compile gate |
-| **Quick run command** | `yarn build` |
-| **Full suite command** | `yarn build` + browser smoke test on a real collection |
-| **Estimated runtime** | ~30 seconds (build) |
+| **Framework** | Jest 30 + ts-jest + Testing Library (jsdom for Style Guide tests) + `yarn build` |
+| **Config file** | `jest.config.ts`, `jest.setup.ts` |
+| **Quick run command** | `yarn jest` |
+| **Full suite command** | `yarn jest && yarn build` |
+| **Estimated runtime** | ~20s (jest) + ~30s (build) |
 
 ---
 
@@ -85,4 +86,5 @@ created: 2026-04-03
 - [ ] Feedback latency < 60s
 - [ ] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-04-04 — automated Style Guide + filter tests in `src/`; optional human smoke on a real collection before release.
+

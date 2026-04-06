@@ -60,6 +60,30 @@ async function parseResponse(response: Response): Promise<{ status: number; body
   return { status: response.status, body };
 }
 
+/** Matches Mongoose: findById().select().lean() (POST) and findById().lean() (PATCH). */
+function makeMongooseFindByIdQuery(overrides: {
+  selectLeanResult?: unknown | null;
+  leanResult?: unknown | null;
+} = {}) {
+  const defaultDoc = {
+    _id: COLLECTION_ID,
+    tokens: {
+      colors: {
+        brand: { $description: 'brand colors' },
+      },
+    },
+  };
+  const selectR = overrides.selectLeanResult !== undefined ? overrides.selectLeanResult : defaultDoc;
+  const leanR = overrides.leanResult !== undefined ? overrides.leanResult : defaultDoc;
+
+  return {
+    select: jest.fn().mockReturnValue({
+      lean: jest.fn().mockResolvedValue(selectR),
+    }),
+    lean: jest.fn().mockResolvedValue(leanR),
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Setup
 // ---------------------------------------------------------------------------
@@ -70,17 +94,8 @@ beforeEach(() => {
   mockRequireRole.mockResolvedValue(undefined);
   // Default: DB update returns a non-null result
   mockFindByIdAndUpdate.mockResolvedValue({ _id: COLLECTION_ID });
-  // Default: findById returns a collection with tokens
-  mockFindById.mockReturnValue({
-    lean: jest.fn().mockResolvedValue({
-      _id: COLLECTION_ID,
-      tokens: {
-        colors: {
-          brand: { $description: 'brand colors' },
-        },
-      },
-    }),
-  });
+  // Default: findById chain (POST uses .select().lean(); PATCH uses .lean())
+  mockFindById.mockImplementation(() => makeMongooseFindByIdQuery());
 });
 
 // ---------------------------------------------------------------------------
@@ -106,7 +121,9 @@ describe('POST /api/collections/[id]/groups', () => {
   });
 
   it('returns 404 when collection not found', async () => {
-    mockFindByIdAndUpdate.mockResolvedValue(null);
+    mockFindById.mockImplementation(() =>
+      makeMongooseFindByIdQuery({ selectLeanResult: null }),
+    );
     const req = makeRequest({ groupPath: 'colors.new' });
     const response = await POST(req, params);
     const { status } = await parseResponse(response);
@@ -180,9 +197,9 @@ describe('PATCH /api/collections/[id]/groups', () => {
   });
 
   it('returns 404 when collection not found', async () => {
-    mockFindById.mockReturnValue({
-      lean: jest.fn().mockResolvedValue(null),
-    });
+    mockFindById.mockImplementation(() =>
+      makeMongooseFindByIdQuery({ leanResult: null, selectLeanResult: null }),
+    );
     const req = makeRequest({ oldPath: 'colors.brand', newPath: 'colors.brand-new' });
     const response = await PATCH(req, params);
     const { status } = await parseResponse(response);
@@ -191,12 +208,14 @@ describe('PATCH /api/collections/[id]/groups', () => {
 
   it('returns 404 when oldPath group does not exist in tokens', async () => {
     // tokens does NOT contain 'colors.nonexistent'
-    mockFindById.mockReturnValue({
-      lean: jest.fn().mockResolvedValue({
-        _id: COLLECTION_ID,
-        tokens: { colors: {} },
+    mockFindById.mockImplementation(() =>
+      makeMongooseFindByIdQuery({
+        leanResult: {
+          _id: COLLECTION_ID,
+          tokens: { colors: {} },
+        },
       }),
-    });
+    );
     const req = makeRequest({ oldPath: 'colors.nonexistent', newPath: 'colors.new' });
     const response = await PATCH(req, params);
     const { status, body } = await parseResponse(response);
