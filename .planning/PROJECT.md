@@ -72,24 +72,23 @@ Token collections are always available and editable: stored in MongoDB, accessib
 - ✓ Floating action bar appears when tokens are selected; supports bulk delete, move, change type, and prefix rename — v1.4
 - ✓ All bulk operations are undoable via Ctrl+Z as a single step; route through theme tokens when a theme is active — v1.4
 
-### Active
+### Validated (v1.7)
 
-<!-- v1.7 AI Integration -->
-- [ ] User can open an AI chat panel on the Tokens page for the active collection — AI-01
-- [ ] User enters their own AI provider API key in user settings; key stored encrypted in MongoDB — AI-02
-- [ ] All AI API calls are made server-side; API key never exposed to the browser — AI-03
-- [ ] AI service layer is provider-agnostic; Claude (Anthropic SDK) is the initial provider — AI-04
-- [ ] AI agent can create tokens in the active collection via tool use — AI-05
-- [ ] AI agent can edit token values in the active collection via tool use — AI-06
-- [ ] AI agent can delete tokens in the active collection via tool use — AI-07
-- [ ] AI agent can create token groups in the active collection via tool use — AI-08
-- [ ] AI agent can rename token groups in the active collection via tool use — AI-09
-- [ ] AI agent can delete token groups in the active collection via tool use — AI-10
+- ✓ AI service layer is provider-agnostic; Claude (Anthropic SDK) is the initial provider — AI-04 — v1.7
+- ✓ All AI API calls are made server-side; API key never exposed to the browser — AI-03 — v1.7
+- ✓ AI tool calls map to existing app API endpoints; AI does not write to the database directly — AI-15 — v1.7 (unverified — human gate pending)
+- ✓ AI agent can create/edit/delete tokens in the active collection via tool use — AI-05, AI-06, AI-07 — v1.7 (unverified)
+- ✓ AI agent can create/rename/delete token groups via tool use — AI-08, AI-09, AI-10 — v1.7 (unverified)
+
+### Active (v1.8)
+
+<!-- v1.8 AI Fix + Completion -->
+- [ ] User enters their own AI provider API key in user settings; key stored encrypted in MongoDB — AI-02 (partial — GET /api/user/settings/check untracked)
+- [ ] User can open an AI chat panel on the Tokens page for the active collection — AI-01 (disabled: BUG-01 — chat clears tokens table)
 - [ ] AI agent can create themes with AI-suggested token values via tool use — AI-11
 - [ ] User can query tokens in natural language ("which tokens use #0056D2?") — AI-12
 - [ ] User can request natural language edits ("rename all sm spacing tokens to small") — AI-13
 - [ ] User can paste token values and receive AI-suggested canonical names and group structure — AI-14
-- [ ] AI tool calls map to existing app API endpoints; AI does not write to the database directly — AI-15
 
 <!-- v1.6 Multi-Tenant SaaS (planned, not yet executed) -->
 - [ ] All users and collections are scoped to an organization via organizationId — TENANT-01
@@ -120,7 +119,33 @@ Token collections are always available and editable: stored in MongoDB, accessib
 - [ ] User can add a new group from the tree sidebar (child of any node, or at root level) — TREE-04
 - [ ] User can add tokens to the currently selected group inline — CONT-02
 
-## Planned Milestone: v1.6 Multi-Tenant SaaS (roadmap ready, not yet executed)
+## Shipped: v1.7 AI Integration (2026-04-06)
+
+**Goal:** Embed a Claude-powered AI agent in each collection's Tokens page that understands natural language and uses tool calls to create, edit, and delete tokens and groups directly in the app.
+
+**What shipped:**
+- Style Guide tab on Tokens page — per-type visual previews (color, spacing, typography, shadow, border-radius)
+- Provider-agnostic AI service layer — ClaudeProvider + Anthropic SDK, AES-256-GCM encrypted per-user API keys
+- MCP server for Claude Desktop/Code integration
+- AI tool use end-to-end — create/edit/delete tokens and groups via HTTP tool calls (no direct DB writes)
+
+**Known gaps (deferred to v1.8):**
+- AI chat disabled — BUG-01: sending a chat message clears the tokens table (see `.planning/phases/28-ai-tool-use-token-and-group-crud/28-BUGS.md`)
+- Phase 28 human verification (28-04-TEST-GUIDE.md) not executed
+- Phase 29 (AI-Assisted Naming and Queries — AI-11 to AI-14) not started
+
+See `.planning/milestones/v1.7-ROADMAP.md` for full archive.
+
+## Planned Milestone: v1.8 AI Fix + Completion
+
+**Goal:** Fix the AI chat panel bug, complete Phase 28 verification, ship Phase 29 AI naming/query features, and formally re-enable the AI feature.
+
+**Planned phases:**
+- **Phase 29: Fix AI Chat + Verify Phase 28** — Fix BUG-01 (chat clears tokens table), track GET /api/user/settings/check, execute 28-04 human verification, create VERIFICATION.md for Phase 28
+- **Phase 30: AI-Assisted Naming and Queries** — AI-11 (theme creation), AI-12 (natural language token queries), AI-13 (bulk natural language edits), AI-14 (paste values → canonical names)
+- **Phase 31: Style Guide Verification** — Complete Phase 25 browser verifications (color tooltip, spacing bars, typography fonts, theme switching, shadow/border-radius tiles, disabled groups); fix nyquist compliance
+
+## Planned Milestone: v1.6 Multi-Tenant SaaS (deferred — after v1.8)
 
 **Goal:** Convert the app into a multi-org SaaS with configurable free/pro/team tiers enforced at the API layer and paid upgrades via Stripe Checkout.
 
@@ -133,37 +158,16 @@ Token collections are always available and editable: stored in MongoDB, accessib
 - Upgrade prompts and rate limiting
 - Payment code isolation — all Stripe/billing logic in `src/lib/billing/`
 
-## Current Milestone: v1.7 AI Integration
-
-**Goal:** Embed a Claude-powered AI agent in each collection's Tokens page that understands natural language and uses tool calls to create, edit, and delete tokens and groups directly in the app.
-
-**Target features:**
-- Per-collection AI chat panel on the Tokens page
-- Claude API via Anthropic SDK — provider-agnostic architecture (Claude first, extensible to others)
-- Per-user API key stored encrypted in user settings (MongoDB); all AI calls server-side
-- AI tool use — agent can call: create/edit/delete tokens, create/rename/delete groups, create themes with suggested token values
-- Natural language token queries ("which tokens use #0056D2?")
-- Natural language edits ("rename all spacing tokens with sm → small")
-- AI-assisted naming: user pastes values, AI suggests canonical token names and group structure
-- Tools map directly to existing app API endpoints (AI calls app methods, not raw DB)
-
-### Out of Scope (v1.7)
-
-- Documentation / changelog generation — deferred to v1.8+
-- Cross-collection AI queries — per-collection only
-- Shared org-level API key — per-user key only
-- AI-triggered export to GitHub/Figma — deferred
-- Fine-tuned models or custom embeddings — standard chat completions only
-- Angular / Stencil / Vite workspaces — excluded
-
 ## Context
 
-- **Shipped:** v1.4 on 2026-03-27 — 6 phases (10-15), 21 plans, 8-day build
+- **Shipped:** v1.7 on 2026-04-06 — 4 phases (25-28), AI service layer + tool use + Style Guide shipped; AI chat disabled pending bug fix
+- **Prior:** v1.5 on 2026-03-29 — 6 phases (16-21), full org auth + RBAC + invite flow
+- **Prior:** v1.4 on 2026-03-27 — 6 phases (10-15), 21 plans, 8-day build
 - **Prior:** v1.3 on 2026-03-19 — 2 phases (8-9), 9 plans, 86 source files changed
 - **Prior:** v1.2 phases (5-6) on 2026-03-13 — tree sidebar + breadcrumbs shipped; Phase 7 (Mutations) deferred
 - **Prior:** v1.1 on 2026-03-12 — 4 phases, 16 plans, 4-day build
 - **Prior:** v1.0 on 2026-02-28 — 7 phases, 23 plans, 3-day build
-- **Codebase:** ~27,300 LOC TypeScript; Next.js 13.5.6 + Mongoose + Style Dictionary v5 + JSZip + shadcn/ui (Radix UI) + @dnd-kit/core
+- **Codebase:** ~27,300 LOC TypeScript; Next.js 13.5.6 + Mongoose + Style Dictionary v5 + JSZip + shadcn/ui (Radix UI) + @dnd-kit/core + @anthropic-ai/sdk
 - **Component structure:** Feature domain folders: `collections/`, `tokens/`, `layout/`, `figma/`, `github/`, `dev/` — each with `index.ts` barrel exports; new `src/utils/bulkTokenActions.ts` (pure, tested)
 - **Brownfield:** Existing tool with GitHub import/export; MongoDB layer added in v1.0; UI modernized and routing restructured in v1.1
 - **Monorepo:** Yarn 3 workspaces; Angular, Stencil, Vite variants exist but are out of scope (excluded from root tsconfig)
@@ -260,4 +264,4 @@ The Tokens page includes a **visual graph editor** (React Flow) in the right-han
 | MCP server over stdio transport | Enables Claude Desktop/Code to manage tokens via natural language; stdout is JSON-RPC channel | Validated in Phase 26: ai-service-layer-foundation |
 
 ---
-*Last updated: 2026-04-03 after Phase 26: ai-service-layer-foundation complete*
+*Last updated: 2026-04-06 after v1.7 AI Integration milestone*

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Info, MoreHorizontal, RotateCcw, Save, Sun, Moon, Eye, Download, EllipsisVertical, MessageSquare, X } from 'lucide-react';
+import { Info, MoreHorizontal, RotateCcw, Save, Sun, Moon, Eye, Download, EllipsisVertical } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { showSuccessToast, showErrorToast } from '@/utils/toast.utils';
 import { SaveCollectionDialog } from '@/components/collections/SaveCollectionDialog';
@@ -43,8 +43,6 @@ import type { GitHubConfig } from '@/types';
 import { usePermissions } from '@/context/PermissionsContext';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { StyleGuidePanel } from '@/components/tokens/StyleGuidePanel';
-import { AIChatPanel } from '@/components/ai/AIChatPanel';
-
 
 /** Pure helper: update a single token value within a recursive group tree */
 function updateGroupToken(group: TokenGroup, targetGroupId: string, tokenId: string, value: string): TokenGroup {
@@ -190,8 +188,6 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   const [newGroupName, setNewGroupName] = useState('');
   const [addSubGroupParentId, setAddSubGroupParentId] = useState<string | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-
-  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -1097,16 +1093,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
             </Button>
           )}
 
-          {/* AI Chat toggle */}
-          <Button
-            variant={isChatOpen ? 'default' : 'outline'}
-            size="sm"
-            className="px-2"
-            onClick={() => setIsChatOpen(v => !v)}
-            title="AI Assistant"
-          >
-            <MessageSquare size={16} />
-          </Button>
+          {/* AI Chat toggle — disabled: bug where chat clears tokens table (see 28-BUGS.md) */}
 
           {/* More actions dropdown */}
           <DropdownMenu>
@@ -1358,23 +1345,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       </Tabs>
 
 
-      {/* AI Chat slide-over */}
-      <div className={`fixed top-0 right-0 h-full w-96 z-50 shadow-2xl transition-transform duration-300 ${isChatOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-        <div className="flex items-center justify-between px-4 py-3 border-b bg-white">
-          <span className="text-sm font-medium">AI Assistant — {collectionName}</span>
-          <Button variant="ghost" size="sm" className="px-1" onClick={() => setIsChatOpen(false)}>
-            <X size={16} />
-          </Button>
-        </div>
-        <div className="h-[calc(100%-48px)]">
-          <AIChatPanel
-            collectionId={id}
-            collectionName={collectionName}
-            activeThemeId={activeThemeId}
-            onToolsExecuted={refreshTokens}
-          />
-        </div>
-      </div>
+      {/* AI Chat slide-over — disabled: bug where chat clears tokens table (see 28-BUGS.md) */}
 
       <SaveCollectionDialog
         isOpen={saveAsDialogOpen}
