@@ -190,6 +190,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   const [addSubGroupParentId, setAddSubGroupParentId] = useState<string | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [tokenFormReloadVersion, setTokenFormReloadVersion] = useState(0);
 
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -204,6 +205,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       rawCollectionTokensRef.current = rawTokens;
       const { groups } = tokenService.processImportedTokens(rawTokens, col.namespace ?? globalNamespace);
       setMasterGroups(groups);
+      setTokenFormReloadVersion(v => v + 1);
     } catch {
       // silent — user can manually refresh if needed
     }
@@ -1277,7 +1279,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
             onSelect={(id) => { setSelectedGroupId(id); setSelectedToken(null); }}
           />
                     <TokenGeneratorForm
-                      key={`${id}-${activeThemeId ?? 'default'}`}
+                      key={`${id}-${activeThemeId ?? 'default'}-${tokenFormReloadVersion}`}
                       githubConfig={null}
                       collectionToLoad={!activeThemeId && rawCollectionTokens ? {
                         id,
