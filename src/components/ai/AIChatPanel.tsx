@@ -57,9 +57,11 @@ export function AIChatPanel({ collectionId, collectionName, activeThemeId, onToo
         return;
       }
 
-      const data = await response.json() as { reply: string };
+      const data = await response.json() as { reply: string; toolsExecuted: boolean };
       setMessages(prev => [...prev, { role: "assistant", content: data.reply }]);
-      onToolsExecuted?.();
+      if (data.toolsExecuted) {
+        onToolsExecuted?.();
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Network error. Please try again.");
     } finally {
