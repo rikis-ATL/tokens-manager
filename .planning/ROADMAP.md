@@ -10,6 +10,7 @@
 - ✅ **v1.5 Org User Management** — Phases 16-21 (shipped 2026-03-29)
 - ⏸ **v1.6 Multi-Tenant SaaS** — Phases 22-24 (deferred — resume after v1.8)
 - ✅ **v1.7 AI Integration** — Phases 25-28 (shipped 2026-04-06; known gaps — see milestones/v1.7-ROADMAP.md)
+- 🔄 **v1.8 AI Fix + Completion** — Phases 29-31 (active)
 
 ## Phases
 
@@ -107,3 +108,51 @@ See: `.planning/milestones/v1.4-ROADMAP.md` for full phase details.
 - [ ] **Phase 22: Org Model and Multi-Tenant Foundation** — Organization model, organizationId on User+TokenCollection, JWT extension, idempotent migration bootstrap, assertOrgOwnership() on all collection routes, compound indexes, self-serve org signup
 - [ ] **Phase 23: Billing Module and Limit Enforcement** — src/lib/billing/ module skeleton, LIMITS config (tiers.ts), check functions, usage tracking with lazy UTC-month reset, rate limiter (per user ID, never IP), SELF_HOSTED bypass, 402 responses on all capped routes, UpgradeModal
 - [ ] **Phase 24: Stripe Checkout and Webhook Integration** — Stripe singleton, checkout session creation, billing portal session, webhook handler (req.text() — CRITICAL), ProcessedWebhookEvent idempotency guard, all three webhook event types, success page session refresh
+
+### 🔄 v1.8 AI Fix + Completion (Active)
+
+**Milestone Goal:** Fix the AI chat panel bug, complete Phase 28 verification, ship AI-assisted naming and query features, and verify the Style Guide tab.
+
+## Phase Details
+
+### Phase 29: Fix AI Chat + Verify Phase 28
+**Goal**: Users can open and use the AI chat panel on the Tokens page without the tokens table being cleared, and Phase 28 tool-use behavior is verified by a human
+**Depends on**: Phase 28 (completed in v1.7)
+**Requirements**: BUG-01-FIX, AI-01, AI-02, VERIFY-28
+**Success Criteria** (what must be TRUE):
+  1. User can send a chat message and the tokens table remains fully populated (BUG-01 is gone)
+  2. User can open the AI chat panel from the Tokens page header (feature re-enabled after fix)
+  3. GET /api/user/settings/check endpoint responds correctly and is confirmed in browser dev tools (AI-02 tracked)
+  4. A human has executed all steps in 28-04-TEST-GUIDE.md and a VERIFICATION.md file exists for Phase 28
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 30: AI-Assisted Naming and Queries
+**Goal**: Users can leverage AI to create themes with suggested values, query tokens in natural language, request bulk edits via natural language, and receive canonical naming suggestions for pasted token values
+**Depends on**: Phase 29
+**Requirements**: AI-11, AI-12, AI-13, AI-14
+**Success Criteria** (what must be TRUE):
+  1. User can ask the AI to create a new theme and it populates with AI-suggested token values (AI-11)
+  2. User can type a natural language query ("which tokens use #0056D2?") and receive a correct result (AI-12)
+  3. User can request a natural language bulk edit ("rename all sm spacing tokens to small") and the tokens table updates accordingly (AI-13)
+  4. User can paste token values into the chat and receive AI-suggested canonical names and group structure (AI-14)
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 31: Style Guide Verification
+**Goal**: Phase 25 (Style Guide tab) is fully verified in the browser with no regressions and nyquist coverage in place
+**Depends on**: Phase 25 (completed in v1.7)
+**Requirements**: VERIFY-25
+**Success Criteria** (what must be TRUE):
+  1. All browser verification steps from the Phase 25 test guide pass without errors or visual regressions
+  2. StyleGuidePanel renders correct previews for all token types (color, spacing, typography, shadow, border-radius) in a real browser session
+  3. Any regressions or nyquist coverage gaps discovered are fixed and re-verified
+**Plans**: TBD
+
+## Progress Table
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 29. Fix AI Chat + Verify Phase 28 | 0/? | Not started | - |
+| 30. AI-Assisted Naming and Queries | 0/? | Not started | - |
+| 31. Style Guide Verification | 0/? | Not started | - |

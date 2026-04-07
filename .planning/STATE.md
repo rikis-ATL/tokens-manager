@@ -2,7 +2,7 @@
 gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: AI Fix + Completion
-status: planning
+status: roadmap_created
 stopped_at: null
 last_updated: "2026-04-07T00:00:00.000Z"
 last_activity: 2026-04-07
@@ -25,12 +25,20 @@ See: .planning/PROJECT.md (updated 2026-04-07)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Not started (roadmap defined)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-04-07 — Milestone v1.8 started
+Status: Roadmap created — ready for phase planning
+Last activity: 2026-04-07 — v1.8 roadmap created (phases 29-31)
 
 Progress: [░░░░░░░░░░] 0% (0/3 phases complete)
+
+## v1.8 Phase Summary
+
+| Phase | Goal | Requirements | Status |
+|-------|------|--------------|--------|
+| 29. Fix AI Chat + Verify Phase 28 | Re-enable AI chat after bug fix; complete Phase 28 human verification | BUG-01-FIX, AI-01, AI-02, VERIFY-28 | Not started |
+| 30. AI-Assisted Naming and Queries | Ship AI-powered theme creation, token queries, bulk edits, naming suggestions | AI-11, AI-12, AI-13, AI-14 | Not started |
+| 31. Style Guide Verification | Complete Phase 25 browser verifications; fix nyquist gaps | VERIFY-25 | Not started |
 
 ## Performance Metrics
 
@@ -200,21 +208,24 @@ Key decisions relevant to v1.6 (from research):
 - Add `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRO_PRICE_ID`, `STRIPE_TEAM_PRICE_ID`, `INITIAL_ORG_NAME`, `SELF_HOSTED` to `.env.local` documentation before Phase 23/24
 - Confirm deployment target (single-instance vs. Vercel serverless) before Phase 23 — determines whether in-process Map or `RateLimiterMongo` is appropriate for rate limiting
 - Create Stripe price IDs in Dashboard (ops step) before Phase 24 begins
+- Read `.planning/phases/28-ai-tool-use-token-and-group-crud/28-BUGS.md` before starting Phase 29 to understand BUG-01 root cause
 
 ### Roadmap Evolution
 
 - Phase 25 added: enhance read-only view of token collections
+- v1.8 roadmap created 2026-04-07: phases 29-31 (fix AI chat, AI naming/queries, Style Guide verification)
 
 ### Blockers/Concerns
 
 - ~~CVE-2025-29927: Next.js 13.5.6 middleware auth bypass (CVSS 9.1)~~ — RESOLVED in 16-01: patched to next@13.5.9
 - Resend domain verification required for production — `onboarding@resend.dev` works in dev; production needs verified sending domain (operational gap, not code gap)
 - Sign-in rate limiting deferred — `POST /api/auth/callback/credentials` unprotected against brute force; acceptable for internal tool; document in Phase 18 plan
+- BUG-01: AI chat panel clears tokens table when a message is sent — root cause unknown; see `.planning/phases/28-ai-tool-use-token-and-group-crud/28-BUGS.md`
 
 ## Session Continuity
 
-Last session: 2026-04-03T21:38:45.703Z
-Stopped at: Completed 28-02-PLAN.md
+Last session: 2026-04-07T00:00:00.000Z
+Stopped at: v1.8 roadmap created
 Resume file: None
-Next action: `/gsd:discuss-phase 26` to begin AI Service Layer Foundation (v1.7)
-Note: v1.6 (phases 22-24) deferred — resume after v1.7 AI Integration is complete
+Next action: `/gsd-plan-phase 29` to begin Phase 29 planning
+Note: Read 28-BUGS.md before planning Phase 29 to understand BUG-01 root cause
