@@ -136,14 +136,18 @@ Token collections are always available and editable: stored in MongoDB, accessib
 
 See `.planning/milestones/v1.7-ROADMAP.md` for full archive.
 
-## Planned Milestone: v1.8 AI Fix + Completion
+## Current Milestone: v1.8 AI Fix + Completion
 
-**Goal:** Fix the AI chat panel bug, complete Phase 28 verification, ship Phase 29 AI naming/query features, and formally re-enable the AI feature.
+**Goal:** Fix the AI chat panel bug, complete Phase 28 verification, ship AI-assisted naming and query features, and verify the Style Guide tab.
 
-**Planned phases:**
-- **Phase 29: Fix AI Chat + Verify Phase 28** — Fix BUG-01 (chat clears tokens table), track GET /api/user/settings/check, execute 28-04 human verification, create VERIFICATION.md for Phase 28
-- **Phase 30: AI-Assisted Naming and Queries** — AI-11 (theme creation), AI-12 (natural language token queries), AI-13 (bulk natural language edits), AI-14 (paste values → canonical names)
-- **Phase 31: Style Guide Verification** — Complete Phase 25 browser verifications (color tooltip, spacing bars, typography fonts, theme switching, shadow/border-radius tiles, disabled groups); fix nyquist compliance
+**Target features:**
+- Fix BUG-01 (AI chat clears tokens table) and re-enable AI feature
+- Execute Phase 28 human verification gate (28-04) and produce VERIFICATION.md
+- AI-assisted theme creation with suggested token values (AI-11)
+- Natural language token queries (AI-12)
+- Natural language bulk edits (AI-13)
+- Paste token values → AI suggests canonical names and group structure (AI-14)
+- Complete Phase 25 (Style Guide) browser verifications and fix nyquist gaps
 
 ## Planned Milestone: v1.6 Multi-Tenant SaaS (deferred — after v1.8)
 

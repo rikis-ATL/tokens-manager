@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.7
-milestone_name: AI Integration
-status: executing
-stopped_at: Completed 28-02-PLAN.md
-last_updated: "2026-04-06T06:48:00.654Z"
-last_activity: 2026-04-06
+milestone: v1.8
+milestone_name: AI Fix + Completion
+status: planning
+stopped_at: null
+last_updated: "2026-04-07T00:00:00.000Z"
+last_activity: 2026-04-07
 progress:
-  total_phases: 10
-  completed_phases: 7
-  total_plans: 27
-  completed_plans: 27
+  total_phases: 3
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
   percent: 0
 ---
 
@@ -18,19 +18,19 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-31)
+See: .planning/PROJECT.md (updated 2026-04-07)
 
 **Core value:** Token collections are always available and editable: stored in MongoDB, accessible via collection-scoped URLs, with per-collection Figma/GitHub config, full CRUD from the collections grid, Figma import/export fully integrated, and a Themes system where each theme is a complete token value set with per-group edit permissions, dark-mode awareness, and theme-targeted export.
-**Current focus:** Phase 28 — ai-tool-use-token-and-group-crud
+**Current focus:** Milestone v1.8 — AI Fix + Completion
 
 ## Current Position
 
-Phase: 28 (ai-tool-use-token-and-group-crud) — EXECUTING
-Plan: 2 of 4
-Status: Ready to execute
-Last activity: 2026-04-06
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-04-07 — Milestone v1.8 started
 
-Progress: [░░░░░░░░░░] 0% (0/? phases complete)
+Progress: [░░░░░░░░░░] 0% (0/3 phases complete)
 
 ## Performance Metrics
 
