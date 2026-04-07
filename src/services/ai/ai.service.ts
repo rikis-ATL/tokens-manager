@@ -1,6 +1,6 @@
 import { ClaudeProvider } from "./claude.provider";
 import { decrypt } from "@/lib/ai/encryption";
-import type { AIProvider, Message, ChatOptions } from "./provider.interface";
+import type { AIProvider, ChatResult, Message, ChatOptions } from "./provider.interface";
 
 export class AIService {
   private getProvider(userEncryptedKey?: string, userIv?: string): AIProvider {
@@ -21,7 +21,7 @@ export class AIService {
   async chat(
     messages: Message[],
     options?: ChatOptions & { userEncryptedKey?: string; userIv?: string }
-  ): Promise<string> {
+  ): Promise<ChatResult> {
     const provider = this.getProvider(options?.userEncryptedKey, options?.userIv);
     return provider.chat(messages, options);
   }

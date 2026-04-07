@@ -21,6 +21,11 @@ export interface ChatOptions {
   toolExecutor?: ToolExecutor;
 }
 
+export interface ChatResult {
+  reply: string;
+  toolsExecuted: boolean;
+}
+
 export interface AIProvider {
-  chat(messages: Message[], options?: ChatOptions): Promise<string>;
+  chat(messages: Message[], options?: ChatOptions): Promise<ChatResult>;
 }

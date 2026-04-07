@@ -149,7 +149,7 @@ export async function POST(request: Request) {
       }
     }
 
-    const reply = await aiService.chat(messages, {
+    const result = await aiService.chat(messages, {
       userEncryptedKey,
       userIv,
       systemPrompt,
@@ -157,7 +157,7 @@ export async function POST(request: Request) {
       toolExecutor,
     });
 
-    return NextResponse.json({ reply });
+    return NextResponse.json({ reply: result.reply, toolsExecuted: result.toolsExecuted });
   } catch (error) {
     // API key errors → 402
     if (

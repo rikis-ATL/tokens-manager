@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import type { AIProvider, Message, ChatOptions } from "./provider.interface";
+import type { AIProvider, ChatResult, Message, ChatOptions } from "./provider.interface";
 
 const DEFAULT_MODEL = "claude-sonnet-4-6";
 const DEFAULT_MAX_TOKENS = 4096;
@@ -11,7 +11,7 @@ export class ClaudeProvider implements AIProvider {
     this.client = new Anthropic({ apiKey });
   }
 
-  async chat(messages: Message[], options?: ChatOptions): Promise<string> {
+  async chat(messages: Message[], options?: ChatOptions): Promise<ChatResult> {
     // Build Anthropic-format messages from our Message[] type
     const anthropicMessages: Anthropic.MessageParam[] = messages.map(m => ({
       role: m.role,
@@ -20,6 +20,7 @@ export class ClaudeProvider implements AIProvider {
 
     // Tool use loop: call API, if tool_use response, execute tools, append results, call again
     const MAX_TOOL_ROUNDS = 10; // safety limit to prevent infinite loops
+    let toolsExecuted = false;
 
     for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
       const response = await this.client.messages.create({
@@ -32,10 +33,13 @@ export class ClaudeProvider implements AIProvider {
 
       // If no tool use requested, extract text and return
       if (response.stop_reason !== "tool_use" || !options?.toolExecutor) {
-        return response.content
-          .filter(block => block.type === "text")
-          .map(block => (block as Anthropic.TextBlock).text)
-          .join("");
+        return {
+          reply: response.content
+            .filter(block => block.type === "text")
+            .map(block => (block as Anthropic.TextBlock).text)
+            .join(""),
+          toolsExecuted,
+        };
       }
 
       // Extract tool_use blocks
@@ -44,11 +48,17 @@ export class ClaudeProvider implements AIProvider {
       );
 
       if (toolUseBlocks.length === 0) {
-        return response.content
-          .filter(block => block.type === "text")
-          .map(block => (block as Anthropic.TextBlock).text)
-          .join("");
+        return {
+          reply: response.content
+            .filter(block => block.type === "text")
+            .map(block => (block as Anthropic.TextBlock).text)
+            .join(""),
+          toolsExecuted,
+        };
       }
+
+      // Tools are being executed this round
+      toolsExecuted = true;
 
       // Append assistant's response (including tool_use blocks) to messages
       anthropicMessages.push({ role: "assistant", content: response.content });
@@ -72,6 +82,9 @@ export class ClaudeProvider implements AIProvider {
     }
 
     // If we hit MAX_TOOL_ROUNDS, return whatever text we have
-    return "I apologize, but I hit the maximum number of tool call rounds. Please try a simpler request.";
+    return {
+      reply: "I apologize, but I hit the maximum number of tool call rounds. Please try a simpler request.",
+      toolsExecuted,
+    };
   }
 }
