@@ -7,8 +7,8 @@
 
 ### AI Bug Fix
 
-- [ ] **BUG-01-FIX**: Fix the bug where sending a chat message clears the tokens table
-- [ ] **AI-01**: User can open and use the AI chat panel on the Tokens page (re-enabled after fix)
+- [x] **BUG-01-FIX**: Fix the bug where sending a chat message clears the tokens table
+- [x] **AI-01**: User can open and use the AI chat panel on the Tokens page (re-enabled after fix)
 - [ ] **AI-02**: GET /api/user/settings/check is tracked and verified working
 
 ### Verification
@@ -53,8 +53,8 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BUG-01-FIX | Phase 29 | Pending |
-| AI-01 | Phase 29 | Pending |
+| BUG-01-FIX | Phase 29 | Complete |
+| AI-01 | Phase 29 | Complete |
 | AI-02 | Phase 29 | Pending |
 | VERIFY-28 | Phase 29 | Pending |
 | VERIFY-25 | Phase 31 | Pending |

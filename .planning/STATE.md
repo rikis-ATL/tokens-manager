@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Multi-Tenant SaaS
 status: executing
-stopped_at: Phase 29 context gathered (discuss mode)
-last_updated: "2026-04-07T20:39:14.432Z"
-last_activity: 2026-04-07 -- Phase 29 planning complete
+stopped_at: Completed 29-01-PLAN.md
+last_updated: "2026-04-07T21:28:26.913Z"
+last_activity: 2026-04-07
 progress:
   total_phases: 17
   completed_phases: 14
   total_plans: 58
-  completed_plans: 55
-  percent: 95
+  completed_plans: 56
+  percent: 97
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-07)
 
 **Core value:** Token collections are always available and editable: stored in MongoDB, accessible via collection-scoped URLs, with per-collection Figma/GitHub config, full CRUD from the collections grid, Figma import/export fully integrated, and a Themes system where each theme is a complete token value set with per-group edit permissions, dark-mode awareness, and theme-targeted export.
-**Current focus:** Milestone v1.8 — AI Fix + Completion
+**Current focus:** Phase 29 — fix-ai-chat-verify-phase-28
 
 ## Current Position
 
-Phase: Not started (roadmap defined)
-Plan: —
+Phase: 29 (fix-ai-chat-verify-phase-28) — EXECUTING
+Plan: 2 of 2
 Status: Ready to execute
-Last activity: 2026-04-07 -- Phase 29 planning complete
+Last activity: 2026-04-07
 
 Progress: [░░░░░░░░░░] 0% (0/3 phases complete)
 
@@ -90,6 +90,7 @@ Progress: [░░░░░░░░░░] 0% (0/3 phases complete)
 | Phase 26 P02 | 1 | 2 tasks | 2 files |
 | Phase 26 P03 | 18 | 2 tasks | 4 files |
 | Phase 28 P02 | 8 | 2 tasks | 5 files |
+| Phase 29 P01 | 20min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -201,6 +202,7 @@ Key decisions relevant to v1.6 (from research):
 - [Phase 26]: MCP tools use console.error only — stdout is the JSON-RPC channel for StdioServerTransport
 - [Phase 26]: tsx used for local MCP server execution via mcp:dev script — no separate compile step needed for development
 - [Phase 28]: Generator tools delegate to previewGeneratedTokens() from tokenGenerators.ts — no algorithm re-implementation
+- [Phase 29]: ChatResult interface wraps reply+toolsExecuted; ClaudeProvider sets toolsExecuted=true only when tool blocks execute; AIChatPanel guards refresh callback conditionally
 
 ### Pending Todos
 
@@ -224,8 +226,8 @@ Key decisions relevant to v1.6 (from research):
 
 ## Session Continuity
 
-Last session: 2026-04-07T11:54:35.602Z
-Stopped at: Phase 29 context gathered (discuss mode)
-Resume file: .planning/phases/29-fix-ai-chat-verify-phase-28/29-CONTEXT.md
+Last session: 2026-04-07T21:28:26.909Z
+Stopped at: Completed 29-01-PLAN.md
+Resume file: None
 Next action: `/gsd-plan-phase 29` to begin Phase 29 planning
 Note: Read 28-BUGS.md before planning Phase 29 to understand BUG-01 root cause

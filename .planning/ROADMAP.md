@@ -153,6 +153,6 @@ See: `.planning/milestones/v1.4-ROADMAP.md` for full phase details.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 29. Fix AI Chat + Verify Phase 28 | 0/? | Not started | - |
+| 29. Fix AI Chat + Verify Phase 28 | 1/2 | In Progress|  |
 | 30. AI-Assisted Naming and Queries | 0/? | Not started | - |
 | 31. Style Guide Verification | 0/? | Not started | - |
