@@ -25,13 +25,17 @@ const nextConfig = {
    * bundles can desync → `TypeError: __webpack_require__.C is not a function`.
    * Single server bundle in dev avoids that; production build is unchanged.
    */
-  webpack: (config, { dev, isServer }) => {
-    // ws optional peer deps — webpack resolves them statically; stub so build succeeds without native addons
+  webpack: (config, { dev, isServer, webpack: webpackInstance }) => {
+    // ws optional native peer deps — webpack still resolves them; alias + IgnorePlugin so Vercel/build succeeds
     config.resolve.alias = {
       ...config.resolve.alias,
       bufferutil: false,
       'utf-8-validate': false,
     };
+    config.plugins.push(
+      new webpackInstance.IgnorePlugin({ resourceRegExp: /^bufferutil$/ }),
+      new webpackInstance.IgnorePlugin({ resourceRegExp: /^utf-8-validate$/ }),
+    );
     if (dev && isServer) {
       config.optimization = {
         ...config.optimization,
