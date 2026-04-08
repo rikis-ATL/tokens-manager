@@ -8,9 +8,10 @@
 - ✅ **v1.3 Add Tokens Modes** — Phases 8-9 (shipped 2026-03-19)
 - ✅ **v1.4 Theme Token Sets** — Phases 10-15 (shipped 2026-03-27)
 - ✅ **v1.5 Org User Management** — Phases 16-21 (shipped 2026-03-29)
-- ⏸ **v1.6 Multi-Tenant SaaS** — Phases 22-24 (deferred — resume after v1.8)
+- ⏸ **v1.6 Multi-Tenant SaaS** — Phases 22-24 (deferred — resume after v1.9)
 - ✅ **v1.7 AI Integration** — Phases 25-28 (shipped 2026-04-06; known gaps — see milestones/v1.7-ROADMAP.md)
-- 🔄 **v1.8 AI Fix + Completion** — Phases 29-31 (active)
+- ✅ **v1.8 AI Fix + Completion** — Phase 29 (shipped 2026-04-08)
+- 🔄 **v1.9 AI Completion + MCP Alignment** — Phases 30-32 (active)
 
 ## Phases
 
@@ -99,7 +100,14 @@ See: `.planning/milestones/v1.4-ROADMAP.md` for full phase details.
 
 </details>
 
-### ⏸ v1.6 Multi-Tenant SaaS (Deferred — resumes after v1.8)
+<details>
+<summary>✅ v1.8 AI Fix + Completion (Phase 29) — SHIPPED 2026-04-08</summary>
+
+- [x] **Phase 29: Fix AI Chat + Verify Phase 28** — BUG-01 fixed; AI chat panel re-enabled; Phase 28 tool-use behavior verified by human (completed 2026-04-08)
+
+</details>
+
+### ⏸ v1.6 Multi-Tenant SaaS (Deferred — resumes after v1.9)
 
 **Milestone Goal:** Convert the app into a multi-org SaaS with configurable free/pro/team tiers enforced at the API layer and paid upgrades via Stripe Checkout.
 
@@ -109,33 +117,25 @@ See: `.planning/milestones/v1.4-ROADMAP.md` for full phase details.
 - [ ] **Phase 23: Billing Module and Limit Enforcement** — src/lib/billing/ module skeleton, LIMITS config (tiers.ts), check functions, usage tracking with lazy UTC-month reset, rate limiter (per user ID, never IP), SELF_HOSTED bypass, 402 responses on all capped routes, UpgradeModal
 - [ ] **Phase 24: Stripe Checkout and Webhook Integration** — Stripe singleton, checkout session creation, billing portal session, webhook handler (req.text() — CRITICAL), ProcessedWebhookEvent idempotency guard, all three webhook event types, success page session refresh
 
-### 🔄 v1.8 AI Fix + Completion (Active)
+### 🔄 v1.9 AI Completion + MCP Alignment (Active)
 
-**Milestone Goal:** Fix the AI chat panel bug, complete Phase 28 verification, ship AI-assisted naming and query features, and verify the Style Guide tab.
+**Milestone Goal:** Complete the AI feature set, verify the Style Guide, and unify MCP and in-app chat behind a shared tool service layer.
+
+- [ ] **Phase 30: AI-Assisted Naming and Queries** — AI theme creation, natural language token queries and bulk edits, canonical naming suggestions
+- [ ] **Phase 31: Style Guide Verification** — Browser verification of Phase 25 Style Guide tab; fix any regressions or nyquist coverage gaps
+- [ ] **Phase 32: MCP Tool Service Layer** — Extract shared token/group/theme service functions; add theme mutation tools to MCP server
 
 ## Phase Details
-
-### Phase 29: Fix AI Chat + Verify Phase 28
-**Goal**: Users can open and use the AI chat panel on the Tokens page without the tokens table being cleared, and Phase 28 tool-use behavior is verified by a human
-**Depends on**: Phase 28 (completed in v1.7)
-**Requirements**: BUG-01-FIX, AI-01, AI-02, VERIFY-28
-**Success Criteria** (what must be TRUE):
-  1. User can send a chat message and the tokens table remains fully populated (BUG-01 is gone)
-  2. User can open the AI chat panel from the Tokens page header (feature re-enabled after fix)
-  3. GET /api/user/settings/check endpoint responds correctly and is confirmed in browser dev tools (AI-02 tracked)
-  4. A human has executed all steps in 28-04-TEST-GUIDE.md and a VERIFICATION.md file exists for Phase 28
-**Plans**: TBD
-**UI hint**: yes
 
 ### Phase 30: AI-Assisted Naming and Queries
 **Goal**: Users can leverage AI to create themes with suggested values, query tokens in natural language, request bulk edits via natural language, and receive canonical naming suggestions for pasted token values
 **Depends on**: Phase 29
 **Requirements**: AI-11, AI-12, AI-13, AI-14
 **Success Criteria** (what must be TRUE):
-  1. User can ask the AI to create a new theme and it populates with AI-suggested token values (AI-11)
-  2. User can type a natural language query ("which tokens use #0056D2?") and receive a correct result (AI-12)
-  3. User can request a natural language bulk edit ("rename all sm spacing tokens to small") and the tokens table updates accordingly (AI-13)
-  4. User can paste token values into the chat and receive AI-suggested canonical names and group structure (AI-14)
+  1. User can ask the AI to create a new theme and the theme is created with AI-suggested token values populated (AI-11)
+  2. User can type a natural language query ("which tokens use #0056D2?") and receive a correct, complete result from the AI (AI-12)
+  3. User can request a natural language bulk edit ("rename all sm spacing tokens to small") and the tokens table updates accordingly without error (AI-13)
+  4. User can paste raw token values into the chat and the AI responds with suggested canonical names and group structure (AI-14)
 **Plans**: TBD
 **UI hint**: yes
 
@@ -146,13 +146,24 @@ See: `.planning/milestones/v1.4-ROADMAP.md` for full phase details.
 **Success Criteria** (what must be TRUE):
   1. All browser verification steps from the Phase 25 test guide pass without errors or visual regressions
   2. StyleGuidePanel renders correct previews for all token types (color, spacing, typography, shadow, border-radius) in a real browser session
-  3. Any regressions or nyquist coverage gaps discovered are fixed and re-verified
+  3. Any regressions or nyquist coverage gaps discovered during verification are fixed and re-verified before the phase is signed off
+**Plans**: TBD
+
+### Phase 32: MCP Tool Service Layer
+**Goal**: Extract shared token/group/theme service functions used by both the MCP server and the in-app HTTP tool handlers; add theme mutation tools to the MCP server for feature parity with in-app chat
+**Depends on**: Phase 28 (AI tool use), Phase 29 (AI chat fix)
+**Requirements**: MCP-01, MCP-02
+**Success Criteria** (what must be TRUE):
+  1. Token, group, and theme mutation logic lives in shared service modules with no duplicate implementation between the MCP server and the in-app HTTP tool handlers (MCP-01)
+  2. A code-level audit confirms the MCP server and in-app handlers call the same underlying service functions for every shared operation (MCP-01)
+  3. MCP server exposes create-theme, update-theme, and delete-theme tools that a Claude Desktop session can invoke successfully (MCP-02)
+  4. MCP theme tools produce the same database outcomes as their in-app chat equivalents (MCP-02)
 **Plans**: TBD
 
 ## Progress Table
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 29. Fix AI Chat + Verify Phase 28 | 1/2 | In Progress|  |
 | 30. AI-Assisted Naming and Queries | 0/? | Not started | - |
 | 31. Style Guide Verification | 0/? | Not started | - |
+| 32. MCP Tool Service Layer | 0/? | Not started | - |

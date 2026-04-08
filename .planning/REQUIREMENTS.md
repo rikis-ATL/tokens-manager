@@ -56,9 +56,9 @@
 | AI-12 | Phase 30 | Pending |
 | AI-13 | Phase 30 | Pending |
 | AI-14 | Phase 30 | Pending |
+| VERIFY-25 | Phase 31 | Pending |
 | MCP-01 | Phase 32 | Pending |
 | MCP-02 | Phase 32 | Pending |
-| VERIFY-25 | Phase 31 | Pending |
 
 **Coverage:**
 - v1.9 requirements: 7 total
@@ -67,4 +67,4 @@
 
 ---
 *Requirements defined: 2026-04-08*
-*Last updated: 2026-04-08 after v1.9 milestone initialization*
+*Last updated: 2026-04-08 after v1.9 roadmap created (Phase 32 added)*

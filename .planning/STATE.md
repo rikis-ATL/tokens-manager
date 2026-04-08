@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.9
 milestone_name: AI Completion + MCP Alignment
-status: defining_requirements
-stopped_at: Milestone v1.9 started
+status: roadmap_ready
+stopped_at: Roadmap created — Phase 30 is next
 last_updated: "2026-04-08T00:00:00.000Z"
 last_activity: 2026-04-08
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -18,27 +18,27 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-07)
+See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** Token collections are always available and editable: stored in MongoDB, accessible via collection-scoped URLs, with per-collection Figma/GitHub config, full CRUD from the collections grid, Figma import/export fully integrated, and a Themes system where each theme is a complete token value set with per-group edit permissions, dark-mode awareness, and theme-targeted export.
-**Current focus:** Phase 29 — fix-ai-chat-verify-phase-28
+**Current focus:** v1.9 AI Completion + MCP Alignment — Phase 30 next up
 
 ## Current Position
 
-Phase: 29 (fix-ai-chat-verify-phase-28) — EXECUTING
-Plan: 2 of 2
-Status: Ready to execute
-Last activity: 2026-04-07
+Phase: 30 (AI-Assisted Naming and Queries) — NOT STARTED
+Plan: 0 of ?
+Status: Ready to plan
+Last activity: 2026-04-08
 
 Progress: [░░░░░░░░░░] 0% (0/3 phases complete)
 
-## v1.8 Phase Summary
+## v1.9 Phase Summary
 
 | Phase | Goal | Requirements | Status |
 |-------|------|--------------|--------|
-| 29. Fix AI Chat + Verify Phase 28 | Re-enable AI chat after bug fix; complete Phase 28 human verification | BUG-01-FIX, AI-01, AI-02, VERIFY-28 | Not started |
-| 30. AI-Assisted Naming and Queries | Ship AI-powered theme creation, token queries, bulk edits, naming suggestions | AI-11, AI-12, AI-13, AI-14 | Not started |
+| 30. AI-Assisted Naming and Queries | AI theme creation, natural language token queries and bulk edits, canonical naming suggestions | AI-11, AI-12, AI-13, AI-14 | Not started |
 | 31. Style Guide Verification | Complete Phase 25 browser verifications; fix nyquist gaps | VERIFY-25 | Not started |
+| 32. MCP Tool Service Layer | Extract shared service functions; add theme mutation tools to MCP server | MCP-01, MCP-02 | Not started |
 
 ## Performance Metrics
 
@@ -210,24 +210,21 @@ Key decisions relevant to v1.6 (from research):
 - Add `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRO_PRICE_ID`, `STRIPE_TEAM_PRICE_ID`, `INITIAL_ORG_NAME`, `SELF_HOSTED` to `.env.local` documentation before Phase 23/24
 - Confirm deployment target (single-instance vs. Vercel serverless) before Phase 23 — determines whether in-process Map or `RateLimiterMongo` is appropriate for rate limiting
 - Create Stripe price IDs in Dashboard (ops step) before Phase 24 begins
-- Read `.planning/phases/28-ai-tool-use-token-and-group-crud/28-BUGS.md` before starting Phase 29 to understand BUG-01 root cause
 
 ### Roadmap Evolution
 
 - Phase 25 added: enhance read-only view of token collections
 - v1.8 roadmap created 2026-04-07: phases 29-31 (fix AI chat, AI naming/queries, Style Guide verification)
+- v1.9 roadmap created 2026-04-08: phases 30-32 (AI naming/queries, Style Guide verification, MCP tool service layer); Phase 29 shipped as entirety of v1.8
 
 ### Blockers/Concerns
 
-- ~~CVE-2025-29927: Next.js 13.5.6 middleware auth bypass (CVSS 9.1)~~ — RESOLVED in 16-01: patched to next@13.5.9
 - Resend domain verification required for production — `onboarding@resend.dev` works in dev; production needs verified sending domain (operational gap, not code gap)
 - Sign-in rate limiting deferred — `POST /api/auth/callback/credentials` unprotected against brute force; acceptable for internal tool; document in Phase 18 plan
-- BUG-01: AI chat panel clears tokens table when a message is sent — root cause unknown; see `.planning/phases/28-ai-tool-use-token-and-group-crud/28-BUGS.md`
 
 ## Session Continuity
 
-Last session: 2026-04-07T21:28:26.909Z
-Stopped at: Completed 29-01-PLAN.md
+Last session: 2026-04-08T00:00:00.000Z
+Stopped at: v1.9 roadmap created — Phases 30, 31, 32 defined
 Resume file: None
-Next action: `/gsd-plan-phase 29` to begin Phase 29 planning
-Note: Read 28-BUGS.md before planning Phase 29 to understand BUG-01 root cause
+Next action: `/gsd-plan-phase 30` to begin Phase 30 planning
