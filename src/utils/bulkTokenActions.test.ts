@@ -9,6 +9,7 @@ import {
   bulkChangeType,
   bulkAddPrefix,
   bulkRemovePrefix,
+  bulkReplacePrefix,
   detectCommonPrefix,
 } from './bulkTokenActions';
 import { TokenGroup, GeneratedToken } from '@/types/token.types';
@@ -333,6 +334,65 @@ describe('bulkRemovePrefix', () => {
 
   it('returns groups unchanged when groupId not found', () => {
     const result = bulkRemovePrefix(groups, 'unknown', new Set(['myGroup/t1']), 'pfx-');
+    expect(result).toEqual(groups);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// bulkReplacePrefix
+// ---------------------------------------------------------------------------
+
+describe('bulkReplacePrefix', () => {
+  const groups: TokenGroup[] = [
+    makeGroup('colors', [
+      makeToken('colors/t1', 'sm-padding', '#fff', 'color'),
+      makeToken('colors/t2', 'sm-margin', '#000', 'color'),
+      makeToken('colors/t3', 'lg-gap', '#aaa', 'color'),
+      makeToken('colors/t4', 'ref-token', '{colors.sm-padding}', 'color'),
+    ]),
+  ];
+
+  it('renames tokens matching oldPrefix and leaves non-matching tokens unchanged', () => {
+    const result = bulkReplacePrefix(groups, 'colors', 'sm-', 'small-');
+    const g = result.find(gr => gr.id === 'colors')!;
+    expect(g.tokens.find(t => t.id === 'colors/t1')!.path).toBe('small-padding');
+    expect(g.tokens.find(t => t.id === 'colors/t2')!.path).toBe('small-margin');
+    // lg-gap should be unchanged
+    expect(g.tokens.find(t => t.id === 'colors/t3')!.path).toBe('lg-gap');
+  });
+
+  it('returns groups unchanged when oldPrefix is empty string', () => {
+    const result = bulkReplacePrefix(groups, 'colors', '', 'small-');
+    expect(result).toEqual(groups);
+  });
+
+  it('returns groups unchanged when no tokens match the prefix', () => {
+    const result = bulkReplacePrefix(groups, 'colors', 'xl-', 'extra-large-');
+    expect(result).toEqual(groups);
+  });
+
+  it('resolves collision when newPrefix+remainder matches existing token path', () => {
+    const collidingGroups: TokenGroup[] = [
+      makeGroup('spacing', [
+        makeToken('spacing/t1', 'sm-base', '4px', 'dimension'),
+        makeToken('spacing/t2', 'small-base', '8px', 'dimension'), // would collide
+      ]),
+    ];
+    const result = bulkReplacePrefix(collidingGroups, 'spacing', 'sm-', 'small-');
+    const g = result.find(gr => gr.id === 'spacing')!;
+    // 'small-base' is taken, so renamed token should get auto-suffix
+    expect(g.tokens.find(t => t.id === 'spacing/t1')!.path).toBe('small-base-2');
+  });
+
+  it('rewrites alias values referencing renamed paths', () => {
+    const result = bulkReplacePrefix(groups, 'colors', 'sm-', 'small-');
+    const g = result.find(gr => gr.id === 'colors')!;
+    const refToken = g.tokens.find(t => t.id === 'colors/t4')!;
+    expect(refToken.value).toBe('{colors.small-padding}');
+  });
+
+  it('returns groups unchanged when groupId not found', () => {
+    const result = bulkReplacePrefix(groups, 'nonexistent', 'sm-', 'small-');
     expect(result).toEqual(groups);
   });
 });

@@ -4,7 +4,7 @@
  *
  * All functions are free of side-effects and React dependencies.
  * Exports: bulkDeleteTokens, bulkMoveTokens, bulkChangeType, bulkAddPrefix,
- *          bulkRemovePrefix, detectCommonPrefix, bulkChangeColorFormat
+ *          bulkRemovePrefix, bulkReplacePrefix, detectCommonPrefix, bulkChangeColorFormat
  */
 
 import { TokenGroup, GeneratedToken, TokenType } from '@/types/token.types';
@@ -286,6 +286,51 @@ export function bulkRemovePrefix(
       if (!token.path.startsWith(prefix)) return token; // skip silently
 
       const candidate = token.path.slice(prefix.length);
+      const resolvedPath = resolveTokenPathConflict(existingPaths, candidate);
+      existingPaths.add(resolvedPath);
+      renames.push({ oldPath: token.path, newPath: resolvedPath });
+
+      return { ...token, path: resolvedPath };
+    });
+
+    // Rewrite aliases for all renames
+    let finalTokens = updatedTokens;
+    for (const { oldPath, newPath } of renames) {
+      finalTokens = rewriteGroupAliases(finalTokens, oldPath, newPath);
+    }
+
+    return { ...group, tokens: finalTokens };
+  });
+}
+
+/**
+ * Replace oldPrefix with newPrefix on all token paths within a group.
+ * Only tokens whose path starts with oldPrefix are affected.
+ * Resolves collisions with auto-suffix. Rewrites within-group aliases.
+ * Operates on ALL tokens in the group matching the prefix (no tokenIds filter).
+ * Returns groups unchanged if oldPrefix is empty.
+ */
+export function bulkReplacePrefix(
+  groups: TokenGroup[],
+  groupId: string,
+  oldPrefix: string,
+  newPrefix: string
+): TokenGroup[] {
+  if (!oldPrefix) return groups;
+  if (!findGroupInTree(groups, groupId)) return groups;
+
+  return updateGroupInTree(groups, groupId, group => {
+    // Build set of existing paths for non-matching tokens (used for conflict resolution)
+    const existingPaths = new Set(
+      group.tokens.filter(t => !t.path.startsWith(oldPrefix)).map(t => t.path)
+    );
+
+    const renames: Array<{ oldPath: string; newPath: string }> = [];
+
+    const updatedTokens = group.tokens.map(token => {
+      if (!token.path.startsWith(oldPrefix)) return token;
+
+      const candidate = newPrefix + token.path.slice(oldPrefix.length);
       const resolvedPath = resolveTokenPathConflict(existingPaths, candidate);
       existingPaths.add(resolvedPath);
       renames.push({ oldPath: token.path, newPath: resolvedPath });
