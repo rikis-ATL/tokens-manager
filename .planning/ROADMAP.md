@@ -136,7 +136,11 @@ See: `.planning/milestones/v1.4-ROADMAP.md` for full phase details.
   2. User can type a natural language query ("which tokens use #0056D2?") and receive a correct, complete result from the AI (AI-12)
   3. User can request a natural language bulk edit ("rename all sm spacing tokens to small") and the tokens table updates accordingly without error (AI-13)
   4. User can paste raw token values into the chat and the AI responds with suggested canonical names and group structure (AI-14)
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 30-01-PLAN.md — System prompt fix (theme-aware tokens, query/naming guidance) + AIChatPanel text
+- [ ] 30-02-PLAN.md — rename_prefix tool (bulkReplacePrefix + API endpoints + tool wiring)
+- [ ] 30-03-PLAN.md — Theme creation tools (create_theme, update_theme_token, delete_theme_token + endpoint + human verify)
 **UI hint**: yes
 
 ### Phase 31: Style Guide Verification
@@ -164,6 +168,6 @@ See: `.planning/milestones/v1.4-ROADMAP.md` for full phase details.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 30. AI-Assisted Naming and Queries | 0/? | Not started | - |
+| 30. AI-Assisted Naming and Queries | 0/3 | Not started | - |
 | 31. Style Guide Verification | 0/? | Not started | - |
 | 32. MCP Tool Service Layer | 0/? | Not started | - |
