@@ -82,7 +82,7 @@ export function AIChatPanel({ collectionId, collectionName, activeThemeId, onToo
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
         {messages.length === 0 && (
           <p className="text-sm text-gray-400 text-center mt-8">
-            Ask me to create, edit, or delete tokens and groups.
+            Ask about tokens, create themes, rename in bulk, or paste values for naming suggestions.
           </p>
         )}
         {messages.map((msg, i) => (
@@ -122,7 +122,7 @@ export function AIChatPanel({ collectionId, collectionName, activeThemeId, onToo
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Ask about tokens..."
+          placeholder="Ask about tokens, create themes, or paste values for naming..."
           disabled={isLoading}
           className="flex-1 text-sm"
         />
