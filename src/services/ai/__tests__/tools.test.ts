@@ -12,10 +12,10 @@ import { getToolDefinitions, executeToolCall, ToolCallContext } from '../tools';
 // ---------------------------------------------------------------------------
 
 describe('getToolDefinitions', () => {
-  it('returns an array of exactly 8 tool definitions', () => {
+  it('returns an array of exactly 11 tool definitions', () => {
     const tools = getToolDefinitions();
     expect(Array.isArray(tools)).toBe(true);
-    expect(tools).toHaveLength(8);
+    expect(tools).toHaveLength(11);
   });
 
   it('each tool has name, description, and input_schema', () => {
@@ -72,16 +72,34 @@ describe('getToolDefinitions', () => {
     expect(names).toContain('delete_group');
   });
 
+  it('contains rename_prefix tool', () => {
+    const tools = getToolDefinitions();
+    const names = tools.map(t => t.name);
+    expect(names).toContain('rename_prefix');
+  });
+
   it('contains bulk_create_tokens tool', () => {
     const tools = getToolDefinitions();
     const names = tools.map(t => t.name);
     expect(names).toContain('bulk_create_tokens');
   });
 
-  it('contains rename_prefix tool', () => {
+  it('contains create_theme tool', () => {
     const tools = getToolDefinitions();
     const names = tools.map(t => t.name);
-    expect(names).toContain('rename_prefix');
+    expect(names).toContain('create_theme');
+  });
+
+  it('contains update_theme_token tool', () => {
+    const tools = getToolDefinitions();
+    const names = tools.map(t => t.name);
+    expect(names).toContain('update_theme_token');
+  });
+
+  it('contains delete_theme_token tool', () => {
+    const tools = getToolDefinitions();
+    const names = tools.map(t => t.name);
+    expect(names).toContain('delete_theme_token');
   });
 });
 
@@ -164,32 +182,59 @@ describe('executeToolCall — routing', () => {
   });
 
   it('routes rename_prefix to PATCH /tokens/rename-prefix for collection mode', async () => {
-    const spy = mockFetchOk({ success: true, renamed: 3 });
-    const result = await executeToolCall(
-      'rename_prefix',
-      { groupPath: 'colors', oldPrefix: 'sm-', newPrefix: 'small-' },
-      context
-    );
+    const spy = mockFetchOk({ success: true });
+    const result = await executeToolCall('rename_prefix', { groupPath: 'spacing', oldPrefix: 'sm-', newPrefix: 'small-' }, context);
     expect(spy).toHaveBeenCalledWith(
-      `${tokensUrl}/rename-prefix`,
+      'https://example.com/api/collections/col123/tokens/rename-prefix',
       expect.objectContaining({ method: 'PATCH' })
     );
     expect(result.success).toBe(true);
   });
 
   it('routes rename_prefix to theme endpoint when themeId is set', async () => {
-    const spy = mockFetchOk({ success: true, renamed: 2 });
-    const themeContext: ToolCallContext = { ...context, themeId: 'theme-abc' };
-    const result = await executeToolCall(
-      'rename_prefix',
-      { groupPath: 'colors', oldPrefix: 'sm-', newPrefix: 'small-' },
-      themeContext
-    );
+    const themeContext = { ...context, themeId: 'theme-abc' };
+    const spy = mockFetchOk({ success: true });
+    await executeToolCall('rename_prefix', { groupPath: 'spacing', oldPrefix: 'sm-', newPrefix: 'small-' }, themeContext);
     expect(spy).toHaveBeenCalledWith(
       'https://example.com/api/collections/col123/themes/theme-abc/tokens/rename-prefix',
       expect.objectContaining({ method: 'PATCH' })
     );
+  });
+
+  it('routes create_theme to POST /themes', async () => {
+    const spy = mockFetchOk({ theme: { id: 'theme-new', name: 'Dark' } });
+    const result = await executeToolCall('create_theme', { name: 'Dark', colorMode: 'dark' }, context);
+    expect(spy).toHaveBeenCalledWith(
+      'https://example.com/api/collections/col123/themes',
+      expect.objectContaining({ method: 'POST' })
+    );
     expect(result.success).toBe(true);
+  });
+
+  it('routes update_theme_token to PATCH /themes/[themeId]/tokens/single', async () => {
+    const spy = mockFetchOk({ success: true, token: { path: 'colors/brand/primary' } });
+    const result = await executeToolCall('update_theme_token', { themeId: 'theme-xyz', tokenPath: 'colors/brand/primary', value: '#000' }, context);
+    expect(spy).toHaveBeenCalledWith(
+      'https://example.com/api/collections/col123/themes/theme-xyz/tokens/single',
+      expect.objectContaining({ method: 'PATCH' })
+    );
+    expect(result.success).toBe(true);
+  });
+
+  it('routes delete_theme_token to DELETE /themes/[themeId]/tokens/single', async () => {
+    const spy = mockFetchOk({ success: true });
+    const result = await executeToolCall('delete_theme_token', { themeId: 'theme-xyz', tokenPath: 'colors/brand/primary' }, context);
+    expect(spy).toHaveBeenCalledWith(
+      'https://example.com/api/collections/col123/themes/theme-xyz/tokens/single',
+      expect.objectContaining({ method: 'DELETE' })
+    );
+    expect(result.success).toBe(true);
+  });
+
+  it('returns { success: false } for update_theme_token when themeId missing', async () => {
+    const result = await executeToolCall('update_theme_token', { tokenPath: 'colors/brand/primary', value: '#000' }, context);
+    expect(result.success).toBe(false);
+    expect(result.message).toContain('themeId is required');
   });
 
   it('forwards Cookie header on all requests', async () => {

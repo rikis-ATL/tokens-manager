@@ -207,6 +207,77 @@ export function getToolDefinitions(): Anthropic.Tool[] {
       },
     },
     {
+      name: "create_theme",
+      description:
+        "Create a new theme for the collection. Returns the new theme with its themeId. " +
+        "After creating a theme, use update_theme_token to customize individual token values. " +
+        "The new theme starts as a copy of the collection's default tokens.",
+      input_schema: {
+        type: "object",
+        properties: {
+          name: {
+            type: "string",
+            description: "Name for the new theme (e.g. 'Dark Mode', 'High Contrast').",
+          },
+          colorMode: {
+            type: "string",
+            enum: ["light", "dark"],
+            description: "Color mode for the theme. Defaults to 'light'.",
+          },
+        },
+        required: ["name"],
+      },
+    },
+    {
+      name: "update_theme_token",
+      description:
+        "Update or create a single token value in a specific theme. " +
+        "Use this after create_theme to customize individual token values. " +
+        "The tokenPath uses slash separators (e.g. 'colors/brand/primary').",
+      input_schema: {
+        type: "object",
+        properties: {
+          themeId: {
+            type: "string",
+            description: "The theme ID returned by create_theme.",
+          },
+          tokenPath: {
+            type: "string",
+            description: "Slash-separated full token path (e.g. 'colors/brand/primary').",
+          },
+          value: {
+            type: "string",
+            description: "New value for the token.",
+          },
+          type: {
+            type: "string",
+            description: "Token type (e.g. 'color', 'dimension'). Optional — keeps existing type if not provided.",
+          },
+        },
+        required: ["themeId", "tokenPath", "value"],
+      },
+    },
+    {
+      name: "delete_theme_token",
+      description:
+        "Delete a single token from a specific theme. " +
+        "The tokenPath uses slash separators (e.g. 'colors/brand/primary').",
+      input_schema: {
+        type: "object",
+        properties: {
+          themeId: {
+            type: "string",
+            description: "The theme ID.",
+          },
+          tokenPath: {
+            type: "string",
+            description: "Slash-separated full token path to delete.",
+          },
+        },
+        required: ["themeId", "tokenPath"],
+      },
+    },
+    {
       name: "bulk_create_tokens",
       description:
         "Create multiple tokens in a single operation. " +
@@ -305,6 +376,27 @@ export async function executeToolCall(
           ? `${baseUrl}/api/collections/${collectionId}/themes/${context.themeId}/tokens/rename-prefix`
           : `${baseUrl}/api/collections/${collectionId}/tokens/rename-prefix`;
         return await fetchToolResult(url, "PATCH", toolInput, headers);
+      }
+
+      case "create_theme": {
+        const url = `${baseUrl}/api/collections/${collectionId}/themes`;
+        return await fetchToolResult(url, "POST", toolInput, headers);
+      }
+
+      case "update_theme_token": {
+        const themeId = toolInput.themeId as string;
+        if (!themeId) return { success: false, message: "themeId is required" };
+        const url = `${baseUrl}/api/collections/${collectionId}/themes/${themeId}/tokens/single`;
+        const { themeId: _, ...rest } = toolInput;
+        return await fetchToolResult(url, "PATCH", rest, headers);
+      }
+
+      case "delete_theme_token": {
+        const themeId = toolInput.themeId as string;
+        if (!themeId) return { success: false, message: "themeId is required" };
+        const url = `${baseUrl}/api/collections/${collectionId}/themes/${themeId}/tokens/single`;
+        const { themeId: _, ...rest } = toolInput;
+        return await fetchToolResult(url, "DELETE", rest, headers);
       }
 
       case "bulk_create_tokens": {
