@@ -424,17 +424,17 @@ return NextResponse.json({ theme }, { status: 201 });
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **How to convert collection.tokens (W3C object) back to storable format after rename_prefix**
    - What we know: `tokenService.processImportedTokens()` converts W3C → `TokenGroup[]`. The rename operates on `TokenGroup[]`.
    - What's unclear: Is there an inverse function (TokenGroup[] → W3C object) already in the codebase, or must the rename work directly on the W3C object's keys?
-   - Recommendation: Planner should read `src/services/token.service.ts` before writing the rename-prefix route. If no inverse exists, the route should manipulate the W3C object keys directly (rename top-level keys matching `groupPath.oldPrefix*`) which is simpler than a full round-trip.
+   - RESOLVED: No inverse function exists. The rename-prefix route works directly on W3C object keys — navigate to the group using dot-path, iterate keys starting with `oldPrefix`, build `$unset`/`$set` operations. Plan 30-02 Task 2 implements this approach.
 
 2. **update_theme_token: how to find-and-update a single token within theme.tokens (TokenGroup[])**
    - What we know: `theme.tokens` is `TokenGroup[]`. Tokens are nested within groups. Each `GeneratedToken` has an `id` (e.g. `colors/brand/primary`) and `path` (e.g. `primary`).
    - What's unclear: The `tokenPath` parameter for `update_theme_token` is dot-separated (e.g. `colors.brand.primary`). Does the endpoint find the token by reconstructing the group ID (`colors/brand`) and token path (`primary`), or by some other means?
-   - Recommendation: Parse `tokenPath` by splitting on last dot → `groupId = path.slice(0, lastDot).replace(/\./g, '/')`, `tokenLocalPath = path.slice(lastDot + 1)`. Find group in theme.tokens tree, find token by `token.path === tokenLocalPath`, update value/type.
+   - RESOLVED: Parse `tokenPath` by splitting on last dot → `groupId = path.slice(0, lastDot).replace(/\./g, '/')`, `tokenLocalPath = path.slice(lastDot + 1)`. Find group in theme.tokens tree by `group.id === groupId`, find token by `token.path === tokenLocalPath`, update value/type. Plan 30-03 Task 1 implements this.
 
 ---
 
