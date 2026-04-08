@@ -80,15 +80,19 @@ Token collections are always available and editable: stored in MongoDB, accessib
 - ✓ AI agent can create/edit/delete tokens in the active collection via tool use — AI-05, AI-06, AI-07 — v1.7 (unverified)
 - ✓ AI agent can create/rename/delete token groups via tool use — AI-08, AI-09, AI-10 — v1.7 (unverified)
 
-### Active (v1.8)
+### Validated (v1.8)
 
-<!-- v1.8 AI Fix + Completion -->
-- [ ] User enters their own AI provider API key in user settings; key stored encrypted in MongoDB — AI-02 (partial — GET /api/user/settings/check untracked)
-- [ ] User can open an AI chat panel on the Tokens page for the active collection — AI-01 (disabled: BUG-01 — chat clears tokens table)
+- ✓ User can open and use the AI chat panel on the Tokens page without the tokens table being cleared — BUG-01-FIX, AI-01 — v1.8
+
+### Active (v1.9)
+
+<!-- v1.9 AI Completion + MCP Alignment -->
 - [ ] AI agent can create themes with AI-suggested token values via tool use — AI-11
 - [ ] User can query tokens in natural language ("which tokens use #0056D2?") — AI-12
 - [ ] User can request natural language edits ("rename all sm spacing tokens to small") — AI-13
 - [ ] User can paste token values and receive AI-suggested canonical names and group structure — AI-14
+- [ ] MCP server tools and in-app HTTP tool handlers share the same underlying service functions — MCP-01
+- [ ] Style Guide tab (Phase 25) is fully verified in the browser with no regressions — VERIFY-25
 
 <!-- v1.6 Multi-Tenant SaaS (planned, not yet executed) -->
 - [ ] All users and collections are scoped to an organization via organizationId — TENANT-01
@@ -136,18 +140,29 @@ Token collections are always available and editable: stored in MongoDB, accessib
 
 See `.planning/milestones/v1.7-ROADMAP.md` for full archive.
 
-## Current Milestone: v1.8 AI Fix + Completion
+## Shipped: v1.8 AI Fix + Completion (2026-04-08)
 
-**Goal:** Fix the AI chat panel bug, complete Phase 28 verification, ship AI-assisted naming and query features, and verify the Style Guide tab.
+**Goal:** Fix the AI chat panel bug and re-enable the AI feature.
+
+**What shipped:**
+- BUG-01 fixed — sending a chat message no longer clears the tokens table
+- AI chat panel re-enabled on the Tokens page
+
+**Known gaps (deferred to v1.9):**
+- AI-assisted naming and queries (AI-11 to AI-14) not started
+- Style Guide verification (VERIFY-25) not started
+
+## Current Milestone: v1.9 AI Completion + MCP Alignment
+
+**Goal:** Complete the AI feature set, verify the Style Guide, and unify MCP and in-app chat behind a shared tool service layer.
 
 **Target features:**
-- Fix BUG-01 (AI chat clears tokens table) and re-enable AI feature
-- Execute Phase 28 human verification gate (28-04) and produce VERIFICATION.md
 - AI-assisted theme creation with suggested token values (AI-11)
 - Natural language token queries (AI-12)
 - Natural language bulk edits (AI-13)
 - Paste token values → AI suggests canonical names and group structure (AI-14)
-- Complete Phase 25 (Style Guide) browser verifications and fix nyquist gaps
+- MCP server and in-app HTTP tool handlers share the same underlying service functions — one implementation, two entry points (MCP-01)
+- Complete Phase 25 (Style Guide) browser verifications and fix nyquist gaps (VERIFY-25)
 
 ## Planned Milestone: v1.6 Multi-Tenant SaaS (deferred — after v1.8)
 
