@@ -1,27 +1,25 @@
 # Requirements: ATUI Tokens Manager
 
-**Defined:** 2026-04-07
+**Defined:** 2026-04-08
 **Core Value:** Token collections are always available and editable: stored in MongoDB, accessible via collection-scoped URLs, with per-collection Figma/GitHub config, full CRUD from the collections grid, Figma import/export fully integrated, and a Themes system where each theme is a complete token value set with per-group edit permissions, dark-mode awareness, and theme-targeted export.
 
-## v1.8 Requirements
-
-### AI Bug Fix
-
-- [x] **BUG-01-FIX**: Fix the bug where sending a chat message clears the tokens table
-- [x] **AI-01**: User can open and use the AI chat panel on the Tokens page (re-enabled after fix)
-- [ ] **AI-02**: GET /api/user/settings/check is tracked and verified working
-
-### Verification
-
-- [ ] **VERIFY-28**: Phase 28 human verification (28-04-TEST-GUIDE.md) is executed; VERIFICATION.md created
-- [ ] **VERIFY-25**: Phase 25 (Style Guide) browser verifications complete; nyquist gaps resolved
+## v1.9 Requirements
 
 ### AI Features
 
-- [ ] **AI-11**: AI agent can create themes with AI-suggested token values via tool use
-- [ ] **AI-12**: User can query tokens in natural language ("which tokens use #0056D2?")
-- [ ] **AI-13**: User can request natural language bulk edits ("rename all sm spacing tokens to small")
-- [ ] **AI-14**: User can paste token values and receive AI-suggested canonical names and group structure
+- [ ] **AI-11**: AI agent can create a new theme and populate it with AI-suggested token values via tool use
+- [ ] **AI-12**: User can query tokens in natural language (e.g. "which tokens use #0056D2?") and receive a correct result
+- [ ] **AI-13**: User can request a natural language bulk edit (e.g. "rename all sm spacing tokens to small") and the tokens table updates accordingly
+- [ ] **AI-14**: User can paste token values into the chat and receive AI-suggested canonical names and group structure
+
+### MCP Alignment
+
+- [ ] **MCP-01**: Token, group, and theme mutation logic is extracted into shared service functions used by both the MCP server tools and the in-app HTTP tool handlers — no duplicate implementation
+- [ ] **MCP-02**: MCP server exposes theme mutation tools (create, update, delete theme) with parity to the in-app chat tool capabilities
+
+### Verification
+
+- [ ] **VERIFY-25**: Phase 25 Style Guide tab is fully verified in the browser — all token type previews render correctly, no regressions, nyquist coverage gaps resolved
 
 ## Future Requirements
 
@@ -44,7 +42,8 @@
 
 | Feature | Reason |
 |---------|--------|
-| Multi-tenant SaaS (v1.6) | Separate branch, separate milestone — after v1.8 |
+| Multi-tenant SaaS (v1.6) | Separate branch, separate milestone — after v1.9 |
+| MCP resources / @ mentions | Tool parity is the goal; resource protocol is separate concern |
 | OAuth / social login | Not needed for internal tool |
 | Mobile app | Web-first |
 | Real-time collaboration | High complexity, not core value |
@@ -53,21 +52,19 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BUG-01-FIX | Phase 29 | Complete |
-| AI-01 | Phase 29 | Complete |
-| AI-02 | Phase 29 | Pending |
-| VERIFY-28 | Phase 29 | Pending |
-| VERIFY-25 | Phase 31 | Pending |
 | AI-11 | Phase 30 | Pending |
 | AI-12 | Phase 30 | Pending |
 | AI-13 | Phase 30 | Pending |
 | AI-14 | Phase 30 | Pending |
+| MCP-01 | Phase 32 | Pending |
+| MCP-02 | Phase 32 | Pending |
+| VERIFY-25 | Phase 31 | Pending |
 
 **Coverage:**
-- v1.8 requirements: 9 total
-- Mapped to phases: 9
+- v1.9 requirements: 7 total
+- Mapped to phases: 7
 - Unmapped: 0 ✓
 
 ---
-*Requirements defined: 2026-04-07*
-*Last updated: 2026-04-07 after v1.8 milestone initialization*
+*Requirements defined: 2026-04-08*
+*Last updated: 2026-04-08 after v1.9 milestone initialization*
