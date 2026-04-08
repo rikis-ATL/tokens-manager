@@ -12,10 +12,10 @@ import { getToolDefinitions, executeToolCall, ToolCallContext } from '../tools';
 // ---------------------------------------------------------------------------
 
 describe('getToolDefinitions', () => {
-  it('returns an array of exactly 11 tool definitions', () => {
+  it('returns an array of exactly 12 tool definitions', () => {
     const tools = getToolDefinitions();
     expect(Array.isArray(tools)).toBe(true);
-    expect(tools).toHaveLength(11);
+    expect(tools).toHaveLength(12);
   });
 
   it('each tool has name, description, and input_schema', () => {

@@ -196,16 +196,25 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
 
   const refreshTokens = useCallback(async () => {
     try {
-      const res = await fetch(`/api/collections/${id}`);
-      if (!res.ok) return;
-      const data = await res.json();
-      const col = data.collection ?? data;
-      const rawTokens = (col.tokens ?? {}) as Record<string, unknown>;
-      setRawCollectionTokens(rawTokens);
-      rawCollectionTokensRef.current = rawTokens;
-      const { groups } = tokenService.processImportedTokens(rawTokens, col.namespace ?? globalNamespace);
-      setMasterGroups(groups);
-      setTokenFormReloadVersion(v => v + 1);
+      const [colRes, themesRes] = await Promise.all([
+        fetch(`/api/collections/${id}`),
+        fetch(`/api/collections/${id}/themes`),
+      ]);
+      if (colRes.ok) {
+        const data = await colRes.json();
+        const col = data.collection ?? data;
+        const rawTokens = (col.tokens ?? {}) as Record<string, unknown>;
+        setRawCollectionTokens(rawTokens);
+        rawCollectionTokensRef.current = rawTokens;
+        const { groups } = tokenService.processImportedTokens(rawTokens, col.namespace ?? globalNamespace);
+        setMasterGroups(groups);
+        setTokenFormReloadVersion(v => v + 1);
+      }
+      if (themesRes.ok) {
+        const themesData = await themesRes.json();
+        const apiThemes: ITheme[] = themesData.themes ?? [];
+        setThemes(apiThemes);
+      }
     } catch {
       // silent — user can manually refresh if needed
     }

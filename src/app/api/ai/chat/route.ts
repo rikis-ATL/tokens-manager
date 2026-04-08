@@ -66,22 +66,30 @@ You can create, update, and delete tokens and groups using the provided tools.
 - When creating tokens, infer the $type from context (e.g., hex values are "color", px/rem values are "dimension")
 - If a tool call fails, explain the error in plain language and suggest alternatives`;
 
-  // Add theme context if active
+  // Always list existing themes so the AI can use their IDs directly
+  if (themes.length > 0) {
+    const themeList = themes
+      .map((t) => `- "${t.name as string}" (id: ${t.id as string})`)
+      .join("\n");
+    context += `\n\n## Existing Themes\n${themeList}`;
+  }
+
+  // Add active theme context if applicable
   if (themeId && themeId !== "__default__") {
     const activeTheme = themes.find((t) => (t.id as string) === themeId);
     if (activeTheme) {
-      context += `\n\n## Active Theme: ${activeTheme.name}
+      context += `\n\n## Active Theme: ${activeTheme.name as string}
 Theme token overrides are present. Currently operating on the collection's default tokens.`;
     }
   }
 
-  context += `\n\n## Theme Creation
+  context += `\n\n## Theme Creation and Editing
 When asked to create a theme (e.g. "create a dark theme", "make a high contrast variant"):
-1. Call create_theme with the theme name and appropriate colorMode ('dark' for dark themes, 'light' otherwise)
-2. Extract the themeId from the create_theme response data (data.theme.id)
+1. FIRST check the "Existing Themes" list above — if a theme with that name already exists, use its id directly (do NOT call create_theme again)
+2. If it does not exist: call create_theme with the theme name and appropriate colorMode ('dark' for dark themes, 'light' otherwise), then extract the themeId from the response (data.theme.id)
 3. Review the existing collection tokens in the token data above to understand the current structure
-4. Call update_theme_token for each token you want to customize in the new theme, passing the themeId from step 2
-5. Describe your suggested changes before calling update_theme_token tools
+4. Describe your suggested changes before calling any update_theme_token tools
+5. Call update_theme_token for each token you want to customize, passing the correct themeId
 The new theme starts as a copy of the collection's default tokens, so you only need to update tokens that should differ.`;
 
   return context;
@@ -158,7 +166,7 @@ export async function POST(request: Request) {
       }
     }
 
-    const reply = await aiService.chat(messages, {
+    const { reply, toolsExecuted } = await aiService.chat(messages, {
       userEncryptedKey,
       userIv,
       systemPrompt,
@@ -166,7 +174,7 @@ export async function POST(request: Request) {
       toolExecutor,
     });
 
-    return NextResponse.json({ reply });
+    return NextResponse.json({ reply, toolsExecuted });
   } catch (error) {
     // API key errors → 402
     if (

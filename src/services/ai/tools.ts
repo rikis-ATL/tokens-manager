@@ -278,6 +278,23 @@ export function getToolDefinitions(): Anthropic.Tool[] {
       },
     },
     {
+      name: "delete_theme",
+      description:
+        "Delete an entire theme from the collection. " +
+        "Use the themeId from the Existing Themes list. " +
+        "Always confirm with the user before calling this tool.",
+      input_schema: {
+        type: "object",
+        properties: {
+          themeId: {
+            type: "string",
+            description: "The ID of the theme to delete.",
+          },
+        },
+        required: ["themeId"],
+      },
+    },
+    {
       name: "bulk_create_tokens",
       description:
         "Create multiple tokens in a single operation. " +
@@ -397,6 +414,13 @@ export async function executeToolCall(
         const url = `${baseUrl}/api/collections/${collectionId}/themes/${themeId}/tokens/single`;
         const { themeId: _, ...rest } = toolInput;
         return await fetchToolResult(url, "DELETE", rest, headers);
+      }
+
+      case "delete_theme": {
+        const themeId = toolInput.themeId as string;
+        if (!themeId) return { success: false, message: "themeId is required" };
+        const url = `${baseUrl}/api/collections/${collectionId}/themes/${themeId}`;
+        return await fetchToolResult(url, "DELETE", {}, headers);
       }
 
       case "bulk_create_tokens": {
