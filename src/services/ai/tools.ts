@@ -181,6 +181,32 @@ export function getToolDefinitions(): Anthropic.Tool[] {
       },
     },
     {
+      name: "rename_prefix",
+      description:
+        "Rename token path prefixes within a group. For example, rename all tokens starting with 'sm-' to start with 'small-' instead. " +
+        "This is a bulk operation that affects all tokens in the group whose path starts with the old prefix. " +
+        "ALWAYS describe what will be renamed before calling this tool.",
+      input_schema: {
+        type: "object",
+        properties: {
+          groupPath: {
+            type: "string",
+            description:
+              "Slash-separated group path (e.g. 'colors/brand' or 'spacing'). Use slash separators, not dots.",
+          },
+          oldPrefix: {
+            type: "string",
+            description: "The current prefix to replace (e.g. 'sm-').",
+          },
+          newPrefix: {
+            type: "string",
+            description: "The new prefix to use (e.g. 'small-').",
+          },
+        },
+        required: ["groupPath", "oldPrefix", "newPrefix"],
+      },
+    },
+    {
       name: "bulk_create_tokens",
       description:
         "Create multiple tokens in a single operation. " +
@@ -271,6 +297,14 @@ export async function executeToolCall(
 
       case "delete_group": {
         return await fetchToolResult(groupsUrl, "DELETE", toolInput, headers);
+      }
+
+      case "rename_prefix": {
+        const isThemeMode = context.themeId && context.themeId !== '__default__';
+        const url = isThemeMode
+          ? `${baseUrl}/api/collections/${collectionId}/themes/${context.themeId}/tokens/rename-prefix`
+          : `${baseUrl}/api/collections/${collectionId}/tokens/rename-prefix`;
+        return await fetchToolResult(url, "PATCH", toolInput, headers);
       }
 
       case "bulk_create_tokens": {
