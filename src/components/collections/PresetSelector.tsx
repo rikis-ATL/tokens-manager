@@ -18,7 +18,7 @@ export function PresetSelector({ label, presets, value, onValueChange }: PresetS
         <SelectTrigger>
           <SelectValue placeholder="None" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="max-h-[min(280px,45vh)]">
           <SelectItem value="none">None</SelectItem>
           {presets.map((p) => (
             <SelectItem key={p.id} value={p.id}>

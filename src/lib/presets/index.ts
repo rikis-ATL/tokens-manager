@@ -4,15 +4,33 @@ import { material } from './material';
 import { carbon } from './carbon';
 import { antDesign } from './ant-design';
 import { openProps } from './open-props';
+import {
+  DESIGN_MD_JSON_BUNDLES,
+  findDesignMdJsonBundleById,
+  vercelDesignMd,
+} from './design-md-from-json';
 
 export type { PresetOption, DesignSystemPreset } from './types';
 
-export const DESIGN_SYSTEMS: DesignSystemPreset[] = [
+export {
+  DESIGN_MD_JSON_BUNDLES,
+  findDesignMdJsonBundleById,
+  vercelDesignMd,
+} from './design-md-from-json';
+
+/** Built-in token libraries */
+export const CORE_DESIGN_SYSTEMS: DesignSystemPreset[] = [
   tailwind,
   material,
   carbon,
   antDesign,
   openProps,
+];
+
+/** Core presets plus JSON-backed awesome-design-md exemplars. */
+export const DESIGN_SYSTEMS: DesignSystemPreset[] = [
+  ...CORE_DESIGN_SYSTEMS,
+  ...DESIGN_MD_JSON_BUNDLES,
 ];
 
 export const PALETTE_PRESETS: PresetOption[] =

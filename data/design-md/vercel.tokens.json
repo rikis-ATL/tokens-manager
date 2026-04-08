@@ -1,0 +1,174 @@
+{
+  "color": {
+    "neutral": {
+      "$type": "color",
+      "50": { "$value": "#fafafa", "$description": "Subtle surface tint, inner shadow highlight" },
+      "100": { "$value": "#ebebeb", "$description": "Borders, card outlines, dividers" },
+      "400": { "$value": "#808080", "$description": "Placeholder text, disabled states" },
+      "500": { "$value": "#666666", "$description": "Tertiary text, muted links" },
+      "600": { "$value": "#4d4d4d", "$description": "Secondary text, description copy" },
+      "900": { "$value": "#171717", "$description": "Primary text, headings, nav (Vercel Black)" }
+    },
+    "canvas": {
+      "$type": "color",
+      "white": { "$value": "#ffffff", "$description": "Page background, card surfaces, button text on dark" },
+      "black": { "$value": "#000000", "$description": "Console/code contexts (--geist-console-text-color-default)" }
+    },
+    "workflow": {
+      "$type": "color",
+      "develop": { "$value": "#0a72ef", "$description": "Develop workflow accent" },
+      "preview": { "$value": "#de1d8d", "$description": "Preview deployment workflow" },
+      "ship": { "$value": "#ff5b4f", "$description": "Ship to production workflow" }
+    },
+    "console": {
+      "$type": "color",
+      "blue": { "$value": "#0070f3", "$description": "Syntax highlighting blue" },
+      "purple": { "$value": "#7928ca", "$description": "Syntax highlighting purple" },
+      "pink": { "$value": "#eb367f", "$description": "Syntax highlighting pink" }
+    },
+    "interactive": {
+      "$type": "color",
+      "link": { "$value": "#0072f5", "$description": "Primary link with underline" },
+      "focus": { "$value": "hsla(212, 100%, 48%, 1)", "$description": "Focus ring (--ds-focus-color)" },
+      "ring": { "$value": "rgba(147, 197, 253, 0.5)", "$description": "Tailwind ring utility" }
+    },
+    "surface": {
+      "$type": "color",
+      "overlayBackdrop": { "$value": "hsla(0, 0%, 98%, 1)", "$description": "Modal/dialog backdrop" },
+      "selection": { "$value": "hsla(0, 0%, 95%, 1)", "$description": "Text selection highlight" },
+      "badgeBlueBg": { "$value": "#ebf5ff", "$description": "Pill badge background" },
+      "badgeBlueText": { "$value": "#0068d6", "$description": "Pill badge text" }
+    }
+  },
+  "fontFamily": {
+    "$type": "fontFamily",
+    "sans": {
+      "$value": "Geist, Arial, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol",
+      "$description": "Primary UI; enable OpenType liga globally per design-md"
+    },
+    "mono": {
+      "$value": "Geist Mono, ui-monospace, SFMono-Regular, Roboto Mono, Menlo, Monaco, Liberation Mono, DejaVu Sans Mono, Courier New",
+      "$description": "Code, terminal, technical labels"
+    }
+  },
+  "fontSize": {
+    "$type": "fontSize",
+    "displayHero": { "$value": "3rem", "$description": "48px — Display hero, weight 600" },
+    "sectionHeading": { "$value": "2.5rem", "$description": "40px — Section heading" },
+    "subheadingLarge": { "$value": "2rem", "$description": "32px — Card headings, sub-sections" },
+    "subheadingLight": { "$value": "2rem", "$description": "32px weight 400" },
+    "cardTitle": { "$value": "1.5rem", "$description": "24px weight 600" },
+    "cardTitleLight": { "$value": "1.5rem", "$description": "24px weight 500" },
+    "bodyLarge": { "$value": "1.25rem", "$description": "20px — Introductions" },
+    "body": { "$value": "1.13rem", "$description": "18px — Standard reading" },
+    "bodySmall": { "$value": "1rem", "$description": "16px weight 400" },
+    "bodyMedium": { "$value": "1rem", "$description": "16px weight 500 — Nav, emphasis" },
+    "bodySemibold": { "$value": "1rem", "$description": "16px weight 600" },
+    "button": { "$value": "0.88rem", "$description": "14px weight 500 — Buttons, links" },
+    "buttonSmall": { "$value": "0.88rem", "$description": "14px weight 400 — Compact buttons" },
+    "caption": { "$value": "0.75rem", "$description": "12px — Metadata, tags" },
+    "monoBody": { "$value": "1rem", "$description": "16px Geist Mono" },
+    "monoCaption": { "$value": "0.81rem", "$description": "13px Geist Mono weight 500" },
+    "monoSmall": { "$value": "0.75rem", "$description": "12px Geist Mono uppercase labels" },
+    "microBadge": { "$value": "7px", "$description": "Weight 700 uppercase micro badges" }
+  },
+  "fontWeight": {
+    "$type": "fontWeight",
+    "body": { "$value": "400", "$description": "Body / reading" },
+    "ui": { "$value": "500", "$description": "UI / interactive" },
+    "heading": { "$value": "600", "$description": "Headings / emphasis" },
+    "micro": { "$value": "700", "$description": "Tiny micro-badges only" }
+  },
+  "lineHeight": {
+    "$type": "lineHeight",
+    "displayHero": { "$value": "1.00", "$description": "Tight; doc also allows 1.17" },
+    "sectionHeading": { "$value": "1.20", "$description": "Tight" },
+    "subheadingLarge": { "$value": "1.25", "$description": "Weight 600 rows" },
+    "subheadingLight": { "$value": "1.50", "$description": "Weight 400 at 32px" },
+    "cardTitle": { "$value": "1.33", "$description": "24px titles" },
+    "bodyLarge": { "$value": "1.80", "$description": "Relaxed intros" },
+    "body": { "$value": "1.56", "$description": "18px body" },
+    "bodySmall": { "$value": "1.50", "$description": "16px UI" },
+    "button": { "$value": "1.43", "$description": "14px buttons" },
+    "buttonSmallTight": { "$value": "1.00", "$description": "Compact 14px buttons" },
+    "caption": { "$value": "1.33", "$description": "12px captions" },
+    "mono": { "$value": "1.50", "$description": "Mono body" },
+    "monoCaption": { "$value": "1.54", "$description": "13px mono" },
+    "monoSmallTight": { "$value": "1.00", "$description": "12px mono uppercase" },
+    "microBadge": { "$value": "1.00", "$description": "7px badges" }
+  },
+  "letterSpacing": {
+    "$type": "letterSpacing",
+    "displayHero": { "$value": "-2.88px", "$description": "48px display; doc range -2.4px to -2.88px" },
+    "sectionHeading": { "$value": "-2.4px", "$description": "40px section heading" },
+    "subheading": { "$value": "-1.28px", "$description": "32px subheadings" },
+    "cardTitle": { "$value": "-0.96px", "$description": "24px card titles" },
+    "bodySemibold": { "$value": "-0.32px", "$description": "16px semibold" },
+    "normal": { "$value": "normal", "$description": "14px and below" }
+  },
+  "dimension": {
+    "$type": "dimension",
+    "1": { "$value": "1px", "$description": "Spacing scale" },
+    "2": { "$value": "2px" },
+    "3": { "$value": "3px" },
+    "4": { "$value": "4px" },
+    "5": { "$value": "5px" },
+    "6": { "$value": "6px" },
+    "8": { "$value": "8px", "$description": "Base unit" },
+    "10": { "$value": "10px" },
+    "12": { "$value": "12px" },
+    "14": { "$value": "14px" },
+    "16": { "$value": "16px" },
+    "32": { "$value": "32px", "$description": "Jump after 16px in primary scale" },
+    "36": { "$value": "36px" },
+    "40": { "$value": "40px" },
+    "sectionPaddingLo": { "$value": "48px", "$description": "Mobile section spacing" },
+    "sectionPaddingHi": { "$value": "80px", "$description": "Desktop section rhythm (doc: 80–120px+)" },
+    "containerMax": { "$value": "1200px", "$description": "Approx max content width" },
+    "buttonPaddingY": { "$value": "8px", "$description": "Primary dark button vertical" },
+    "buttonPaddingX": { "$value": "16px", "$description": "Primary dark button horizontal" },
+    "buttonPaddingMinimalY": { "$value": "0px", "$description": "Primary white minimal" },
+    "buttonPaddingMinimalX": { "$value": "6px" },
+    "pillBadgePaddingX": { "$value": "10px" }
+  },
+  "borderRadius": {
+    "$type": "borderRadius",
+    "micro": { "$value": "2px", "$description": "Inline code" },
+    "subtle": { "$value": "4px", "$description": "Small containers" },
+    "standard": { "$value": "6px", "$description": "Buttons, links" },
+    "comfortable": { "$value": "8px", "$description": "Cards, list items" },
+    "image": { "$value": "12px", "$description": "Featured cards (often top-only in CSS)" },
+    "large": { "$value": "64px", "$description": "Tab navigation pills" },
+    "xl": { "$value": "100px", "$description": "Large nav links" },
+    "pill": { "$value": "9999px", "$description": "Badges, tags" },
+    "circle": { "$value": "50%", "$description": "Avatar, menu toggle" }
+  },
+  "breakpoint": {
+    "$type": "dimension",
+    "mobile": { "$value": "400px", "$description": "Mobile range start" },
+    "tabletSmall": { "$value": "600px" },
+    "tablet": { "$value": "768px" },
+    "desktopSmall": { "$value": "1024px" },
+    "desktop": { "$value": "1200px" },
+    "largeDesktop": { "$value": "1400px" }
+  },
+  "shadow": {
+    "$type": "string",
+    "border": {
+      "$value": "rgba(0, 0, 0, 0.08) 0px 0px 0px 1px",
+      "$description": "Shadow-as-border signature"
+    },
+    "subtleElevation": {
+      "$value": "rgba(0, 0, 0, 0.04) 0px 2px 2px",
+      "$description": "Minimal card lift"
+    },
+    "ringBorderLight": {
+      "$value": "rgb(235, 235, 235) 0px 0px 0px 1px",
+      "$description": "Tabs, images"
+    },
+    "cardStack": {
+      "$value": "rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 2px, rgba(0,0,0,0.04) 0px 8px 8px -8px, #fafafa 0px 0px 0px 1px",
+      "$description": "Full multi-layer card from design-md"
+    }
+  }
+}

@@ -11,6 +11,8 @@ import {
   PALETTE_PRESETS,
   TYPESCALE_PRESETS,
   SPACING_PRESETS,
+  DESIGN_MD_JSON_BUNDLES,
+  findDesignMdJsonBundleById,
   findPreset,
   mergePresetTokens,
 } from '@/lib/presets';
@@ -38,9 +40,15 @@ export function NewCollectionDialog({
   const [palettePresetId, setPalettePresetId] = useState('none');
   const [typescalePresetId, setTypescalePresetId] = useState('none');
   const [spacingPresetId, setSpacingPresetId] = useState('none');
+  /** When set, palette/types/spacing ids match this awesome-design-md bundle */
+  const [designMdBundleId, setDesignMdBundleId] = useState('');
 
   const isDuplicating = !!duplicateSourceId;
-  const hasPresets = palettePresetId !== 'none' || typescalePresetId !== 'none' || spacingPresetId !== 'none';
+  const hasPresets =
+    designMdBundleId !== '' ||
+    palettePresetId !== 'none' ||
+    typescalePresetId !== 'none' ||
+    spacingPresetId !== 'none';
 
   const resetForm = () => {
     setName('');
@@ -51,6 +59,23 @@ export function NewCollectionDialog({
     setPalettePresetId('none');
     setTypescalePresetId('none');
     setSpacingPresetId('none');
+    setDesignMdBundleId('');
+  };
+
+  const applyDesignMdBundle = (bundleId: string) => {
+    if (!bundleId) {
+      setDesignMdBundleId('');
+      return;
+    }
+    const ds = findDesignMdJsonBundleById(bundleId);
+    if (!ds) {
+      setDesignMdBundleId('');
+      return;
+    }
+    setDesignMdBundleId(bundleId);
+    setPalettePresetId(ds.palette.id);
+    setTypescalePresetId(ds.typescale.id);
+    setSpacingPresetId(ds.spacing.id);
   };
 
   const handleClose = () => {
@@ -224,23 +249,75 @@ export function NewCollectionDialog({
                   <span className="font-normal text-gray-500 ml-1">(optional)</span>
                 </p>
                 <div className="space-y-3">
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-gray-700">
+                      awesome-design-md (JSON tokens)
+                      <span className="font-normal text-gray-500 ml-1">(quick pick)</span>
+                    </label>
+                    <Select
+                      value={designMdBundleId || '__none__'}
+                      onValueChange={(v) => {
+                        if (v === '__none__') {
+                          setDesignMdBundleId('');
+                          return;
+                        }
+                        applyDesignMdBundle(v);
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pick a product guideline set…" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[min(320px,50vh)]">
+                        <SelectItem value="__none__">None — use individual presets below</SelectItem>
+                        {DESIGN_MD_JSON_BUNDLES.map((ds) => (
+                          <SelectItem key={ds.id} value={ds.id}>
+                            {ds.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-gray-500">
+                      Loads committed W3C tokens from{' '}
+                      <code className="font-mono text-[11px]">data/design-md/</code>
+                      {' '}derived from{' '}
+                      <a
+                        className="text-blue-600 hover:underline"
+                        href="https://github.com/VoltAgent/awesome-design-md/tree/main/design-md"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        awesome-design-md
+                      </a>
+                      {' '}DESIGN.md sources (Vercel first; more bundles can be added the same way).
+                    </p>
+                  </div>
+
                   <PresetSelector
                     label="Palette"
                     presets={PALETTE_PRESETS}
                     value={palettePresetId}
-                    onValueChange={setPalettePresetId}
+                    onValueChange={(v) => {
+                      setDesignMdBundleId('');
+                      setPalettePresetId(v);
+                    }}
                   />
                   <PresetSelector
                     label="Typescale"
                     presets={TYPESCALE_PRESETS}
                     value={typescalePresetId}
-                    onValueChange={setTypescalePresetId}
+                    onValueChange={(v) => {
+                      setDesignMdBundleId('');
+                      setTypescalePresetId(v);
+                    }}
                   />
                   <PresetSelector
                     label="Spacing"
                     presets={SPACING_PRESETS}
                     value={spacingPresetId}
-                    onValueChange={setSpacingPresetId}
+                    onValueChange={(v) => {
+                      setDesignMdBundleId('');
+                      setSpacingPresetId(v);
+                    }}
                   />
                 </div>
               </div>
