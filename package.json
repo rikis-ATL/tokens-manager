@@ -3,9 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "workspaces": [
-    ".",
-    "token-manager-stencil",
-    "token-manager-vite"
+    "."
   ],
   "scripts": {
     "dev": "npx tsx server.ts",
