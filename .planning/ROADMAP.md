@@ -151,11 +151,7 @@ Plans:
   1. All browser verification steps from the Phase 25 test guide pass without errors or visual regressions
   2. StyleGuidePanel renders correct previews for all token types (color, spacing, typography, shadow, border-radius) in a real browser session
   3. Any regressions or nyquist coverage gaps discovered during verification are fixed and re-verified before the phase is signed off
-**Plans**: 3 plans
-Plans:
-- [ ] 31-01-PLAN.md — Run automated test baseline (Jest/RTL for Style Guide components + filterGroupsForActiveTheme)
-- [ ] 31-02-PLAN.md — Create browser verification checklist (8 items from D-05 covering all token types, themes, disabled groups)
-- [ ] 31-03-PLAN.md — Browser verification session + HUMAN-UAT.md documentation (human-verify checkpoint)
+**Plans**: TBD
 
 ### Phase 32: MCP Tool Service Layer
 **Goal**: Extract shared token/group/theme service functions used by both the MCP server and the in-app HTTP tool handlers; add theme mutation tools to the MCP server for feature parity with in-app chat
@@ -173,5 +169,5 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 30. AI-Assisted Naming and Queries | 0/3 | Not started | - |
-| 31. Style Guide Verification | 0/3 | Not started | - |
+| 31. Style Guide Verification | 0/? | Not started | - |
 | 32. MCP Tool Service Layer | 0/? | Not started | - |
