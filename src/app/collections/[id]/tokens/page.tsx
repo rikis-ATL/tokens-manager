@@ -27,7 +27,7 @@ import type { FlatToken, FlatGroup } from '@/types/graph-nodes.types';
 import type { ITheme, ColorMode } from '@/types/theme.types';
 import { getAllGroups, findGroupById, generateId } from '@/utils';
 import { filterGroupsForActiveTheme } from '@/utils/filterGroupsForActiveTheme';
-import { applyGroupMove, applyGroupRename, type DropMode } from '@/utils/groupMove';
+import { applyGroupMove, applyGroupRename, applyGroupToggleOmitFromPath, type DropMode } from '@/utils/groupMove';
 import {
   getTokenPathsFromGraphState,
   compareTokenPaths,
@@ -420,6 +420,24 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       setRawCollectionTokens(rawTokens as Record<string, unknown>);
     } catch {
       showErrorToast('Failed to save rename');
+    }
+  }, [masterGroups, themes, id, globalNamespace]);
+
+  // ── Toggle omitFromPath on a group ─────────────────────────────────────────
+  const handleToggleOmitFromPath = useCallback(async (groupId: string) => {
+    const newGroups = applyGroupToggleOmitFromPath(masterGroups, groupId);
+    setMasterGroups(newGroups);
+    try {
+      const rawTokens = tokenService.generateStyleDictionaryOutput(newGroups, globalNamespace);
+      await fetch(`/api/collections/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tokens: rawTokens, namespace: globalNamespace, themes }),
+      });
+      rawCollectionTokensRef.current = rawTokens as Record<string, unknown>;
+      setRawCollectionTokens(rawTokens as Record<string, unknown>);
+    } catch {
+      showErrorToast('Failed to save group setting');
     }
   }, [masterGroups, themes, id, globalNamespace]);
 
@@ -1256,6 +1274,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
                 onAddSubGroup={canEdit ? (groupId) => { setAddSubGroupParentId(groupId); setIsAddingGroup(true); } : undefined}
                 onGroupsReordered={canEdit ? handleGroupsReordered : undefined}
                 onRenameGroup={canEdit ? handleRenameGroup : undefined}
+                onToggleOmitFromPath={canEdit ? handleToggleOmitFromPath : undefined}
               />
               {/* Collapse toggle at bottom */}
               <div className="mt-auto p-2 border-t border-gray-200">

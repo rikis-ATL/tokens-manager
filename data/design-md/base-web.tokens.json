@@ -1,0 +1,180 @@
+{
+  "color": {
+    "primary": {
+      "$type": "color",
+      "primary": { "$value": "#276EF1", "$description": "Uber blue — primary interactive, CTAs, links" },
+      "primary50": { "$value": "#EFF3FE" },
+      "primary100": { "$value": "#D4E2FC" },
+      "primary200": { "$value": "#A0BFF8" },
+      "primary300": { "$value": "#5B91F4" },
+      "primary400": { "$value": "#276EF1", "$description": "Primary default" },
+      "primary500": { "$value": "#1E54B7" },
+      "primary600": { "$value": "#174291" },
+      "primary700": { "$value": "#102C60" }
+    },
+    "accent": {
+      "$type": "color",
+      "accent": { "$value": "#276EF1", "$description": "Accent — reuses Uber blue" },
+      "accent50": { "$value": "#EFF3FE" },
+      "accent100": { "$value": "#D4E2FC" },
+      "accent200": { "$value": "#A0BFF8" },
+      "accent300": { "$value": "#5B91F4" },
+      "accent400": { "$value": "#276EF1" },
+      "accent500": { "$value": "#1E54B7" },
+      "accent600": { "$value": "#174291" },
+      "accent700": { "$value": "#102C60" }
+    },
+    "negative": {
+      "$type": "color",
+      "negative": { "$value": "#E11900", "$description": "Error / negative state" },
+      "negative50": { "$value": "#FFF3EF" },
+      "negative100": { "$value": "#FFD7CC" },
+      "negative200": { "$value": "#F1998E" },
+      "negative300": { "$value": "#E85C4A" },
+      "negative400": { "$value": "#E11900" },
+      "negative500": { "$value": "#AB1300" },
+      "negative600": { "$value": "#870F00" },
+      "negative700": { "$value": "#5A0A00" }
+    },
+    "warning": {
+      "$type": "color",
+      "warning": { "$value": "#FFC043", "$description": "Warning / caution" },
+      "warning50": { "$value": "#FFFAF0" },
+      "warning100": { "$value": "#FFF2D9" },
+      "warning200": { "$value": "#FFE3AC" },
+      "warning300": { "$value": "#FFCF70" },
+      "warning400": { "$value": "#FFC043" },
+      "warning500": { "$value": "#BC8B2C" },
+      "warning600": { "$value": "#996F00" },
+      "warning700": { "$value": "#674D1B" }
+    },
+    "positive": {
+      "$type": "color",
+      "positive": { "$value": "#05944F", "$description": "Success / positive state" },
+      "positive50": { "$value": "#E6F2ED" },
+      "positive100": { "$value": "#ADDEC9" },
+      "positive200": { "$value": "#66D19E" },
+      "positive300": { "$value": "#06C167" },
+      "positive400": { "$value": "#048848" },
+      "positive500": { "$value": "#03703C" },
+      "positive600": { "$value": "#03582F" },
+      "positive700": { "$value": "#10462D" }
+    },
+    "mono": {
+      "$type": "color",
+      "mono100": { "$value": "#FFFFFF" },
+      "mono200": { "$value": "#F6F6F6", "$description": "Secondary background" },
+      "mono300": { "$value": "#EEEEEE", "$description": "Tertiary background" },
+      "mono400": { "$value": "#E2E2E2", "$description": "Border" },
+      "mono500": { "$value": "#CBCBCB", "$description": "Border dark" },
+      "mono600": { "$value": "#AFAFAF", "$description": "Placeholder" },
+      "mono700": { "$value": "#757575", "$description": "Secondary text" },
+      "mono800": { "$value": "#545454", "$description": "Tertiary text" },
+      "mono900": { "$value": "#333333", "$description": "Secondary text dark" },
+      "mono1000": { "$value": "#000000", "$description": "Primary text" }
+    }
+  },
+  "fontFamily": {
+    "$type": "fontFamily",
+    "sans": {
+      "$value": "UberMove, UberMoveText, -apple-system, BlinkMacSystemFont, Helvetica Neue, Arial, sans-serif",
+      "$description": "Uber Move — proprietary; public uses system stack"
+    },
+    "mono": {
+      "$value": "UberMoveText Mono, SFMono-Regular, Consolas, Roboto Mono, Droid Sans Mono, Liberation Mono, Menlo, Courier, monospace",
+      "$description": "Mono — code, data tables"
+    }
+  },
+  "fontSize": {
+    "$type": "fontSize",
+    "DisplayLarge": { "$value": "2.75rem", "$description": "44px — Display large" },
+    "DisplayMedium": { "$value": "2.25rem", "$description": "36px" },
+    "DisplaySmall": { "$value": "1.75rem", "$description": "28px" },
+    "HeadingXXLarge": { "$value": "1.5rem", "$description": "24px" },
+    "HeadingXLarge": { "$value": "1.25rem", "$description": "20px" },
+    "HeadingLarge": { "$value": "1.125rem", "$description": "18px" },
+    "HeadingMedium": { "$value": "1rem", "$description": "16px" },
+    "HeadingSmall": { "$value": "0.875rem", "$description": "14px" },
+    "HeadingXSmall": { "$value": "0.75rem", "$description": "12px" },
+    "LabelLarge": { "$value": "1rem", "$description": "16px — Form labels" },
+    "LabelMedium": { "$value": "0.875rem", "$description": "14px" },
+    "LabelSmall": { "$value": "0.75rem", "$description": "12px" },
+    "LabelXSmall": { "$value": "0.6875rem", "$description": "11px" },
+    "ParagraphLarge": { "$value": "1.125rem", "$description": "18px body" },
+    "ParagraphMedium": { "$value": "1rem", "$description": "16px body" },
+    "ParagraphSmall": { "$value": "0.875rem", "$description": "14px body" },
+    "ParagraphXSmall": { "$value": "0.75rem", "$description": "12px caption" }
+  },
+  "fontWeight": {
+    "$type": "fontWeight",
+    "regular": { "$value": "400" },
+    "medium": { "$value": "500" },
+    "bold": { "$value": "700" }
+  },
+  "lineHeight": {
+    "$type": "lineHeight",
+    "DisplayLarge": { "$value": "52px" },
+    "DisplayMedium": { "$value": "44px" },
+    "DisplaySmall": { "$value": "36px" },
+    "HeadingXXLarge": { "$value": "32px" },
+    "HeadingXLarge": { "$value": "28px" },
+    "HeadingMedium": { "$value": "24px" },
+    "HeadingSmall": { "$value": "20px" },
+    "LabelLarge": { "$value": "24px" },
+    "LabelMedium": { "$value": "20px" },
+    "LabelSmall": { "$value": "16px" },
+    "ParagraphLarge": { "$value": "28px" },
+    "ParagraphMedium": { "$value": "24px" },
+    "ParagraphSmall": { "$value": "20px" },
+    "ParagraphXSmall": { "$value": "16px" }
+  },
+  "letterSpacing": {
+    "$type": "letterSpacing",
+    "normal": { "$value": "0em" },
+    "wide": { "$value": "0.06em", "$description": "Uppercase labels" }
+  },
+  "dimension": {
+    "$type": "dimension",
+    "scale0": { "$value": "0px" },
+    "scale100": { "$value": "4px" },
+    "scale200": { "$value": "8px", "$description": "Base unit" },
+    "scale300": { "$value": "12px" },
+    "scale400": { "$value": "16px" },
+    "scale500": { "$value": "20px" },
+    "scale600": { "$value": "24px" },
+    "scale700": { "$value": "28px" },
+    "scale800": { "$value": "32px" },
+    "scale900": { "$value": "36px" },
+    "scale1000": { "$value": "40px" },
+    "scale1200": { "$value": "48px" },
+    "scale1400": { "$value": "56px" },
+    "scale1600": { "$value": "64px" },
+    "scale2400": { "$value": "96px" },
+    "scale3200": { "$value": "128px" },
+    "scale4800": { "$value": "192px" }
+  },
+  "borderRadius": {
+    "$type": "borderRadius",
+    "none": { "$value": "0px" },
+    "surfaceOverrideDefault": { "$value": "4px", "$description": "Default Base Web radius" },
+    "buttonBorderRadius": { "$value": "4px", "$description": "Buttons" },
+    "inputBorderRadius": { "$value": "4px", "$description": "Inputs" },
+    "tagBorderRadius": { "$value": "24px", "$description": "Tag pill" },
+    "toastBorderRadius": { "$value": "4px" },
+    "circle": { "$value": "50%" },
+    "pill": { "$value": "9999px" }
+  },
+  "breakpoint": {
+    "$type": "dimension",
+    "small": { "$value": "320px" },
+    "medium": { "$value": "600px" },
+    "large": { "$value": "1136px" }
+  },
+  "shadow": {
+    "$type": "string",
+    "shadow400": { "$value": "0 1px 4px hsla(0, 0%, 0%, 0.16)", "$description": "Subtle card" },
+    "shadow500": { "$value": "0 2px 6px hsla(0, 0%, 0%, 0.20)", "$description": "Elevated card" },
+    "shadow600": { "$value": "0 4px 16px hsla(0, 0%, 0%, 0.22)", "$description": "Dropdown" },
+    "shadow700": { "$value": "0 8px 24px hsla(0, 0%, 0%, 0.24)", "$description": "Modal" }
+  }
+}

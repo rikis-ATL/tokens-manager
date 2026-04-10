@@ -1,0 +1,143 @@
+{
+  "color": {
+    "system": {
+      "$type": "color",
+      "blue": { "$value": "#007AFF", "$description": "Primary tint — links, buttons, focus" },
+      "green": { "$value": "#34C759", "$description": "Success, active, positive" },
+      "indigo": { "$value": "#5856D6", "$description": "Accent purple-blue" },
+      "orange": { "$value": "#FF9500", "$description": "Warning, caution" },
+      "pink": { "$value": "#FF2D55", "$description": "Destructive-adjacent, love" },
+      "purple": { "$value": "#AF52DE", "$description": "Creative, premium features" },
+      "red": { "$value": "#FF3B30", "$description": "Destructive actions, badges" },
+      "teal": { "$value": "#30B0C7", "$description": "Teal system accent" },
+      "yellow": { "$value": "#FFCC00", "$description": "Warning, starred items" },
+      "gray": { "$value": "#8E8E93", "$description": "System Gray" },
+      "gray2": { "$value": "#AEAEB2", "$description": "System Gray 2" },
+      "gray3": { "$value": "#C7C7CC", "$description": "System Gray 3" },
+      "gray4": { "$value": "#D1D1D6", "$description": "System Gray 4 — separators" },
+      "gray5": { "$value": "#E5E5EA", "$description": "System Gray 5 — grouped bg" },
+      "gray6": { "$value": "#F2F2F7", "$description": "System Gray 6 — secondary bg" }
+    },
+    "label": {
+      "$type": "color",
+      "primary": { "$value": "#000000", "$description": "Primary label — light mode" },
+      "secondary": { "$value": "rgba(60,60,67,0.6)", "$description": "Secondary label — light mode" },
+      "tertiary": { "$value": "rgba(60,60,67,0.3)", "$description": "Tertiary label — light mode" },
+      "quaternary": { "$value": "rgba(60,60,67,0.18)", "$description": "Quaternary label — light mode" }
+    },
+    "background": {
+      "$type": "color",
+      "primary": { "$value": "#FFFFFF", "$description": "Primary background — light mode" },
+      "secondary": { "$value": "#F2F2F7", "$description": "Secondary bg — grouped tables, sheets" },
+      "tertiary": { "$value": "#FFFFFF", "$description": "Tertiary bg — grouped inset" }
+    },
+    "fill": {
+      "$type": "color",
+      "primary": { "$value": "rgba(120,120,128,0.2)", "$description": "Primary fill — light mode" },
+      "secondary": { "$value": "rgba(120,120,128,0.16)", "$description": "Secondary fill" },
+      "tertiary": { "$value": "rgba(118,118,128,0.12)", "$description": "Tertiary fill" }
+    }
+  },
+  "fontFamily": {
+    "$type": "fontFamily",
+    "sans": {
+      "$value": "-apple-system, BlinkMacSystemFont, SF Pro Display, SF Pro Text, Helvetica Neue, Arial, sans-serif",
+      "$description": "San Francisco — primary Apple system typeface"
+    },
+    "rounded": {
+      "$value": "SF Pro Rounded, -apple-system, BlinkMacSystemFont, sans-serif",
+      "$description": "SF Pro Rounded — friendly UI, watchOS-style"
+    },
+    "mono": {
+      "$value": "SF Mono, ui-monospace, Menlo, Monaco, Courier New, monospace",
+      "$description": "SF Mono — code, terminal output"
+    }
+  },
+  "fontSize": {
+    "$type": "fontSize",
+    "largeTitle": { "$value": "2.125rem", "$description": "34pt — Large title, navigation bar expanded" },
+    "title1": { "$value": "1.75rem", "$description": "28pt — Primary title" },
+    "title2": { "$value": "1.375rem", "$description": "22pt — Secondary title" },
+    "title3": { "$value": "1.25rem", "$description": "20pt — Tertiary title" },
+    "headline": { "$value": "1.0625rem", "$description": "17pt semibold — list item headings" },
+    "body": { "$value": "1.0625rem", "$description": "17pt — Default body" },
+    "callout": { "$value": "1rem", "$description": "16pt — Callout text" },
+    "subheadline": { "$value": "0.9375rem", "$description": "15pt — Secondary body" },
+    "footnote": { "$value": "0.8125rem", "$description": "13pt — Footnote, secondary labels" },
+    "caption1": { "$value": "0.75rem", "$description": "12pt — Captions" },
+    "caption2": { "$value": "0.6875rem", "$description": "11pt — Secondary captions" }
+  },
+  "fontWeight": {
+    "$type": "fontWeight",
+    "ultraLight": { "$value": "100" },
+    "thin": { "$value": "200" },
+    "light": { "$value": "300" },
+    "regular": { "$value": "400" },
+    "medium": { "$value": "500" },
+    "semibold": { "$value": "600" },
+    "bold": { "$value": "700" },
+    "heavy": { "$value": "800" },
+    "black": { "$value": "900" }
+  },
+  "lineHeight": {
+    "$type": "lineHeight",
+    "largeTitle": { "$value": "1.21", "$description": "41pt for 34pt text" },
+    "title1": { "$value": "1.25", "$description": "34pt for 28pt" },
+    "title2": { "$value": "1.27", "$description": "28pt for 22pt" },
+    "body": { "$value": "1.47", "$description": "25pt for 17pt — HIG default" },
+    "footnote": { "$value": "1.46", "$description": "18pt for 13pt" },
+    "caption": { "$value": "1.33", "$description": "16pt for 12pt" }
+  },
+  "letterSpacing": {
+    "$type": "letterSpacing",
+    "largeTitle": { "$value": "0.374px", "$description": "HIG tracking value for 34pt" },
+    "title": { "$value": "0.36px", "$description": "HIG tracking for titles" },
+    "body": { "$value": "-0.408px", "$description": "HIG tracking for 17pt body" },
+    "caption": { "$value": "0px", "$description": "Caption — zero tracking" }
+  },
+  "dimension": {
+    "$type": "dimension",
+    "1": { "$value": "4pt" },
+    "2": { "$value": "8pt", "$description": "Base unit — Apple 8pt grid" },
+    "3": { "$value": "12pt" },
+    "4": { "$value": "16pt" },
+    "5": { "$value": "20pt" },
+    "6": { "$value": "24pt" },
+    "7": { "$value": "32pt" },
+    "8": { "$value": "44pt", "$description": "Minimum tap target size (HIG)" },
+    "9": { "$value": "48pt" },
+    "10": { "$value": "64pt" },
+    "navBarHeight": { "$value": "44pt", "$description": "Navigation bar standard height" },
+    "tabBarHeight": { "$value": "49pt", "$description": "Tab bar standard height" },
+    "statusBarHeight": { "$value": "20pt", "$description": "Status bar height (non-notch)" }
+  },
+  "borderRadius": {
+    "$type": "borderRadius",
+    "xs": { "$value": "4px", "$description": "Inline badges" },
+    "sm": { "$value": "8px", "$description": "Small controls, buttons" },
+    "md": { "$value": "10px", "$description": "List rows, cards" },
+    "lg": { "$value": "13px", "$description": "App icon corners (60pt icon)" },
+    "xl": { "$value": "18px", "$description": "Large cards, sheet corners" },
+    "2xl": { "$value": "28px", "$description": "Large app icon (1024px icon)" },
+    "pill": { "$value": "9999px", "$description": "Capsule buttons, pills" },
+    "appIconSm": { "$value": "13.5px", "$description": "App icon @60pt — exact HIG value" },
+    "appIconLg": { "$value": "22.5%", "$description": "App icon large — percentage-based HIG formula" }
+  },
+  "breakpoint": {
+    "$type": "dimension",
+    "compactWidth": { "$value": "320px", "$description": "SE / compact iPhone" },
+    "regularWidth": { "$value": "390px", "$description": "iPhone 14 regular" },
+    "proMax": { "$value": "430px", "$description": "iPhone 14 Pro Max" },
+    "iPadMini": { "$value": "744px", "$description": "iPad mini landscape" },
+    "iPad": { "$value": "834px", "$description": "iPad Air / Pro 11\" portrait" },
+    "iPadPro": { "$value": "1024px", "$description": "iPad Pro 12.9\" portrait" },
+    "mac": { "$value": "1280px", "$description": "MacBook Air baseline" }
+  },
+  "shadow": {
+    "$type": "string",
+    "sm": { "$value": "0 1px 3px rgba(0,0,0,0.12)", "$description": "Subtle card lift" },
+    "md": { "$value": "0 4px 12px rgba(0,0,0,0.15)", "$description": "Sheet, popover" },
+    "lg": { "$value": "0 8px 28px rgba(0,0,0,0.18)", "$description": "Menu, modal" },
+    "vibrant": { "$value": "0 20px 60px rgba(0,0,0,0.3)", "$description": "macOS window shadow" }
+  }
+}

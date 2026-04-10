@@ -1,0 +1,144 @@
+{
+  "color": {
+    "shell": {
+      "$type": "color",
+      "editorBackground": { "$value": "#1E1E1E", "$description": "editor.background" },
+      "editorForeground": { "$value": "#D4D4D4", "$description": "editor.foreground" },
+      "sideBar": { "$value": "#252526", "$description": "sideBar.background" },
+      "sideBarForeground": { "$value": "#CCCCCC", "$description": "sideBar.foreground" },
+      "sideBarBorder": { "$value": "#252526" },
+      "activityBar": { "$value": "#333333", "$description": "activityBar.background" },
+      "activityBarForeground": { "$value": "#FFFFFF", "$description": "activityBar.foreground" },
+      "activityBarBadge": { "$value": "#007ACC", "$description": "activityBarBadge.background" },
+      "statusBar": { "$value": "#007ACC", "$description": "statusBar.background — VS Code blue" },
+      "statusBarForeground": { "$value": "#FFFFFF" },
+      "statusBarNoFolder": { "$value": "#68217A", "$description": "statusBar when no workspace open" },
+      "titleBar": { "$value": "#3C3C3C", "$description": "titleBar.activeBackground" },
+      "tabActiveBackground": { "$value": "#1E1E1E", "$description": "tab.activeBackground" },
+      "tabInactiveBackground": { "$value": "#2D2D2D", "$description": "tab.inactiveBackground" },
+      "tabActiveForeground": { "$value": "#FFFFFF" },
+      "tabInactiveForeground": { "$value": "#969696" },
+      "tabBorder": { "$value": "#252526" },
+      "panelBackground": { "$value": "#1E1E1E", "$description": "Panel (terminal, output) background" },
+      "panelBorder": { "$value": "#80808059" },
+      "input": { "$value": "#3C3C3C", "$description": "input.background" },
+      "inputForeground": { "$value": "#CCCCCC" },
+      "inputBorder": { "$value": "#00000000" },
+      "dropdownBackground": { "$value": "#3C3C3C" },
+      "listHoverBackground": { "$value": "#2A2D2E", "$description": "list.hoverBackground" },
+      "listActiveBackground": { "$value": "#04395E", "$description": "list.activeSelectionBackground" },
+      "selectionBackground": { "$value": "#264F78", "$description": "editor.selectionBackground" },
+      "selectionHighlight": { "$value": "#ADD6FF26", "$description": "editor.selectionHighlightBackground" },
+      "lineHighlight": { "$value": "#2A2D2E", "$description": "editor.lineHighlightBackground" },
+      "findMatch": { "$value": "#515C6A", "$description": "editor.findMatchBackground" },
+      "focusBorder": { "$value": "#007FD4", "$description": "focusBorder" },
+      "scrollbar": { "$value": "rgba(121,121,121,0.4)", "$description": "scrollbarSlider.background" },
+      "widgetBorder": { "$value": "#454545", "$description": "editorWidget.border" }
+    },
+    "syntax": {
+      "$type": "color",
+      "comment": { "$value": "#6A9955", "$description": "Comments — green" },
+      "string": { "$value": "#CE9178", "$description": "Strings — salmon/orange" },
+      "stringEscape": { "$value": "#D7BA7D", "$description": "Escape sequences in strings" },
+      "keyword": { "$value": "#569CD6", "$description": "Keywords (if, for, const…) — blue" },
+      "keywordControl": { "$value": "#C586C0", "$description": "Control flow (return, import…) — purple" },
+      "type": { "$value": "#4EC9B0", "$description": "Types, interfaces, classes — teal" },
+      "typeParameter": { "$value": "#4EC9B0" },
+      "function": { "$value": "#DCDCAA", "$description": "Function names — pale yellow" },
+      "variable": { "$value": "#9CDCFE", "$description": "Variables — light blue" },
+      "variableReadonly": { "$value": "#4FC1FF", "$description": "Constants — cyan" },
+      "property": { "$value": "#9CDCFE", "$description": "Object properties" },
+      "number": { "$value": "#B5CEA8", "$description": "Numeric literals — light green" },
+      "boolean": { "$value": "#569CD6", "$description": "true/false — blue (keyword)" },
+      "operator": { "$value": "#D4D4D4", "$description": "Operators — default foreground" },
+      "punctuation": { "$value": "#D4D4D4" },
+      "namespace": { "$value": "#4EC9B0" },
+      "attribute": { "$value": "#9CDCFE", "$description": "HTML/JSX attributes" },
+      "tag": { "$value": "#569CD6", "$description": "HTML/XML tags — blue" },
+      "tagPunctuation": { "$value": "#808080", "$description": "< > / in HTML tags" },
+      "cssProperty": { "$value": "#9CDCFE" },
+      "cssValue": { "$value": "#CE9178" },
+      "regex": { "$value": "#D16969", "$description": "Regular expression literals — muted red" },
+      "invalid": { "$value": "#F44747", "$description": "Invalid/error tokens — red" }
+    },
+    "ansi": {
+      "$type": "color",
+      "black": { "$value": "#000000" },
+      "red": { "$value": "#CD3131" },
+      "green": { "$value": "#0DBC79" },
+      "yellow": { "$value": "#E5E510" },
+      "blue": { "$value": "#2472C8" },
+      "magenta": { "$value": "#BC3FBC" },
+      "cyan": { "$value": "#11A8CD" },
+      "white": { "$value": "#E5E5E5" },
+      "brightBlack": { "$value": "#666666" },
+      "brightRed": { "$value": "#F14C4C" },
+      "brightGreen": { "$value": "#23D18B" },
+      "brightYellow": { "$value": "#F5F543" },
+      "brightBlue": { "$value": "#3B8EEA" },
+      "brightMagenta": { "$value": "#D670D6" },
+      "brightCyan": { "$value": "#29B8DB" },
+      "brightWhite": { "$value": "#E5E5E5" }
+    }
+  },
+  "fontFamily": {
+    "$type": "fontFamily",
+    "sans": {
+      "$value": "Segoe WPC, Segoe UI, -apple-system, BlinkMacSystemFont, sans-serif",
+      "$description": "VS Code UI shell font"
+    },
+    "mono": {
+      "$value": "Cascadia Code, Cascadia Mono, Menlo, Monaco, Courier New, monospace",
+      "$description": "Editor / terminal — Cascadia Code default since VS Code 1.75"
+    }
+  },
+  "fontSize": {
+    "$type": "fontSize",
+    "editorDefault": { "$value": "14px", "$description": "editor.fontSize default" },
+    "editorSmall": { "$value": "12px" },
+    "ui": { "$value": "13px", "$description": "VS Code UI chrome font size" },
+    "terminal": { "$value": "14px", "$description": "terminal.fontSize default" }
+  },
+  "fontWeight": {
+    "$type": "fontWeight",
+    "regular": { "$value": "400" },
+    "semibold": { "$value": "600" },
+    "bold": { "$value": "700" }
+  },
+  "lineHeight": {
+    "$type": "lineHeight",
+    "editor": { "$value": "1.5", "$description": "editor.lineHeight default (0 = auto)" },
+    "ui": { "$value": "1.4" }
+  },
+  "letterSpacing": {
+    "$type": "letterSpacing",
+    "normal": { "$value": "0em" }
+  },
+  "dimension": {
+    "$type": "dimension",
+    "tabHeight": { "$value": "35px" },
+    "activityBarWidth": { "$value": "48px" },
+    "statusBarHeight": { "$value": "22px" },
+    "titleBarHeight": { "$value": "30px" },
+    "sideBarMinWidth": { "$value": "170px" },
+    "breadcrumbHeight": { "$value": "22px" }
+  },
+  "borderRadius": {
+    "$type": "borderRadius",
+    "none": { "$value": "0px", "$description": "VS Code UI is largely squared" },
+    "sm": { "$value": "2px", "$description": "Badges, status indicators" },
+    "md": { "$value": "4px", "$description": "Inputs, dropdowns, notifications" },
+    "pill": { "$value": "9999px", "$description": "Extension badges, count pills" }
+  },
+  "breakpoint": {
+    "$type": "dimension",
+    "compact": { "$value": "600px" },
+    "normal": { "$value": "1024px" }
+  },
+  "shadow": {
+    "$type": "string",
+    "widget": { "$value": "0 2px 8px rgba(0,0,0,0.36)", "$description": "Editor widget (hover, suggest) shadow" },
+    "statusBar": { "$value": "none" },
+    "notification": { "$value": "0 0 8px 2px rgba(0,0,0,0.3)" }
+  }
+}

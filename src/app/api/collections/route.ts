@@ -62,6 +62,8 @@ export async function POST(request: Request) {
       colorFormat?: 'hex' | 'hsl' | 'oklch';
       tokens?: Record<string, unknown>;
       sourceMetadata?: ISourceMetadata | null;
+      description?: string | null;
+      tags?: string[];
     };
 
     if (!body.name || body.name.trim() === '') {
@@ -87,6 +89,8 @@ export async function POST(request: Request) {
       colorFormat: body.colorFormat,
       tokens: body.tokens ?? {},
       sourceMetadata: body.sourceMetadata ?? null,
+      description: body.description ?? null,
+      tags: body.tags ?? [],
       userId: null,
     });
 

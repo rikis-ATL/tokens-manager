@@ -1,0 +1,216 @@
+{
+  "color": {
+    "tableau10": {
+      "$type": "color",
+      "$description": "Tableau 10 — most widely used categorical palette (D3 schemeTableau10)",
+      "1": { "$value": "#4E79A7", "$description": "Steel blue" },
+      "2": { "$value": "#F28E2B", "$description": "Orange" },
+      "3": { "$value": "#E15759", "$description": "Red" },
+      "4": { "$value": "#76B7B2", "$description": "Teal" },
+      "5": { "$value": "#59A14F", "$description": "Green" },
+      "6": { "$value": "#EDC948", "$description": "Yellow" },
+      "7": { "$value": "#B07AA1", "$description": "Purple" },
+      "8": { "$value": "#FF9DA7", "$description": "Pink" },
+      "9": { "$value": "#9C755F", "$description": "Brown" },
+      "10": { "$value": "#BAB0AC", "$description": "Gray" }
+    },
+    "d3Category10": {
+      "$type": "color",
+      "$description": "D3 schemeCategory10 — classic categorical set",
+      "1": { "$value": "#1F77B4", "$description": "Blue" },
+      "2": { "$value": "#FF7F0E", "$description": "Orange" },
+      "3": { "$value": "#2CA02C", "$description": "Green" },
+      "4": { "$value": "#D62728", "$description": "Red" },
+      "5": { "$value": "#9467BD", "$description": "Purple" },
+      "6": { "$value": "#8C564B", "$description": "Brown" },
+      "7": { "$value": "#E377C2", "$description": "Pink" },
+      "8": { "$value": "#7F7F7F", "$description": "Gray" },
+      "9": { "$value": "#BCBD22", "$description": "Yellow-green" },
+      "10": { "$value": "#17BECF", "$description": "Cyan" }
+    },
+    "observable10": {
+      "$type": "color",
+      "$description": "Observable Plot default palette — tuned for perception on white bg",
+      "1": { "$value": "#4269D0", "$description": "Blue" },
+      "2": { "$value": "#EFB118", "$description": "Yellow-orange" },
+      "3": { "$value": "#FF725C", "$description": "Coral red" },
+      "4": { "$value": "#6CC5B0", "$description": "Teal" },
+      "5": { "$value": "#3CA951", "$description": "Green" },
+      "6": { "$value": "#FF8AB7", "$description": "Pink" },
+      "7": { "$value": "#A463F2", "$description": "Purple" },
+      "8": { "$value": "#97BBF5", "$description": "Light blue" },
+      "9": { "$value": "#9C6B4E", "$description": "Brown" },
+      "10": { "$value": "#9498A0", "$description": "Gray" }
+    },
+    "ibmDataViz": {
+      "$type": "color",
+      "$description": "IBM Data Visualization palette — 14 colors designed for charts, optimised for colour-blind accessibility",
+      "1": { "$value": "#648FFF", "$description": "Purple 50 — series 1" },
+      "2": { "$value": "#785EF0", "$description": "Purple 60 — series 2" },
+      "3": { "$value": "#DC267F", "$description": "Magenta 60 — series 3" },
+      "4": { "$value": "#FE6100", "$description": "Orange 60 — series 4" },
+      "5": { "$value": "#FFB000", "$description": "Yellow 40 — series 5" },
+      "6": { "$value": "#009D9A", "$description": "Teal 50 — series 6" },
+      "7": { "$value": "#001141", "$description": "Dark blue — series 7" },
+      "8": { "$value": "#BEAED4", "$description": "Light purple — series 8" },
+      "9": { "$value": "#B28600", "$description": "Gold — series 9" },
+      "10": { "$value": "#4B9E9E", "$description": "Teal light — series 10" },
+      "11": { "$value": "#08BDBA", "$description": "Cyan 40 — series 11" },
+      "12": { "$value": "#F87EAC", "$description": "Magenta 30 — series 12" },
+      "13": { "$value": "#A7F0BA", "$description": "Green 20 — series 13" },
+      "14": { "$value": "#9EF0F0", "$description": "Cyan 20 — series 14" }
+    },
+    "colorBrewerSet1": {
+      "$type": "color",
+      "$description": "ColorBrewer Set1 — 9-color qualitative, high contrast",
+      "1": { "$value": "#E41A1C", "$description": "Red" },
+      "2": { "$value": "#377EB8", "$description": "Blue" },
+      "3": { "$value": "#4DAF4A", "$description": "Green" },
+      "4": { "$value": "#984EA3", "$description": "Purple" },
+      "5": { "$value": "#FF7F00", "$description": "Orange" },
+      "6": { "$value": "#FFFF33", "$description": "Yellow" },
+      "7": { "$value": "#A65628", "$description": "Brown" },
+      "8": { "$value": "#F781BF", "$description": "Pink" },
+      "9": { "$value": "#999999", "$description": "Gray" }
+    },
+    "colorBrewerPaired": {
+      "$type": "color",
+      "$description": "ColorBrewer Paired — 12 colors in 6 light/dark pairs, good for grouped comparison",
+      "1a": { "$value": "#A6CEE3", "$description": "Light blue" },
+      "1b": { "$value": "#1F78B4", "$description": "Dark blue" },
+      "2a": { "$value": "#B2DF8A", "$description": "Light green" },
+      "2b": { "$value": "#33A02C", "$description": "Dark green" },
+      "3a": { "$value": "#FB9A99", "$description": "Light red" },
+      "3b": { "$value": "#E31A1C", "$description": "Dark red" },
+      "4a": { "$value": "#FDBF6F", "$description": "Light orange" },
+      "4b": { "$value": "#FF7F00", "$description": "Dark orange" },
+      "5a": { "$value": "#CAB2D6", "$description": "Light purple" },
+      "5b": { "$value": "#6A3D9A", "$description": "Dark purple" },
+      "6a": { "$value": "#FFFF99", "$description": "Light yellow" },
+      "6b": { "$value": "#B15928", "$description": "Brown" }
+    },
+    "viridis": {
+      "$type": "color",
+      "$description": "Viridis — perceptually uniform sequential, colorblind-safe (Matplotlib/D3)",
+      "0": { "$value": "#440154", "$description": "0% — deep purple" },
+      "10": { "$value": "#482878" },
+      "20": { "$value": "#3E4989" },
+      "30": { "$value": "#31688E" },
+      "40": { "$value": "#26828E" },
+      "50": { "$value": "#1F9E89", "$description": "50% — teal" },
+      "60": { "$value": "#35B779" },
+      "70": { "$value": "#6ECE58" },
+      "80": { "$value": "#B5DE2B" },
+      "90": { "$value": "#DEE318" },
+      "100": { "$value": "#FDE725", "$description": "100% — yellow" }
+    },
+    "plasma": {
+      "$type": "color",
+      "$description": "Plasma — perceptually uniform sequential (Matplotlib/D3)",
+      "0": { "$value": "#0D0887", "$description": "0% — deep indigo" },
+      "10": { "$value": "#41049D" },
+      "20": { "$value": "#6A00A8" },
+      "30": { "$value": "#8F0DA4" },
+      "40": { "$value": "#B12A90" },
+      "50": { "$value": "#CC4778", "$description": "50% — pink-red" },
+      "60": { "$value": "#E16462" },
+      "70": { "$value": "#F2844B" },
+      "80": { "$value": "#FCA636" },
+      "90": { "$value": "#FCCE25" },
+      "100": { "$value": "#F0F921", "$description": "100% — yellow" }
+    },
+    "rdBuDiverging": {
+      "$type": "color",
+      "$description": "RdBu — ColorBrewer diverging, 11 steps (negative=red, neutral=white, positive=blue)",
+      "n100": { "$value": "#67001F", "$description": "Most negative" },
+      "n80": { "$value": "#B2182B" },
+      "n60": { "$value": "#D6604D" },
+      "n40": { "$value": "#F4A582" },
+      "n20": { "$value": "#FDDBC7" },
+      "0": { "$value": "#F7F7F7", "$description": "Neutral / zero" },
+      "p20": { "$value": "#D1E5F0" },
+      "p40": { "$value": "#92C5DE" },
+      "p60": { "$value": "#4393C3" },
+      "p80": { "$value": "#2166AC" },
+      "p100": { "$value": "#053061", "$description": "Most positive" }
+    },
+    "traffic": {
+      "$type": "color",
+      "$description": "Traffic light — universally understood status palette for dashboards",
+      "critical": { "$value": "#D73027", "$description": "Critical / bad" },
+      "high": { "$value": "#FC8D59" },
+      "medium": { "$value": "#FEE08B" },
+      "low": { "$value": "#D9EF8B" },
+      "good": { "$value": "#91CF60" },
+      "excellent": { "$value": "#1A9850", "$description": "Excellent / target met" },
+      "noData": { "$value": "#CCCCCC" }
+    }
+  },
+  "fontFamily": {
+    "$type": "fontFamily",
+    "sans": {
+      "$value": "Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif",
+      "$description": "Chart label typeface"
+    },
+    "mono": {
+      "$value": "Tabular Figures, ui-monospace, Menlo, monospace",
+      "$description": "Axis tick labels — tabular figures for alignment"
+    }
+  },
+  "fontSize": {
+    "$type": "fontSize",
+    "title": { "$value": "1rem", "$description": "16px — chart title" },
+    "subtitle": { "$value": "0.875rem", "$description": "14px — chart subtitle / description" },
+    "axis": { "$value": "0.75rem", "$description": "12px — axis tick labels" },
+    "label": { "$value": "0.6875rem", "$description": "11px — data point labels" },
+    "legend": { "$value": "0.75rem", "$description": "12px — legend items" },
+    "annotation": { "$value": "0.6875rem", "$description": "11px — chart annotations" }
+  },
+  "fontWeight": {
+    "$type": "fontWeight",
+    "regular": { "$value": "400" },
+    "medium": { "$value": "500", "$description": "Axis labels" },
+    "bold": { "$value": "700", "$description": "Chart title" }
+  },
+  "lineHeight": {
+    "$type": "lineHeight",
+    "tight": { "$value": "1.2" },
+    "normal": { "$value": "1.4" }
+  },
+  "letterSpacing": {
+    "$type": "letterSpacing",
+    "normal": { "$value": "0em" },
+    "wide": { "$value": "0.04em", "$description": "Axis category labels" }
+  },
+  "dimension": {
+    "$type": "dimension",
+    "strokeWidth": { "$value": "2px", "$description": "Default line/series stroke width" },
+    "strokeWidthThin": { "$value": "1px" },
+    "strokeWidthThick": { "$value": "3px" },
+    "dotRadius": { "$value": "4px", "$description": "Scatter dot default radius" },
+    "dotRadiusSmall": { "$value": "2px" },
+    "barMinWidth": { "$value": "2px" },
+    "gridlineWidth": { "$value": "1px" },
+    "axisTick": { "$value": "6px" },
+    "legendIconSize": { "$value": "10px" },
+    "legendGap": { "$value": "16px" }
+  },
+  "borderRadius": {
+    "$type": "borderRadius",
+    "bar": { "$value": "2px", "$description": "Rounded bar chart corners" },
+    "barLarge": { "$value": "4px" },
+    "tooltip": { "$value": "4px" },
+    "dot": { "$value": "50%" }
+  },
+  "breakpoint": {
+    "$type": "dimension",
+    "spark": { "$value": "200px", "$description": "Minimum sparkline width" },
+    "compact": { "$value": "400px", "$description": "Compact chart breakpoint" },
+    "full": { "$value": "800px", "$description": "Full chart breakpoint" }
+  },
+  "shadow": {
+    "$type": "string",
+    "tooltip": { "$value": "0 4px 12px rgba(0,0,0,0.15)", "$description": "Chart tooltip shadow" },
+    "legend": { "$value": "0 2px 8px rgba(0,0,0,0.1)" }
+  }
+}

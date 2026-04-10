@@ -673,6 +673,21 @@ export function applyGroupRename(
 }
 
 /**
+ * Toggle the `omitFromPath` flag on a single group by ID.
+ * Does not affect children — only the named group itself.
+ */
+export function applyGroupToggleOmitFromPath(
+  groups: TokenGroup[],
+  groupId: string
+): TokenGroup[] {
+  return replaceGroupInTree(
+    groups,
+    groupId,
+    { ...findGroupInTree(groups, groupId)!, omitFromPath: !findGroupInTree(groups, groupId)?.omitFromPath }
+  );
+}
+
+/**
  * Rewrite `group.name` fields in a root-level array, matching by ID prefix.
  */
 function rewriteSubtreeNamesInArray(

@@ -1,0 +1,162 @@
+{
+  "color": {
+    "brand": {
+      "$type": "color",
+      "blue": { "$value": "#0052CC", "$description": "Atlassian blue — primary brand, links, CTAs" },
+      "blueHovered": { "$value": "#0065FF", "$description": "Hover state" },
+      "bluePressed": { "$value": "#0747A6", "$description": "Pressed state" }
+    },
+    "neutral": {
+      "$type": "color",
+      "N0": { "$value": "#FFFFFF" },
+      "N10": { "$value": "#FAFBFC" },
+      "N20": { "$value": "#F4F5F7" },
+      "N30": { "$value": "#EBECF0", "$description": "Background, subtle surfaces" },
+      "N40": { "$value": "#DFE1E6", "$description": "Border, separator" },
+      "N50": { "$value": "#C1C7D0", "$description": "Placeholder" },
+      "N60": { "$value": "#B3BAC5" },
+      "N70": { "$value": "#A5ADBA" },
+      "N80": { "$value": "#97A0AF" },
+      "N90": { "$value": "#8993A4" },
+      "N100": { "$value": "#7A869A", "$description": "Secondary text" },
+      "N200": { "$value": "#6B778C" },
+      "N300": { "$value": "#5E6C84" },
+      "N400": { "$value": "#505F79" },
+      "N500": { "$value": "#42526E" },
+      "N600": { "$value": "#344563" },
+      "N700": { "$value": "#253858" },
+      "N800": { "$value": "#172B4D", "$description": "Primary text" },
+      "N900": { "$value": "#091E42", "$description": "Darkest — headings on light" }
+    },
+    "blue": {
+      "$type": "color",
+      "B50": { "$value": "#DEEBFF", "$description": "Info surface" },
+      "B75": { "$value": "#B3D4FF" },
+      "B100": { "$value": "#4C9AFF" },
+      "B200": { "$value": "#2684FF" },
+      "B300": { "$value": "#0065FF" },
+      "B400": { "$value": "#0052CC", "$description": "Brand blue" },
+      "B500": { "$value": "#0747A6" }
+    },
+    "green": {
+      "$type": "color",
+      "G50": { "$value": "#E3FCEF", "$description": "Success surface" },
+      "G75": { "$value": "#ABF5D1" },
+      "G200": { "$value": "#57D9A3" },
+      "G300": { "$value": "#00C7E6" },
+      "G400": { "$value": "#00875A", "$description": "Success default" },
+      "G500": { "$value": "#006644" }
+    },
+    "red": {
+      "$type": "color",
+      "R50": { "$value": "#FFEBE6", "$description": "Error surface" },
+      "R75": { "$value": "#FFBDAD" },
+      "R200": { "$value": "#FF8F73" },
+      "R300": { "$value": "#FF7452" },
+      "R400": { "$value": "#FF5630", "$description": "Error default" },
+      "R500": { "$value": "#DE350B" }
+    },
+    "yellow": {
+      "$type": "color",
+      "Y50": { "$value": "#FFFAE6", "$description": "Warning surface" },
+      "Y75": { "$value": "#FFF0B3" },
+      "Y200": { "$value": "#FFC400" },
+      "Y300": { "$value": "#FFAB00", "$description": "Warning default" },
+      "Y400": { "$value": "#FF991F" },
+      "Y500": { "$value": "#FF8B00" }
+    },
+    "purple": {
+      "$type": "color",
+      "P50": { "$value": "#EAE6FF", "$description": "Done / in-review surface" },
+      "P75": { "$value": "#C0B6F2" },
+      "P200": { "$value": "#998DD9" },
+      "P300": { "$value": "#8777D9" },
+      "P400": { "$value": "#6554C0", "$description": "Jira purple — done status" },
+      "P500": { "$value": "#403294" }
+    }
+  },
+  "fontFamily": {
+    "$type": "fontFamily",
+    "sans": {
+      "$value": "-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Helvetica Neue, sans-serif",
+      "$description": "Atlassian system stack — Charlie Display for headings in licensed contexts"
+    },
+    "mono": {
+      "$value": "SFMono-Medium, SF Mono, Segoe UI Mono, Roboto Mono, Ubuntu Mono, Menlo, Consolas, Courier, monospace",
+      "$description": "Code, JQL expressions, inline code"
+    }
+  },
+  "fontSize": {
+    "$type": "fontSize",
+    "h900": { "$value": "2.25rem", "$description": "36px — H900 display" },
+    "h800": { "$value": "1.75rem", "$description": "28px — H800 page title" },
+    "h700": { "$value": "1.5rem", "$description": "24px — H700 section" },
+    "h600": { "$value": "1.25rem", "$description": "20px — H600 sub-section" },
+    "h500": { "$value": "1rem", "$description": "16px — H500 card title" },
+    "h400": { "$value": "0.875rem", "$description": "14px — H400 heading" },
+    "h300": { "$value": "0.75rem", "$description": "12px uppercase semibold — H300 label" },
+    "h200": { "$value": "0.6875rem", "$description": "11px uppercase bold — H200 mini label" },
+    "h100": { "$value": "0.625rem", "$description": "10px uppercase bold — H100 micro" },
+    "body": { "$value": "0.875rem", "$description": "14px — default Jira/Confluence body" },
+    "small": { "$value": "0.75rem", "$description": "12px — metadata, timestamps" }
+  },
+  "fontWeight": {
+    "$type": "fontWeight",
+    "regular": { "$value": "400" },
+    "medium": { "$value": "500" },
+    "semibold": { "$value": "600" },
+    "bold": { "$value": "700" }
+  },
+  "lineHeight": {
+    "$type": "lineHeight",
+    "heading": { "$value": "1.2", "$description": "Headings" },
+    "body": { "$value": "1.43", "$description": "Body — 20px at 14px" },
+    "small": { "$value": "1.33", "$description": "Small text" },
+    "relaxed": { "$value": "1.6", "$description": "Confluence prose" }
+  },
+  "letterSpacing": {
+    "$type": "letterSpacing",
+    "normal": { "$value": "0em" },
+    "uppercaseLabel": { "$value": "0.08em", "$description": "H200–H300 uppercase labels" }
+  },
+  "dimension": {
+    "$type": "dimension",
+    "4": { "$value": "4px" },
+    "8": { "$value": "8px", "$description": "Base unit" },
+    "12": { "$value": "12px" },
+    "16": { "$value": "16px" },
+    "20": { "$value": "20px" },
+    "24": { "$value": "24px" },
+    "32": { "$value": "32px" },
+    "40": { "$value": "40px" },
+    "48": { "$value": "48px" },
+    "64": { "$value": "64px" },
+    "navWidth": { "$value": "240px", "$description": "Jira sidebar navigation width" },
+    "topNavHeight": { "$value": "56px", "$description": "Atlassian global top nav" }
+  },
+  "borderRadius": {
+    "$type": "borderRadius",
+    "none": { "$value": "0px" },
+    "sm": { "$value": "2px", "$description": "Jira status lozenges — very tight radius" },
+    "md": { "$value": "3px", "$description": "Buttons, inputs — ADS default" },
+    "lg": { "$value": "4px", "$description": "Cards, panels" },
+    "xl": { "$value": "8px", "$description": "Large modals, dialogs" },
+    "circle": { "$value": "50%", "$description": "Avatars" },
+    "pill": { "$value": "9999px", "$description": "Lozenges, tags — rounded pill" }
+  },
+  "breakpoint": {
+    "$type": "dimension",
+    "xs": { "$value": "480px" },
+    "sm": { "$value": "768px" },
+    "md": { "$value": "1024px" },
+    "lg": { "$value": "1280px" },
+    "xl": { "$value": "1440px" }
+  },
+  "shadow": {
+    "$type": "string",
+    "card": { "$value": "0 1px 1px rgba(9,30,66,0.25), 0 0 1px rgba(9,30,66,0.31)", "$description": "Jira card default" },
+    "cardHover": { "$value": "0 4px 8px -2px rgba(9,30,66,0.25), 0 0 1px rgba(9,30,66,0.31)", "$description": "Card hover lift" },
+    "overlay": { "$value": "0 8px 16px -4px rgba(9,30,66,0.25), 0 0 1px rgba(9,30,66,0.31)", "$description": "Dropdown, tooltip" },
+    "modal": { "$value": "0 20px 32px -8px rgba(9,30,66,0.25), 0 0 1px rgba(9,30,66,0.31)", "$description": "Modal dialog" }
+  }
+}

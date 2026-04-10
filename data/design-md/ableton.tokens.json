@@ -1,0 +1,204 @@
+{
+  "color": {
+    "brand": {
+      "$type": "color",
+      "$description": "Ableton orange ramp — #FF7200 primary, used for active states, CTAs, and accent throughout Live",
+      "50":  { "$value": "#FFF3E8" },
+      "100": { "$value": "#FFE0C2" },
+      "200": { "$value": "#FFBC85" },
+      "300": { "$value": "#FF9748" },
+      "400": { "$value": "#FF800A", "$description": "Hover state" },
+      "500": { "$value": "#FF7200", "$description": "Primary — active controls, hot-swapped devices, selection highlight" },
+      "600": { "$value": "#CC5B00", "$description": "Pressed / darker active" },
+      "700": { "$value": "#994400" },
+      "800": { "$value": "#662E00" },
+      "900": { "$value": "#331700" }
+    },
+    "neutral": {
+      "$type": "color",
+      "$description": "Warm-dark neutral scale — Live's UI is warm dark gray, never pure black or cold blue-gray",
+      "0":   { "$value": "#FFFFFF" },
+      "100": { "$value": "#D0D0D0", "$description": "Labels on very dark bg" },
+      "200": { "$value": "#B4B4B4", "$description": "Secondary text on dark panels" },
+      "300": { "$value": "#8C8C8C", "$description": "Disabled labels, hint text" },
+      "400": { "$value": "#646464", "$description": "Inactive controls, muted text" },
+      "500": { "$value": "#505050", "$description": "Control borders, separator lines" },
+      "600": { "$value": "#3C3C3C", "$description": "Knob/fader backgrounds, secondary panels" },
+      "700": { "$value": "#2E2E2E", "$description": "Primary panel / device chain background" },
+      "800": { "$value": "#222222", "$description": "Session/Arrangement view background" },
+      "900": { "$value": "#161616", "$description": "Outer chrome, title bar, status bar" }
+    },
+    "bg": {
+      "$type": "color",
+      "$description": "Live UI application surfaces",
+      "shell":      { "$value": "#161616", "$description": "Outermost chrome — title bar, transport bar frame" },
+      "base":       { "$value": "#222222", "$description": "Session view / Arrangement view background" },
+      "panel":      { "$value": "#2E2E2E", "$description": "Device chain, info view, browser panels" },
+      "control":    { "$value": "#3C3C3C", "$description": "Knob wells, button faces, fader tracks" },
+      "elevated":   { "$value": "#484848", "$description": "Focused / hovered control face" },
+      "overlay":    { "$value": "#2E2E2E", "$description": "Floating windows, context menus" },
+      "hover":      { "$value": "#3A3A3A", "$description": "List row hover" },
+      "selected":   { "$value": "#FF720028", "$description": "Orange-tinted row / clip selection" },
+      "clipEmpty":  { "$value": "#1A1A1A", "$description": "Empty clip slot" },
+      "trackHeader":{ "$value": "#333333", "$description": "Track header column" }
+    },
+    "fg": {
+      "$type": "color",
+      "$description": "Foreground / label colors in Live UI — high contrast on dark",
+      "primary":    { "$value": "#CDCDCD", "$description": "Primary labels — track names, param names" },
+      "secondary":  { "$value": "#8C8C8C", "$description": "Secondary — helper text, inactive values" },
+      "disabled":   { "$value": "#505050", "$description": "Disabled controls and labels" },
+      "active":     { "$value": "#FF7200", "$description": "Active / focused parameter value" },
+      "onColor":    { "$value": "#FFFFFF", "$description": "Text on orange-filled surfaces" },
+      "readout":    { "$value": "#FFFFFF", "$description": "Parameter readout values — bright white" }
+    },
+    "border": {
+      "$type": "color",
+      "$description": "Borders in Live — very subtle, mostly 1px separator lines",
+      "default": { "$value": "#3C3C3C", "$description": "Panel separators, control outlines" },
+      "strong":  { "$value": "#505050", "$description": "Raised / focused control outline" },
+      "focus":   { "$value": "#FF7200", "$description": "Active/selected control orange ring" },
+      "subtle":  { "$value": "#2A2A2A", "$description": "Barely-visible section dividers" }
+    },
+    "status": {
+      "$type": "color",
+      "$description": "Transport / recording / monitoring states in Live",
+      "playFg":     { "$value": "#64D860", "$description": "Playback active — green LED / play button lit" },
+      "playBg":     { "$value": "#0A2008", "$description": "Play state tinted bg" },
+      "recordFg":   { "$value": "#FF3B3B", "$description": "Record arm / recording active — red" },
+      "recordBg":   { "$value": "#2E0000", "$description": "Record-armed track header tint" },
+      "mutedFg":    { "$value": "#505050", "$description": "Muted track label / dim indicator" },
+      "soloFg":     { "$value": "#FFD700", "$description": "Solo active — gold" },
+      "warningFg":  { "$value": "#FFCC00", "$description": "CPU spike, overload warning" },
+      "warningBg":  { "$value": "#2A2000" },
+      "overloadFg": { "$value": "#FF3B3B", "$description": "CPU/audio overload — red flicker" }
+    },
+    "clip": {
+      "$type": "color",
+      "$description": "The 16 assignable Live clip colors — shared across clips, tracks, and scenes",
+      "red":    { "$value": "#FF3B3B" },
+      "orange": { "$value": "#FF7200", "$description": "Ableton brand orange" },
+      "yellow": { "$value": "#FFCC00" },
+      "lime":   { "$value": "#B4D900" },
+      "green":  { "$value": "#64D860" },
+      "mint":   { "$value": "#00D084" },
+      "teal":   { "$value": "#00C8C8" },
+      "sky":    { "$value": "#00AAFF" },
+      "blue":   { "$value": "#0064FF" },
+      "indigo": { "$value": "#5050FF" },
+      "violet": { "$value": "#8C50FF" },
+      "purple": { "$value": "#C850FF" },
+      "pink":   { "$value": "#FF50C8" },
+      "rose":   { "$value": "#FF5078" },
+      "salmon": { "$value": "#FF7878" },
+      "tan":    { "$value": "#C8A050" }
+    },
+    "chart": {
+      "$type": "color",
+      "$description": "Audio meters, waveforms, CPU/RAM graphs — visualisation inside Live",
+      "waveform":    { "$value": "#FF7200", "$description": "Audio waveform — Ableton orange on dark bg" },
+      "waveformBg":  { "$value": "#1E1E1E", "$description": "Waveform clip background" },
+      "meterGreen":  { "$value": "#64D860", "$description": "Level meter: safe zone (below -6 dBFS)" },
+      "meterYellow": { "$value": "#FFCC00", "$description": "Level meter: hot zone (-6 to 0 dBFS)" },
+      "meterRed":    { "$value": "#FF3B3B", "$description": "Level meter: clip / over 0 dBFS" },
+      "meterBg":     { "$value": "#1A1A1A", "$description": "Meter track background" },
+      "cpu":         { "$value": "#FF7200", "$description": "CPU graph line" },
+      "ram":         { "$value": "#00AAFF", "$description": "RAM / disk graph line" },
+      "automation":  { "$value": "#FF9748", "$description": "Automation envelope line" },
+      "midiNote":    { "$value": "#64D860", "$description": "MIDI note blocks in piano roll" },
+      "midiVelocity":{ "$value": "#FF7200", "$description": "MIDI velocity bars" },
+      "gridBeat":    { "$value": "#3C3C3C", "$description": "Beat / bar grid line in Arrangement" },
+      "gridBar":     { "$value": "#484848", "$description": "Bar marker line — slightly brighter" },
+      "playhead":    { "$value": "#FF7200", "$description": "Playhead cursor" },
+      "loopBracket": { "$value": "#FF720066", "$description": "Loop region highlight" }
+    }
+  },
+  "fontFamily": {
+    "$type": "fontFamily",
+    "sans": {
+      "$value": "\"Helvetica Neue\", Helvetica, Arial, sans-serif",
+      "$description": "Live UI uses Helvetica Neue throughout — dense parameter labels, track names, browser"
+    },
+    "mono": {
+      "$value": "\"Courier New\", Courier, monospace",
+      "$description": "BPM readout, time position display, MIDI values in some panels"
+    }
+  },
+  "fontSize": {
+    "$type": "fontSize",
+    "$description": "Live UI is a dense, control-heavy interface — 11–12px dominates, larger sizes are rare",
+    "h1":   { "$value": "1rem",      "$description": "16px — window / panel titles (rarely used)" },
+    "h2":   { "$value": "0.875rem",  "$description": "14px — section headers, browser category labels" },
+    "body": { "$value": "0.75rem",   "$description": "12px — default Live label size: track names, device names" },
+    "s":    { "$value": "0.6875rem", "$description": "11px — knob labels, clip names, parameter readouts (dominant size)" },
+    "xs":   { "$value": "0.625rem",  "$description": "10px — tiny context: input meter scale, ruler ticks" }
+  },
+  "fontWeight": {
+    "$type": "fontWeight",
+    "regular": { "$value": "400", "$description": "Live UI is almost entirely regular weight — no bold hierarchy in controls" },
+    "medium":  { "$value": "500", "$description": "Section titles, transport labels" },
+    "bold":    { "$value": "700", "$description": "Rarely used — alert / overload states" }
+  },
+  "lineHeight": {
+    "$type": "lineHeight",
+    "tight": { "$value": "1.2",  "$description": "Dominant in Live — labels are single-line, packed tight" },
+    "base":  { "$value": "1.4",  "$description": "Info view descriptions, tooltips" },
+    "loose": { "$value": "1.6",  "$description": "Help text, multi-line labels" }
+  },
+  "letterSpacing": {
+    "$type": "letterSpacing",
+    "tight":  { "$value": "-0.01em", "$description": "Condensed labels at small sizes" },
+    "normal": { "$value": "0em" },
+    "wide":   { "$value": "0.05em",  "$description": "ALL-CAPS section marker labels" }
+  },
+  "dimension": {
+    "$type": "dimension",
+    "$description": "Live UI uses a tight 4px grid — controls are compact, not spacious",
+    "0.5": { "$value": "2px",  "$description": "Micro gap — icon padding, hairline separator" },
+    "1":   { "$value": "4px",  "$description": "Tight control padding, icon-to-label gap" },
+    "2":   { "$value": "8px",  "$description": "Standard internal padding" },
+    "3":   { "$value": "12px" },
+    "4":   { "$value": "16px" },
+    "5":   { "$value": "24px" },
+    "6":   { "$value": "32px" },
+    "7":   { "$value": "48px" },
+    "8":   { "$value": "64px" },
+    "controlHeight":       { "$value": "20px", "$description": "Default Live control row — knob label rows, send rows" },
+    "controlHeightMid":    { "$value": "28px", "$description": "Mid-size — device macro knobs" },
+    "controlHeightLarge":  { "$value": "40px", "$description": "Transport bar controls" },
+    "trackHeightMin":      { "$value": "32px", "$description": "Collapsed track" },
+    "trackHeightDefault":  { "$value": "64px", "$description": "Default track height in Arrangement" },
+    "trackHeightLarge":    { "$value": "128px","$description": "Expanded envelope lane" },
+    "deviceChainHeight":   { "$value": "80px", "$description": "Device chain / instrument panel area" },
+    "browserWidth":        { "$value": "260px","$description": "Browser sidebar default width" },
+    "detailViewHeight":    { "$value": "180px","$description": "Detail / clip view panel height" }
+  },
+  "borderRadius": {
+    "$type": "borderRadius",
+    "$description": "Live UI is mostly square — 0px is the norm for controls, very subtle rounding elsewhere",
+    "none":   { "$value": "0px",    "$description": "Knobs, faders, clip slots — square by default" },
+    "sm":     { "$value": "2px",    "$description": "Buttons, tags — barely-visible rounding" },
+    "base":   { "$value": "3px",    "$description": "Context menus, tooltips" },
+    "md":     { "$value": "4px",    "$description": "Browser items, floating panels" },
+    "circle": { "$value": "50%",    "$description": "Round indicators, LED dots" },
+    "pill":   { "$value": "9999px", "$description": "Power buttons, on/off toggles" }
+  },
+  "breakpoint": {
+    "$type": "dimension",
+    "$description": "Live is a desktop app — no responsive breakpoints. Values represent min window widths for layout changes.",
+    "compact":  { "$value": "800px",  "$description": "Minimum usable window — browser collapsed" },
+    "standard": { "$value": "1024px", "$description": "Default launch size" },
+    "wide":     { "$value": "1280px", "$description": "Comfortable arrangement view" },
+    "ultra":    { "$value": "1920px", "$description": "Full session view with many tracks" }
+  },
+  "shadow": {
+    "$type": "string",
+    "$description": "Live uses strong shadows — dark bg needs high opacity to read",
+    "sm":    { "$value": "0 1px 3px rgba(0,0,0,0.6)",                                          "$description": "Small controls, menu items" },
+    "base":  { "$value": "0 2px 6px rgba(0,0,0,0.6), 0 1px 3px rgba(0,0,0,0.5)",             "$description": "Panels, device windows" },
+    "md":    { "$value": "0 4px 12px rgba(0,0,0,0.7), 0 2px 6px rgba(0,0,0,0.5)",            "$description": "Floating device windows, context menus" },
+    "lg":    { "$value": "0 8px 24px rgba(0,0,0,0.8), 0 4px 12px rgba(0,0,0,0.6)",           "$description": "Detached plugin windows" },
+    "focus": { "$value": "0 0 0 1px #FF7200",                                                   "$description": "1px orange focus ring — Live uses thin outlines, not wide glows" },
+    "glow":  { "$value": "0 0 8px rgba(255,114,0,0.5)",                                         "$description": "Playing/active state glow on clip slots and controls" }
+  }
+}

@@ -1,0 +1,129 @@
+{
+  "color": {
+    "brand": {
+      "$type": "color",
+      "accessible": { "$value": "#0070D2", "$description": "Salesforce blue — primary brand, links, buttons" },
+      "dark": { "$value": "#005FB2", "$description": "Dark brand — hover" },
+      "darker": { "$value": "#005099" },
+      "light": { "$value": "#1589EE", "$description": "Light brand" },
+      "lighter": { "$value": "#2E9BF0" }
+    },
+    "neutral": {
+      "$type": "color",
+      "1": { "$value": "#FFFFFF" },
+      "2": { "$value": "#F3F3F3", "$description": "Page background" },
+      "3": { "$value": "#E8E8E8", "$description": "Subtle background, borders" },
+      "4": { "$value": "#DDDBDA", "$description": "Default border — Salesforce standard" },
+      "5": { "$value": "#C9C7C5", "$description": "Darker border" },
+      "6": { "$value": "#AEAEAE" },
+      "7": { "$value": "#969492", "$description": "Placeholder, deemphasized" },
+      "8": { "$value": "#706E6B", "$description": "Secondary text" },
+      "9": { "$value": "#514F4D" },
+      "10": { "$value": "#3E3E3C", "$description": "Primary text" },
+      "11": { "$value": "#2B2826" },
+      "12": { "$value": "#1C1B18" }
+    },
+    "feedback": {
+      "$type": "color",
+      "error": { "$value": "#C23934", "$description": "Error / destructive" },
+      "errorDark": { "$value": "#A61A14" },
+      "errorLight": { "$value": "#FEDDDB" },
+      "warning": { "$value": "#FFB75D", "$description": "Warning — Salesforce orange" },
+      "warningDark": { "$value": "#F99220" },
+      "warningLight": { "$value": "#FEF1E0" },
+      "success": { "$value": "#04844B", "$description": "Success — Salesforce green" },
+      "successDark": { "$value": "#026E3A" },
+      "successLight": { "$value": "#CDEFC4" },
+      "info": { "$value": "#0070D2", "$description": "Info — reuses brand blue" },
+      "infoLight": { "$value": "#D8EDFF" },
+      "offline": { "$value": "#444444", "$description": "Offline indicator" }
+    },
+    "surface": {
+      "$type": "color",
+      "page": { "$value": "#F3F3F3", "$description": "App page background" },
+      "card": { "$value": "#FFFFFF", "$description": "Record page, card" },
+      "header": { "$value": "#0070D2", "$description": "Global nav header" },
+      "headerText": { "$value": "#FFFFFF" },
+      "rowHover": { "$value": "#F4F6F9", "$description": "Table row hover" },
+      "rowSelected": { "$value": "#EAF5FE" }
+    }
+  },
+  "fontFamily": {
+    "$type": "fontFamily",
+    "sans": {
+      "$value": "Salesforce Sans, Arial, sans-serif",
+      "$description": "Salesforce Sans — licensed; public falls back to Arial/system"
+    },
+    "mono": {
+      "$value": "Salesforce Sans Mono, Courier New, monospace",
+      "$description": "Mono — formula fields, Apex code"
+    }
+  },
+  "fontSize": {
+    "$type": "fontSize",
+    "display": { "$value": "2rem", "$description": "32px — large display headings" },
+    "heading-xl": { "$value": "1.5rem", "$description": "24px — page title" },
+    "heading-large": { "$value": "1.25rem", "$description": "20px — section heading" },
+    "heading-medium": { "$value": "1rem", "$description": "16px — card heading" },
+    "heading-small": { "$value": "0.875rem", "$description": "14px — compact heading" },
+    "body": { "$value": "0.875rem", "$description": "14px — SLDS default body (dense)" },
+    "small": { "$value": "0.75rem", "$description": "12px — labels, metadata" },
+    "x-small": { "$value": "0.6875rem", "$description": "11px — compact badges" }
+  },
+  "fontWeight": {
+    "$type": "fontWeight",
+    "light": { "$value": "300" },
+    "regular": { "$value": "400" },
+    "bold": { "$value": "700", "$description": "SLDS bold — headings, emphasis" }
+  },
+  "lineHeight": {
+    "$type": "lineHeight",
+    "reset": { "$value": "1", "$description": "Line height reset" },
+    "heading": { "$value": "1.25" },
+    "body": { "$value": "1.5", "$description": "Body — 21px at 14px" },
+    "text": { "$value": "1.428571429" }
+  },
+  "letterSpacing": {
+    "$type": "letterSpacing",
+    "normal": { "$value": "0em" },
+    "wide": { "$value": "0.0625em", "$description": "Uppercase labels" }
+  },
+  "dimension": {
+    "$type": "dimension",
+    "spacingXXSmall": { "$value": "2px" },
+    "spacingXSmall": { "$value": "4px" },
+    "spacingSmall": { "$value": "8px", "$description": "Base unit" },
+    "spacingMedium": { "$value": "12px" },
+    "spacingLarge": { "$value": "16px" },
+    "spacingXLarge": { "$value": "24px" },
+    "spacingXXLarge": { "$value": "32px" },
+    "heightSmall": { "$value": "24px", "$description": "Dense control height" },
+    "heightMedium": { "$value": "32px", "$description": "Default control height — SLDS standard" },
+    "heightLarge": { "$value": "40px" },
+    "pageHeaderHeight": { "$value": "56px" },
+    "globalNavHeight": { "$value": "52px" }
+  },
+  "borderRadius": {
+    "$type": "borderRadius",
+    "none": { "$value": "0px" },
+    "small": { "$value": "2px", "$description": "Badges, pills — very tight Salesforce style" },
+    "medium": { "$value": "4px", "$description": "Inputs, buttons, cards — SLDS default" },
+    "large": { "$value": "8px" },
+    "pill": { "$value": "9999px" },
+    "circle": { "$value": "50%" }
+  },
+  "breakpoint": {
+    "$type": "dimension",
+    "small": { "$value": "480px" },
+    "medium": { "$value": "768px" },
+    "large": { "$value": "1024px" },
+    "xlarge": { "$value": "1280px" }
+  },
+  "shadow": {
+    "$type": "string",
+    "shadow100": { "$value": "0 2px 2px 0 rgba(0,0,0,0.1)", "$description": "Card resting" },
+    "shadow200": { "$value": "0 4px 8px 0 rgba(0,0,0,0.1)", "$description": "Dropdown, datepicker" },
+    "shadow300": { "$value": "0 8px 16px 0 rgba(0,0,0,0.1)", "$description": "Panel, docked composer" },
+    "shadowDropDown": { "$value": "0 2px 3px 0 rgba(0,0,0,0.16)", "$description": "Lookup dropdown" }
+  }
+}

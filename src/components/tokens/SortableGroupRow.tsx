@@ -4,7 +4,7 @@ import { useRef, useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { useDroppable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
-import { ChevronDown, ChevronRight, GripVertical, MoreHorizontal, Pencil, Plus, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronRight, GripVertical, MoreHorizontal, Pencil, Plus, Slash, Trash2 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,6 +25,7 @@ interface SortableGroupRowProps {
   onDeleteGroup?: (groupId: string) => void;
   onAddSubGroup?: (parentGroupId: string) => void;
   onRenameGroup?: (groupId: string, newLabel: string) => void;
+  onToggleOmitFromPath?: (groupId: string) => void;
   isDragOverlay?: boolean;
   /** Drop intent for THIS row when it is the active over-target. Null when not targeted. */
   dropIntent?: DropMode | null;
@@ -106,6 +107,7 @@ interface GroupActionsProps {
   onDeleteGroup?: (groupId: string) => void;
   onAddSubGroup?: (parentGroupId: string) => void;
   onRenameGroup?: (groupId: string, newLabel: string) => void;
+  onToggleOmitFromPath?: (groupId: string) => void;
   onStartRename: () => void;
 }
 
@@ -114,10 +116,13 @@ function GroupActions({
   onDeleteGroup,
   onAddSubGroup,
   onRenameGroup,
+  onToggleOmitFromPath,
   onStartRename,
 }: GroupActionsProps) {
-  const hasActions = onDeleteGroup || onAddSubGroup || onRenameGroup;
+  const hasActions = onDeleteGroup || onAddSubGroup || onRenameGroup || onToggleOmitFromPath;
   if (!hasActions) return null;
+
+  const isOmitted = node.group.omitFromPath;
 
   return (
     <DropdownMenu>
@@ -130,7 +135,7 @@ function GroupActions({
           <MoreHorizontal size={13} />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-44" onClick={e => e.stopPropagation()}>
+      <DropdownMenuContent align="end" className="w-52" onClick={e => e.stopPropagation()}>
         {onRenameGroup && (
           <DropdownMenuItem
             className="gap-2 text-xs"
@@ -139,7 +144,16 @@ function GroupActions({
             <Pencil size={12} /> Rename
           </DropdownMenuItem>
         )}
-        {onRenameGroup && onAddSubGroup && <DropdownMenuSeparator />}
+        {onToggleOmitFromPath && (
+          <DropdownMenuItem
+            className="gap-2 text-xs"
+            onClick={() => onToggleOmitFromPath(node.group.id)}
+          >
+            <Slash size={12} className={isOmitted ? 'text-amber-500' : ''} />
+            {isOmitted ? 'Include name in output' : 'Skip name in output'}
+          </DropdownMenuItem>
+        )}
+        {(onRenameGroup || onToggleOmitFromPath) && onAddSubGroup && <DropdownMenuSeparator />}
         {onAddSubGroup && (
           <DropdownMenuItem
             className="gap-2 text-xs"
@@ -149,7 +163,7 @@ function GroupActions({
           </DropdownMenuItem>
         )}
         {onAddSubGroup && onDeleteGroup && <DropdownMenuSeparator />}
-        {!onAddSubGroup && onRenameGroup && onDeleteGroup && <DropdownMenuSeparator />}
+        {!onAddSubGroup && (onRenameGroup || onToggleOmitFromPath) && onDeleteGroup && <DropdownMenuSeparator />}
         {onDeleteGroup && (
           <DropdownMenuItem
             className="gap-2 text-xs text-red-600 focus:text-red-700"
@@ -174,6 +188,7 @@ export function SortableGroupRow({
   onDeleteGroup,
   onAddSubGroup,
   onRenameGroup,
+  onToggleOmitFromPath,
   isDragOverlay = false,
   dropIntent,
   isCollapsed,
@@ -199,6 +214,7 @@ export function SortableGroupRow({
     onDeleteGroup={onDeleteGroup}
     onAddSubGroup={onAddSubGroup}
     onRenameGroup={onRenameGroup}
+    onToggleOmitFromPath={onToggleOmitFromPath}
     dropIntent={dropIntent}
     isCollapsed={isCollapsed}
     onToggleCollapse={onToggleCollapse}
@@ -213,6 +229,7 @@ function SortableRowInner({
   onDeleteGroup,
   onAddSubGroup,
   onRenameGroup,
+  onToggleOmitFromPath,
   dropIntent,
   isCollapsed,
   onToggleCollapse,
@@ -335,6 +352,13 @@ function SortableRowInner({
         onStartEdit={startEdit}
       />
 
+      {/* omitFromPath badge */}
+      {node.group.omitFromPath && !isEditing && (
+        <span title="Name omitted from output path" className="text-amber-400 flex-shrink-0">
+          <Slash size={10} />
+        </span>
+      )}
+
       {/* Per-item actions menu — hidden while editing */}
       {!isEditing && (
         <GroupActions
@@ -342,6 +366,7 @@ function SortableRowInner({
           onDeleteGroup={onDeleteGroup}
           onAddSubGroup={onAddSubGroup}
           onRenameGroup={onRenameGroup}
+          onToggleOmitFromPath={onToggleOmitFromPath}
           onStartRename={startEdit}
         />
       )}

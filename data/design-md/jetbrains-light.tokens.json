@@ -1,0 +1,133 @@
+{
+  "color": {
+    "shell": {
+      "$type": "color",
+      "background": { "$value": "#F2F2F2", "$description": "Main IDE background — panels, toolbars" },
+      "backgroundDarker": { "$value": "#E8E8E8" },
+      "editorBackground": { "$value": "#FFFFFF" },
+      "editorGutter": { "$value": "#F2F2F2" },
+      "sidebarBackground": { "$value": "#F2F2F2" },
+      "toolbarBackground": { "$value": "#EBEBEB" },
+      "popupBackground": { "$value": "#FFFFFF" },
+      "selectionBackground": { "$value": "#ADD8E6", "$description": "Editor text selection — light blue" },
+      "selectionInactive": { "$value": "#D5D5D5" },
+      "caretColor": { "$value": "#000000" },
+      "lineHighlight": { "$value": "#FFFAE3", "$description": "Current line — pale yellow" },
+      "border": { "$value": "#D4D4D4" },
+      "borderSubtle": { "$value": "#E5E5E5" },
+      "focusBorder": { "$value": "#3875D7" },
+      "listHoverBackground": { "$value": "#EBF3FD" },
+      "listSelectedBackground": { "$value": "#3875D7", "$description": "Selected item" },
+      "buttonBackground": { "$value": "#E8E8E8" },
+      "buttonPrimary": { "$value": "#4F9EE3" },
+      "inputBackground": { "$value": "#FFFFFF" },
+      "inputBorder": { "$value": "#BEBEBE" },
+      "scrollbarThumb": { "$value": "rgba(0,0,0,0.2)" },
+      "badgeBackground": { "$value": "#3875D7" },
+      "terminalBackground": { "$value": "#FFFFFF" }
+    },
+    "syntax": {
+      "$type": "color",
+      "default": { "$value": "#000000", "$description": "Default text / identifiers" },
+      "keyword": { "$value": "#000080", "$description": "Keywords — dark blue (classic IntelliJ)" },
+      "string": { "$value": "#008000", "$description": "String literals — green" },
+      "stringEscape": { "$value": "#000080" },
+      "comment": { "$value": "#808080", "$description": "Comments — gray" },
+      "docComment": { "$value": "#3D5A6C" },
+      "docTag": { "$value": "#3D5A6C" },
+      "number": { "$value": "#0000FF", "$description": "Numeric literals — blue" },
+      "annotation": { "$value": "#808000", "$description": "Annotations — olive/dark yellow" },
+      "type": { "$value": "#000000", "$description": "Class/type names" },
+      "interface": { "$value": "#000000" },
+      "function": { "$value": "#000000" },
+      "parameter": { "$value": "#000000" },
+      "localVariable": { "$value": "#000000" },
+      "instanceField": { "$value": "#660E7A", "$description": "Instance fields — purple" },
+      "staticField": { "$value": "#660E7A" },
+      "operator": { "$value": "#000000" },
+      "bracket": { "$value": "#000000" },
+      "invalid": { "$value": "#FF0000" },
+      "warning": { "$value": "#A08000" },
+      "deprecated": { "$value": "#808080" },
+      "templateLiteral": { "$value": "#008000" }
+    },
+    "semantic": {
+      "$type": "color",
+      "error": { "$value": "#FF0000" },
+      "warning": { "$value": "#F0A732" },
+      "weakWarning": { "$value": "#C3C300" },
+      "info": { "$value": "#0070BB" },
+      "success": { "$value": "#008000" },
+      "breakpoint": { "$value": "#FAEAE6" },
+      "executionLine": { "$value": "#F3FACC" }
+    },
+    "vcs": {
+      "$type": "color",
+      "added": { "$value": "#EAFFEA", "$description": "Added lines — light green" },
+      "addedStripe": { "$value": "#C6EFCE" },
+      "modified": { "$value": "#EAF1FB", "$description": "Modified lines — light blue" },
+      "modifiedStripe": { "$value": "#BAD3F2" },
+      "deleted": { "$value": "#FAE0E0" },
+      "conflict": { "$value": "#FAE4D8" }
+    }
+  },
+  "fontFamily": {
+    "$type": "fontFamily",
+    "sans": {
+      "$value": "-apple-system, BlinkMacSystemFont, JetBrains Sans, Segoe UI, Helvetica Neue, Arial, sans-serif",
+      "$description": "JetBrains Sans (licensed) — system stack fallback"
+    },
+    "mono": {
+      "$value": "JetBrains Mono, Menlo, Monaco, Consolas, Courier New, monospace",
+      "$description": "JetBrains Mono — open source"
+    }
+  },
+  "fontSize": {
+    "$type": "fontSize",
+    "editorDefault": { "$value": "13px" },
+    "ui": { "$value": "13px" },
+    "small": { "$value": "11px" },
+    "tooltip": { "$value": "12px" }
+  },
+  "fontWeight": {
+    "$type": "fontWeight",
+    "regular": { "$value": "400" },
+    "medium": { "$value": "500" },
+    "bold": { "$value": "700" }
+  },
+  "lineHeight": {
+    "$type": "lineHeight",
+    "editor": { "$value": "1.2" },
+    "ui": { "$value": "1.4" }
+  },
+  "letterSpacing": {
+    "$type": "letterSpacing",
+    "normal": { "$value": "0em" }
+  },
+  "dimension": {
+    "$type": "dimension",
+    "toolWindowWidth": { "$value": "280px" },
+    "statusBarHeight": { "$value": "24px" },
+    "toolbarHeight": { "$value": "40px" },
+    "tabHeight": { "$value": "28px" },
+    "iconSize": { "$value": "16px" }
+  },
+  "borderRadius": {
+    "$type": "borderRadius",
+    "none": { "$value": "0px" },
+    "sm": { "$value": "2px" },
+    "md": { "$value": "4px" },
+    "pill": { "$value": "9999px" }
+  },
+  "breakpoint": {
+    "$type": "dimension",
+    "compact": { "$value": "800px" },
+    "normal": { "$value": "1200px" }
+  },
+  "shadow": {
+    "$type": "string",
+    "popup": { "$value": "0 2px 12px rgba(0,0,0,0.15)" },
+    "tooltip": { "$value": "0 4px 8px rgba(0,0,0,0.12)" },
+    "dialog": { "$value": "0 8px 24px rgba(0,0,0,0.18)" }
+  }
+}

@@ -1,0 +1,121 @@
+{
+  "color": {
+    "brand": {
+      "$type": "color",
+      "rausch": { "$value": "#FF5A5F", "$description": "Rausch — Airbnb primary coral/red, CTAs, links" },
+      "rauschLight": { "$value": "#FF7E82", "$description": "Rausch light — hover state" },
+      "rauschDark": { "$value": "#E00007", "$description": "Rausch dark — pressed state" },
+      "babu": { "$value": "#00A699", "$description": "Babu — teal, secondary brand, success" },
+      "arches": { "$value": "#FC642D", "$description": "Arches — orange, warm accent" },
+      "hof": { "$value": "#484848", "$description": "Hof — dark gray, primary text" },
+      "foggy": { "$value": "#767676", "$description": "Foggy — medium gray, secondary text" }
+    },
+    "neutral": {
+      "$type": "color",
+      "0": { "$value": "#FFFFFF", "$description": "White surface" },
+      "100": { "$value": "#F7F7F7", "$description": "Page background, light surfaces" },
+      "200": { "$value": "#EBEBEB", "$description": "Borders, dividers, card outlines" },
+      "300": { "$value": "#DDDDDD", "$description": "Input borders, secondary separators" },
+      "400": { "$value": "#B0B0B0", "$description": "Placeholder, disabled text" },
+      "500": { "$value": "#767676", "$description": "Secondary text — accessibility AA on white" },
+      "700": { "$value": "#484848", "$description": "Primary text" },
+      "900": { "$value": "#222222", "$description": "Headings, near-black" }
+    },
+    "surface": {
+      "$type": "color",
+      "card": { "$value": "#FFFFFF", "$description": "Listing card background" },
+      "map": { "$value": "#F7F7F7", "$description": "Map panel background" },
+      "header": { "$value": "#FFFFFF", "$description": "Top nav background (scroll-aware)" },
+      "footer": { "$value": "#F7F7F7", "$description": "Footer background" },
+      "modalOverlay": { "$value": "rgba(34,34,34,0.72)", "$description": "Modal backdrop" }
+    },
+    "rating": {
+      "$type": "color",
+      "star": { "$value": "#FF5A5F", "$description": "Star rating — reuses Rausch" },
+      "guestFavorite": { "$value": "#222222", "$description": "Guest favourite badge dark bg" }
+    }
+  },
+  "fontFamily": {
+    "$type": "fontFamily",
+    "sans": {
+      "$value": "Circular, -apple-system, BlinkMacSystemFont, Roboto, Helvetica Neue, sans-serif",
+      "$description": "Circular — Airbnb custom typeface (Lineto Circular); falls back to system sans"
+    },
+    "mono": {
+      "$value": "ui-monospace, SFMono-Regular, Menlo, Monaco, Courier New, monospace",
+      "$description": "Code / technical contexts"
+    }
+  },
+  "fontSize": {
+    "$type": "fontSize",
+    "displayHero": { "$value": "3rem", "$description": "48px — Hero headline" },
+    "h1": { "$value": "2rem", "$description": "32px — Page headings" },
+    "h2": { "$value": "1.5rem", "$description": "24px — Section headings" },
+    "h3": { "$value": "1.25rem", "$description": "20px — Card headings, listing title" },
+    "bodyLarge": { "$value": "1.125rem", "$description": "18px — Feature copy" },
+    "body": { "$value": "1rem", "$description": "16px — Standard UI, descriptions" },
+    "small": { "$value": "0.875rem", "$description": "14px — Captions, meta, dates" },
+    "xs": { "$value": "0.75rem", "$description": "12px — Tags, badges" }
+  },
+  "fontWeight": {
+    "$type": "fontWeight",
+    "book": { "$value": "400", "$description": "Circular Book — body" },
+    "medium": { "$value": "500", "$description": "Circular Medium — UI" },
+    "bold": { "$value": "700", "$description": "Circular Bold — headings, price" },
+    "black": { "$value": "800", "$description": "Circular Black — hero display (rare)" }
+  },
+  "lineHeight": {
+    "$type": "lineHeight",
+    "tight": { "$value": "1.2", "$description": "Display" },
+    "snug": { "$value": "1.35", "$description": "Headings" },
+    "normal": { "$value": "1.5", "$description": "Body" },
+    "relaxed": { "$value": "1.65", "$description": "Descriptions, long copy" }
+  },
+  "letterSpacing": {
+    "$type": "letterSpacing",
+    "tight": { "$value": "-0.02em", "$description": "Hero display" },
+    "normal": { "$value": "0em", "$description": "Body" },
+    "wide": { "$value": "0.08em", "$description": "Uppercase labels, tags" }
+  },
+  "dimension": {
+    "$type": "dimension",
+    "1": { "$value": "4px" },
+    "2": { "$value": "8px", "$description": "Base unit" },
+    "3": { "$value": "12px" },
+    "4": { "$value": "16px" },
+    "5": { "$value": "24px" },
+    "6": { "$value": "32px" },
+    "7": { "$value": "40px" },
+    "8": { "$value": "48px" },
+    "9": { "$value": "64px" },
+    "cardWidth": { "$value": "300px", "$description": "Listing card standard width" },
+    "cardImageHeight": { "$value": "200px", "$description": "Listing card image height" },
+    "filterBarHeight": { "$value": "64px", "$description": "Category / filter scroll strip height" }
+  },
+  "borderRadius": {
+    "$type": "borderRadius",
+    "sm": { "$value": "4px", "$description": "Badges, small tags" },
+    "md": { "$value": "8px", "$description": "Inputs, buttons" },
+    "lg": { "$value": "12px", "$description": "Cards, panels" },
+    "xl": { "$value": "16px", "$description": "Listing cards, date picker" },
+    "2xl": { "$value": "24px", "$description": "Search bar, modals" },
+    "pill": { "$value": "9999px", "$description": "Category pills, filter chips" },
+    "circle": { "$value": "50%", "$description": "Avatar, host photo" }
+  },
+  "breakpoint": {
+    "$type": "dimension",
+    "mobile": { "$value": "375px" },
+    "tablet": { "$value": "744px" },
+    "desktop": { "$value": "1024px" },
+    "wide": { "$value": "1280px" },
+    "ultrawide": { "$value": "1440px" }
+  },
+  "shadow": {
+    "$type": "string",
+    "card": { "$value": "0 6px 16px rgba(0,0,0,0.12)", "$description": "Listing card hover shadow" },
+    "sm": { "$value": "0 1px 4px rgba(0,0,0,0.08)", "$description": "Subtle element lift" },
+    "md": { "$value": "0 4px 12px rgba(0,0,0,0.15)", "$description": "Dropdown, calendar" },
+    "lg": { "$value": "0 16px 48px rgba(0,0,0,0.2)", "$description": "Search modal, detail panel" },
+    "searchBar": { "$value": "0 2px 16px rgba(0,0,0,0.12)", "$description": "Airbnb signature search widget shadow" }
+  }
+}

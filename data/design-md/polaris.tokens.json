@@ -1,0 +1,159 @@
+{
+  "color": {
+    "brand": {
+      "$type": "color",
+      "green": { "$value": "#008060", "$description": "Shopify green — primary brand, merchant CTAs" },
+      "greenHovered": { "$value": "#006E52", "$description": "Hover state" },
+      "greenPressed": { "$value": "#005E46", "$description": "Pressed state" },
+      "greenSubdued": { "$value": "#AEE9D1", "$description": "Subdued tint" }
+    },
+    "text": {
+      "$type": "color",
+      "primary": { "$value": "#202223", "$description": "Primary text" },
+      "secondary": { "$value": "#6D7175", "$description": "Secondary / helper text" },
+      "disabled": { "$value": "#8C9196", "$description": "Disabled text" },
+      "critical": { "$value": "#D72C0D", "$description": "Error / critical inline" },
+      "warning": { "$value": "#916A00", "$description": "Warning inline text" },
+      "success": { "$value": "#008060", "$description": "Success inline — reuses brand green" },
+      "highlight": { "$value": "#347C84", "$description": "Highlight / info inline" },
+      "subdued": { "$value": "#6D7175", "$description": "Subdued copy" },
+      "onInteractive": { "$value": "#FFFFFF", "$description": "Text on interactive/primary button" }
+    },
+    "background": {
+      "$type": "color",
+      "default": { "$value": "#F6F6F7", "$description": "App background" },
+      "hovered": { "$value": "#F1F2F3", "$description": "Hovered surface" },
+      "pressed": { "$value": "#EDEEEF", "$description": "Pressed surface" },
+      "selected": { "$value": "#F2F7FE", "$description": "Selected row/item tint" }
+    },
+    "surface": {
+      "$type": "color",
+      "default": { "$value": "#FFFFFF", "$description": "Card, modal, default surface" },
+      "subdued": { "$value": "#FAFBFB", "$description": "Subdued card / table row" },
+      "hovered": { "$value": "#F6F6F7", "$description": "Hovered card" },
+      "pressed": { "$value": "#F1F2F3", "$description": "Pressed card" },
+      "depressed": { "$value": "#EDEEEF", "$description": "Deeply pressed" },
+      "disabled": { "$value": "#FAFBFB" },
+      "selected": { "$value": "#F2F7FE" },
+      "searchField": { "$value": "#FFFFFF" }
+    },
+    "border": {
+      "$type": "color",
+      "default": { "$value": "#8C9196", "$description": "Default border" },
+      "subdued": { "$value": "#C9CCCF", "$description": "Subdued border — table rows, card outlines" },
+      "hovered": { "$value": "#999EA4" },
+      "depressed": { "$value": "#575959" },
+      "shadow": { "$value": "#AEB4B9" },
+      "critical": { "$value": "#FD5749" },
+      "success": { "$value": "#007F5F" }
+    },
+    "interactive": {
+      "$type": "color",
+      "default": { "$value": "#2C6ECB", "$description": "Interactive default — links" },
+      "hovered": { "$value": "#1F5199", "$description": "Hovered link" },
+      "pressed": { "$value": "#103262", "$description": "Pressed link" },
+      "depressed": { "$value": "#084E96" },
+      "disabled": { "$value": "#BDC1CC" },
+      "focus": { "$value": "#458FFF" }
+    },
+    "critical": {
+      "$type": "color",
+      "default": { "$value": "#D72C0D", "$description": "Error/critical" },
+      "surface": { "$value": "#FFF4F4" },
+      "subdued": { "$value": "#FFF4F4" }
+    },
+    "warning": {
+      "$type": "color",
+      "default": { "$value": "#FFC453", "$description": "Warning badge bg" },
+      "surface": { "$value": "#FFF5EA" },
+      "text": { "$value": "#916A00" }
+    }
+  },
+  "fontFamily": {
+    "$type": "fontFamily",
+    "sans": {
+      "$value": "-apple-system, BlinkMacSystemFont, San Francisco, Segoe UI, Roboto, Helvetica Neue, sans-serif",
+      "$description": "Polaris system font stack — no custom typeface in public token set"
+    },
+    "mono": {
+      "$value": "SF Mono, Fira Code, Fira Mono, Roboto Mono, monospace",
+      "$description": "Code, SKUs, order IDs"
+    }
+  },
+  "fontSize": {
+    "$type": "fontSize",
+    "displayXl": { "$value": "1.75rem", "$description": "28px — Display XL" },
+    "displayLg": { "$value": "1.625rem", "$description": "26px — Display large" },
+    "displayMd": { "$value": "1.5rem", "$description": "24px — Display medium" },
+    "displaySm": { "$value": "1.25rem", "$description": "20px — Display small" },
+    "heading": { "$value": "1rem", "$description": "16px — Card heading" },
+    "subheading": { "$value": "0.8125rem", "$description": "13px semibold uppercase — section label" },
+    "input": { "$value": "1rem", "$description": "16px — Form input" },
+    "body": { "$value": "0.875rem", "$description": "14px — Default body / table rows" },
+    "caption": { "$value": "0.75rem", "$description": "12px — Badge, helper text" }
+  },
+  "fontWeight": {
+    "$type": "fontWeight",
+    "regular": { "$value": "400" },
+    "medium": { "$value": "500" },
+    "semibold": { "$value": "600", "$description": "Headings" },
+    "bold": { "$value": "700", "$description": "Strong emphasis" }
+  },
+  "lineHeight": {
+    "$type": "lineHeight",
+    "display": { "$value": "2rem", "$description": "32px for display text" },
+    "heading": { "$value": "1.5rem", "$description": "24px for headings" },
+    "body": { "$value": "1.25rem", "$description": "20px for body 14px" },
+    "caption": { "$value": "1rem", "$description": "16px for caption" }
+  },
+  "letterSpacing": {
+    "$type": "letterSpacing",
+    "normal": { "$value": "0em" },
+    "captionUppercase": { "$value": "0.07em", "$description": "Uppercase subheading labels" }
+  },
+  "dimension": {
+    "$type": "dimension",
+    "1": { "$value": "1px" },
+    "2": { "$value": "2px" },
+    "4": { "$value": "4px" },
+    "8": { "$value": "8px", "$description": "Base unit" },
+    "12": { "$value": "12px" },
+    "16": { "$value": "16px" },
+    "20": { "$value": "20px" },
+    "24": { "$value": "24px" },
+    "32": { "$value": "32px" },
+    "40": { "$value": "40px" },
+    "48": { "$value": "48px" },
+    "64": { "$value": "64px" },
+    "80": { "$value": "80px" },
+    "contentMaxWidth": { "$value": "1280px" },
+    "navWidth": { "$value": "240px", "$description": "Admin sidebar width" }
+  },
+  "borderRadius": {
+    "$type": "borderRadius",
+    "none": { "$value": "0px" },
+    "sm": { "$value": "2px", "$description": "Badges, chips" },
+    "base": { "$value": "4px", "$description": "Buttons, inputs — Polaris default" },
+    "lg": { "$value": "8px", "$description": "Cards, modals" },
+    "xl": { "$value": "16px", "$description": "Large cards" },
+    "half": { "$value": "50%", "$description": "Circular avatar" },
+    "pill": { "$value": "9999px" }
+  },
+  "breakpoint": {
+    "$type": "dimension",
+    "xs": { "$value": "490px" },
+    "sm": { "$value": "768px" },
+    "md": { "$value": "1040px" },
+    "lg": { "$value": "1280px" },
+    "xl": { "$value": "1440px" }
+  },
+  "shadow": {
+    "$type": "string",
+    "transparent": { "$value": "0 0 0 0 transparent" },
+    "faint": { "$value": "0 1px 0 rgba(0,0,0,0.05)", "$description": "Card base shadow" },
+    "base": { "$value": "0 0 0 1px rgba(63,63,68,0.05), 0 1px 3px 0 rgba(63,63,68,0.15)", "$description": "Card default" },
+    "deep": { "$value": "0 0 0 1px rgba(63,63,68,0.05), 0 2px 6px 2px rgba(63,63,68,0.15)", "$description": "Hovered card" },
+    "modal": { "$value": "0 26px 80px rgba(0,0,0,0.2)", "$description": "Modal / overlay" },
+    "topBar": { "$value": "0 2px 2px -1px rgba(0,0,0,0.15)", "$description": "Admin top bar shadow" }
+  }
+}

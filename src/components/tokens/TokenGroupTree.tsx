@@ -38,6 +38,7 @@ interface TokenGroupTreeProps {
   onAddSubGroup?: (parentGroupId: string) => void;
   onGroupsReordered?: (newGroups: TokenGroup[], activeId: string, overId: string, dropMode: DropMode) => void;
   onRenameGroup?: (groupId: string, newLabel: string) => void;
+  onToggleOmitFromPath?: (groupId: string) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -76,6 +77,7 @@ export function TokenGroupTree({
   onAddSubGroup,
   onGroupsReordered,
   onRenameGroup,
+  onToggleOmitFromPath,
 }: TokenGroupTreeProps) {
   const [activeNode, setActiveNode] = useState<FlatNode | null>(null);
   const [dropIntent, setDropIntent] = useState<DropIntent | null>(null);
@@ -228,6 +230,7 @@ export function TokenGroupTree({
                 onDeleteGroup={onDeleteGroup}
                 onAddSubGroup={onAddSubGroup}
                 onRenameGroup={onRenameGroup}
+                onToggleOmitFromPath={onToggleOmitFromPath}
                 dropIntent={dropIntent?.id === node.group.id ? dropIntent.intent : null}
                 isCollapsed={collapsedIds.has(node.group.id)}
                 onToggleCollapse={handleToggleCollapse}

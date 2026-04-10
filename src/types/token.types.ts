@@ -66,6 +66,12 @@ export interface TokenGroup {
   level: number;
   expanded?: boolean;
   path?: string;
+  /**
+   * When true, this group's name is omitted from the exported token variable path.
+   * e.g. a "semantic" group containing "color.primary" emits --token-color-primary
+   * instead of --token-semantic-color-primary.
+   */
+  omitFromPath?: boolean;
 }
 
 export interface TokenSet {
@@ -208,14 +214,32 @@ export interface BrandFormatOutput {
 
 /** All outputs for one format */
 export interface FormatOutput {
-  format: 'css' | 'scss' | 'less' | 'js' | 'ts' | 'json';
+  format: 'css' | 'scss' | 'less' | 'js' | 'ts' | 'json' | 'tailwind-v3' | 'tailwind-v4' | 'ios' | 'android';
   outputs: BrandFormatOutput[];  // one per brand; length=1 for single-brand
+}
+
+/**
+ * A token reference that will produce a broken var() in the output.
+ * Broken = the referenced token does not exist in the token set being built,
+ * so the emitted var() will resolve to an empty/invalid value at runtime.
+ */
+export interface ReferenceWarning {
+  /** CSS variable being declared, e.g. "--token-button-font-size" */
+  tokenVar: string;
+  /** Raw reference from the token definition, e.g. "{token.text.base}" */
+  reference: string;
+  /** CSS variable being referenced, e.g. "--token-text-base" */
+  referencedVar: string;
+  /** Severity — currently always 'broken' (referenced token not found in output set) */
+  issue: 'broken';
 }
 
 /** Response from POST /api/build-tokens */
 export interface BuildTokensResult {
   formats: FormatOutput[];       // 6 entries, one per format
   collectionName: string;
+  /** Token references that will produce broken var() calls in the CSS/SCSS/LESS output */
+  warnings?: ReferenceWarning[];
 }
 
 /** Request body for POST /api/build-tokens */

@@ -1,0 +1,138 @@
+{
+  "color": {
+    "shell": {
+      "$type": "color",
+      "editorBackground": { "$value": "#FFFFFF", "$description": "editor.background" },
+      "editorForeground": { "$value": "#000000", "$description": "editor.foreground" },
+      "sideBar": { "$value": "#F3F3F3", "$description": "sideBar.background" },
+      "sideBarForeground": { "$value": "#6F6F6F" },
+      "sideBarBorder": { "$value": "#E7E7E7" },
+      "activityBar": { "$value": "#2C2C2C", "$description": "activityBar.background" },
+      "activityBarForeground": { "$value": "#FFFFFF" },
+      "activityBarBadge": { "$value": "#007ACC" },
+      "statusBar": { "$value": "#007ACC", "$description": "statusBar.background" },
+      "statusBarForeground": { "$value": "#FFFFFF" },
+      "titleBar": { "$value": "#DDDDDD", "$description": "titleBar.activeBackground (macOS)" },
+      "titleBarForeground": { "$value": "#333333" },
+      "tabActiveBackground": { "$value": "#FFFFFF" },
+      "tabInactiveBackground": { "$value": "#ECECEC" },
+      "tabActiveForeground": { "$value": "#333333" },
+      "tabInactiveForeground": { "$value": "#666666" },
+      "tabBorder": { "$value": "#F3F3F3" },
+      "panelBackground": { "$value": "#FFFFFF" },
+      "panelBorder": { "$value": "#E7E7E7" },
+      "input": { "$value": "#FFFFFF", "$description": "input.background" },
+      "inputBorder": { "$value": "#BEBEBE" },
+      "dropdownBackground": { "$value": "#F3F3F3" },
+      "listHoverBackground": { "$value": "#E8E8E8" },
+      "listActiveBackground": { "$value": "#0060C0", "$description": "list.activeSelectionBackground" },
+      "selectionBackground": { "$value": "#ADD6FF", "$description": "editor.selectionBackground" },
+      "lineHighlight": { "$value": "#00000012", "$description": "editor.lineHighlightBackground" },
+      "findMatch": { "$value": "#A8AC94" },
+      "focusBorder": { "$value": "#0090F1" },
+      "scrollbar": { "$value": "rgba(100,100,100,0.4)" },
+      "widgetBorder": { "$value": "#C8C8C8" }
+    },
+    "syntax": {
+      "$type": "color",
+      "comment": { "$value": "#008000", "$description": "Comments — green" },
+      "string": { "$value": "#A31515", "$description": "Strings — dark red" },
+      "stringEscape": { "$value": "#EE0000" },
+      "keyword": { "$value": "#0000FF", "$description": "Keywords — blue" },
+      "keywordControl": { "$value": "#AF00DB", "$description": "Control flow — purple" },
+      "type": { "$value": "#267F99", "$description": "Types, interfaces, classes — teal" },
+      "typeParameter": { "$value": "#267F99" },
+      "function": { "$value": "#795E26", "$description": "Function names — brown/gold" },
+      "variable": { "$value": "#001080", "$description": "Variables — dark blue" },
+      "variableReadonly": { "$value": "#0070C1", "$description": "Constants — medium blue" },
+      "property": { "$value": "#001080" },
+      "number": { "$value": "#098658", "$description": "Numeric literals — dark green" },
+      "boolean": { "$value": "#0000FF" },
+      "operator": { "$value": "#000000" },
+      "punctuation": { "$value": "#000000" },
+      "namespace": { "$value": "#267F99" },
+      "attribute": { "$value": "#001080" },
+      "tag": { "$value": "#800000", "$description": "HTML/XML tags — dark red" },
+      "tagPunctuation": { "$value": "#800000" },
+      "cssProperty": { "$value": "#FF0000", "$description": "CSS property names" },
+      "cssValue": { "$value": "#0451A5" },
+      "regex": { "$value": "#811F3F" },
+      "invalid": { "$value": "#CD3131" }
+    },
+    "ansi": {
+      "$type": "color",
+      "black": { "$value": "#000000" },
+      "red": { "$value": "#CD3131" },
+      "green": { "$value": "#00BC00" },
+      "yellow": { "$value": "#949800" },
+      "blue": { "$value": "#0451A5" },
+      "magenta": { "$value": "#BC05BC" },
+      "cyan": { "$value": "#0598BC" },
+      "white": { "$value": "#555555" },
+      "brightBlack": { "$value": "#666666" },
+      "brightRed": { "$value": "#CD3131" },
+      "brightGreen": { "$value": "#14CE14" },
+      "brightYellow": { "$value": "#B5BA00" },
+      "brightBlue": { "$value": "#0451A5" },
+      "brightMagenta": { "$value": "#BC05BC" },
+      "brightCyan": { "$value": "#0598BC" },
+      "brightWhite": { "$value": "#A5A5A5" }
+    }
+  },
+  "fontFamily": {
+    "$type": "fontFamily",
+    "sans": {
+      "$value": "Segoe WPC, Segoe UI, -apple-system, BlinkMacSystemFont, sans-serif",
+      "$description": "VS Code UI shell font"
+    },
+    "mono": {
+      "$value": "Cascadia Code, Cascadia Mono, Menlo, Monaco, Courier New, monospace",
+      "$description": "Editor — Cascadia Code default since VS Code 1.75"
+    }
+  },
+  "fontSize": {
+    "$type": "fontSize",
+    "editorDefault": { "$value": "14px" },
+    "ui": { "$value": "13px" },
+    "terminal": { "$value": "14px" }
+  },
+  "fontWeight": {
+    "$type": "fontWeight",
+    "regular": { "$value": "400" },
+    "semibold": { "$value": "600" },
+    "bold": { "$value": "700" }
+  },
+  "lineHeight": {
+    "$type": "lineHeight",
+    "editor": { "$value": "1.5" },
+    "ui": { "$value": "1.4" }
+  },
+  "letterSpacing": {
+    "$type": "letterSpacing",
+    "normal": { "$value": "0em" }
+  },
+  "dimension": {
+    "$type": "dimension",
+    "tabHeight": { "$value": "35px" },
+    "activityBarWidth": { "$value": "48px" },
+    "statusBarHeight": { "$value": "22px" },
+    "titleBarHeight": { "$value": "30px" }
+  },
+  "borderRadius": {
+    "$type": "borderRadius",
+    "none": { "$value": "0px" },
+    "sm": { "$value": "2px" },
+    "md": { "$value": "4px" },
+    "pill": { "$value": "9999px" }
+  },
+  "breakpoint": {
+    "$type": "dimension",
+    "compact": { "$value": "600px" },
+    "normal": { "$value": "1024px" }
+  },
+  "shadow": {
+    "$type": "string",
+    "widget": { "$value": "0 2px 8px rgba(0,0,0,0.16)" },
+    "notification": { "$value": "0 0 8px 2px rgba(0,0,0,0.14)" }
+  }
+}

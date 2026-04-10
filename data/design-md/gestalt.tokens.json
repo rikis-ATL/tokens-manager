@@ -1,0 +1,120 @@
+{
+  "color": {
+    "brand": {
+      "$type": "color",
+      "red": { "$value": "#E60023", "$description": "Pinterest red — primary brand, save button, CTAs" },
+      "redDark": { "$value": "#AD081B", "$description": "Hover / pressed red" },
+      "redWash": { "$value": "#FFEAED", "$description": "Red tint surface — light mode" }
+    },
+    "neutral": {
+      "$type": "color",
+      "white": { "$value": "#FFFFFF" },
+      "gray100": { "$value": "#F0F0F0", "$description": "Lightest gray — washout" },
+      "gray200": { "$value": "#EFEFEF", "$description": "Background, secondary surface" },
+      "gray300": { "$value": "#CDCDCD", "$description": "Border, separator" },
+      "gray400": { "$value": "#ABABAB", "$description": "Placeholder, disabled" },
+      "gray500": { "$value": "#767676", "$description": "Secondary text — a11y AA" },
+      "gray600": { "$value": "#111111", "$description": "Primary text — near-black" }
+    },
+    "semantic": {
+      "$type": "color",
+      "successBase": { "$value": "#005C5C", "$description": "Success — dark teal" },
+      "successLight": { "$value": "#004B4B" },
+      "successWeak": { "$value": "#E6F4F1" },
+      "warningBase": { "$value": "#A04000" },
+      "warningLight": { "$value": "#834000" },
+      "warningWeak": { "$value": "#FFF3CF" },
+      "errorBase": { "$value": "#B00020" },
+      "errorLight": { "$value": "#A6001A" },
+      "errorWeak": { "$value": "#FFE0E0" },
+      "infoBase": { "$value": "#0A4B78" },
+      "infoLight": { "$value": "#083E61" },
+      "infoWeak": { "$value": "#D8ECFF" }
+    },
+    "data": {
+      "$type": "color",
+      "vis01": { "$value": "#E60023", "$description": "Pinterest red — data series 1" },
+      "vis02": { "$value": "#0A4B78", "$description": "Deep blue" },
+      "vis03": { "$value": "#005C5C", "$description": "Teal" },
+      "vis04": { "$value": "#FF6904" },
+      "vis05": { "$value": "#7C008A" },
+      "vis06": { "$value": "#A04000" }
+    }
+  },
+  "fontFamily": {
+    "$type": "fontFamily",
+    "sans": {
+      "$value": "GraphikWeb, Graphik, -apple-system, BlinkMacSystemFont, Helvetica Neue, Arial, sans-serif",
+      "$description": "Graphik — Pinterest licensed; system fallback for OSS"
+    },
+    "mono": {
+      "$value": "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+      "$description": "Mono — code, technical strings"
+    }
+  },
+  "fontSize": {
+    "$type": "fontSize",
+    "600": { "$value": "3rem", "$description": "48px — display hero" },
+    "500": { "$value": "2.5rem", "$description": "40px — display" },
+    "400": { "$value": "1.75rem", "$description": "28px — heading large" },
+    "300": { "$value": "1.25rem", "$description": "20px — heading" },
+    "200": { "$value": "1rem", "$description": "16px — body large" },
+    "100": { "$value": "0.875rem", "$description": "14px — body — Gestalt default" },
+    "75": { "$value": "0.75rem", "$description": "12px — label, badge" }
+  },
+  "fontWeight": {
+    "$type": "fontWeight",
+    "regular": { "$value": "400", "$description": "Body copy" },
+    "bold": { "$value": "700", "$description": "Gestalt uses only regular and bold" }
+  },
+  "lineHeight": {
+    "$type": "lineHeight",
+    "sm": { "$value": "1.25", "$description": "Headings" },
+    "md": { "$value": "1.43", "$description": "Body 14px — 20px" },
+    "lg": { "$value": "1.5", "$description": "Body 16px — 24px" }
+  },
+  "letterSpacing": {
+    "$type": "letterSpacing",
+    "normal": { "$value": "0em" },
+    "wide": { "$value": "0.08em", "$description": "Uppercase micro-labels" }
+  },
+  "dimension": {
+    "$type": "dimension",
+    "1": { "$value": "4px" },
+    "2": { "$value": "8px", "$description": "Base unit" },
+    "3": { "$value": "12px" },
+    "4": { "$value": "16px" },
+    "5": { "$value": "20px" },
+    "6": { "$value": "24px" },
+    "7": { "$value": "32px" },
+    "8": { "$value": "48px" },
+    "9": { "$value": "64px" },
+    "10": { "$value": "96px" },
+    "pinWidth": { "$value": "236px", "$description": "Standard pin card width" },
+    "pinGutter": { "$value": "16px", "$description": "Gap between pin columns" }
+  },
+  "borderRadius": {
+    "$type": "borderRadius",
+    "none": { "$value": "0px" },
+    "sm": { "$value": "4px", "$description": "Small chips, compact badges" },
+    "md": { "$value": "8px", "$description": "Buttons, inputs" },
+    "lg": { "$value": "16px", "$description": "Pin cards — signature Gestalt radius" },
+    "xl": { "$value": "20px", "$description": "Large cards, modals" },
+    "2xl": { "$value": "32px", "$description": "Feature cards" },
+    "pill": { "$value": "9999px", "$description": "Tags, save button" },
+    "circle": { "$value": "50%", "$description": "Avatars, profile photos" }
+  },
+  "breakpoint": {
+    "$type": "dimension",
+    "sm": { "$value": "568px" },
+    "md": { "$value": "960px" },
+    "lg": { "$value": "1312px" }
+  },
+  "shadow": {
+    "$type": "string",
+    "sm": { "$value": "0 1px 8px rgba(0,0,0,0.12)", "$description": "Pin card resting" },
+    "md": { "$value": "0 4px 16px rgba(0,0,0,0.15)", "$description": "Pin card hover" },
+    "lg": { "$value": "0 8px 32px rgba(0,0,0,0.2)", "$description": "Modals, overlays" },
+    "focused": { "$value": "0 0 0 4px rgba(230,0,35,0.25)", "$description": "Red focus ring — brand" }
+  }
+}

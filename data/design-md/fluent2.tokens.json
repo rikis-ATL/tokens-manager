@@ -1,0 +1,152 @@
+{
+  "color": {
+    "brand": {
+      "$type": "color",
+      "brand10": { "$value": "#061724" },
+      "brand20": { "$value": "#082338" },
+      "brand30": { "$value": "#0A2E4A" },
+      "brand40": { "$value": "#0C3B5E" },
+      "brand50": { "$value": "#0E4775" },
+      "brand60": { "$value": "#0F548C" },
+      "brand70": { "$value": "#115EA3" },
+      "brand80": { "$value": "#0F6CBD", "$description": "Microsoft blue — primary brand" },
+      "brand90": { "$value": "#2886DE" },
+      "brand100": { "$value": "#479EF5", "$description": "Primary interactive default" },
+      "brand110": { "$value": "#62ABF5" },
+      "brand120": { "$value": "#77B7F7" },
+      "brand130": { "$value": "#96C6FA" },
+      "brand140": { "$value": "#B4D6FA" },
+      "brand150": { "$value": "#CFE4FA" },
+      "brand160": { "$value": "#EBF3FC" }
+    },
+    "neutral": {
+      "$type": "color",
+      "grey2": { "$value": "#F8F8F8", "$description": "Neutral 2 — light bg" },
+      "grey4": { "$value": "#F4F4F4" },
+      "grey6": { "$value": "#EFEFEF" },
+      "grey8": { "$value": "#E8E8E8" },
+      "grey10": { "$value": "#E0E0E0", "$description": "Borders, dividers" },
+      "grey12": { "$value": "#D7D7D7" },
+      "grey14": { "$value": "#C4C4C4", "$description": "Secondary border" },
+      "grey16": { "$value": "#ADADAD" },
+      "grey20": { "$value": "#999999", "$description": "Placeholder text" },
+      "grey22": { "$value": "#8C8C8C" },
+      "grey24": { "$value": "#707070", "$description": "Secondary text" },
+      "grey26": { "$value": "#616161" },
+      "grey28": { "$value": "#424242", "$description": "Primary text dark" },
+      "grey30": { "$value": "#333333" },
+      "grey32": { "$value": "#1A1A1A" },
+      "grey34": { "$value": "#141414" }
+    },
+    "status": {
+      "$type": "color",
+      "dangerBackground1": { "$value": "#FDF3F4", "$description": "Error light bg" },
+      "dangerBackground2": { "$value": "#F9E9EA" },
+      "dangerForeground1": { "$value": "#BC2F32", "$description": "Error text" },
+      "dangerForeground2": { "$value": "#751D1F" },
+      "dangerBorder1": { "$value": "#F1BBBC" },
+      "warningBackground1": { "$value": "#FFF9F0", "$description": "Warning light bg" },
+      "warningForeground1": { "$value": "#835B00", "$description": "Warning text" },
+      "warningBorder1": { "$value": "#FFD335" },
+      "successBackground1": { "$value": "#F1FAF1", "$description": "Success light bg" },
+      "successForeground1": { "$value": "#0E7A0B", "$description": "Success text" },
+      "successBorder1": { "$value": "#54B054" },
+      "informativeBackground1": { "$value": "#EBF3FC", "$description": "Info light bg" },
+      "informativeForeground1": { "$value": "#0F548C", "$description": "Info text" },
+      "informativeBorder1": { "$value": "#62ABF5" }
+    }
+  },
+  "fontFamily": {
+    "$type": "fontFamily",
+    "sans": {
+      "$value": "Segoe UI Variable, Segoe UI, -apple-system, BlinkMacSystemFont, Helvetica Neue, Arial, sans-serif",
+      "$description": "Segoe UI Variable — Windows 11 primary; Segoe UI fallback for older Windows"
+    },
+    "mono": {
+      "$value": "Cascadia Code, Cascadia Mono, Consolas, ui-monospace, monospace",
+      "$description": "Cascadia Code — VS Code / Terminal; Consolas fallback"
+    }
+  },
+  "fontSize": {
+    "$type": "fontSize",
+    "100": { "$value": "0.625rem", "$description": "10px — caption2" },
+    "200": { "$value": "0.75rem", "$description": "12px — caption1, label" },
+    "300": { "$value": "0.875rem", "$description": "14px — body2 — Fluent default body" },
+    "400": { "$value": "1rem", "$description": "16px — body1, subheadline" },
+    "500": { "$value": "1.25rem", "$description": "20px — title3" },
+    "600": { "$value": "1.5rem", "$description": "24px — title2" },
+    "700": { "$value": "1.75rem", "$description": "28px — title1" },
+    "800": { "$value": "2rem", "$description": "32px — largeTitle" },
+    "900": { "$value": "2.5rem", "$description": "40px — display" }
+  },
+  "fontWeight": {
+    "$type": "fontWeight",
+    "regular": { "$value": "400" },
+    "medium": { "$value": "500" },
+    "semibold": { "$value": "600", "$description": "Fluent headings weight" },
+    "bold": { "$value": "700" }
+  },
+  "lineHeight": {
+    "$type": "lineHeight",
+    "100": { "$value": "0.875rem", "$description": "14px — caption2" },
+    "200": { "$value": "1rem", "$description": "16px — caption1" },
+    "300": { "$value": "1.25rem", "$description": "20px — body2" },
+    "400": { "$value": "1.375rem", "$description": "22px — body1" },
+    "500": { "$value": "1.75rem", "$description": "28px — title3" },
+    "600": { "$value": "2rem", "$description": "32px — title2" },
+    "700": { "$value": "2.25rem", "$description": "36px — title1" },
+    "800": { "$value": "2.5rem", "$description": "40px — largeTitle" },
+    "900": { "$value": "3.25rem", "$description": "52px — display" }
+  },
+  "letterSpacing": {
+    "$type": "letterSpacing",
+    "normal": { "$value": "0em" },
+    "wide": { "$value": "0.04em", "$description": "Uppercase utility" }
+  },
+  "dimension": {
+    "$type": "dimension",
+    "spacingXXS": { "$value": "2px" },
+    "spacingXS": { "$value": "4px" },
+    "spacingSNudge": { "$value": "6px" },
+    "spacingS": { "$value": "8px", "$description": "Base unit" },
+    "spacingMNudge": { "$value": "10px" },
+    "spacingM": { "$value": "12px" },
+    "spacingL": { "$value": "16px" },
+    "spacingXL": { "$value": "20px" },
+    "spacingXXL": { "$value": "24px" },
+    "spacingXXXL": { "$value": "32px" },
+    "controlSmall": { "$value": "24px", "$description": "Small control height — dense" },
+    "controlMedium": { "$value": "32px", "$description": "Medium control height" },
+    "controlLarge": { "$value": "40px", "$description": "Large control height — default" },
+    "controlXL": { "$value": "52px", "$description": "XL control — hero inputs" }
+  },
+  "borderRadius": {
+    "$type": "borderRadius",
+    "none": { "$value": "0px" },
+    "small": { "$value": "2px", "$description": "Fluent small — tags, badges" },
+    "medium": { "$value": "4px", "$description": "Fluent medium — buttons, inputs — default" },
+    "large": { "$value": "6px", "$description": "Fluent large — cards" },
+    "xLarge": { "$value": "8px" },
+    "xxLarge": { "$value": "12px", "$description": "Dialogs, large cards" },
+    "xxxLarge": { "$value": "16px" },
+    "circular": { "$value": "9999px", "$description": "Avatars, pills" }
+  },
+  "breakpoint": {
+    "$type": "dimension",
+    "xs": { "$value": "320px" },
+    "s": { "$value": "480px" },
+    "m": { "$value": "640px" },
+    "l": { "$value": "1024px" },
+    "xl": { "$value": "1366px" },
+    "xxl": { "$value": "1920px" }
+  },
+  "shadow": {
+    "$type": "string",
+    "shadow2": { "$value": "0 1px 2px rgba(0,0,0,0.14), 0 0 2px rgba(0,0,0,0.12)", "$description": "Fluent shadow 2 — cards, dropdowns" },
+    "shadow4": { "$value": "0 2px 4px rgba(0,0,0,0.14), 0 0 2px rgba(0,0,0,0.12)" },
+    "shadow8": { "$value": "0 4px 8px rgba(0,0,0,0.14), 0 0 2px rgba(0,0,0,0.12)", "$description": "Menus, tooltips" },
+    "shadow16": { "$value": "0 8px 16px rgba(0,0,0,0.14), 0 0 2px rgba(0,0,0,0.12)" },
+    "shadow28": { "$value": "0 14px 28px rgba(0,0,0,0.24), 0 0 8px rgba(0,0,0,0.2)", "$description": "Dialogs, panels" },
+    "shadow64": { "$value": "0 32px 64px rgba(0,0,0,0.24), 0 0 8px rgba(0,0,0,0.2)", "$description": "Large overlays" }
+  }
+}

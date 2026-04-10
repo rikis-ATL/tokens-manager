@@ -5,9 +5,9 @@
  */
 
 import StyleDictionary from 'style-dictionary';
-import type { BuildTokensRequest, BuildTokensResult, FormatOutput, BrandFormatOutput } from '@/types';
+import type { BuildTokensRequest, BuildTokensResult, FormatOutput, BrandFormatOutput, ReferenceWarning } from '@/types';
 
-const FORMATS = ['css', 'scss', 'less', 'js', 'ts', 'json'] as const;
+const FORMATS = ['css', 'scss', 'less', 'js', 'ts', 'json', 'tailwind-v3', 'tailwind-v4', 'ios', 'android'] as const;
 type Format = typeof FORMATS[number];
 
 /**
@@ -163,34 +163,242 @@ function sanitizeTokenKeys(obj: Record<string, unknown>): Record<string, unknown
   return result;
 }
 
+// ─── Reference warning helpers ────────────────────────────────────────────────
+
 /**
- * Build a single brand's tokens into all 6 formats using style-dictionary v5 programmatic API.
- * Returns a map from format name to file content string.
+ * Walk a normalized token tree and collect every {ref} value with the declaring
+ * path segments (used to build the CSS var name for the warning table).
+ */
+function scanRefs(
+  obj: Record<string, unknown>,
+  path: string[] = []
+): Array<{ declPath: string[]; ref: string }> {
+  const found: Array<{ declPath: string[]; ref: string }> = [];
+  for (const [key, val] of Object.entries(obj)) {
+    if (key === '$value') {
+      if (typeof val === 'string' && val.startsWith('{') && val.endsWith('}')) {
+        found.push({ declPath: path, ref: val });
+      }
+    } else if (val && typeof val === 'object' && !Array.isArray(val) && !key.startsWith('$')) {
+      found.push(...scanRefs(val as Record<string, unknown>, [...path, key]));
+    }
+  }
+  return found;
+}
+
+/** Check whether a dot-path (e.g. "token.text.base") resolves to a token node */
+function pathExistsInTree(tree: Record<string, unknown>, dotPath: string): boolean {
+  const parts = dotPath.split('.');
+  let node: unknown = tree;
+  for (const part of parts) {
+    if (!node || typeof node !== 'object' || !(part in (node as Record<string, unknown>))) return false;
+    node = (node as Record<string, unknown>)[part];
+  }
+  if (!node || typeof node !== 'object') return false;
+  const n = node as Record<string, unknown>;
+  return '$value' in n || 'value' in n;
+}
+
+/** Convert path segments to a CSS custom property name, applying kebab-case */
+function pathToCssVar(segments: string[]): string {
+  return '--' + segments
+    .map(s => s.replace(/([A-Z])/g, c => `-${c.toLowerCase()}`))
+    .join('-');
+}
+
+/**
+ * Compare the normalized token tree against itself and return warnings for every
+ * reference whose target token does not exist in the same tree.
+ */
+function detectBrokenRefs(normalizedTree: Record<string, unknown>): ReferenceWarning[] {
+  const refs = scanRefs(normalizedTree);
+  return refs
+    .filter(({ ref }) => {
+      const dotPath = ref.slice(1, -1).replace(/\.value$/, '');
+      return !pathExistsInTree(normalizedTree, dotPath);
+    })
+    .map(({ declPath, ref }) => {
+      const dotPath = ref.slice(1, -1).replace(/\.value$/, '');
+      return {
+        tokenVar: pathToCssVar(declPath),
+        reference: ref,
+        referencedVar: pathToCssVar(dotPath.split('.')),
+        issue: 'broken' as const,
+      };
+    });
+}
+
+// ─── Tailwind config generator ────────────────────────────────────────────────
+
+/** Maps DTCG / common token $type values to Tailwind v3 theme.extend categories */
+const TYPE_TO_TAILWIND_V3_CATEGORY: Record<string, string> = {
+  color:          'colors',
+  dimension:      'spacing',
+  fontSize:       'fontSize',
+  fontWeight:     'fontWeight',
+  fontFamily:     'fontFamily',
+  lineHeight:     'lineHeight',
+  letterSpacing:  'letterSpacing',
+  borderRadius:   'borderRadius',
+  borderWidth:    'borderWidth',
+  opacity:        'opacity',
+  shadow:         'boxShadow',
+  duration:       'transitionDuration',
+  cubicBezier:    'transitionTimingFunction',
+};
+
+/** Maps DTCG / common token $type values to Tailwind v4 @theme CSS variable prefixes */
+const TYPE_TO_TAILWIND_V4_PREFIX: Record<string, string> = {
+  color:          'color',
+  dimension:      'spacing',
+  fontSize:       'text',
+  fontWeight:     'font-weight',
+  fontFamily:     'font',
+  lineHeight:     'leading',
+  letterSpacing:  'tracking',
+  borderRadius:   'radius',
+  borderWidth:    'border-width',
+  opacity:        'opacity',
+  shadow:         'shadow',
+  duration:       'duration',
+  cubicBezier:    'ease',
+};
+
+interface TailwindTokenEntry {
+  cssVar: string;    // e.g. '--token-color-primary-500'
+  keyParts: string[]; // path segments after namespace, kebab-cased: ['color', 'primary', '500']
+  type: string;      // DTCG $type value
+}
+
+/**
+ * Walk the normalized token tree and collect typed token entries.
+ * Inherits $type from ancestor nodes (style-dictionary convention).
+ * Strips the namespace root (first path segment) from keyParts.
+ */
+function walkForTailwind(
+  obj: Record<string, unknown>,
+  path: string[],
+  inheritedType: string | undefined,
+  out: TailwindTokenEntry[]
+): void {
+  const nodeType = (typeof obj['$type'] === 'string' ? obj['$type'] : null) ?? inheritedType;
+
+  if ('$value' in obj) {
+    if (nodeType) {
+      const keyParts = path.slice(1).map(s => s.replace(/([A-Z])/g, c => `-${c.toLowerCase()}`));
+      out.push({ cssVar: pathToCssVar(path), keyParts, type: nodeType });
+    }
+    return;
+  }
+
+  for (const [k, v] of Object.entries(obj)) {
+    if (k.startsWith('$')) continue;
+    if (v && typeof v === 'object' && !Array.isArray(v)) {
+      walkForTailwind(v as Record<string, unknown>, [...path, k], nodeType, out);
+    }
+  }
+}
+
+/**
+ * Generate a tailwind.config.js (v3) that maps every typed token to a CSS
+ * variable reference inside theme.extend.
+ */
+function generateTailwindV3Config(normalizedTokens: Record<string, unknown>): string {
+  const entries: TailwindTokenEntry[] = [];
+  walkForTailwind(normalizedTokens, [], undefined, entries);
+
+  const categoryMap = new Map<string, Array<{ key: string; cssVar: string }>>();
+  for (const { cssVar, keyParts, type } of entries) {
+    const category = TYPE_TO_TAILWIND_V3_CATEGORY[type];
+    if (!category) continue;
+    const key = keyParts.join('-');
+    if (!categoryMap.has(category)) categoryMap.set(category, []);
+    categoryMap.get(category)!.push({ key, cssVar });
+  }
+
+  if (categoryMap.size === 0) {
+    return `/** @type {import('tailwindcss').Config} */\nmodule.exports = {\n  theme: {\n    extend: {},\n  },\n};\n`;
+  }
+
+  const categoryEntries = Array.from(categoryMap.entries())
+    .map(([category, tokens]) => {
+      const tokenLines = tokens
+        .map(({ key, cssVar }) => `      '${key}': 'var(${cssVar})'`)
+        .join(',\n');
+      return `    ${category}: {\n${tokenLines},\n    }`;
+    })
+    .join(',\n');
+
+  return `/** @type {import('tailwindcss').Config} */\nmodule.exports = {\n  theme: {\n    extend: {\n${categoryEntries},\n    },\n  },\n};\n`;
+}
+
+/**
+ * Generate a Tailwind v4 CSS file using the @theme directive.
+ * Each token becomes a --{prefix}-{name} variable that references the token CSS var.
+ * The first keyPart is stripped when it matches the type name (avoids --color-color-...).
+ */
+function generateTailwindV4Config(normalizedTokens: Record<string, unknown>): string {
+  const entries: TailwindTokenEntry[] = [];
+  walkForTailwind(normalizedTokens, [], undefined, entries);
+
+  const lines: string[] = [];
+  for (const { cssVar, keyParts, type } of entries) {
+    const prefix = TYPE_TO_TAILWIND_V4_PREFIX[type];
+    if (!prefix) continue;
+    // Strip leading keyPart if it matches the type name (e.g. 'color' for type 'color')
+    const stripped = keyParts[0] === type.toLowerCase() ? keyParts.slice(1) : keyParts;
+    const name = stripped.join('-');
+    if (!name) continue;
+    lines.push(`  --${prefix}-${name}: var(${cssVar});`);
+  }
+
+  if (lines.length === 0) {
+    return `@import "tailwindcss";\n\n@theme {\n}\n`;
+  }
+
+  return `@import "tailwindcss";\n\n@theme {\n${lines.join('\n')}\n}\n`;
+}
+
+// ─── Brand token builder ───────────────────────────────────────────────────────
+
+/**
+ * Build a single brand's tokens into all 7 formats using style-dictionary v5 programmatic API.
+ * Returns a map from format name to file content string, plus any broken-ref warnings.
  */
 async function buildBrandTokens(
   brandTokens: Record<string, unknown>,
   namespace: string,
   brand: string
-): Promise<Map<Format, string>> {
+): Promise<{ results: Map<Format, string>; warnings: ReferenceWarning[] }> {
   const results = new Map<Format, string>();
 
   const normalizedBrandTokens = normalizeTokens(brandTokens);
+
+  // Detect broken references before SD processes the tree (SD may silently drop them)
+  const warnings = detectBrokenRefs(normalizedBrandTokens);
 
   // Sanitize reserved JS keywords in token group names before passing to SD.
   // Tokens from MongoDB are already wrapped with a namespace key (e.g. { token: { ... } })
   // so we pass them directly — no additional wrapping to avoid --token-token-... double prefix.
   const sanitizedTokens = sanitizeTokenKeys(normalizedBrandTokens);
 
-  const formatConfigs: Record<Format, { formatter: string; extension: string; transformGroup: string }> = {
-    css:  { formatter: 'css/variables',                transformGroup: 'css', extension: 'css' },
-    scss: { formatter: 'scss/variables',               transformGroup: 'css', extension: 'scss' },
-    less: { formatter: 'less/variables',               transformGroup: 'css', extension: 'less' },
-    js:   { formatter: 'javascript/es6',               transformGroup: 'js',  extension: 'js' },
-    ts:   { formatter: 'typescript/es6-declarations',  transformGroup: 'js',  extension: 'd.ts' },
-    json: { formatter: 'json/nested',                  transformGroup: 'js',  extension: 'json' },
+  // Generate Tailwind configs directly (do not go through Style Dictionary)
+  results.set('tailwind-v3', generateTailwindV3Config(normalizedBrandTokens));
+  results.set('tailwind-v4', generateTailwindV4Config(normalizedBrandTokens));
+
+  type SdFormat = Exclude<Format, 'tailwind-v3' | 'tailwind-v4'>;
+  const formatConfigs: Record<SdFormat, { formatter: string; extension: string; transformGroup: string; outputReferences: boolean }> = {
+    css:     { formatter: 'css/variables',                transformGroup: 'css',      extension: 'css',   outputReferences: true  },
+    scss:    { formatter: 'scss/variables',               transformGroup: 'css',      extension: 'scss',  outputReferences: true  },
+    less:    { formatter: 'less/variables',               transformGroup: 'css',      extension: 'less',  outputReferences: true  },
+    js:      { formatter: 'javascript/es6',               transformGroup: 'js',       extension: 'js',    outputReferences: false },
+    ts:      { formatter: 'typescript/es6-declarations',  transformGroup: 'js',       extension: 'd.ts',  outputReferences: false },
+    json:    { formatter: 'json/nested',                  transformGroup: 'js',       extension: 'json',  outputReferences: false },
+    ios:     { formatter: 'ios-swift/class.swift',        transformGroup: 'ios-swift', extension: 'swift', outputReferences: false },
+    android: { formatter: 'android/resources',            transformGroup: 'android',  extension: 'xml',   outputReferences: false },
   };
 
-  for (const [fmt, { formatter, extension, transformGroup }] of Object.entries(formatConfigs) as [Format, { formatter: string; extension: string; transformGroup: string }][]) {
+  for (const [fmt, { formatter, extension, transformGroup, outputReferences }] of Object.entries(formatConfigs) as [SdFormat, { formatter: string; extension: string; transformGroup: string; outputReferences: boolean }][]) {
     try {
       const sd = new StyleDictionary({
         tokens: sanitizedTokens as Record<string, never>,
@@ -205,7 +413,9 @@ async function buildBrandTokens(
                 destination: `tokens-${brand}.${extension}`,
                 format: formatter,
                 options: {
-                  outputReferences: false,
+                  // CSS/SCSS/LESS: emit var(--token-x) for reference tokens instead of resolved values.
+                  // JS/TS/JSON: keep resolved values (var() is not valid in JS contexts).
+                  outputReferences,
                 },
               },
             ],
@@ -214,9 +424,6 @@ async function buildBrandTokens(
         // Treat broken token references as console output, not thrown errors.
         // Tokens stored in MongoDB may contain reference values (e.g. {colors.primary})
         // that point outside the current brand's token set after globals merging.
-        // SD v5 validates references internally even when outputReferences: false — this
-        // config prevents those validation failures from throwing and aborting the build.
-        // logBrokenReferenceLevels: 'throw' | 'console' (no 'warn' in SD v5 types)
         log: {
           verbosity: 'silent',
           warnings: 'disabled',
@@ -241,7 +448,7 @@ async function buildBrandTokens(
     }
   }
 
-  return results;
+  return { results, warnings };
 }
 
 /**
@@ -265,12 +472,13 @@ async function buildCombinedOutput(
   darkTokens: Record<string, unknown>,
   namespace: string,
   brand: string
-): Promise<Map<Format, string>> {
+): Promise<{ results: Map<Format, string>; warnings: ReferenceWarning[] }> {
   const results = new Map<Format, string>();
 
   // Build both token sets
-  const lightMap = await buildBrandTokens(lightTokens, namespace, brand);
-  const darkMap  = await buildBrandTokens(darkTokens, `${namespace}Dark`, `${brand}-dark`);
+  const { results: lightMap, warnings: lightWarnings } = await buildBrandTokens(lightTokens, namespace, brand);
+  const { results: darkMap,  warnings: darkWarnings  } = await buildBrandTokens(darkTokens, `${namespace}Dark`, `${brand}-dark`);
+  const warnings = [...lightWarnings, ...darkWarnings];
 
   const CSS_FORMATS: Format[] = ['css', 'scss', 'less'];
   const JS_FORMATS:  Format[] = ['js', 'ts'];
@@ -305,7 +513,15 @@ async function buildCombinedOutput(
   // JSON: pass through light only (JSON spec forbids comments; no dark block structure)
   results.set('json', lightMap.get('json') ?? '');
 
-  return results;
+  // Tailwind: pass through light only (dark tokens map to the same CSS vars; no duplication needed)
+  results.set('tailwind-v3', lightMap.get('tailwind-v3') ?? '');
+  results.set('tailwind-v4', lightMap.get('tailwind-v4') ?? '');
+
+  // Mobile: pass through light only (dark mode handled natively on each platform)
+  results.set('ios', lightMap.get('ios') ?? '');
+  results.set('android', lightMap.get('android') ?? '');
+
+  return { results, warnings };
 }
 
 /**
@@ -324,6 +540,7 @@ export async function buildTokens(request: BuildTokensRequest): Promise<BuildTok
   const brands = mergeGlobalsIntoBrands(rawBrands);
 
   const formatOutputs = new Map<Format, FormatOutput>();
+  const allWarnings: ReferenceWarning[] = [];
 
   // Initialize format outputs
   for (const fmt of FORMATS) {
@@ -333,6 +550,7 @@ export async function buildTokens(request: BuildTokensRequest): Promise<BuildTok
   // Build each brand
   for (const { brand, tokens: brandTokens } of brands) {
     let builtFormats: Map<Format, string>;
+    let brandWarnings: ReferenceWarning[];
 
     if (darkTokens) {
       // Combined light+dark output: detect dark brands the same way
@@ -341,13 +559,21 @@ export async function buildTokens(request: BuildTokensRequest): Promise<BuildTok
       // Match by brand name; fall back to first dark brand if no name match
       const darkBrand = darkBrands.find(b => b.brand === brand) ?? darkBrands[0];
       if (darkBrand) {
-        builtFormats = await buildCombinedOutput(brandTokens, darkBrand.tokens, namespace, brand);
+        const built = await buildCombinedOutput(brandTokens, darkBrand.tokens, namespace, brand);
+        builtFormats = built.results;
+        brandWarnings = built.warnings;
       } else {
-        builtFormats = await buildBrandTokens(brandTokens, namespace, brand);
+        const built = await buildBrandTokens(brandTokens, namespace, brand);
+        builtFormats = built.results;
+        brandWarnings = built.warnings;
       }
     } else {
-      builtFormats = await buildBrandTokens(brandTokens, namespace, brand);
+      const built = await buildBrandTokens(brandTokens, namespace, brand);
+      builtFormats = built.results;
+      brandWarnings = built.warnings;
     }
+
+    allWarnings.push(...brandWarnings);
 
     // When a dark-mode theme is exported directly, replace :root { with the dark selector
     if (colorMode === 'dark' && !darkTokens) {
@@ -362,8 +588,19 @@ export async function buildTokens(request: BuildTokensRequest): Promise<BuildTok
 
     for (const fmt of FORMATS) {
       const content = builtFormats.get(fmt) ?? '';
-      const ext = fmt === 'ts' ? 'd.ts' : fmt;
-      const filename = `tokens-${brand}.${ext}`;
+      let filename: string;
+      if (fmt === 'tailwind-v3') {
+        filename = brands.length > 1 ? `tailwind.config.${brand}.js` : 'tailwind.config.js';
+      } else if (fmt === 'tailwind-v4') {
+        filename = brands.length > 1 ? `tailwind.${brand}.css` : 'tailwind.css';
+      } else if (fmt === 'ios') {
+        filename = `tokens-${brand}.swift`;
+      } else if (fmt === 'android') {
+        filename = `tokens-${brand}.xml`;
+      } else {
+        const ext = fmt === 'ts' ? 'd.ts' : fmt;
+        filename = `tokens-${brand}.${ext}`;
+      }
       formatOutputs.get(fmt)!.outputs.push({ brand, content, filename } as BrandFormatOutput);
     }
   }
@@ -371,5 +608,6 @@ export async function buildTokens(request: BuildTokensRequest): Promise<BuildTok
   return {
     formats: Array.from(formatOutputs.values()),
     collectionName,
+    ...(allWarnings.length > 0 && { warnings: allWarnings }),
   };
 }

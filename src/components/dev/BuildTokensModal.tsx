@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import JSZip from 'jszip';
-import type { BuildTokensResult, FormatOutput } from '@/types';
+import type { BuildTokensResult, FormatOutput, ReferenceWarning } from '@/types';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 
@@ -15,15 +15,19 @@ interface BuildTokensModalProps {
 }
 
 const FORMAT_LABELS: Record<string, string> = {
-  css:  'CSS',
-  scss: 'SCSS',
-  less: 'LESS',
-  js:   'JS',
-  ts:   'TS',
-  json: 'JSON',
+  css:           'CSS',
+  scss:          'SCSS',
+  less:          'LESS',
+  js:            'JS',
+  ts:            'TS',
+  json:          'JSON',
+  'tailwind-v3': 'Tailwind v3',
+  'tailwind-v4': 'Tailwind v4',
+  ios:           'iOS (Swift)',
+  android:       'Android (XML)',
 };
 
-const FORMATS = ['css', 'scss', 'less', 'js', 'ts', 'json'] as const;
+const FORMATS = ['css', 'scss', 'less', 'js', 'ts', 'json', 'tailwind-v3', 'tailwind-v4', 'ios', 'android'] as const;
 type Format = typeof FORMATS[number];
 
 export function BuildTokensModal({
@@ -177,6 +181,35 @@ export function BuildTokensModal({
           {/* Success state */}
           {!loading && result && (
             <div className="flex flex-col gap-4">
+              {/* Reference warnings table */}
+              {result.warnings && result.warnings.length > 0 && (
+                <div className="rounded border border-amber-300 bg-amber-50 p-3">
+                  <p className="text-xs font-semibold text-amber-800 mb-2">
+                    ⚠ {result.warnings.length} broken reference{result.warnings.length !== 1 ? 's' : ''} — these var() calls will resolve to empty values at runtime
+                  </p>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs font-mono">
+                      <thead>
+                        <tr className="text-left text-amber-700 border-b border-amber-200">
+                          <th className="pb-1 pr-4 font-medium">Token</th>
+                          <th className="pb-1 pr-4 font-medium">Reference</th>
+                          <th className="pb-1 font-medium">Missing var()</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {result.warnings.map((w: ReferenceWarning, i: number) => (
+                          <tr key={i} className="border-b border-amber-100 last:border-0">
+                            <td className="py-0.5 pr-4 text-amber-900">{w.tokenVar}</td>
+                            <td className="py-0.5 pr-4 text-amber-700">{w.reference}</td>
+                            <td className="py-0.5 text-red-600">{w.referencedVar}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
               {/* Format tabs */}
               <div className="flex border-b border-gray-200">
                 {FORMATS.map(fmt => (

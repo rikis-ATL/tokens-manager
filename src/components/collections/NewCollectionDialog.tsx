@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Loader2, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,6 +31,9 @@ export function NewCollectionDialog({
   onCreated,
 }: NewCollectionDialogProps) {
   const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
   const [namespace, setNamespace] = useState('');
   const [colorFormat, setColorFormat] = useState<'hex' | 'hsl' | 'oklch'>('hex');
   const [duplicateSourceId, setDuplicateSourceId] = useState('');
@@ -43,6 +46,7 @@ export function NewCollectionDialog({
   /** When set, palette/types/spacing ids match this awesome-design-md bundle */
   const [designMdBundleId, setDesignMdBundleId] = useState('');
 
+  const tagInputRef = useRef<HTMLInputElement>(null);
   const isDuplicating = !!duplicateSourceId;
   const hasPresets =
     designMdBundleId !== '' ||
@@ -50,8 +54,28 @@ export function NewCollectionDialog({
     typescalePresetId !== 'none' ||
     spacingPresetId !== 'none';
 
+  const commitTagInput = () => {
+    const raw = tagInput.trim().replace(/,+$/, '');
+    if (!raw) return;
+    const newTags = raw.split(',').map((t) => t.trim().toLowerCase()).filter(Boolean);
+    setTags((prev) => {
+      const merged = [...prev];
+      for (const t of newTags) if (!merged.includes(t)) merged.push(t);
+      return merged;
+    });
+    setTagInput('');
+  };
+
+  const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); commitTagInput(); }
+    else if (e.key === 'Backspace' && tagInput === '' && tags.length > 0) setTags((p) => p.slice(0, -1));
+  };
+
   const resetForm = () => {
     setName('');
+    setDescription('');
+    setTags([]);
+    setTagInput('');
     setNamespace('');
     setColorFormat('hex');
     setDuplicateSourceId('');
@@ -129,11 +153,13 @@ export function NewCollectionDialog({
         const res = await fetch('/api/collections', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            name: trimmedName, 
-            namespace: namespace.trim() || undefined, 
+          body: JSON.stringify({
+            name: trimmedName,
+            namespace: namespace.trim() || undefined,
             colorFormat,
-            tokens 
+            description: description.trim() || null,
+            tags,
+            tokens,
           }),
         });
         if (!res.ok) {
@@ -171,6 +197,52 @@ export function NewCollectionDialog({
               autoFocus
             />
             {error && <p className="text-xs text-red-600">{error}</p>}
+          </div>
+
+          {/* Description */}
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-gray-700">
+              Description
+              <span className="font-normal text-gray-500 ml-1">(optional)</span>
+            </label>
+            <textarea
+              className="w-full text-sm border border-gray-300 rounded-md px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400"
+              rows={2}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="What are these tokens for?"
+            />
+          </div>
+
+          {/* Tags */}
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-gray-700">
+              Tags
+              <span className="font-normal text-gray-500 ml-1">(optional)</span>
+            </label>
+            <div
+              className="flex flex-wrap gap-1.5 min-h-[38px] w-full border border-gray-300 rounded-md px-2 py-1.5 cursor-text focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent"
+              onClick={() => tagInputRef.current?.focus()}
+            >
+              {tags.map((tag) => (
+                <span key={tag} className="flex items-center gap-1 bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded-full">
+                  {tag}
+                  <button type="button" className="text-gray-400 hover:text-gray-600" onClick={(e) => { e.stopPropagation(); setTags((p) => p.filter((t) => t !== tag)); }}>
+                    <X size={10} />
+                  </button>
+                </span>
+              ))}
+              <input
+                ref={tagInputRef}
+                className="flex-1 min-w-[80px] text-sm outline-none bg-transparent placeholder:text-gray-400"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={handleTagKeyDown}
+                onBlur={commitTagInput}
+                placeholder={tags.length === 0 ? 'brand, mobile, dark-mode…' : ''}
+              />
+            </div>
+            <p className="text-xs text-gray-500">Press Enter or comma to add a tag.</p>
           </div>
 
           <div className="space-y-1">

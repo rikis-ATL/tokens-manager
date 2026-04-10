@@ -1,0 +1,118 @@
+{
+  "color": {
+    "brand": {
+      "$type": "color",
+      "orange": { "$value": "#D97706", "$description": "Primary brand amber/orange — CTAs, links, accents" },
+      "orangeLight": { "$value": "#F59E0B", "$description": "Hover state, highlight accent" },
+      "orangeDark": { "$value": "#B45309", "$description": "Pressed state, deep accent" }
+    },
+    "neutral": {
+      "$type": "color",
+      "cream": { "$value": "#FAF9F7", "$description": "Warm page background — signature Anthropic warmth" },
+      "warmWhite": { "$value": "#FFFEF9", "$description": "Card / chat bubble surface" },
+      "50": { "$value": "#F5F4F0", "$description": "Subtle divider / section bg" },
+      "100": { "$value": "#E8E6E1", "$description": "Border, input outline" },
+      "300": { "$value": "#B5B0A7", "$description": "Placeholder, disabled" },
+      "500": { "$value": "#6B6760", "$description": "Secondary text, captions" },
+      "700": { "$value": "#3D3A36", "$description": "Secondary headings" },
+      "900": { "$value": "#1A1918", "$description": "Primary text — warm near-black" }
+    },
+    "surface": {
+      "$type": "color",
+      "sidebar": { "$value": "#1F1E1C", "$description": "Dark sidebar background" },
+      "sidebarHover": { "$value": "#2A2926", "$description": "Sidebar item hover" },
+      "sidebarActive": { "$value": "#333230", "$description": "Active sidebar item" },
+      "inputBg": { "$value": "#FFFFFF", "$description": "Chat input background" },
+      "userBubble": { "$value": "#F0EDE8", "$description": "User message bubble" },
+      "assistantBubble": { "$value": "#FFFEF9", "$description": "Assistant response surface" }
+    },
+    "semantic": {
+      "$type": "color",
+      "success": { "$value": "#059669", "$description": "Positive feedback, success states" },
+      "warning": { "$value": "#D97706", "$description": "Caution — reuses brand orange" },
+      "error": { "$value": "#DC2626", "$description": "Destructive, error states" },
+      "info": { "$value": "#2563EB", "$description": "Informational highlights" }
+    }
+  },
+  "fontFamily": {
+    "$type": "fontFamily",
+    "sans": {
+      "$value": "Söhne, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif",
+      "$description": "Primary UI — humanist sans-serif warmth"
+    },
+    "serif": {
+      "$value": "Tiempos Text, Georgia, Cambria, serif",
+      "$description": "Long-form prose, marketing body copy"
+    },
+    "mono": {
+      "$value": "ui-monospace, SFMono-Regular, SF Mono, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace",
+      "$description": "Code blocks in chat responses"
+    }
+  },
+  "fontSize": {
+    "$type": "fontSize",
+    "hero": { "$value": "3rem", "$description": "48px — Marketing hero" },
+    "h1": { "$value": "2rem", "$description": "32px — Page headings" },
+    "h2": { "$value": "1.5rem", "$description": "24px — Section headings" },
+    "h3": { "$value": "1.25rem", "$description": "20px — Sub-section headings" },
+    "bodyLarge": { "$value": "1.125rem", "$description": "18px — Primary reading / chat" },
+    "body": { "$value": "1rem", "$description": "16px — Standard UI" },
+    "small": { "$value": "0.875rem", "$description": "14px — Captions, sidebar items" },
+    "xs": { "$value": "0.75rem", "$description": "12px — Meta, timestamps" }
+  },
+  "fontWeight": {
+    "$type": "fontWeight",
+    "regular": { "$value": "400", "$description": "Body, chat text" },
+    "medium": { "$value": "500", "$description": "UI elements, sidebar" },
+    "semibold": { "$value": "600", "$description": "Headings, emphasis" }
+  },
+  "lineHeight": {
+    "$type": "lineHeight",
+    "tight": { "$value": "1.2", "$description": "Display text" },
+    "snug": { "$value": "1.4", "$description": "Headings" },
+    "normal": { "$value": "1.6", "$description": "Body / chat — relaxed reading" },
+    "relaxed": { "$value": "1.75", "$description": "Long-form prose" }
+  },
+  "letterSpacing": {
+    "$type": "letterSpacing",
+    "tight": { "$value": "-0.02em", "$description": "Display/hero" },
+    "normal": { "$value": "0em", "$description": "Body" },
+    "wide": { "$value": "0.05em", "$description": "Uppercase labels" }
+  },
+  "dimension": {
+    "$type": "dimension",
+    "1": { "$value": "4px" },
+    "2": { "$value": "8px", "$description": "Base unit" },
+    "3": { "$value": "12px" },
+    "4": { "$value": "16px" },
+    "5": { "$value": "24px" },
+    "6": { "$value": "32px" },
+    "7": { "$value": "48px" },
+    "8": { "$value": "64px" },
+    "chatMaxWidth": { "$value": "48rem", "$description": "768px — max chat bubble width" },
+    "sidebarWidth": { "$value": "260px", "$description": "Left conversation sidebar" },
+    "inputMinHeight": { "$value": "56px", "$description": "Chat input box minimum height" }
+  },
+  "borderRadius": {
+    "$type": "borderRadius",
+    "sm": { "$value": "4px", "$description": "Inline chips, small badges" },
+    "md": { "$value": "8px", "$description": "Buttons, inputs" },
+    "lg": { "$value": "12px", "$description": "Cards, modals" },
+    "xl": { "$value": "16px", "$description": "Chat bubbles" },
+    "pill": { "$value": "9999px", "$description": "New chat button, tags" }
+  },
+  "breakpoint": {
+    "$type": "dimension",
+    "mobile": { "$value": "375px" },
+    "tablet": { "$value": "768px" },
+    "desktop": { "$value": "1024px" },
+    "wide": { "$value": "1280px" }
+  },
+  "shadow": {
+    "$type": "string",
+    "xs": { "$value": "0 1px 3px rgba(26,25,24,0.06)", "$description": "Subtle warm shadow" },
+    "sm": { "$value": "0 2px 8px rgba(26,25,24,0.10)", "$description": "Input focus, cards" },
+    "md": { "$value": "0 4px 20px rgba(26,25,24,0.12)", "$description": "Dropdowns, popovers" },
+    "lg": { "$value": "0 8px 40px rgba(26,25,24,0.16)", "$description": "Modals, overlays" }
+  }
+}

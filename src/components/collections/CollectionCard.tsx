@@ -9,6 +9,7 @@ interface CollectionCardProps {
   onRename: (id: string, newName: string) => Promise<void>;
   onDelete: (id: string) => void;
   onDuplicate: (id: string) => Promise<void>;
+  onEdit: (id: string) => void;
   onClick: (id: string) => void;
 }
 
@@ -17,6 +18,7 @@ export function CollectionCard({
   onRename,
   onDelete,
   onDuplicate,
+  onEdit,
   onClick,
 }: CollectionCardProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -49,6 +51,12 @@ export function CollectionCard({
     setRenameValue(collection.name);
     setIsMenuOpen(false);
     setIsRenaming(true);
+  };
+
+  const handleEditSelect = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsMenuOpen(false);
+    onEdit(collection._id);
   };
 
   const handleDuplicateSelect = (e: React.MouseEvent) => {
@@ -115,6 +123,12 @@ export function CollectionCard({
               onClick={handleRenameSelect}
             >
               Rename
+            </button>
+            <button
+              className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+              onClick={handleEditSelect}
+            >
+              Edit details
             </button>
             <button
               className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"

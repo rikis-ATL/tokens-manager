@@ -1,0 +1,139 @@
+{
+  "color": {
+    "shell": {
+      "$type": "color",
+      "background": { "$value": "#3C3F41", "$description": "Main IDE background — panels, toolbars" },
+      "backgroundDarker": { "$value": "#2B2B2B", "$description": "Darker surface — tree, list bg" },
+      "editorBackground": { "$value": "#2B2B2B", "$description": "Editor pane background" },
+      "editorGutter": { "$value": "#313335", "$description": "Line number gutter" },
+      "sidebarBackground": { "$value": "#3C3F41" },
+      "toolbarBackground": { "$value": "#3C3F41" },
+      "popupBackground": { "$value": "#3C3F41", "$description": "Autocomplete, quick-doc popups" },
+      "selectionBackground": { "$value": "#214283", "$description": "Editor text selection" },
+      "selectionInactive": { "$value": "#2E436E", "$description": "Inactive window selection" },
+      "caretColor": { "$value": "#ABABAB" },
+      "lineHighlight": { "$value": "#323232", "$description": "Current line highlight" },
+      "border": { "$value": "#545556", "$description": "UI component borders" },
+      "borderSubtle": { "$value": "#4A4A4A" },
+      "focusBorder": { "$value": "#3D6185" },
+      "listHoverBackground": { "$value": "#4B4F51" },
+      "listSelectedBackground": { "$value": "#4B6EAF", "$description": "Selected item in lists/trees" },
+      "buttonBackground": { "$value": "#4C5052", "$description": "Default button bg" },
+      "buttonPrimary": { "$value": "#365880", "$description": "Primary action button" },
+      "inputBackground": { "$value": "#45494A" },
+      "inputBorder": { "$value": "#646464" },
+      "scrollbarThumb": { "$value": "rgba(128,128,128,0.35)" },
+      "badgeBackground": { "$value": "#4B6EAF" },
+      "runBackground": { "$value": "#2B2B2B", "$description": "Run tool window" },
+      "terminalBackground": { "$value": "#1E1E1E" }
+    },
+    "syntax": {
+      "$type": "color",
+      "default": { "$value": "#A9B7C6", "$description": "Default text / identifiers" },
+      "keyword": { "$value": "#CC7832", "$description": "Keywords (class, def, if…) — orange" },
+      "string": { "$value": "#6A8759", "$description": "String literals — green" },
+      "stringEscape": { "$value": "#CC7832", "$description": "Escape chars in strings — orange" },
+      "comment": { "$value": "#808080", "$description": "Line and block comments — gray" },
+      "docComment": { "$value": "#629755", "$description": "Javadoc / KDoc — green" },
+      "docTag": { "$value": "#629755" },
+      "number": { "$value": "#6897BB", "$description": "Numeric literals — blue" },
+      "annotation": { "$value": "#BBB529", "$description": "Annotations (@Override, etc.) — yellow-green" },
+      "type": { "$value": "#FFC66D", "$description": "Class/type names — pale yellow" },
+      "interface": { "$value": "#FFC66D" },
+      "function": { "$value": "#FFC66D", "$description": "Method declarations — pale yellow" },
+      "parameter": { "$value": "#A9B7C6" },
+      "localVariable": { "$value": "#A9B7C6" },
+      "instanceField": { "$value": "#9876AA", "$description": "Instance fields / properties — purple" },
+      "staticField": { "$value": "#9876AA" },
+      "staticMethod": { "$value": "#A9B7C6" },
+      "operator": { "$value": "#A9B7C6" },
+      "bracket": { "$value": "#A9B7C6" },
+      "identifier": { "$value": "#A9B7C6" },
+      "invalid": { "$value": "#BC3F3C", "$description": "Error / invalid syntax — red" },
+      "warning": { "$value": "#D6BF55" },
+      "deprecated": { "$value": "#808080" },
+      "injected": { "$value": "#AC6020", "$description": "Injected language fragments" },
+      "templateLiteral": { "$value": "#6A8759" },
+      "regexContent": { "$value": "#364135" },
+      "regexQuantifier": { "$value": "#CC7832" }
+    },
+    "semantic": {
+      "$type": "color",
+      "error": { "$value": "#BC3F3C", "$description": "Error underlines, inspections" },
+      "warning": { "$value": "#D6BF55", "$description": "Warning inspections" },
+      "weakWarning": { "$value": "#8C8C00" },
+      "info": { "$value": "#3D7CD1" },
+      "success": { "$value": "#6A8759" },
+      "breakpoint": { "$value": "#6E3434", "$description": "Breakpoint line highlight" },
+      "executionLine": { "$value": "#2D6119" }
+    },
+    "vcs": {
+      "$type": "color",
+      "added": { "$value": "#294436", "$description": "Added lines gutter bg" },
+      "addedStripe": { "$value": "#3B5F45" },
+      "modified": { "$value": "#385570", "$description": "Modified lines gutter bg" },
+      "modifiedStripe": { "$value": "#4B6F96" },
+      "deleted": { "$value": "#4B1818", "$description": "Deleted lines" },
+      "conflict": { "$value": "#45302B" }
+    }
+  },
+  "fontFamily": {
+    "$type": "fontFamily",
+    "sans": {
+      "$value": "-apple-system, BlinkMacSystemFont, JetBrains Sans, Segoe UI, Helvetica Neue, Arial, sans-serif",
+      "$description": "JetBrains Sans for IDE UI (licensed); system fallback"
+    },
+    "mono": {
+      "$value": "JetBrains Mono, Menlo, Monaco, Consolas, Courier New, monospace",
+      "$description": "JetBrains Mono — open source, default editor font since IntelliJ 2020.1"
+    }
+  },
+  "fontSize": {
+    "$type": "fontSize",
+    "editorDefault": { "$value": "13px", "$description": "Default editor font size" },
+    "ui": { "$value": "13px", "$description": "IDE UI chrome" },
+    "small": { "$value": "11px", "$description": "Status bar, breadcrumbs" },
+    "tooltip": { "$value": "12px" }
+  },
+  "fontWeight": {
+    "$type": "fontWeight",
+    "regular": { "$value": "400" },
+    "medium": { "$value": "500" },
+    "bold": { "$value": "700" }
+  },
+  "lineHeight": {
+    "$type": "lineHeight",
+    "editor": { "$value": "1.2", "$description": "Compact IDE editor line height" },
+    "ui": { "$value": "1.4" }
+  },
+  "letterSpacing": {
+    "$type": "letterSpacing",
+    "normal": { "$value": "0em" }
+  },
+  "dimension": {
+    "$type": "dimension",
+    "toolWindowWidth": { "$value": "280px" },
+    "statusBarHeight": { "$value": "24px" },
+    "toolbarHeight": { "$value": "40px" },
+    "tabHeight": { "$value": "28px", "$description": "Editor tab height — compact" },
+    "iconSize": { "$value": "16px", "$description": "Standard IDE icon size" }
+  },
+  "borderRadius": {
+    "$type": "borderRadius",
+    "none": { "$value": "0px" },
+    "sm": { "$value": "2px" },
+    "md": { "$value": "4px", "$description": "Buttons, inputs, popups" },
+    "pill": { "$value": "9999px" }
+  },
+  "breakpoint": {
+    "$type": "dimension",
+    "compact": { "$value": "800px" },
+    "normal": { "$value": "1200px" }
+  },
+  "shadow": {
+    "$type": "string",
+    "popup": { "$value": "0 2px 12px rgba(0,0,0,0.5)", "$description": "Autocomplete / quick-doc popup shadow" },
+    "tooltip": { "$value": "0 4px 8px rgba(0,0,0,0.4)" },
+    "dialog": { "$value": "0 8px 24px rgba(0,0,0,0.5)" }
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "color": {
+    "brand": {
+      "$type": "color",
+      "red": { "$value": "#F22F46", "$description": "Twilio red — primary brand, high-energy CTAs" },
+      "redDark": { "$value": "#C41B31", "$description": "Pressed / hover Twilio red" },
+      "redLight": { "$value": "#FFDDE1", "$description": "Red tint surface" }
+    },
+    "text": {
+      "$type": "color",
+      "stronger": { "$value": "#06080C", "$description": "Stronger text — headings" },
+      "strong": { "$value": "#121C2D", "$description": "Strong text — body primary" },
+      "weak": { "$value": "#606B85", "$description": "Weak text — secondary, helper" },
+      "weaker": { "$value": "#96A2BE", "$description": "Weaker — placeholder, disabled" },
+      "weakest": { "$value": "#CDD0D8", "$description": "Weakest — decorative only" },
+      "inverse": { "$value": "#FFFFFF", "$description": "Text on dark bg" },
+      "error": { "$value": "#C41B31" },
+      "warning": { "$value": "#855C0E" },
+      "success": { "$value": "#067647" },
+      "info": { "$value": "#0D4FBF" },
+      "link": { "$value": "#0D4FBF", "$description": "Link color — deep blue" },
+      "linkVisited": { "$value": "#6B21A8" }
+    },
+    "background": {
+      "$type": "color",
+      "body": { "$value": "#F4F4F6", "$description": "Page background" },
+      "bodyInverse": { "$value": "#121C2D", "$description": "Dark page" },
+      "row": { "$value": "#FFFFFF", "$description": "Table row" },
+      "rowEven": { "$value": "#F9F9FB", "$description": "Striped table row" },
+      "rowHover": { "$value": "#EEF0F5", "$description": "Hovered row" }
+    },
+    "color": {
+      "$type": "color",
+      "surface": { "$value": "#FFFFFF", "$description": "Card / panel surface" },
+      "surfaceSubtle": { "$value": "#F9F9FB" },
+      "border": { "$value": "#D1D5DB", "$description": "Default border" },
+      "borderWeak": { "$value": "#E5E7EB", "$description": "Weak border — table rows" },
+      "borderError": { "$value": "#F22F46" },
+      "error": { "$value": "#F22F46" },
+      "warning": { "$value": "#EAA600" },
+      "success": { "$value": "#07C26A" },
+      "info": { "$value": "#1A73E8" }
+    }
+  },
+  "fontFamily": {
+    "$type": "fontFamily",
+    "sans": {
+      "$value": "Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Helvetica Neue, sans-serif",
+      "$description": "Paste primary — Inter (public); TwilioSans in Twilio internal tooling"
+    },
+    "mono": {
+      "$value": "Fira Code, Fira Mono, Roboto Mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+      "$description": "Code, API responses, phone numbers"
+    }
+  },
+  "fontSize": {
+    "$type": "fontSize",
+    "display10": { "$value": "2.75rem", "$description": "44px — Display 10, hero" },
+    "display20": { "$value": "2.25rem", "$description": "36px — Display 20" },
+    "display30": { "$value": "1.875rem", "$description": "30px — Display 30" },
+    "heading10": { "$value": "1.5rem", "$description": "24px — Heading 10" },
+    "heading20": { "$value": "1.25rem", "$description": "20px — Heading 20" },
+    "heading30": { "$value": "1.125rem", "$description": "18px — Heading 30" },
+    "heading40": { "$value": "1rem", "$description": "16px — Heading 40" },
+    "heading50": { "$value": "0.875rem", "$description": "14px — Heading 50" },
+    "heading60": { "$value": "0.75rem", "$description": "12px — Heading 60" },
+    "body10": { "$value": "1rem", "$description": "16px — Body 10 default" },
+    "body20": { "$value": "0.875rem", "$description": "14px — Body 20 compact" },
+    "body30": { "$value": "0.75rem", "$description": "12px — Body 30 caption" }
+  },
+  "fontWeight": {
+    "$type": "fontWeight",
+    "regular": { "$value": "400" },
+    "medium": { "$value": "500" },
+    "semibold": { "$value": "600", "$description": "Headings" },
+    "bold": { "$value": "700" }
+  },
+  "lineHeight": {
+    "$type": "lineHeight",
+    "display": { "$value": "1.2", "$description": "Display text" },
+    "heading": { "$value": "1.35", "$description": "Headings" },
+    "body": { "$value": "1.6", "$description": "Body — generous for readability" },
+    "caption": { "$value": "1.5", "$description": "Caption" }
+  },
+  "letterSpacing": {
+    "$type": "letterSpacing",
+    "normal": { "$value": "0em" },
+    "wide": { "$value": "0.06em", "$description": "Uppercase heading labels" }
+  },
+  "dimension": {
+    "$type": "dimension",
+    "space10": { "$value": "2px" },
+    "space20": { "$value": "4px" },
+    "space30": { "$value": "6px" },
+    "space40": { "$value": "8px", "$description": "Base unit" },
+    "space50": { "$value": "12px" },
+    "space60": { "$value": "16px" },
+    "space70": { "$value": "20px" },
+    "space80": { "$value": "24px" },
+    "space90": { "$value": "32px" },
+    "space100": { "$value": "40px" },
+    "space110": { "$value": "48px" },
+    "space120": { "$value": "64px" },
+    "space130": { "$value": "80px" },
+    "space140": { "$value": "96px" },
+    "space150": { "$value": "128px" }
+  },
+  "borderRadius": {
+    "$type": "borderRadius",
+    "none": { "$value": "0px" },
+    "borderRadius10": { "$value": "2px", "$description": "Smallest radius" },
+    "borderRadius20": { "$value": "4px", "$description": "Badges, chips" },
+    "borderRadius30": { "$value": "8px", "$description": "Inputs, buttons, cards" },
+    "borderRadiusPill": { "$value": "9999px", "$description": "Tags, status badges" },
+    "borderRadiusCircle": { "$value": "50%", "$description": "Avatar" }
+  },
+  "breakpoint": {
+    "$type": "dimension",
+    "sm": { "$value": "400px" },
+    "md": { "$value": "768px" },
+    "lg": { "$value": "1024px" },
+    "xl": { "$value": "1280px" }
+  },
+  "shadow": {
+    "$type": "string",
+    "shadow10": { "$value": "0 1px 4px 0 rgba(18,28,45,0.1)", "$description": "Subtle lift — input focus" },
+    "shadow20": { "$value": "0 4px 8px 0 rgba(18,28,45,0.12)", "$description": "Card hover" },
+    "shadow30": { "$value": "0 8px 16px 0 rgba(18,28,45,0.12)", "$description": "Dropdown, tooltip" },
+    "shadowFocus": { "$value": "0 0 0 4px rgba(242,47,70,0.3)", "$description": "Brand red focus ring" }
+  }
+}

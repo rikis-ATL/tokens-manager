@@ -1,0 +1,126 @@
+{
+  "color": {
+    "brand": {
+      "$type": "color",
+      "orange": { "$value": "#E8730A", "$description": "Orbit orange — primary CTA, booking actions" },
+      "orangeLight": { "$value": "#F9A86C", "$description": "Hover, light accent" },
+      "orangeDark": { "$value": "#B35200", "$description": "Pressed, deep accent" }
+    },
+    "product": {
+      "$type": "color",
+      "blue": { "$value": "#0176D2", "$description": "Blue normal — links, focus, information" },
+      "blueLight": { "$value": "#E0F0FF", "$description": "Blue light bg — info surfaces" },
+      "blueDark": { "$value": "#005AA3", "$description": "Blue dark — pressed links" },
+      "green": { "$value": "#28A138", "$description": "Success — confirmed bookings, OK states" },
+      "greenLight": { "$value": "#EAF5EB", "$description": "Success surface" },
+      "greenDark": { "$value": "#1D7A29", "$description": "Success pressed" },
+      "red": { "$value": "#D21C1C", "$description": "Critical — errors, cancellations, warnings" },
+      "redLight": { "$value": "#FAEAEA", "$description": "Critical surface" },
+      "redDark": { "$value": "#9E1515", "$description": "Critical pressed" },
+      "orange": { "$value": "#E8730A", "$description": "Warning — partial, caution states" },
+      "orangeLight": { "$value": "#FEF0E2", "$description": "Warning surface" }
+    },
+    "ink": {
+      "$type": "color",
+      "dark": { "$value": "#252A31", "$description": "inkDark — primary text, headings" },
+      "normal": { "$value": "#252A31", "$description": "inkNormal — default text" },
+      "light": { "$value": "#697D95", "$description": "inkLight — secondary text, labels" },
+      "lighter": { "$value": "#BAC7D5", "$description": "inkLighter — placeholder, disabled" },
+      "lightest": { "$value": "#E8EDF1", "$description": "inkLightest — borders, dividers" }
+    },
+    "cloud": {
+      "$type": "color",
+      "dark": { "$value": "#BAC7D5", "$description": "cloudDark — strong borders" },
+      "normal": { "$value": "#E8EDF1", "$description": "cloudNormal — card borders, separators" },
+      "light": { "$value": "#F5F7F9", "$description": "cloudLight — page background, subtle tint" },
+      "lighter": { "$value": "#F9FAFB", "$description": "cloudLighter — lightest surface" }
+    },
+    "white": {
+      "$type": "color",
+      "normal": { "$value": "#FFFFFF", "$description": "Pure white — card surfaces, modals" }
+    }
+  },
+  "fontFamily": {
+    "$type": "fontFamily",
+    "sans": {
+      "$value": "Circular Pro, -apple-system, BlinkMacSystemFont, Roboto, Helvetica Neue, Arial, sans-serif",
+      "$description": "Circular Pro — Orbit primary typeface; system fallback chain"
+    },
+    "mono": {
+      "$value": "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+      "$description": "Code, PNR references, booking IDs"
+    }
+  },
+  "fontSize": {
+    "$type": "fontSize",
+    "displayTitle": { "$value": "2.5rem", "$description": "40px — Page display title" },
+    "title1": { "$value": "1.75rem", "$description": "28px — Section heading" },
+    "title2": { "$value": "1.5rem", "$description": "24px — Card heading" },
+    "title3": { "$value": "1.25rem", "$description": "20px — Sub-heading" },
+    "title4": { "$value": "1.125rem", "$description": "18px — Tertiary heading" },
+    "large": { "$value": "1rem", "$description": "16px — Large body" },
+    "normal": { "$value": "0.875rem", "$description": "14px — Default body / UI" },
+    "small": { "$value": "0.75rem", "$description": "12px — Caption, meta, badge" },
+    "extraSmall": { "$value": "0.6875rem", "$description": "11px — Fine print, legal" }
+  },
+  "fontWeight": {
+    "$type": "fontWeight",
+    "regular": { "$value": "400", "$description": "Body copy" },
+    "medium": { "$value": "500", "$description": "UI interactive" },
+    "bold": { "$value": "700", "$description": "Headings, price emphasis" }
+  },
+  "lineHeight": {
+    "$type": "lineHeight",
+    "normal": { "$value": "1rem", "$description": "16px — small/xs text" },
+    "small": { "$value": "1.25rem", "$description": "20px — normal body" },
+    "large": { "$value": "1.5rem", "$description": "24px — large body" },
+    "extraLarge": { "$value": "1.75rem", "$description": "28px — headings" },
+    "display": { "$value": "2rem", "$description": "32px — display" }
+  },
+  "letterSpacing": {
+    "$type": "letterSpacing",
+    "normal": { "$value": "0em" },
+    "wide": { "$value": "0.08em", "$description": "Uppercase utility labels" }
+  },
+  "dimension": {
+    "$type": "dimension",
+    "50": { "$value": "2px" },
+    "100": { "$value": "4px" },
+    "150": { "$value": "6px" },
+    "200": { "$value": "8px", "$description": "Base unit" },
+    "300": { "$value": "12px" },
+    "400": { "$value": "16px" },
+    "500": { "$value": "20px" },
+    "600": { "$value": "24px" },
+    "800": { "$value": "32px" },
+    "1000": { "$value": "40px" },
+    "1200": { "$value": "48px" },
+    "1600": { "$value": "64px" }
+  },
+  "borderRadius": {
+    "$type": "borderRadius",
+    "none": { "$value": "0px" },
+    "sm": { "$value": "2px", "$description": "Tags, badges" },
+    "normal": { "$value": "4px", "$description": "Inputs, buttons" },
+    "lg": { "$value": "6px", "$description": "Cards, modals" },
+    "xl": { "$value": "12px", "$description": "Featured cards" },
+    "circle": { "$value": "50%" }
+  },
+  "breakpoint": {
+    "$type": "dimension",
+    "smallMobile": { "$value": "320px" },
+    "mediumMobile": { "$value": "414px" },
+    "largeMobile": { "$value": "576px" },
+    "tablet": { "$value": "768px" },
+    "desktop": { "$value": "992px" },
+    "largeDesktop": { "$value": "1200px" }
+  },
+  "shadow": {
+    "$type": "string",
+    "action": { "$value": "0 2px 4px 0 rgba(37,42,49,0.16), 0 4px 8px 0 rgba(37,42,49,0.12)", "$description": "Action button elevation" },
+    "actionActive": { "$value": "0 4px 8px 0 rgba(37,42,49,0.2), 0 8px 16px 0 rgba(37,42,49,0.16)", "$description": "Active/pressed action" },
+    "fixed": { "$value": "0 0 2px 0 rgba(37,42,49,0.16), 0 2px 4px 0 rgba(37,42,49,0.12)", "$description": "Fixed overlay elements" },
+    "fixedReverse": { "$value": "0 0 2px 0 rgba(37,42,49,0.16), 0 -2px 4px 0 rgba(37,42,49,0.12)", "$description": "Bottom sheet / drawer" },
+    "overlay": { "$value": "0 8px 16px 0 rgba(37,42,49,0.2), 0 16px 32px 0 rgba(37,42,49,0.16)", "$description": "Dropdowns, modals" }
+  }
+}

@@ -152,21 +152,34 @@ export default tokens;
 `;
   }
 
+  /**
+   * Convert a {token.ref.path} reference to a CSS custom property name.
+   * e.g. {token.text.base} → --token-text-base
+   */
+  private refToCssVar(reference: string): string {
+    const path = reference.slice(1, -1).replace(/\.value$/, '');
+    return '--' + path
+      .split('.')
+      .map(s => s.replace(/([A-Z])/g, c => `-${c.toLowerCase()}`))
+      .join('-');
+  }
+
   private exportAsCss(groups: TokenGroup[], globalNamespace: string): string {
     let css = `:root {\n`;
 
     const addTokensAsCssVars = (group: TokenGroup, pathPrefix: string = '') => {
-      const currentPath = pathPrefix ? `${pathPrefix}-${group.name}` : group.name;
+      const currentPath = group.omitFromPath ? pathPrefix : (pathPrefix ? `${pathPrefix}-${group.name}` : group.name);
 
-      // Add tokens from this group
       for (const token of group.tokens) {
         const varName = `--${globalNamespace}-${currentPath}-${token.path}`.replace(/\./g, '-');
-        // Resolve token references to actual values for CSS output
-        const resolvedValue = tokenService.resolveTokenReference(String(token.value), groups);
-        css += `  ${varName}: ${this.formatCssValue(resolvedValue)};\n`;
+        const raw = String(token.value);
+        // Emit var() reference when value is a token alias; resolve otherwise
+        const cssValue = raw.startsWith('{') && raw.endsWith('}')
+          ? `var(${this.refToCssVar(raw)})`
+          : this.formatCssValue(tokenService.resolveTokenReference(raw, groups));
+        css += `  ${varName}: ${cssValue};\n`;
       }
 
-      // Process child groups
       if (group.children) {
         for (const childGroup of group.children) {
           addTokensAsCssVars(childGroup, currentPath);
@@ -186,17 +199,18 @@ export default tokens;
     let scss = `// SCSS Variables\n`;
 
     const addTokensAsScssVars = (group: TokenGroup, pathPrefix: string = '') => {
-      const currentPath = pathPrefix ? `${pathPrefix}-${group.name}` : group.name;
+      const currentPath = group.omitFromPath ? pathPrefix : (pathPrefix ? `${pathPrefix}-${group.name}` : group.name);
 
-      // Add tokens from this group
       for (const token of group.tokens) {
         const varName = `$${globalNamespace}-${currentPath}-${token.path}`.replace(/\./g, '-');
-        // Resolve token references to actual values for SCSS output
-        const resolvedValue = tokenService.resolveTokenReference(String(token.value), groups);
-        scss += `${varName}: ${this.formatScssValue(resolvedValue)};\n`;
+        const raw = String(token.value);
+        // SCSS uses $var-name references; fall back to resolved value for broken refs
+        const scssValue = raw.startsWith('{') && raw.endsWith('}')
+          ? `$${this.refToCssVar(raw).slice(2)}` // strip leading --
+          : this.formatScssValue(tokenService.resolveTokenReference(raw, groups));
+        scss += `${varName}: ${scssValue};\n`;
       }
 
-      // Process child groups
       if (group.children) {
         for (const childGroup of group.children) {
           addTokensAsScssVars(childGroup, currentPath);
@@ -215,17 +229,18 @@ export default tokens;
     let less = `// LESS Variables\n`;
 
     const addTokensAsLessVars = (group: TokenGroup, pathPrefix: string = '') => {
-      const currentPath = pathPrefix ? `${pathPrefix}-${group.name}` : group.name;
+      const currentPath = group.omitFromPath ? pathPrefix : (pathPrefix ? `${pathPrefix}-${group.name}` : group.name);
 
-      // Add tokens from this group
       for (const token of group.tokens) {
         const varName = `@${globalNamespace}-${currentPath}-${token.path}`.replace(/\./g, '-');
-        // Resolve token references to actual values for LESS output
-        const resolvedValue = tokenService.resolveTokenReference(String(token.value), groups);
-        less += `${varName}: ${this.formatLessValue(resolvedValue)};\n`;
+        const raw = String(token.value);
+        // LESS uses @var-name references; fall back to resolved value for broken refs
+        const lessValue = raw.startsWith('{') && raw.endsWith('}')
+          ? `@${this.refToCssVar(raw).slice(2)}` // strip leading --
+          : this.formatLessValue(tokenService.resolveTokenReference(raw, groups));
+        less += `${varName}: ${lessValue};\n`;
       }
 
-      // Process child groups
       if (group.children) {
         for (const childGroup of group.children) {
           addTokensAsLessVars(childGroup, currentPath);

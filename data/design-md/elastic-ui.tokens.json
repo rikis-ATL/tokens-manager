@@ -1,0 +1,144 @@
+{
+  "color": {
+    "brand": {
+      "$type": "color",
+      "primary": { "$value": "#07C", "$description": "Elastic blue — #0077CC — primary brand, links, CTAs" },
+      "primaryDark": { "$value": "#005B9A", "$description": "Darker brand blue" },
+      "primaryLight": { "$value": "#E6F2FA", "$description": "Light blue tint surface" },
+      "accent": { "$value": "#FEC514", "$description": "Elastic yellow — accent, highlights" },
+      "accentDark": { "$value": "#D4A800" }
+    },
+    "text": {
+      "$type": "color",
+      "default": { "$value": "#343741", "$description": "Default text — dark gray" },
+      "subdued": { "$value": "#69707D", "$description": "Secondary / helper text" },
+      "disabled": { "$value": "#98A2B3" },
+      "inverse": { "$value": "#FFFFFF" },
+      "danger": { "$value": "#BD271E" },
+      "warning": { "$value": "#693F00" },
+      "success": { "$value": "#017D73" },
+      "accent": { "$value": "#0077CC" },
+      "code": { "$value": "#CF4196", "$description": "Inline code token color" }
+    },
+    "background": {
+      "$type": "color",
+      "basePlain": { "$value": "#FFFFFF", "$description": "Default page background" },
+      "baseSubdued": { "$value": "#F7F8FC", "$description": "Subdued page background" },
+      "baseDisabled": { "$value": "#EBEDF0" },
+      "baseInteractiveHover": { "$value": "#F5F7FA" },
+      "highlight": { "$value": "#FFFCDD", "$description": "Search result highlight" }
+    },
+    "border": {
+      "$type": "color",
+      "basePlain": { "$value": "#D3DAE6", "$description": "Default border" },
+      "baseSubdued": { "$value": "#E9EDF3", "$description": "Subdued border" },
+      "baseStrong": { "$value": "#8093A5", "$description": "Strong / hover border" },
+      "danger": { "$value": "#BD271E" }
+    },
+    "data": {
+      "$type": "color",
+      "vis0": { "$value": "#54B399", "$description": "Data vis series 0 — teal" },
+      "vis1": { "$value": "#6092C0", "$description": "Data vis series 1 — blue" },
+      "vis2": { "$value": "#D36086", "$description": "Data vis series 2 — pink" },
+      "vis3": { "$value": "#9170B8", "$description": "Data vis series 3 — purple" },
+      "vis4": { "$value": "#CA8EAE", "$description": "Data vis series 4 — rose" },
+      "vis5": { "$value": "#D6BF57", "$description": "Data vis series 5 — yellow" },
+      "vis6": { "$value": "#B9A888", "$description": "Data vis series 6 — tan" },
+      "vis7": { "$value": "#DA8B45", "$description": "Data vis series 7 — orange" },
+      "vis8": { "$value": "#AA6556", "$description": "Data vis series 8 — brown" },
+      "vis9": { "$value": "#E7664C", "$description": "Data vis series 9 — red" }
+    },
+    "severity": {
+      "$type": "color",
+      "critical": { "$value": "#BD271E", "$description": "Kibana severity: critical" },
+      "high": { "$value": "#D26B0F" },
+      "medium": { "$value": "#FEC514" },
+      "low": { "$value": "#54B399" },
+      "none": { "$value": "#69707D" }
+    }
+  },
+  "fontFamily": {
+    "$type": "fontFamily",
+    "sans": {
+      "$value": "Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif",
+      "$description": "Elastic UI primary — Inter"
+    },
+    "mono": {
+      "$value": "Roboto Mono, Consolas, Menlo, Courier New, monospace",
+      "$description": "Code, log output, JSON, queries"
+    }
+  },
+  "fontSize": {
+    "$type": "fontSize",
+    "display": { "$value": "2.25rem", "$description": "36px — Display heading" },
+    "h1": { "$value": "1.75rem", "$description": "28px" },
+    "h2": { "$value": "1.5rem", "$description": "24px" },
+    "h3": { "$value": "1.25rem", "$description": "20px" },
+    "h4": { "$value": "1.125rem", "$description": "18px" },
+    "body": { "$value": "1rem", "$description": "16px — default EUI body" },
+    "s": { "$value": "0.875rem", "$description": "14px — small, labels" },
+    "xs": { "$value": "0.75rem", "$description": "12px — badges, captions" },
+    "xxs": { "$value": "0.6875rem", "$description": "11px — micro labels" }
+  },
+  "fontWeight": {
+    "$type": "fontWeight",
+    "regular": { "$value": "400" },
+    "medium": { "$value": "500" },
+    "semibold": { "$value": "600" },
+    "bold": { "$value": "700" }
+  },
+  "lineHeight": {
+    "$type": "lineHeight",
+    "xs": { "$value": "1rem", "$description": "16px" },
+    "s": { "$value": "1.25rem", "$description": "20px" },
+    "m": { "$value": "1.5rem", "$description": "24px" },
+    "l": { "$value": "2rem", "$description": "32px" }
+  },
+  "letterSpacing": {
+    "$type": "letterSpacing",
+    "normal": { "$value": "0em" },
+    "widest": { "$value": "0.05em", "$description": "Uppercase utility labels" }
+  },
+  "dimension": {
+    "$type": "dimension",
+    "xs": { "$value": "4px" },
+    "s": { "$value": "8px", "$description": "Base unit" },
+    "m": { "$value": "16px" },
+    "base": { "$value": "16px" },
+    "l": { "$value": "24px" },
+    "xl": { "$value": "32px" },
+    "xxl": { "$value": "40px" },
+    "xxxl": { "$value": "48px" },
+    "xxxxl": { "$value": "64px" },
+    "panelPaddingSmall": { "$value": "8px", "$description": "Compact panel padding" },
+    "panelPaddingMedium": { "$value": "16px", "$description": "Default panel padding" },
+    "controlHeight": { "$value": "40px", "$description": "Default control/input height" },
+    "controlHeightSmall": { "$value": "32px", "$description": "Small control height — dense tables" },
+    "controlHeightLarge": { "$value": "48px" }
+  },
+  "borderRadius": {
+    "$type": "borderRadius",
+    "none": { "$value": "0px" },
+    "s": { "$value": "2px", "$description": "Badges, small chips — very tight" },
+    "m": { "$value": "4px", "$description": "Inputs, buttons, panels — EUI default" },
+    "l": { "$value": "8px" },
+    "pill": { "$value": "9999px" },
+    "circle": { "$value": "50%" }
+  },
+  "breakpoint": {
+    "$type": "dimension",
+    "xs": { "$value": "575px" },
+    "s": { "$value": "768px" },
+    "m": { "$value": "992px" },
+    "l": { "$value": "1200px" },
+    "xl": { "$value": "1600px" }
+  },
+  "shadow": {
+    "$type": "string",
+    "xs": { "$value": "0 2px 2px -1px rgba(152,162,179,0.3), 0 1px 5px -2px rgba(152,162,179,0.3)", "$description": "Kibana xs shadow" },
+    "s": { "$value": "0 2px 4px 0 rgba(0,0,0,0.15), 0 1px 2px 0 rgba(0,0,0,0.1)" },
+    "m": { "$value": "0 4px 8px 0 rgba(0,0,0,0.15), 0 2px 4px 0 rgba(0,0,0,0.1)" },
+    "l": { "$value": "0 8px 16px 0 rgba(0,0,0,0.15), 0 4px 8px 0 rgba(0,0,0,0.1)", "$description": "Flyouts, panels" },
+    "xl": { "$value": "0 12px 32px 0 rgba(0,0,0,0.15)", "$description": "Modals" }
+  }
+}

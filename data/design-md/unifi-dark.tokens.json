@@ -1,0 +1,213 @@
+{
+  "color": {
+    "brand": {
+      "$type": "color",
+      "$description": "Ubiquiti brand blue ramp — same scale as light, for reference and direct use",
+      "50":  { "$value": "#EDF4FF", "$description": "Lightest tint — rarely used on dark bg" },
+      "100": { "$value": "#D0E5FF", "$description": "Light blue tint" },
+      "200": { "$value": "#A6CAFF", "$description": "Medium-light" },
+      "300": { "$value": "#72ABFF", "$description": "Mid blue" },
+      "400": { "$value": "#3D8BFF", "$description": "Dark theme primary / links" },
+      "500": { "$value": "#006FFF", "$description": "UniFi primary — buttons, active states" },
+      "600": { "$value": "#0057CC", "$description": "Pressed / hover on light elements" },
+      "700": { "$value": "#00409A" },
+      "800": { "$value": "#002A67" },
+      "900": { "$value": "#001535" }
+    },
+    "neutral": {
+      "$type": "color",
+      "$description": "Cool-gray neutral scale — inverted for dark surfaces",
+      "0":   { "$value": "#FFFFFF" },
+      "50":  { "$value": "#F4F5F7" },
+      "100": { "$value": "#EBEDF0" },
+      "200": { "$value": "#DCDFE4" },
+      "300": { "$value": "#C2C7CF" },
+      "400": { "$value": "#9EA5B0" },
+      "500": { "$value": "#737B8A" },
+      "600": { "$value": "#525966" },
+      "700": { "$value": "#383E49", "$description": "Dark theme: default border" },
+      "800": { "$value": "#21252C", "$description": "Dark theme: raised / card surface" },
+      "900": { "$value": "#131518", "$description": "Dark theme: base canvas" }
+    },
+    "bg": {
+      "$type": "color",
+      "$description": "Dark theme surface backgrounds — UniFi Network / Protect dark UI",
+      "base":    { "$value": "#0F1115", "$description": "Deepest bg — behind sidebars, outer shell" },
+      "raised":  { "$value": "#1C2028", "$description": "Cards, table rows, primary panels" },
+      "overlay": { "$value": "#262C36", "$description": "Modals, dropdowns, popovers" },
+      "sunken":  { "$value": "#131518", "$description": "Inset areas, code blocks" },
+      "hover":   { "$value": "#1F2840", "$description": "Row hover fill on dark" },
+      "selected":{ "$value": "#0D2252", "$description": "Selected row / focused item on dark" }
+    },
+    "fg": {
+      "$type": "color",
+      "$description": "Dark theme foreground / text colors",
+      "primary":   { "$value": "#F4F5F7", "$description": "Headings, primary body text on dark" },
+      "secondary": { "$value": "#9EA5B0", "$description": "Secondary labels, metadata" },
+      "tertiary":  { "$value": "#737B8A", "$description": "Captions, placeholder text" },
+      "disabled":  { "$value": "#525966", "$description": "Disabled control text" },
+      "onColor":   { "$value": "#FFFFFF", "$description": "Text on filled/colored surfaces" },
+      "link":      { "$value": "#3D8BFF", "$description": "Hyperlinks on dark — lighter blue" },
+      "linkHover": { "$value": "#72ABFF", "$description": "Hovered hyperlink on dark" }
+    },
+    "border": {
+      "$type": "color",
+      "$description": "Dark theme border colors",
+      "default": { "$value": "#383E49", "$description": "Default border on dark surfaces" },
+      "strong":  { "$value": "#525966", "$description": "Panel separators, strong dividers" },
+      "focus":   { "$value": "#3D8BFF", "$description": "Focus ring on dark — lighter blue" },
+      "danger":  { "$value": "#FF6060", "$description": "Error input border on dark" }
+    },
+    "status": {
+      "$type": "color",
+      "$description": "Semantic status colors — dark theme (brighter for contrast on dark bg)",
+      "successFg":  { "$value": "#5DCE98", "$description": "Success text (online, connected)" },
+      "successBg":  { "$value": "#0A2E1E", "$description": "Success banner / badge bg on dark" },
+      "successIcon":{ "$value": "#06A566", "$description": "Success icon" },
+      "warningFg":  { "$value": "#FFC266", "$description": "Warning text on dark" },
+      "warningBg":  { "$value": "#2C1E00", "$description": "Warning banner bg on dark" },
+      "warningIcon":{ "$value": "#F5A623", "$description": "Warning icon" },
+      "dangerFg":   { "$value": "#FF8080", "$description": "Error / disconnected text on dark" },
+      "dangerBg":   { "$value": "#2C0808", "$description": "Error banner bg on dark" },
+      "dangerIcon": { "$value": "#F03838", "$description": "Error icon" },
+      "infoFg":     { "$value": "#72ABFF", "$description": "Info text on dark" },
+      "infoBg":     { "$value": "#091933", "$description": "Info banner bg on dark" },
+      "infoIcon":   { "$value": "#3D8BFF", "$description": "Info icon" }
+    },
+    "chartTraffic": {
+      "$type": "color",
+      "$description": "Traffic / throughput charts — confirmed usage in UniFi Network dashboards (brightened for dark bg)",
+      "tx":      { "$value": "#3D8BFF", "$description": "Upload / TX — lighter blue for dark bg" },
+      "txFill":  { "$value": "rgba(61,139,255,0.15)", "$description": "TX area-chart fill on dark" },
+      "rx":      { "$value": "#06A566", "$description": "Download / RX — green" },
+      "rxFill":  { "$value": "rgba(6,165,102,0.15)", "$description": "RX area-chart fill on dark" },
+      "total":   { "$value": "#B48EEA", "$description": "Aggregate / combined throughput — lighter purple for dark" },
+      "totalFill":{ "$value": "rgba(180,142,234,0.15)", "$description": "Total area-chart fill on dark" }
+    },
+    "chartHealth": {
+      "$type": "color",
+      "$description": "Device / network health — maps to UniFi status semantics, brightened for dark bg contrast",
+      "connected":  { "$value": "#5DCE98", "$description": "Online, connected, healthy — mint on dark" },
+      "warning":    { "$value": "#FFC266", "$description": "Elevated latency, interference — lighter amber" },
+      "degraded":   { "$value": "#FFA333", "$description": "Significant packet loss, high error rate" },
+      "offline":    { "$value": "#FF5A5A", "$description": "Unreachable, disconnected — lighter red on dark" },
+      "pending":    { "$value": "#737B8A", "$description": "Provisioning, adopting, unknown" },
+      "isolated":   { "$value": "#B48EEA", "$description": "Network isolated / VLAN restricted" },
+      "updating":   { "$value": "#00D4D4", "$description": "Firmware updating, rebooting — brighter teal on dark" }
+    },
+    "chartCategorical": {
+      "$type": "color",
+      "$description": "Multi-series categorical charts (INFERRED — not verified against official UniFi palette docs). Brightened for dark bg readability.",
+      "1": { "$value": "#3D8BFF", "$description": "Blue — lighter on dark" },
+      "2": { "$value": "#5DCE98", "$description": "Mint green" },
+      "3": { "$value": "#FFC266", "$description": "Amber — lighter on dark" },
+      "4": { "$value": "#B48EEA", "$description": "Purple — lighter on dark" },
+      "5": { "$value": "#00D4D4", "$description": "Teal — brighter on dark" },
+      "6": { "$value": "#FF5A5A", "$description": "Red — lighter on dark" },
+      "7": { "$value": "#FFA333", "$description": "Orange" },
+      "8": { "$value": "#F472B6", "$description": "Pink" }
+    },
+    "chartMeta": {
+      "$type": "color",
+      "$description": "Chart chrome — grid, axes, tooltips (dark theme)",
+      "gridLine":  { "$value": "#383E49", "$description": "Horizontal grid lines on dark" },
+      "gridLineSub":{ "$value": "#2C3240", "$description": "Minor / sub-grid lines on dark" },
+      "axisFg":    { "$value": "#737B8A", "$description": "Axis tick labels" },
+      "axisLine":  { "$value": "#525966", "$description": "Axis baseline on dark" },
+      "tooltip":   { "$value": "#262C36", "$description": "Tooltip background on dark" },
+      "tooltipFg": { "$value": "#F4F5F7", "$description": "Tooltip text on dark" },
+      "crosshair": { "$value": "#525966", "$description": "Hover crosshair line on dark" }
+    }
+  },
+  "fontFamily": {
+    "$type": "fontFamily",
+    "sans": {
+      "$value": "\"UI Sans\", Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Helvetica, Arial, sans-serif",
+      "$description": "UniFi primary — UI Sans with Inter fallback; same font stack as light theme"
+    },
+    "mono": {
+      "$value": "\"UI Mono\", \"JetBrains Mono\", \"SFMono-Regular\", Consolas, \"Liberation Mono\", monospace",
+      "$description": "IP addresses, MAC addresses, CLI output, config values"
+    }
+  },
+  "fontSize": {
+    "$type": "fontSize",
+    "display": { "$value": "2rem",     "$description": "32px — dashboard page titles" },
+    "h1":      { "$value": "1.75rem",  "$description": "28px" },
+    "h2":      { "$value": "1.5rem",   "$description": "24px" },
+    "h3":      { "$value": "1.25rem",  "$description": "20px — widget headings" },
+    "h4":      { "$value": "1.125rem", "$description": "18px — card titles" },
+    "body":    { "$value": "0.875rem", "$description": "14px — UniFi default body (dense data UI)" },
+    "s":       { "$value": "0.8125rem","$description": "13px — table cells, labels" },
+    "xs":      { "$value": "0.75rem",  "$description": "12px — badges, captions, chart labels" },
+    "xxs":     { "$value": "0.6875rem","$description": "11px — micro labels, timestamps" }
+  },
+  "fontWeight": {
+    "$type": "fontWeight",
+    "regular":  { "$value": "400" },
+    "medium":   { "$value": "500", "$description": "Labels, table headers" },
+    "semibold": { "$value": "600", "$description": "Card titles, active nav items" },
+    "bold":     { "$value": "700", "$description": "Metric values, KPI numbers" }
+  },
+  "lineHeight": {
+    "$type": "lineHeight",
+    "tight":  { "$value": "1.25rem", "$description": "20px — compact table rows" },
+    "base":   { "$value": "1.5rem",  "$description": "24px — body text default" },
+    "relaxed":{ "$value": "1.75rem", "$description": "28px — settings descriptions" }
+  },
+  "letterSpacing": {
+    "$type": "letterSpacing",
+    "normal":  { "$value": "0em" },
+    "wide":    { "$value": "0.02em", "$description": "Small labels at 12px" },
+    "widest":  { "$value": "0.08em", "$description": "ALL-CAPS section headers" }
+  },
+  "dimension": {
+    "$type": "dimension",
+    "$description": "4px base grid — same spacing as light theme",
+    "1":  { "$value": "4px" },
+    "2":  { "$value": "8px" },
+    "3":  { "$value": "12px" },
+    "4":  { "$value": "16px" },
+    "5":  { "$value": "20px" },
+    "6":  { "$value": "24px" },
+    "8":  { "$value": "32px" },
+    "10": { "$value": "40px" },
+    "12": { "$value": "48px" },
+    "16": { "$value": "64px" },
+    "20": { "$value": "80px" },
+    "controlHeight":      { "$value": "32px", "$description": "Default control / input height — compact" },
+    "controlHeightSmall": { "$value": "24px", "$description": "Dense table row controls" },
+    "controlHeightLarge": { "$value": "40px", "$description": "Prominent CTAs, search bar" },
+    "sidebarWidth":       { "$value": "240px","$description": "Primary navigation sidebar" },
+    "sidebarCollapsed":   { "$value": "56px", "$description": "Icon-only collapsed sidebar" },
+    "topbarHeight":       { "$value": "48px", "$description": "Global topbar / header" }
+  },
+  "borderRadius": {
+    "$type": "borderRadius",
+    "none":   { "$value": "0px" },
+    "sm":     { "$value": "3px",    "$description": "Badges, tags, tight chips" },
+    "base":   { "$value": "6px",    "$description": "Inputs, buttons, cards — UniFi default" },
+    "md":     { "$value": "8px",    "$description": "Panels, modals, dropdowns" },
+    "lg":     { "$value": "12px",   "$description": "Large cards, image thumbnails" },
+    "xl":     { "$value": "16px",   "$description": "Feature cards, hero panels" },
+    "pill":   { "$value": "9999px", "$description": "Status pills, toggle switches" },
+    "circle": { "$value": "50%",    "$description": "Avatar, device icon" }
+  },
+  "breakpoint": {
+    "$type": "dimension",
+    "sm":  { "$value": "640px" },
+    "md":  { "$value": "768px" },
+    "lg":  { "$value": "1024px" },
+    "xl":  { "$value": "1280px" },
+    "2xl": { "$value": "1536px" }
+  },
+  "shadow": {
+    "$type": "string",
+    "sm":   { "$value": "0 1px 2px 0 rgba(0,0,0,0.4)",                                                         "$description": "Buttons, chips on dark — stronger shadow needed" },
+    "base": { "$value": "0 2px 4px 0 rgba(0,0,0,0.4), 0 1px 2px 0 rgba(0,0,0,0.3)",                           "$description": "Cards, dropdowns on dark" },
+    "md":   { "$value": "0 4px 8px 0 rgba(0,0,0,0.5), 0 2px 4px 0 rgba(0,0,0,0.35)",                          "$description": "Panels, sidesheets on dark" },
+    "lg":   { "$value": "0 8px 24px 0 rgba(0,0,0,0.6), 0 4px 8px 0 rgba(0,0,0,0.4)",                          "$description": "Modals, elevated panels on dark" },
+    "xl":   { "$value": "0 16px 40px 0 rgba(0,0,0,0.7), 0 8px 16px 0 rgba(0,0,0,0.5)",                        "$description": "Full-screen overlays on dark" },
+    "focus":{ "$value": "0 0 0 3px rgba(61,139,255,0.4)",                                                       "$description": "Blue focus ring on dark — lighter blue" }
+  }
+}

@@ -15,15 +15,19 @@ interface BuildTokensPanelProps {
 }
 
 const FORMAT_LABELS: Record<string, string> = {
-  css:  'CSS',
-  scss: 'SCSS',
-  less: 'LESS',
-  js:   'JS',
-  ts:   'TS',
-  json: 'JSON',
+  css:           'CSS',
+  scss:          'SCSS',
+  less:          'LESS',
+  js:            'JS',
+  ts:            'TS',
+  json:          'JSON',
+  'tailwind-v3': 'Tailwind v3',
+  'tailwind-v4': 'Tailwind v4',
+  ios:           'iOS (Swift)',
+  android:       'Android (XML)',
 };
 
-const FORMATS = ['css', 'scss', 'less', 'js', 'ts', 'json'] as const;
+const FORMATS = ['css', 'scss', 'less', 'js', 'ts', 'json', 'tailwind-v3', 'tailwind-v4', 'ios', 'android'] as const;
 type Format = typeof FORMATS[number];
 
 export function BuildTokensPanel({

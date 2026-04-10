@@ -1,0 +1,149 @@
+{
+  "color": {
+    "fg": {
+      "$type": "color",
+      "default": { "$value": "#1F2328", "$description": "Primary foreground text" },
+      "muted": { "$value": "#636C76", "$description": "Secondary / muted text" },
+      "subtle": { "$value": "#6E7781", "$description": "Subtle / placeholder" },
+      "onEmphasis": { "$value": "#FFFFFF", "$description": "Text on filled/emphasis bg" },
+      "link": { "$value": "#0969DA", "$description": "Link color — GitHub blue" },
+      "danger": { "$value": "#CF222E", "$description": "Error, destructive text" },
+      "success": { "$value": "#1A7F37", "$description": "Success, merged text" },
+      "attention": { "$value": "#9A6700", "$description": "Warning / attention text" },
+      "severe": { "$value": "#BC4C00", "$description": "Severe warning text" },
+      "done": { "$value": "#8250DF", "$description": "Done / closed state — purple" },
+      "sponsors": { "$value": "#BF3989", "$description": "GitHub Sponsors pink" }
+    },
+    "canvas": {
+      "$type": "color",
+      "default": { "$value": "#FFFFFF", "$description": "Page canvas" },
+      "overlay": { "$value": "#FFFFFF", "$description": "Overlay / modal surface" },
+      "inset": { "$value": "#F6F8FA", "$description": "Inset surface — sidebar, code bg" },
+      "subtle": { "$value": "#F6F8FA", "$description": "Subtle background" }
+    },
+    "border": {
+      "$type": "color",
+      "default": { "$value": "#D0D7DE", "$description": "Default border" },
+      "muted": { "$value": "#D8DEE4", "$description": "Muted border — table row separators" },
+      "subtle": { "$value": "rgba(31,35,40,0.15)", "$description": "Subtle border" }
+    },
+    "neutral": {
+      "$type": "color",
+      "emphasisPlus": { "$value": "#24292F", "$description": "N800 — strong emphasis bg" },
+      "emphasis": { "$value": "#6E7781", "$description": "N600 — neutral badge fill" },
+      "muted": { "$value": "rgba(175,184,193,0.2)", "$description": "Muted neutral bg" },
+      "subtle": { "$value": "rgba(234,238,242,0.5)" }
+    },
+    "accent": {
+      "$type": "color",
+      "fg": { "$value": "#0969DA", "$description": "Accent foreground — blue" },
+      "emphasis": { "$value": "#0969DA", "$description": "Accent emphasis bg" },
+      "muted": { "$value": "rgba(84,174,255,0.4)", "$description": "Accent muted bg" },
+      "subtle": { "$value": "#DDF4FF", "$description": "Accent subtle — info banners" }
+    },
+    "success": {
+      "$type": "color",
+      "fg": { "$value": "#1A7F37" },
+      "emphasis": { "$value": "#1F883D", "$description": "Success badge bg" },
+      "muted": { "$value": "rgba(74,194,107,0.4)" },
+      "subtle": { "$value": "#DAFBE1" }
+    },
+    "danger": {
+      "$type": "color",
+      "fg": { "$value": "#CF222E" },
+      "emphasis": { "$value": "#CF222E" },
+      "muted": { "$value": "rgba(255,129,130,0.4)" },
+      "subtle": { "$value": "#FFEBE9" }
+    },
+    "done": {
+      "$type": "color",
+      "fg": { "$value": "#8250DF", "$description": "Closed/done purple" },
+      "emphasis": { "$value": "#8250DF" },
+      "muted": { "$value": "rgba(194,151,255,0.4)" },
+      "subtle": { "$value": "#FBEFFF" }
+    }
+  },
+  "fontFamily": {
+    "$type": "fontFamily",
+    "sans": {
+      "$value": "-apple-system, BlinkMacSystemFont, Segoe UI, Noto Sans, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji",
+      "$description": "GitHub system font stack — no custom typeface"
+    },
+    "mono": {
+      "$value": "ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace",
+      "$description": "Code blocks, diffs, commit SHAs"
+    }
+  },
+  "fontSize": {
+    "$type": "fontSize",
+    "display": { "$value": "2rem", "$description": "32px — marketing display" },
+    "h1": { "$value": "2rem", "$description": "32px — page title" },
+    "h2": { "$value": "1.5rem", "$description": "24px" },
+    "h3": { "$value": "1.25rem", "$description": "20px" },
+    "h4": { "$value": "1rem", "$description": "16px semibold" },
+    "h5": { "$value": "0.875rem", "$description": "14px semibold" },
+    "h6": { "$value": "0.75rem", "$description": "12px semibold" },
+    "body": { "$value": "0.875rem", "$description": "14px — default GitHub UI" },
+    "small": { "$value": "0.75rem", "$description": "12px — labels, meta" },
+    "xs": { "$value": "0.6875rem", "$description": "11px — mini badges" }
+  },
+  "fontWeight": {
+    "$type": "fontWeight",
+    "regular": { "$value": "400" },
+    "medium": { "$value": "500" },
+    "semibold": { "$value": "600", "$description": "Headings, emphasis" },
+    "bold": { "$value": "700" }
+  },
+  "lineHeight": {
+    "$type": "lineHeight",
+    "condensedUltra": { "$value": "1", "$description": "Ultra-condensed" },
+    "condensed": { "$value": "1.25", "$description": "Headings" },
+    "default": { "$value": "1.5", "$description": "Body / prose" }
+  },
+  "letterSpacing": {
+    "$type": "letterSpacing",
+    "normal": { "$value": "0em" },
+    "wide": { "$value": "0.06em", "$description": "Uppercase badges" }
+  },
+  "dimension": {
+    "$type": "dimension",
+    "1": { "$value": "4px" },
+    "2": { "$value": "8px", "$description": "Base unit" },
+    "3": { "$value": "12px" },
+    "4": { "$value": "16px" },
+    "5": { "$value": "20px" },
+    "6": { "$value": "24px" },
+    "7": { "$value": "28px" },
+    "8": { "$value": "32px" },
+    "9": { "$value": "36px" },
+    "10": { "$value": "40px" },
+    "12": { "$value": "48px" },
+    "sidebarWidth": { "$value": "256px", "$description": "Repo sidebar / file tree" },
+    "headerHeight": { "$value": "64px", "$description": "Global nav height" }
+  },
+  "borderRadius": {
+    "$type": "borderRadius",
+    "none": { "$value": "0px" },
+    "sm": { "$value": "3px", "$description": "Small elements — GitHub compact look" },
+    "md": { "$value": "6px", "$description": "Buttons, inputs, cards — default" },
+    "lg": { "$value": "8px", "$description": "Modals, large cards" },
+    "xl": { "$value": "12px", "$description": "Feature cards" },
+    "pill": { "$value": "9999px", "$description": "Labels, badges" },
+    "circle": { "$value": "50%", "$description": "Avatars" }
+  },
+  "breakpoint": {
+    "$type": "dimension",
+    "sm": { "$value": "544px" },
+    "md": { "$value": "768px" },
+    "lg": { "$value": "1012px" },
+    "xl": { "$value": "1280px" }
+  },
+  "shadow": {
+    "$type": "string",
+    "shadow": { "$value": "0 1px 0 rgba(31,35,40,0.04)", "$description": "Default card shadow" },
+    "shadowMedium": { "$value": "0 3px 6px rgba(140,149,159,0.15)", "$description": "Elevated card" },
+    "shadowLarge": { "$value": "0 8px 24px rgba(140,149,159,0.2)", "$description": "Modal, command palette" },
+    "shadowExtraLarge": { "$value": "0 12px 48px rgba(140,149,159,0.3)", "$description": "Menus, large overlays" },
+    "inset": { "$value": "inset 0 1px 0 rgba(208,215,222,0.2)", "$description": "Button inset highlight" }
+  }
+}

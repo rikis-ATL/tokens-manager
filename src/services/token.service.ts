@@ -428,7 +428,8 @@ export class TokenService {
     };
 
     const processGroup = (group: TokenGroup, pathPrefix: string[] = []) => {
-      const currentPath = [...pathPrefix, group.name];
+      // omitFromPath: skip this group's name segment in the output path
+      const currentPath = group.omitFromPath ? pathPrefix : [...pathPrefix, group.name];
 
       // Add tokens from this group (skip placeholder tokens with empty path or value)
       for (const token of group.tokens) {
