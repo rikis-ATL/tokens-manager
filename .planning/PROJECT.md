@@ -152,19 +152,7 @@ See `.planning/milestones/v1.7-ROADMAP.md` for full archive.
 - AI-assisted naming and queries (AI-11 to AI-14) not started
 - Style Guide verification (VERIFY-25) not started
 
-## Current Milestone: v1.9 AI Completion + MCP Alignment
-
-**Goal:** Complete the AI feature set, verify the Style Guide, and unify MCP and in-app chat behind a shared tool service layer.
-
-**Target features:**
-- AI-assisted theme creation with suggested token values (AI-11)
-- Natural language token queries (AI-12)
-- Natural language bulk edits (AI-13)
-- Paste token values → AI suggests canonical names and group structure (AI-14)
-- MCP server and in-app HTTP tool handlers share the same underlying service functions — one implementation, two entry points (MCP-01)
-- Complete Phase 25 (Style Guide) browser verifications and fix nyquist gaps (VERIFY-25)
-
-## Planned Milestone: v1.6 Multi-Tenant SaaS (deferred — after v1.8)
+## Current Milestone: v1.6 Multi-Tenant SaaS
 
 **Goal:** Convert the app into a multi-org SaaS with configurable free/pro/team tiers enforced at the API layer and paid upgrades via Stripe Checkout.
 
@@ -283,4 +271,22 @@ The Tokens page includes a **visual graph editor** (React Flow) in the right-han
 | MCP server over stdio transport | Enables Claude Desktop/Code to manage tokens via natural language; stdout is JSON-RPC channel | Validated in Phase 26: ai-service-layer-foundation |
 
 ---
-*Last updated: 2026-04-06 after v1.7 AI Integration milestone*
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via `/gsd-transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
+
+**After each milestone** (via `/gsd-complete-milestone`):
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state
+
+---
+*Last updated: 2026-04-11 — Milestone v1.6 Multi-Tenant SaaS started*

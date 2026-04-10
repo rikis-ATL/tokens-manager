@@ -2,207 +2,54 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Multi-Tenant SaaS
-status: executing
-stopped_at: Phase 31 context gathered (discuss mode)
-last_updated: "2026-04-09T08:28:13.424Z"
-last_activity: 2026-04-08 -- Phase 30 execution started
+status: defining-requirements
+stopped_at: Milestone v1.6 started — defining requirements
+last_updated: "2026-04-11T00:00:00.000Z"
+last_activity: 2026-04-11 -- Milestone v1.6 Multi-Tenant SaaS started
 progress:
-  total_phases: 18
-  completed_phases: 15
-  total_plans: 59
-  completed_plans: 58
-  percent: 98
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-08)
+See: .planning/PROJECT.md (updated 2026-04-11)
 
 **Core value:** Token collections are always available and editable: stored in MongoDB, accessible via collection-scoped URLs, with per-collection Figma/GitHub config, full CRUD from the collections grid, Figma import/export fully integrated, and a Themes system where each theme is a complete token value set with per-group edit permissions, dark-mode awareness, and theme-targeted export.
-**Current focus:** Phase 30 — ai-assisted-naming-and-queries
+**Current focus:** Phase not yet defined — defining requirements
 
 ## Current Position
 
-Phase: 30 (ai-assisted-naming-and-queries) — EXECUTING
-Plan: 1 of 3
-Status: Executing Phase 30
-Last activity: 2026-04-08 -- Phase 30 execution started
-
-Progress: [░░░░░░░░░░] 0% (0/3 phases complete)
-
-## v1.9 Phase Summary
-
-| Phase | Goal | Requirements | Status |
-|-------|------|--------------|--------|
-| 30. AI-Assisted Naming and Queries | AI theme creation, natural language token queries and bulk edits, canonical naming suggestions | AI-11, AI-12, AI-13, AI-14 | Not started |
-| 31. Style Guide Verification | Complete Phase 25 browser verifications; fix nyquist gaps | VERIFY-25 | Not started |
-| 32. MCP Tool Service Layer | Extract shared service functions; add theme mutation tools to MCP server | MCP-01, MCP-02 | Not started |
-
-## Performance Metrics
-
-**Velocity (v1.4 reference):**
-
-- Total plans completed (v1.4): 21
-- Average duration: ~3-5 min/plan
-- Total execution time: ~8 days
-
-**By Phase (v1.4):**
-
-| Phase | Plans | Avg/Plan |
-|-------|-------|----------|
-| 10. Data Model Foundation | 2 | ~5 min |
-| 11. Inline Token Editing UI | 3 | ~4 min |
-| 12. Theme-Aware Export | 4 | ~3 min |
-| 13. Groups Ordering DnD | 3 | ~5 min |
-| 14. Dark Mode Support | 5 | ~3 min |
-| 15. Multi-Row Actions | 4 | ~3 min |
-
-*Updated after each plan completion*
-| Phase 16 P02 | 4 | 2 tasks | 5 files |
-| Phase 16 P03 | 4 | 2 tasks | 3 files |
-| Phase 17 P01 | 18 | 2 tasks | 2 files |
-| Phase 17 P02 | 5 | 2 tasks | 3 files |
-| Phase 17 P03 | 7 | 3 tasks | 4 files |
-| Phase 17 P04 | - | 1 task (human-verify) | 0 files |
-| Phase 18 P01 | 2 | 2 tasks | 2 files |
-| Phase 18 P02 | 4 | 2 tasks | 16 files |
-| Phase 19 P01 | 2 | 2 tasks | 3 files |
-| Phase 19 P04 | 1 | 1 task | 1 file |
-| Phase 19-rbac-and-permissions-context P02 | 3 | 2 tasks | 7 files |
-| Phase 19 P03 | 3 | 2 tasks | 9 files |
-| Phase 19 P05 | 4 | 1 tasks | 1 files |
-| Phase 19 P05 | 5 | 2 tasks | 1 files |
-| Phase 19 P06 | 3 | 1 tasks | 1 files |
-| Phase 20 P01 | ~30 min | 2 tasks | 9 files |
-| Phase 20 P02 | 5 | 2 tasks | 3 files |
-| Phase 20 P03 | 3 | 2 tasks | 5 files |
-| Phase 20 P04 | 2 | 1 tasks | 0 files |
-| Phase 21-org-users-admin-ui-and-permission-gated-ui P02 | 2 | 2 tasks | 3 files |
-| Phase 21-org-users-admin-ui-and-permission-gated-ui P01 | 4 | 2 tasks | 2 files |
-| Phase 21 P03 | 4 | 2 tasks | 2 files |
-| Phase 21-org-users-admin-ui-and-permission-gated-ui P04 | 2 | 1 task | 2 files |
-| Phase 21 P05 | 5 | 2 tasks | 0 files |
-| Phase 25-enhance-read-only-view-of-token-collections P01 | 10 | 2 tasks | 8 files |
-| Phase 25 P02 | 15 | 2 tasks | 1 files |
-| Phase 26-ai-service-layer-foundation P01 | 8 | 2 tasks | 8 files |
-| Phase 26 P02 | 1 | 2 tasks | 2 files |
-| Phase 26 P03 | 18 | 2 tasks | 4 files |
-| Phase 28 P02 | 8 | 2 tasks | 5 files |
-| Phase 29 P01 | 20min | 2 tasks | 6 files |
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-04-11 — Milestone v1.6 started
 
 ## Accumulated Context
 
 ### Decisions
 
-All decisions logged in PROJECT.md Key Decisions table.
+Key decisions captured from v1.6 research (pre-recorded in PROJECT.md):
 
-Key decisions relevant to v1.5 (from research and 16-01 execution):
-
-- `next@13.5.9` — CVE-2025-29927 (CVSS 9.1) patched; 16-01 also fixed 5 pre-existing TypeScript errors exposed by stricter type checking
-- `next-auth@^4.24.13` (not v5) — v5 requires Next.js 14+; project locked at 13.5.6 → 13.5.9
-- No `@auth/mongodb-adapter` — Credentials provider requires JWT sessions; adapter is incompatible and creates conflicting MongoClient
-- `session: { strategy: "jwt" }` explicit — role and id embedded in JWT via callbacks; never rely on default session strategy
-- `crypto.randomBytes(32)` for invite tokens — no `jsonwebtoken` dep needed; SHA-256 hash stored in DB, plaintext sent in email
-- JWT role re-fetch every 60s — `roleLastFetched` timestamp in JWT; re-fetch from DB in jwt callback if stale
-- `getServerSession()` on every write Route Handler — middleware is UX, not security (CVE-2025-29927 proof)
-- `SUPER_ADMIN_EMAIL` enforcement in jwt callback — always overrides DB role; no UI surface needed
-- [Phase 16]: Action const object (not enum) for runtime iteration and TypeScript type inference
-- [Phase 16]: permissions.ts is canonical Role source of truth; User.ts re-exports it
-- [Phase 16]: canPerform is the only exported permission function; no isAdmin/isEditor helpers
-- [Phase 16-03]: SUPER_ADMIN_EMAIL enforcement checks token.email (always present) not user?.email (only on initial sign-in)
-- [Phase 16-03]: authOptions centralized in src/lib/auth/nextauth.config.ts — single import target for getServerSession() in Phases 18+
-- [Phase 16-03]: pages.signIn: '/auth/sign-in' configured now even though page is Phase 17 work
-- [Phase 17-02]: AuthProviders is the 'use client' boundary in Server Component layout — valid Next.js App Router pattern
-- [Phase 17-02]: SessionProvider must be outer wrapper; PermissionsProvider inner — PermissionsProvider calls useSession() so must be descendant
-- [Phase 17-02]: PermissionsContext scaffold minimal by design — Phase 19 expands without layout changes; hook API surface (usePermissions() returning { role, canPerform }) stays identical
-- [Phase 17-01]: authorize() throws Error (not returns null) — CredentialsSignin generic error replaced by user-readable messages via NextAuth error URL param
-- [Phase 17-01]: Disabled accounts return 'Incorrect password' same as wrong password — no status enumeration risk
-- [Phase 17-01]: invited-status users can sign in — only 'disabled' is explicitly blocked at auth layer
-- [Phase 17-01]: GET /api/auth/setup includes SUPER_ADMIN_EMAIL only when setupRequired=true — email never exposed post-setup
-- [Phase 17-01]: POST /api/auth/setup sets status:'active' explicitly — User schema defaults to 'invited' which blocks sign-in in authorize()
-- [Phase 17]: Auth pages (sign-in, setup) have no app shell — isolated centered card layout for pre-auth flows
-- [Phase 17]: setupEmail stored from GET /api/auth/setup response in component state (not process.env — server-side only)
-- [Phase 17]: router.replace (not push) on setup redirect — prevents back-button return to setup page
-- [Phase 17]: UserMenu returns null when no session — Phase 18 middleware will redirect unauthenticated users
-- [Phase 17-04]: Phase 17 complete — all 5 auth scenarios verified by human: inline sign-in errors, session persistence, sign-out redirect, setup bootstrap, setup redirect guard
-- [Phase 18]: Middleware excludes api/ routes — HTML redirect would break fetch() callers; requireAuth() is the actual API security boundary
-- [Phase 18]: getServerSession(authOptions) single-argument form required in App Router — three-argument Pages Router form throws res.getHeader is not a function
-- [Phase 18]: requireAuth() returns 401 {error: Unauthorized} — no WWW-Authenticate header needed for session-cookie app; no DB lookup; JWT-only validation
-- [Phase 18-02]: 17 handlers guarded with requireAuth(); POST /api/auth/setup is 1 documented bootstrap exception — count > 0 guard prevents abuse post-setup (ARCH-02 satisfied)
-- [Phase 18-02]: GET handlers in all modified route files left unguarded — ARCH-02 specifies write handlers only; reads are publicly accessible
-- [Phase 18-02]: Guard placed before try{} block in all handlers — early return prevents any business logic executing on unauthenticated requests
-- [Phase 19]: requireRole() uses 404 (not 403) for non-Admin with no grant — collection invisible to user
-- [Phase 19]: Admin org role bypasses CollectionPermission grant lookup — canPerform('Admin', action) is the only check
-- [Phase 19]: bootstrapCollectionGrants() uses countDocuments guard + module-level flag for double idempotency across processes and same-process calls
-- [Phase 19]: GET /permissions/me uses direct getServerSession() (not requireAuth()) consistent with Phase 18 pattern for read endpoints
-- [Phase 19-04]: canCreate uses orgRole (not effectiveRole) — creating collections is org-level permission, not collection-scoped
-- [Phase 19-04]: isAdmin uses orgRole === 'Admin' — Admin status is org-wide, independent of any collection grant
-- [Phase 19-04]: Admin short-circuit sets effectiveRole to 'Admin' without fetching /permissions/me — Admin bypasses all collection-level checks
-- [Phase 19-04]: PermissionsContextValue interface now exported — required for typed consumers in Phase 20+
-- [Phase 19-04]: Named boolean API replaces scaffold { role, canPerform } — usePermissions() returns { canEdit, canCreate, isAdmin, canGitHub, canFigma }
-- [Phase 19]: GET /api/collections calls bootstrapCollectionGrants() on every request — idempotent no-op via module-level flag + countDocuments guard
-- [Phase 19]: requireRole(action, collectionId) replaces requireAuth() on all collection write handlers — enforces both org role and collection grant
-- [Phase 19]: GET /api/collections/[id] returns 404 for non-Admin without grant — collection invisible, not forbidden
-- [Phase 19]: POST+DELETE /api/collections/[id]/permissions uses Action.ManageUsers (Admin-only) — no collectionId arg needed
-- [Phase 19]: Export/import routes use org-level requireRole() no collectionId — collection-level access gated at UI layer before these operations
-- [Phase 19]: Action.ManageUsers for database test/config routes — Admin-only; no Editor or Viewer should reconfigure the database
-- [Phase 19]: Action.PushGithub gates both GitHub export and import symmetrically — push and pull share the same privilege level
-- [Phase 19]: Phase 19 RBAC verified complete — Admin access, API enforcement, bootstrap, and usePermissions() all approved by human
-- [Phase 19]: GET /api/github/branches guarded with requireRole(Action.PushGithub) — listing branches is a GitHub privilege, not a public read; PERM-03 fully satisfied
-- [Phase 20-01]: resend added to serverComponentsExternalPackages — prevents webpack bundling @react-email/render (optional peer dep that isn't installed)
-- [Phase 20-01]: POST /api/invites rolls back Invite document if Resend email fails — delete-on-error atomicity pattern
-- [Phase 20-01]: GET /api/invites/validate is public (no requireRole) — must be reachable pre-login when invited user lands on setup page
-- [Phase 20-01]: Duplicate check covers both active User account and pending non-expired Invite; both return 409
-- [Phase 20]: POST /api/auth/invite-setup has no requireAuth() — invited user has no session; second ARCH-02 bootstrap exception
-- [Phase 20]: findOneAndUpdate with { status: 'pending' } filter for atomic invite acceptance — prevents race on double-submit
-- [Phase 20]: User created with status='active' explicitly — Mongoose default is 'invited' which blocks sign-in in authorize()
-- [Phase 20]: Server Component wrapper reads searchParams.token and passes as prop — avoids useSearchParams() + Suspense boundary in Client Component
-- [Phase 20]: toLocaleDateString() used instead of date-fns (not installed in project)
-- [Phase 20]: /org/users uses 'use client' for useState invite list and modal state management
-- [Phase 20]: Admin-only nav items via spread conditional array: ...(isAdmin ? [{...}] : []) in OrgSidebar navItems
-- [Phase 21-02]: isSuperAdmin boolean computed server-side from SUPER_ADMIN_EMAIL — env var never sent to client; client uses boolean flag to disable role/remove actions
-- [Phase 21-02]: DELETE /api/org/users/[id] soft-deletes (status='disabled') not hard-delete — preserves referential integrity for token collection userId references
-- [Phase 21-02]: Self-removal guard uses session.user.id === params.id — Admin cannot remove their own account; returns 400
-- [Phase 21-01]: Cast user via unknown (user as unknown as {...}) — TypeScript rejects direct cast since AdapterUser lacks role field
-- [Phase 21-01]: SUPER_ADMIN_EMAIL short-circuit returns early before DB re-fetch — guarantees no DB call or override for super admin role
-- [Phase 21-01]: return {} as typeof token for disabled/missing user — next-auth v4 session invalidation pattern; returning null is silently ignored
-- [Phase 21]: Separator gated with (canFigma || canGitHub) — avoids orphaned divider when all Figma/GitHub items are hidden
-- [Phase 21]: isThemeReadOnly || !canEdit unifies theme group source-mode and role-based read-only at single prop boundary
-- [Phase 21]: NewCollectionDialog mount kept unconditional — canCreate=false prevents setCreateDialogOpen from ever being called
-- [Phase 21-04]: alert-dialog.tsx created as new shadcn-style component — @radix-ui/react-alert-dialog installed to support AlertDialog confirmation for remove user flow
-- [Phase 21-04]: canAct = !user.isSuperAdmin && !isSelf — single boolean gate controls both role selector disabled and remove button disabled per row
-- [Phase 21-04]: fetchUsers re-fetch used to revert optimistic role update — simpler than tracking previous value; consistent with fetch-on-mount pattern
-- [Phase 21]: All 7 Phase 21 success criteria verified by human: org members list, role change propagation, user removal, superadmin/self protection, Viewer collection page gating, Viewer GitHub/Figma dropdown gating, Viewer token editing disabled
-
-Key decisions relevant to v1.6 (from research):
-
-- `stripe@^17.7.0` pinned below v18 — v18 introduces `2025-03-31.basil` API breaking changes; v21 has `Stripe.Decimal` type overhaul; v17 covers all needed APIs
+- `stripe@^17.7.0` pinned below v18 — v18 introduces `2025-03-31.basil` API breaking changes
 - `rate-limiter-flexible@^10.0.1` with `RateLimiterMongo` — backed by existing Mongoose connection; zero new infrastructure; avoids Redis dependency
-- No `@stripe/stripe-js` or `@stripe/react-stripe-js` — server-side `session.url` redirect is current Stripe pattern; client packages not needed
-- `src/lib/billing/` isolation boundary — all Stripe SDK imports and billing logic stay in this module; route handlers call named service functions only (BILLING-07)
-- Do NOT cache plan in JWT — read from Org document at enforcement time to avoid stale plan after Stripe upgrade; `useSession().update()` on success page for UX refresh
-- Rate limit key: always `session.user.id`, never client IP — IP spoofable via X-Forwarded-For; user ID is the only trustworthy identifier
-- Webhook route uses `req.text()` exclusively — `req.json()` consumes body stream and breaks Stripe HMAC signature verification 100% of the time
-- `ProcessedWebhookEvent` MongoDB collection for webhook idempotency — survives restarts; works across instances; in-process Set is insufficient for production
-- Lazy UTC-month reset (USAGE-02) — no cron job; atomic `findOneAndUpdate` before limit check on first export of new month; `getUTCMonth()` / `getUTCFullYear()` for correct boundary
-- Atomic `$lt` check for limit enforcement (LIMIT-01, LIMIT-02) — prevents race-condition over-creation; `findOneAndUpdate` with conditional filter replaces check-then-act
+- No `@stripe/stripe-js` or `@stripe/react-stripe-js` — server-side `session.url` redirect is current Stripe pattern
+- `src/lib/billing/` isolation boundary — all Stripe SDK imports and billing logic stay in this module (BILLING-07)
+- Do NOT cache plan in JWT — read from Org document at enforcement time to avoid stale plan after Stripe upgrade
+- Rate limit key: always `session.user.id`, never client IP — IP spoofable via X-Forwarded-For
+- Webhook route uses `req.text()` exclusively — `req.json()` breaks Stripe HMAC signature verification
+- `ProcessedWebhookEvent` MongoDB collection for webhook idempotency
+- Lazy UTC-month reset (USAGE-02) — atomic `findOneAndUpdate` before limit check on first export of new month
+- Atomic `$lt` check for limit enforcement — prevents race-condition over-creation
 - `assertOrgOwnership()` returns 404 not 403 — avoids confirming resource existence to cross-tenant requestors
 - SELF_HOSTED bypass checked first in all limit functions — short-circuits before any DB read or Stripe call
-- Compound `{ _id, organizationId }` indexes on User and TokenCollection — prevents COLLSCAN on collection list queries; added in same commit as the field
-- org created atomically with user at registration — no orphaned users without an org; organizationId in JWT from first sign-in
-- [Phase 25]: StyleGuidePanel uses useMemo for token grouping; ColorPaletteRow uses single TooltipProvider; #cccccc fallback for unresolved color refs
-- [Phase 25]: filteredGroups used as StyleGuidePanel token source — applies group visibility rules (D-05 compliant) without extra filtering logic
-- [Phase 25]: Style Guide tab placed at collection level wrapping entire master-detail layout — shows all collection tokens, not per-group scoped
-- [Phase 26-ai-service-layer-foundation]: Provider interface decouples AI provider from routes — swapping Claude requires only a new implementation class (AI-04)
-- [Phase 26-ai-service-layer-foundation]: SELF_HOSTED=true makes server ANTHROPIC_API_KEY always win — per-user keys ignored at runtime in self-hosted mode
-- [Phase 26-ai-service-layer-foundation]: AES-256-GCM auth tag appended to ciphertext — single hex field stored per user, iv stored in User.apiKeyIv separately
-- [Phase 26]: SELF_HOSTED=true skips User DB lookup in chat route — AIService handles env key; dual-gate is intentional to avoid unnecessary DB round-trip
-- [Phase 26]: MCP tools use console.error only — stdout is the JSON-RPC channel for StdioServerTransport
-- [Phase 26]: tsx used for local MCP server execution via mcp:dev script — no separate compile step needed for development
-- [Phase 28]: Generator tools delegate to previewGeneratedTokens() from tokenGenerators.ts — no algorithm re-implementation
-- [Phase 29]: ChatResult interface wraps reply+toolsExecuted; ClaudeProvider sets toolsExecuted=true only when tool blocks execute; AIChatPanel guards refresh callback conditionally
+- Compound `{ _id, organizationId }` indexes on User and TokenCollection — prevents COLLSCAN on collection list queries
+- org created atomically with user at registration — organizationId in JWT from first sign-in (v1.5 foundation in place)
 
 ### Pending Todos
 
@@ -211,20 +58,12 @@ Key decisions relevant to v1.6 (from research):
 - Confirm deployment target (single-instance vs. Vercel serverless) before Phase 23 — determines whether in-process Map or `RateLimiterMongo` is appropriate for rate limiting
 - Create Stripe price IDs in Dashboard (ops step) before Phase 24 begins
 
-### Roadmap Evolution
+### Deferred from v1.9
 
-- Phase 25 added: enhance read-only view of token collections
-- v1.8 roadmap created 2026-04-07: phases 29-31 (fix AI chat, AI naming/queries, Style Guide verification)
-- v1.9 roadmap created 2026-04-08: phases 30-32 (AI naming/queries, Style Guide verification, MCP tool service layer); Phase 29 shipped as entirety of v1.8
-
-### Blockers/Concerns
-
-- Resend domain verification required for production — `onboarding@resend.dev` works in dev; production needs verified sending domain (operational gap, not code gap)
-- Sign-in rate limiting deferred — `POST /api/auth/callback/credentials` unprotected against brute force; acceptable for internal tool; document in Phase 18 plan
+Phases 30 (AI-Assisted Naming and Queries) and 32 (MCP Tool Service Layer) were not started and remain deferred. Requirements AI-11 to AI-14 and MCP-01 remain in PROJECT.md Active section.
 
 ## Session Continuity
 
-Last session: 2026-04-09T08:28:13.420Z
-Stopped at: Phase 31 context gathered (discuss mode)
-Resume file: .planning/phases/31-style-guide-verification/31-CONTEXT.md
-Next action: `/gsd-plan-phase 30` to begin Phase 30 planning
+Last session: 2026-04-11T00:00:00.000Z
+Stopped at: Milestone v1.6 initialized
+Next action: Run roadmap creation — `/gsd-plan-phase [N]` once roadmap is written
