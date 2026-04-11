@@ -42,7 +42,7 @@ export default function SignInPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
       <div className="w-full max-w-sm bg-white dark:bg-gray-900 rounded-xl shadow-md p-8">
         <h1 className="text-xl font-semibold text-center text-gray-900 dark:text-gray-100 mb-6">
-          ATUI Tokens Manager
+          Token Manager
         </h1>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">

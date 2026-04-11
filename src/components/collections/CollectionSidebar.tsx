@@ -27,7 +27,7 @@ export function CollectionSidebar({ collectionId, collectionName }: CollectionSi
 {/*        {!collapsed && (
           <div className="flex-1 min-w-0">
             <Link href="/collections" className="block mb-2">
-              <span className="text-gray-900 font-semibold text-sm tracking-wide">ATUI Tokens</span>
+              <span className="text-gray-900 font-semibold text-sm tracking-wide">Token Manager</span>
             </Link>
 
             <Link

@@ -20,7 +20,7 @@ export function AppSidebar() {
       {/* App name / logo area */}
       <div className={`flex items-center border-b border-gray-100 flex-shrink-0 ${collapsed ? 'justify-center py-3' : 'px-4 py-3 justify-between'}`}>
         {!collapsed && (
-          <span className="text-gray-900 font-semibold text-sm tracking-wide truncate">ATUI Tokens</span>
+          <span className="text-gray-900 font-semibold text-sm tracking-wide truncate">Token Manager</span>
         )}
         <button
           onClick={() => setCollapsed(c => !c)}
