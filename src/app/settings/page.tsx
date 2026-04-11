@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { DatabaseConfig } from '@/components/dev/DatabaseConfig';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +9,20 @@ import { showSuccessToast, showErrorToast } from '@/utils/toast.utils';
 import { Eye, EyeOff, Key, Check } from 'lucide-react';
 
 export default function SettingsPage() {
+  const { data: session, status } = useSession();
+
+  // Redirect non-admin users
+  useEffect(() => {
+    if (status === 'loading') return;
+    if (!session || session.user.role !== 'Admin') {
+      window.location.href = '/collections';
+    }
+  }, [session, status]);
+
+  if (status === 'loading' || !session || session.user.role !== 'Admin') {
+    return null; // Don't render anything while checking/redirecting
+  }
+
   return (
     <div className="p-6 max-w-3xl">
       <h1 className="text-2xl font-semibold text-gray-900 mb-8">Settings</h1>

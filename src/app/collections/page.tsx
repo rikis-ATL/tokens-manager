@@ -193,16 +193,6 @@ export default function CollectionsPage() {
       {/* Grid */}
       {!loading && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {canCreate && !search && selectedTags.length === 0 && (
-            <div
-              className="border-2 border-dashed border-gray-300 rounded-lg p-4 cursor-pointer hover:border-gray-400 hover:bg-gray-50 transition-all flex flex-col items-center justify-center min-h-[120px] text-gray-400 hover:text-gray-600"
-              onClick={() => setCreateDialogOpen(true)}
-            >
-              <PlusCircle size={24} />
-              <span className="mt-2 text-sm font-medium">New Collection</span>
-            </div>
-          )}
-
           {filtered.map((collection) => (
             <CollectionCard
               key={collection._id}

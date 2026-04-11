@@ -46,8 +46,16 @@ interface UserRow {
 }
 
 export default function OrgUsersPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [invites, setInvites] = useState<InviteRow[]>([]);
+
+  // Redirect non-admin users
+  useEffect(() => {
+    if (status === 'loading') return;
+    if (!session || session.user.role !== 'Admin') {
+      window.location.href = '/collections';
+    }
+  }, [session, status]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [users, setUsers] = useState<UserRow[]>([]);
