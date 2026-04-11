@@ -42,6 +42,18 @@ const nextConfig = {
       new webpackInstance.IgnorePlugin({ resourceRegExp: /^bufferutil$/ }),
       new webpackInstance.IgnorePlugin({ resourceRegExp: /^utf-8-validate$/ }),
     );
+    
+    // Fix MongoDB module resolution for Next.js 13
+    // "Default condition should be last one" error fix
+    if (isServer) {
+      config.resolve.conditionNames = [
+        'node',
+        'import',
+        'require',
+        'default',
+      ];
+    }
+    
     if (dev && isServer) {
       config.optimization = {
         ...config.optimization,

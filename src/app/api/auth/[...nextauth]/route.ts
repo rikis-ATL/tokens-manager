@@ -1,7 +1,8 @@
 import NextAuth from 'next-auth';
 import { NextRequest, NextResponse } from 'next/server';
 import { authOptions } from '@/lib/auth/nextauth.config';
-import { isDemoMode, getDemoUserSession } from '@/lib/auth/demo';
+import { isDemoMode } from '@/lib/auth/demo';
+import { getDemoUserSession } from '@/lib/auth/demo-session';
 
 const handler = NextAuth(authOptions);
 

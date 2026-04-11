@@ -7,7 +7,8 @@ import { canPerform } from './permissions';
 import type { Role, ActionType } from './permissions';
 import dbConnect from '@/lib/mongodb';
 import CollectionPermission from '@/lib/db/models/CollectionPermission';
-import { isDemoMode, getDemoUserSession } from './demo';
+import { isDemoMode } from './demo';
+import { getDemoUserSession } from './demo-session';
 import TokenCollection from '@/lib/db/models/TokenCollection';
 
 export type AuthResult = Session | NextResponse;
