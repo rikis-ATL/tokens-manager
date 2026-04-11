@@ -38,7 +38,7 @@ interface UserRow {
   _id: string;
   displayName: string;
   email: string;
-  role: 'Admin' | 'Editor' | 'Viewer';
+  role: 'Admin' | 'Editor' | 'Viewer' | 'Demo';
   status: 'active' | 'invited';
   createdAt: string;
   isSuperAdmin: boolean;
@@ -233,6 +233,7 @@ export default function OrgUsersPage() {
                         <SelectItem value="Admin">Admin</SelectItem>
                         <SelectItem value="Editor">Editor</SelectItem>
                         <SelectItem value="Viewer">Viewer</SelectItem>
+                        <SelectItem value="Demo">Demo</SelectItem>
                       </SelectContent>
                     </Select>
                   </td>

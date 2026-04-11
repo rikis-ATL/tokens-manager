@@ -25,7 +25,7 @@ interface InviteModalProps {
 
 export function InviteModal({ open, onOpenChange, onSuccess }: InviteModalProps) {
   const [email, setEmail] = useState('');
-  const [role, setRole] = useState<'Admin' | 'Editor' | 'Viewer'>('Editor');
+  const [role, setRole] = useState<'Admin' | 'Editor' | 'Viewer' | 'Demo'>('Editor');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [collections, setCollections] = useState<Collection[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -120,6 +120,7 @@ export function InviteModal({ open, onOpenChange, onSuccess }: InviteModalProps)
                 <SelectItem value="Admin">Admin</SelectItem>
                 <SelectItem value="Editor">Editor</SelectItem>
                 <SelectItem value="Viewer">Viewer</SelectItem>
+                <SelectItem value="Demo">Demo</SelectItem>
               </SelectContent>
             </Select>
           </div>
