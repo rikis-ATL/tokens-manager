@@ -11,6 +11,7 @@ import type { Session } from 'next-auth';
  */
 export async function getDemoUserSession(): Promise<Session> {
   return {
+    demoMode: true,
     user: {
       id: 'demo-visitor',
       email: 'demo@visitor.local',

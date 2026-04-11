@@ -97,10 +97,13 @@ export function PermissionsProvider({ children }: { children: React.ReactNode })
   }, [orgRole, collectionId, status]);
 
   // Determine canEdit based on role and playground status
-  const canEdit = effectiveRole 
-    ? (effectiveRole === 'Demo' 
-        ? (isPlayground && canPerform(effectiveRole, Action.WritePlayground))
-        : canPerform(effectiveRole, Action.Write))
+  const isDemoEnvSession = session?.demoMode === true;
+
+  const canEdit = effectiveRole
+    ? effectiveRole === 'Demo'
+      ? isDemoEnvSession ||
+        (isPlayground && canPerform(effectiveRole, Action.WritePlayground))
+      : canPerform(effectiveRole, Action.Write)
     : false;
 
   const value: PermissionsContextValue = {

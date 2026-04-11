@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 import type { Session } from 'next-auth';
 import { authOptions } from './nextauth.config';
-import { canPerform } from './permissions';
+import { canPerform, Action } from './permissions';
 import type { Role, ActionType } from './permissions';
 import dbConnect from '@/lib/mongodb';
 import CollectionPermission from '@/lib/db/models/CollectionPermission';
@@ -63,6 +63,7 @@ export async function requireAuth(): Promise<AuthResult> {
  * - effectiveRole can perform action → Session; otherwise → 403 Forbidden
  *
  * Demo role special handling:
+ * - When DEMO_MODE is true: Action.Write is allowed (token/graph saves for public demos)
  * - WritePlayground action: Only allowed if collection.isPlayground === true
  * - All other actions: Checked via canPerform('Demo', action)
  *
@@ -93,6 +94,11 @@ export async function requireRole(action: ActionType, collectionId?: string): Pr
 
   // Demo role special handling
   if (orgRole === 'Demo') {
+    // DEMO_MODE: allow token/graph persistence (Action.Write) on any collection — UI uses session.demoMode
+    if (isDemoMode() && action === Action.Write) {
+      return session;
+    }
+
     // Demo role can only perform WritePlayground action on playground collections
     if (action === 'WritePlayground') {
       if (!collectionId) {
