@@ -29,7 +29,14 @@ export type AuthResult = Session | NextResponse;
 export async function requireAuth(): Promise<AuthResult> {
   // Demo mode: Use demo user session
   if (isDemoMode()) {
-    return getDemoUserSession();
+    try {
+      return await getDemoUserSession();
+    } catch (error) {
+      console.error('[requireAuth] Demo mode error:', error);
+      return NextResponse.json({ 
+        error: error instanceof Error ? error.message : 'Demo mode configuration error' 
+      }, { status: 500 });
+    }
   }
   
   const session = await getServerSession(authOptions);
@@ -65,7 +72,14 @@ export async function requireRole(action: ActionType, collectionId?: string): Pr
   
   // Demo mode: Use demo user session
   if (isDemoMode()) {
-    session = getDemoUserSession();
+    try {
+      session = await getDemoUserSession();
+    } catch (error) {
+      console.error('[requireRole] Demo mode error:', error);
+      return NextResponse.json({ 
+        error: error instanceof Error ? error.message : 'Demo mode configuration error' 
+      }, { status: 500 });
+    }
   } else {
     const authSession = await getServerSession(authOptions);
     if (!authSession) {
