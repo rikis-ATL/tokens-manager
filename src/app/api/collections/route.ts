@@ -36,12 +36,39 @@ export async function GET() {
     }
 
     const collections: CollectionCardData[] = visibleDocs.map((doc) => {
-      // Count all tokens across all groups
+      // Count all tokens across all groups (including nested subgroups)
+      // Structure: tokens[namespace][...nested objects with $value properties]
       const tokens = doc.tokens ?? {};
+      
+      // Recursive function to count tokens in a nested object structure
+      // A token is identified by having a $value property
+      function countTokensRecursive(obj: any): number {
+        if (!obj || typeof obj !== 'object') return 0;
+        
+        let count = 0;
+        
+        // If this object has $value, it's a token
+        if (obj.$value !== undefined) {
+          return 1;
+        }
+        
+        // Otherwise, recursively check all properties
+        Object.values(obj).forEach((value: any) => {
+          if (value && typeof value === 'object') {
+            count += countTokensRecursive(value);
+          }
+        });
+        
+        return count;
+      }
+      
       let tokenCount = 0;
-      Object.values(tokens).forEach((group: any) => {
-        if (group && typeof group === 'object' && group.tokens) {
-          tokenCount += Object.keys(group.tokens).length;
+      
+      // tokens structure: { [namespace]: { ...nested token objects } }
+      // Skip the namespace level and count tokens in the nested structure
+      Object.values(tokens).forEach((namespaceContent: any) => {
+        if (namespaceContent && typeof namespaceContent === 'object') {
+          tokenCount += countTokensRecursive(namespaceContent);
         }
       });
       
