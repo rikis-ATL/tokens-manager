@@ -7,9 +7,9 @@ import { getDemoUserSession } from '@/lib/auth/demo-session';
 const handler = NextAuth(authOptions);
 
 // Intercept GET requests in demo mode to return demo session
-export async function GET(req: NextRequest, context: { params: { nextauth: string[] } }) {
+export async function GET(req: NextRequest, context: { params: { nextauth: string[] } | Promise<{ nextauth: string[] }> }) {
   if (isDemoMode()) {
-    const params = context.params.nextauth;
+    const params = context.params instanceof Promise ? (await context.params).nextauth : context.params.nextauth;
     
     // Only intercept the session endpoint
     if (params && params.length === 1 && params[0] === 'session') {

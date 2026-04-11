@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { getRepository } from '@/lib/db/get-repository';
 import { authOptions } from '@/lib/auth/nextauth.config';
+import { requireAuth } from '@/lib/auth/require-auth';
 import { buildTokens } from '@/services/style-dictionary.service';
 import { tokenService } from '@/services';
 import type { ITheme } from '@/types/theme.types';
@@ -11,10 +12,8 @@ export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const session = await getServerSession(authOptions);
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const session = await requireAuth();
+  if (session instanceof NextResponse) return session;
 
   try {
     const { searchParams } = new URL(request.url);

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { getRepository } from '@/lib/db/get-repository';
 import dbConnect from '@/lib/mongodb';
-import { requireRole } from '@/lib/auth/require-auth';
+import { requireRole, requireAuth } from '@/lib/auth/require-auth';
 import { Action } from '@/lib/auth/permissions';
 import { authOptions } from '@/lib/auth/nextauth.config';
 import { bootstrapCollectionGrants } from '@/lib/auth/collection-bootstrap';
@@ -12,10 +12,9 @@ import type { CollectionCardData, ISourceMetadata } from '@/types/collection.typ
 export async function GET() {
   await bootstrapCollectionGrants();
 
-  const session = await getServerSession(authOptions);
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  // Demo mode: Use demo session
+  const session = await requireAuth();
+  if (session instanceof NextResponse) return session;
 
   try {
     const repo = await getRepository();
@@ -36,17 +35,28 @@ export async function GET() {
       }
     }
 
-    const collections: CollectionCardData[] = visibleDocs.map((doc) => ({
-      _id: doc._id,
-      name: doc.name,
-      description: doc.description ?? null,
-      tags: doc.tags ?? [],
-      tokenCount: Object.keys(doc.tokens ?? {}).length,
-      updatedAt: doc.updatedAt,
-      figmaConfigured: !!(doc.figmaToken && doc.figmaFileId),
-      githubConfigured: !!doc.githubRepo,
-      isPlayground: doc.isPlayground ?? false,
-    }));
+    const collections: CollectionCardData[] = visibleDocs.map((doc) => {
+      // Count all tokens across all groups
+      const tokens = doc.tokens ?? {};
+      let tokenCount = 0;
+      Object.values(tokens).forEach((group: any) => {
+        if (group && typeof group === 'object' && group.tokens) {
+          tokenCount += Object.keys(group.tokens).length;
+        }
+      });
+      
+      return {
+        _id: doc._id,
+        name: doc.name,
+        description: doc.description ?? null,
+        tags: doc.tags ?? [],
+        tokenCount,
+        updatedAt: doc.updatedAt,
+        figmaConfigured: !!(doc.figmaToken && doc.figmaFileId),
+        githubConfigured: !!doc.githubRepo,
+        isPlayground: doc.isPlayground ?? false,
+      };
+    });
 
     return NextResponse.json({ collections });
   } catch (error) {

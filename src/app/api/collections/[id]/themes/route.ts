@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getRepository } from '@/lib/db/get-repository';
 import dbConnect from '@/lib/mongodb';
-import { requireRole } from '@/lib/auth/require-auth';
+import { requireRole, requireAuth } from '@/lib/auth/require-auth';
 import { Action } from '@/lib/auth/permissions';
 import TokenCollection from '@/lib/db/models/TokenCollection';
 import { tokenService } from '@/services/token.service';
@@ -14,6 +14,9 @@ export async function GET(
   _request: Request,
   { params }: { params: { id: string } }
 ) {
+  const session = await requireAuth();
+  if (session instanceof NextResponse) return session;
+  
   try {
     const repo = await getRepository();
     const doc = await repo.findById(params.id);

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/nextauth.config';
+import { requireAuth } from '@/lib/auth/require-auth';
 import CollectionPermission from '@/lib/db/models/CollectionPermission';
 import dbConnect from '@/lib/mongodb';
 import type { Role } from '@/lib/auth/permissions';
@@ -13,20 +14,24 @@ import type { Role } from '@/lib/auth/permissions';
  * Responses:
  * - 401: no session
  * - 200 { role: 'Admin' }: Admin org role (bypasses collection grant check)
+ * - 200 { role: 'Demo' }: Demo mode (viewer access to all collections)
  * - 200 { role }: Editor/Viewer with a grant for this collection
  * - 404: no grant found for this collection (collection is invisible to this user)
- *
- * Direct getServerSession() is used (consistent with Phase 18 GET handler pattern —
- * no requireAuth() on read endpoints).
  */
 export async function GET(
   _request: Request,
   { params }: { params: { id: string } }
 ) {
-  const session = await getServerSession(authOptions);
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const session = await requireAuth();
+  if (session instanceof NextResponse) return session;
 
   const orgRole = session.user.role as Role;
+  
+  // Demo role gets viewer access to all collections
+  if (orgRole === 'Demo') {
+    return NextResponse.json({ role: 'Demo' });
+  }
+  
   if (orgRole === 'Admin') {
     return NextResponse.json({ role: 'Admin' });
   }

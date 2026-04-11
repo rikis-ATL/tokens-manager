@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { getRepository } from '@/lib/db/get-repository';
 import dbConnect from '@/lib/mongodb';
-import { requireRole } from '@/lib/auth/require-auth';
+import { requireRole, requireAuth } from '@/lib/auth/require-auth';
 import { Action } from '@/lib/auth/permissions';
 import { authOptions } from '@/lib/auth/nextauth.config';
 import CollectionPermission from '@/lib/db/models/CollectionPermission';
@@ -13,12 +13,12 @@ export async function GET(
   _request: Request,
   { params }: { params: { id: string } }
 ) {
-  const session = await getServerSession(authOptions);
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const session = await requireAuth();
+  if (session instanceof NextResponse) return session;
 
-  if (session.user.role !== 'Admin') {
+  if (session.user.role === 'Demo') {
+    // Demo users can view all collections
+  } else if (session.user.role !== 'Admin') {
     await dbConnect();
     const grant = await CollectionPermission.findOne({
       userId: session.user.id,
