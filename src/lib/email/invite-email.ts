@@ -12,7 +12,7 @@ export function buildInviteEmailHtml(
 <html>
   <head><meta charset="utf-8" /></head>
   <body style="font-family:sans-serif;color:#111;max-width:480px;margin:40px auto;padding:0 16px;">
-    <h2 style="margin-bottom:8px;">You've been invited to ATUI Tokens Manager</h2>
+    <h2 style="margin-bottom:8px;">You've been invited to Token Manager</h2>
     <p style="color:#555;">You've been invited as <strong>${role}</strong>.</p>
     <p>
       <a href="${setupUrl}" style="display:inline-block;padding:10px 20px;background:#111;color:#fff;text-decoration:none;border-radius:6px;">

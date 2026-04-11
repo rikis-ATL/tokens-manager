@@ -89,9 +89,9 @@ export async function POST(request: Request) {
   const setupUrl = `${process.env.NEXTAUTH_URL}/auth/invite-setup?token=${plainToken}`;
   const resend = new Resend(process.env.RESEND_API_KEY);
   const { error: emailError } = await resend.emails.send({
-    from: process.env.RESEND_FROM ?? 'ATUI Tokens Manager <noreply@tokenflow.studio>',
+    from: process.env.RESEND_FROM ?? 'Token Manager <noreply@tokenflow.studio>',
     to: [email.toLowerCase()],
-    subject: `You've been invited to ATUI Tokens Manager as ${role}`,
+    subject: `You've been invited to Token Manager as ${role}`,
     html: buildInviteEmailHtml(email.toLowerCase(), role, setupUrl),
   });
 

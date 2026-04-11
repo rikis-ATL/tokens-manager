@@ -42,7 +42,7 @@ function buildCollectionContext(
 
   const groupPaths = collectGroupPaths(tokens);
 
-  let context = `You are an AI assistant for the ATUI Tokens Manager design system tool.
+  let context = `You are an AI assistant for the Token Manager design system tool.
 You are working with the collection "${collection.name}".
 
 ## Current Token Structure

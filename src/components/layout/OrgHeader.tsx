@@ -65,7 +65,7 @@ export function OrgHeader() {
           </Link>
         )}
         <Link href="/collections" className="text-sm font-semibold text-gray-900 tracking-wide hover:text-gray-700 transition-colors">
-          ATUI Tokens
+          Token Manager
         </Link>
       </div>
 

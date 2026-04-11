@@ -54,7 +54,7 @@ async function main() {
   // Claude Code (configured via mcp.json or the MCP CLI).
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("[MCP] ATUI Tokens Manager MCP server running on stdio");
+  console.error("[MCP] Token Manager MCP server running on stdio");
 }
 
 // Graceful shutdown: disconnect Mongoose when the process is terminated.
