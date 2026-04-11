@@ -42,7 +42,7 @@ export async function POST(request: Request) {
 
   const { email, role, collectionIds } = await request.json() as { email: string; role: string; collectionIds?: string[] };
 
-  if (!email || !role || !['Admin', 'Editor', 'Viewer'].includes(role)) {
+  if (!email || !role || !['Admin', 'Editor', 'Viewer', 'Demo'].includes(role)) {
     return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
   }
 

@@ -23,7 +23,10 @@ export async function GET() {
 
     let visibleDocs = docs;
 
-    if (session.user.role !== 'Admin') {
+    // In demo mode, show all collections to everyone (Demo role = org-scoped)
+    if (session.user.role === 'Demo') {
+      visibleDocs = docs; // All collections visible
+    } else if (session.user.role !== 'Admin') {
       await dbConnect();
       const grants = await CollectionPermission.find({ userId: session.user.id }, 'collectionId').lean();
       // No grants = org-scoped access (all collections visible)
