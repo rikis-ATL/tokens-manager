@@ -2,23 +2,21 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Info, MoreHorizontal, RotateCcw, Save, Sun, Moon, Eye, Download, EllipsisVertical, MessageSquare, X } from 'lucide-react';
+import { MoreHorizontal, RotateCcw, Save, Sun, Moon, Eye, Download, EllipsisVertical, MessageSquare, X } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { showSuccessToast, showErrorToast } from '@/utils/toast.utils';
 import { SaveCollectionDialog } from '@/components/collections/SaveCollectionDialog';
 import { TokenGeneratorForm } from '@/components/tokens/TokenGeneratorForm';
-import { TokenGeneratorDocs } from '@/components/tokens/TokenGeneratorDocs';
 import { SourceContextBar } from '@/components/layout/SourceContextBar';
 import { ImportFromFigmaDialog } from '@/components/figma/ImportFromFigmaDialog';
 import { CollectionActions } from '@/components/collections/CollectionActions';
-import { TokenGroupTree } from '@/components/tokens/TokenGroupTree';
 import { GroupBreadcrumb } from '@/components/tokens/GroupBreadcrumb';
+import { CollectionTokensWorkspace } from '@/components/tokens/CollectionTokensWorkspace';
+import { StyleGuideTabPanel } from '@/components/tokens/StyleGuideTabPanel';
 import { TokenGraphPanel } from '@/components/graph/TokenGraphPanel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import type { TokenGroup, GeneratedToken } from '@/types';
 import type { ISourceMetadata } from '@/types/collection.types';
@@ -42,7 +40,6 @@ import { JsonPreviewDialog } from '@/components/dev/JsonPreviewDialog';
 import type { GitHubConfig } from '@/types';
 import { usePermissions } from '@/context/PermissionsContext';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { StyleGuidePanel } from '@/components/tokens/StyleGuidePanel';
 import { AIChatPanel } from '@/components/ai/AIChatPanel';
 
 /** Pure helper: update a single token value within a recursive group tree */
@@ -88,8 +85,6 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   const [rawCollectionTokens, setRawCollectionTokens] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [isPlayground, setIsPlayground] = useState(false);
-
   const { canEdit, canGitHub, canFigma } = usePermissions();
 
   const [saveAsDialogOpen, setSaveAsDialogOpen] = useState(false);
@@ -184,7 +179,6 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   const [pendingBulkInsert, setPendingBulkInsert] = useState<{ groupId: string; tokens: GeneratedToken[]; subgroupName?: string } | null>(null);
   const [pendingGroupCreation, setPendingGroupCreation] = useState<{ parentGroupId: string | null; groupData: { name: string; tokens: GeneratedToken[] } } | null>(null);
   const [pendingGroupAction, setPendingGroupAction] = useState<{ type: 'delete' | 'addSub'; groupId: string; name?: string } | null>(null);
-  const [guideOpen, setGuideOpen] = useState(false);
   const [isAddingGroup, setIsAddingGroup] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [addSubGroupParentId, setAddSubGroupParentId] = useState<string | null>(null);
@@ -251,7 +245,6 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       setRawCollectionTokens(rawTokens);
       rawCollectionTokensRef.current = rawTokens;
       setSelectedSourceMetadata(col.sourceMetadata ?? null);
-      setIsPlayground(col.isPlayground ?? false);
       // Load persisted graph state
       const gs = (col.graphState ?? {}) as CollectionGraphState;
       setCollectionGraphState(gs);
@@ -1064,31 +1057,55 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   return (
     <div className="flex flex-col h-full overflow-hidden">
 
-      <header className="px-6 py-3 flex justify-between items-center border border-b border-gray-200">
-       <div className="flex items-center gap-2">  
-        <h1 className="text-xl">
-          {collectionName}
-       
-        </h1>
-        <Badge variant="secondary">Prefix:{globalNamespace}</Badge>
-        {isPlayground && (
-          <Badge className="bg-amber-50 text-amber-700 border-amber-200">
-            Playground
-          </Badge>
-        )}
-        </div> 
-        <div className="flex gap-2 items-center">
-          {/* Info/Generator Guide button */}
-          <Button
-            variant="outline"
-            size="sm"
-            className="px-2"
-            onClick={() => setGuideOpen(true)}
-            title="Generator Guide"
-          >
-            <Info size={16} />
-          </Button>
+<Tabs defaultValue="tokens" className="flex flex-col flex-1 overflow-hidden">
 
+      <header className="px-4 py-3 flex justify-between items-center border border-b border-gray-200">
+       <div className="flex items-center gap-2">  
+ 
+        {/* <h1 className="text-lg line-height-0">
+          {collectionName}
+        </h1> */}
+
+
+        {themes.length > 0 && (
+<div className="flex items-center gap-2">
+<label className="text-xs text-gray-800">Theme:</label>
+            <Select
+              key={activeThemeId ?? '__default__'}
+              value={activeThemeId ?? '__default__'}
+              onValueChange={(v) => handleThemeChange(v === '__default__' ? null : v)}
+            >
+              <SelectTrigger className="w-40 h-8 text-sm">
+                <SelectValue placeholder="Default" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__default__">Default</SelectItem>
+                {themes.map(t => (
+                  <SelectItem key={t.id} value={t.id}>
+                    <span className="flex items-center gap-1.5">
+                      Theme: 
+                      {t.name}
+                      <ColorModeBadge colorMode={(t.colorMode ?? 'light') as ColorMode} />
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+</div>
+          )}
+        <span className="text-xs text-gray-800">Prefix:{globalNamespace}</span>
+
+        </div> 
+
+        <div className="flex items-center gap-2">
+          <TabsList className="w-fit">
+            <TabsTrigger value="tokens">Tokens</TabsTrigger>
+            <TabsTrigger value="style-guide">Style Guide</TabsTrigger>
+          </TabsList>
+
+
+        </div>
+        <div className="flex gap-2 items-center">
           {/* Preview JSON button */}
           <Button
             variant="outline"
@@ -1125,7 +1142,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
           )}
 
           {/* AI Chat toggle */}
-          <Button
+          {/* <Button
             variant={isChatOpen ? 'default' : 'outline'}
             size="sm"
             className="px-2"
@@ -1133,7 +1150,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
             title="AI Assistant"
           >
             <MessageSquare size={16} />
-          </Button>
+          </Button> */}
 
           {/* More actions dropdown */}
           <DropdownMenu>
@@ -1220,169 +1237,122 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
 
       <SourceContextBar sourceMetadata={selectedSourceMetadata} />
 
-
-
-      {/* Collection-level view tabs */}
-      <Tabs defaultValue="tokens" className="flex flex-col flex-1 overflow-hidden">
-        <div className="px-6 pt-2 border-b border-gray-200 flex-shrink-0 flex items-center justify-between">
-          <TabsList className="w-fit">
-            <TabsTrigger value="tokens">Tokens</TabsTrigger>
-            <TabsTrigger value="style-guide">Style Guide</TabsTrigger>
-          </TabsList>
-          {themes.length > 0 && (
-            <Select
-              key={activeThemeId ?? '__default__'}
-              value={activeThemeId ?? '__default__'}
-              onValueChange={(v) => handleThemeChange(v === '__default__' ? null : v)}
-            >
-              <SelectTrigger className="w-40 h-8 text-sm">
-                <SelectValue placeholder="Default" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__default__">Default</SelectItem>
-                {themes.map(t => (
-                  <SelectItem key={t.id} value={t.id}>
-                    <span className="flex items-center gap-1.5">
-                      {t.name}
-                      <ColorModeBadge colorMode={(t.colorMode ?? 'light') as ColorMode} />
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        </div>
-
-        <TabsContent value="tokens" className="flex flex-1 overflow-hidden m-0 p-0">
-      {/* Master-detail layout */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Master: token groups sidebar — collapsible */}
-        <aside
-          className={`border-r border-gray-200 bg-gray-50 flex-shrink-0 flex flex-col transition-all duration-200 w-56`}
-    
-        >
-         
-            <div className="flex flex-col h-full" onClick={e => e.stopPropagation()}>
-
-
-              <TokenGroupTree
-                groups={filteredGroups}
-                selectedGroupId={selectedGroupId}
-                onGroupSelect={(id) => { setSelectedGroupId(id); setSelectedToken(null); }}
-                onAddGroup={canEdit ? () => setIsAddingGroup(true) : undefined}
-                onDeleteGroup={canEdit ? (groupId) => setPendingGroupAction({ type: 'delete', groupId }) : undefined}
-                onAddSubGroup={canEdit ? (groupId) => { setAddSubGroupParentId(groupId); setIsAddingGroup(true); } : undefined}
-                onGroupsReordered={canEdit ? handleGroupsReordered : undefined}
-                onRenameGroup={canEdit ? handleRenameGroup : undefined}
-                onToggleOmitFromPath={canEdit ? handleToggleOmitFromPath : undefined}
-              />
-              {/* Collapse toggle at bottom */}
-              <div className="mt-auto p-2 border-t border-gray-200">
-                <button
-                  className="w-full flex items-center justify-center text-gray-400 hover:text-gray-700 py-1 text-xs gap-1"
-                  onClick={() => setSidebarCollapsed(true)}
-                  title="Collapse sidebar"
-                >
-                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path d="M10 6l-3 2 3 2"/>
-                    <rect x="9" y="3" width="5" height="10" rx="1"/>
-                  </svg>
-                </button>
-              </div>
-            </div>
-     
-        </aside>
-
-        {/* Detail: breadcrumb + split pane */}
-        <div className="flex flex-col flex-1 overflow-hidden">
-
-          <ResizablePanelGroup orientation="horizontal" className="flex-1 min-h-0">
-            {/* Form panel */}
-            <ResizablePanel defaultSize={40} minSize={25}>
-              <main className="h-full overflow-y-auto p-6 flex flex-col gap-4">
-
-              <GroupBreadcrumb
-            groups={masterGroups}
+      <TabsContent
+        value="tokens"
+        className="flex flex-1 flex-col min-h-0 m-0 p-0 overflow-hidden"
+      >
+        <CollectionTokensWorkspace
+          groupTree={{
+            groups: filteredGroups,
+            selectedGroupId,
+            onGroupSelect: (gid) => {
+              setSelectedGroupId(gid);
+              setSelectedToken(null);
+            },
+            onAddGroup: canEdit ? () => setIsAddingGroup(true) : undefined,
+            onDeleteGroup: canEdit ? (groupId) => setPendingGroupAction({ type: 'delete', groupId }) : undefined,
+            onAddSubGroup: canEdit
+              ? (groupId) => {
+                  setAddSubGroupParentId(groupId);
+                  setIsAddingGroup(true);
+                }
+              : undefined,
+            onGroupsReordered: canEdit ? handleGroupsReordered : undefined,
+            onRenameGroup: canEdit ? handleRenameGroup : undefined,
+            onToggleOmitFromPath: canEdit ? handleToggleOmitFromPath : undefined,
+          }}
+          onCollapseSidebar={() => setSidebarCollapsed(true)}
+          graphPanel={
+            <TokenGraphPanel
+              allGroups={masterGroups}
+              selectedGroupId={selectedGroupId}
+              selectedToken={selectedToken}
+              onBulkAddTokens={(groupId, tokens, subgroupName) =>
+                setPendingBulkInsert({ groupId, tokens, subgroupName })
+              }
+              onBulkCreateGroups={(parentGroupId, groupData) =>
+                setPendingGroupCreation({ parentGroupId, groupData })
+              }
+              graphStateMap={graphStateMap}
+              onGraphStateChange={handleGraphStateChange}
+              namespace={globalNamespace}
+              allTokens={allFlatTokens}
+              flatGroups={allFlatGroups}
+              activeThemeId={activeThemeId}
+            />
+          }
+          breadcrumb={
+            <GroupBreadcrumb
+              groups={masterGroups}
+              selectedGroupId={selectedGroupId}
+              onSelect={(selId) => {
+                setSelectedGroupId(selId);
+                setSelectedToken(null);
+              }}
+            />
+          }
+          mainContent={
+            <TokenGeneratorForm
+            key={`${id}-${activeThemeId ?? 'default'}-${tokenFormReloadVersion}`}
+            githubConfig={null}
+            collectionToLoad={
+              !activeThemeId && rawCollectionTokens
+                ? {
+                    id,
+                    name: collectionName,
+                    tokens: rawCollectionTokens,
+                  }
+                : null
+            }
+            onTokensChange={handleTokensChange}
+            namespace={globalNamespace}
+            onNamespaceChange={setGlobalNamespace}
+            onGroupsChange={activeThemeId ? undefined : handleGroupsChange}
+            onGroupSelect={(gid) => {
+              setSelectedGroupId(gid);
+              setSelectedToken(null);
+            }}
             selectedGroupId={selectedGroupId}
-            onSelect={(id) => { setSelectedGroupId(id); setSelectedToken(null); }}
-          />
-                    <TokenGeneratorForm
-                      key={`${id}-${activeThemeId ?? 'default'}-${tokenFormReloadVersion}`}
-                      githubConfig={null}
-                      collectionToLoad={!activeThemeId && rawCollectionTokens ? {
-                        id,
-                        name: collectionName,
-                        tokens: rawCollectionTokens
-                      } : null}
-                      onTokensChange={handleTokensChange}
-                      namespace={globalNamespace}
-                      onNamespaceChange={setGlobalNamespace}
-                      onGroupsChange={activeThemeId ? undefined : handleGroupsChange}
-                      onGroupSelect={(gid) => { setSelectedGroupId(gid); setSelectedToken(null); }}
-                      selectedGroupId={selectedGroupId}
-                      pendingNewGroup={pendingNewGroup}
-                      onGroupAdded={handleGroupAdded}
-                      hideNamespaceAndActions={true}
-                      hideAddGroupButton={true}
-                      selectedTokenId={selectedToken?.token.id ?? null}
-                      onTokenSelect={(token, groupPath) =>
-                        setSelectedToken(token ? { token, groupPath } : null)
-                      }
-                      pendingBulkInsert={pendingBulkInsert}
-                      onBulkInsertProcessed={() => setPendingBulkInsert(null)}
-                      pendingGroupCreation={pendingGroupCreation}
-                      onGroupCreationProcessed={() => setPendingGroupCreation(null)}
-                      pendingGroupAction={pendingGroupAction}
-                      onGroupActionProcessed={() => setPendingGroupAction(null)}
-                      themeTokens={activeThemeId ? effectiveThemeTokens : undefined}
-                      onThemeTokensChange={activeThemeId ? handleThemeTokenChange : undefined}
-                      isReadOnly={isThemeReadOnly || !canEdit}
-                      findMasterValue={activeThemeId ? findMasterValue : undefined}
-                      onResetToDefault={activeThemeId && !isThemeReadOnly ? handleResetToDefault : undefined}
-                      onResetGroupToSource={activeThemeId ? handleResetGroupToSource : undefined}
-                      isGroupSource={activeThemeId ? isGroupSource : undefined}
-                      tokenNameMismatch={tokenNameMismatch}
-                      onPreviewJSON={handlePreviewJSON}
-                      onDownloadJSON={handleDownloadJSONFromHeader}
-                      onUndoSnapshot={(snapshot) => {
-                        undoStackRef.current = [snapshot, ...undoStackRef.current.slice(0, MAX_UNDO - 1)];
-                      }}
-                    />
-              </main>
-            </ResizablePanel>
+            pendingNewGroup={pendingNewGroup}
+            onGroupAdded={handleGroupAdded}
+            hideNamespaceAndActions={true}
+            hideAddGroupButton={true}
+            selectedTokenId={selectedToken?.token.id ?? null}
+            onTokenSelect={(token, groupPath) => setSelectedToken(token ? { token, groupPath } : null)}
+            pendingBulkInsert={pendingBulkInsert}
+            onBulkInsertProcessed={() => setPendingBulkInsert(null)}
+            pendingGroupCreation={pendingGroupCreation}
+            onGroupCreationProcessed={() => setPendingGroupCreation(null)}
+            pendingGroupAction={pendingGroupAction}
+            onGroupActionProcessed={() => setPendingGroupAction(null)}
+            themeTokens={activeThemeId ? effectiveThemeTokens : undefined}
+            onThemeTokensChange={activeThemeId ? handleThemeTokenChange : undefined}
+            isReadOnly={isThemeReadOnly || !canEdit}
+            findMasterValue={activeThemeId ? findMasterValue : undefined}
+            onResetToDefault={activeThemeId && !isThemeReadOnly ? handleResetToDefault : undefined}
+            onResetGroupToSource={activeThemeId ? handleResetGroupToSource : undefined}
+            isGroupSource={activeThemeId ? isGroupSource : undefined}
+            tokenNameMismatch={tokenNameMismatch}
+            onPreviewJSON={handlePreviewJSON}
+            onDownloadJSON={handleDownloadJSONFromHeader}
+            onUndoSnapshot={(snapshot) => {
+              undoStackRef.current = [snapshot, ...undoStackRef.current.slice(0, MAX_UNDO - 1)];
+            }}
+            />
+          }
+        />
+      </TabsContent>
 
-            <ResizableHandle withHandle />
-
-            {/* Graph panel */}
-            <ResizablePanel defaultSize={30} minSize={20}>
-              <div className="h-full border-l border-gray-200 bg-gray-50">
-                <TokenGraphPanel
-                  allGroups={masterGroups}
-                  selectedGroupId={selectedGroupId}
-                  selectedToken={selectedToken}
-                  onBulkAddTokens={(groupId, tokens, subgroupName) => setPendingBulkInsert({ groupId, tokens, subgroupName })}
-                  onBulkCreateGroups={(parentGroupId, groupData) => setPendingGroupCreation({ parentGroupId, groupData })}
-                  graphStateMap={graphStateMap}
-                  onGraphStateChange={handleGraphStateChange}
-                  namespace={globalNamespace}
-                  allTokens={allFlatTokens}
-                  flatGroups={allFlatGroups}
-                  activeThemeId={activeThemeId}
-                />
-              </div>
-            </ResizablePanel>
-
-          </ResizablePanelGroup>
-        </div>
-      </div>
-        </TabsContent>
-
-        <TabsContent value="style-guide" className="flex flex-1 overflow-hidden m-0 p-0">
-          <StyleGuidePanel
-            tokens={allCollectionTokens}
-            allGroups={filteredGroups}
-          />
-        </TabsContent>
+      <TabsContent
+        value="style-guide"
+        className="flex flex-1 flex-col min-h-0 m-0 p-0 overflow-hidden"
+      >
+        <StyleGuideTabPanel
+          tokens={allCollectionTokens}
+          allGroups={filteredGroups}
+          colorGroupsTree={activeThemeId ? effectiveThemeTokens : filteredGroups}
+        />
+      </TabsContent>
       </Tabs>
 
 
@@ -1494,15 +1464,6 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
               <Button onClick={confirmAddGroup}>{addSubGroupParentId ? 'Add Sub-group' : 'Add Group'}</Button>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={guideOpen} onOpenChange={setGuideOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>W3C Design Token Generator Guide</DialogTitle>
-          </DialogHeader>
-          <TokenGeneratorDocs />
         </DialogContent>
       </Dialog>
     </div>

@@ -23,7 +23,34 @@ export function CollectionSidebar({ collectionId, collectionName }: CollectionSi
 
   return (
     <aside className={`h-full bg-white border-r border-gray-200 flex flex-col transition-all duration-200 flex-shrink-0 ${collapsed ? 'w-12' : 'w-[200px]'}`}>
-      <div className={`flex items-start border-b border-gray-100 flex-shrink-0 ${collapsed ? 'flex-col items-center py-3 gap-2' : 'px-4 py-4 justify-between'}`}>
+
+
+      {/* Nav items */}
+      <nav className="flex-1 px-1.5 py-2 space-y-1">
+        {navItems.map(({ href, label, icon: Icon }) => {
+          const isActive = pathname === href;
+          return (
+            <Link
+              key={href}
+              href={href}
+              title={collapsed ? label : undefined}
+              className={`flex items-center rounded-md text-sm font-medium w-full transition-colors ${
+                collapsed ? 'justify-center p-2' : 'gap-3 px-3 py-2'
+              } ${
+                isActive
+                  ? 'bg-gray-900 text-white'
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+              }`}
+            >
+              <Icon size={16} className="flex-shrink-0" />
+              {!collapsed && label}
+            </Link>
+          );
+        })}
+      </nav>
+
+
+      <div className={`flex items-start border-t border-gray-100 flex-shrink-0 ${collapsed ? 'flex-col items-center py-2 gap-2' : 'px-4 py-2 justify-between'}`}>
 {/*        {!collapsed && (
           <div className="flex-1 min-w-0">
             <Link href="/collections" className="block mb-2">
@@ -58,30 +85,6 @@ export function CollectionSidebar({ collectionId, collectionName }: CollectionSi
           {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
         </button>
       </div>
-
-      {/* Nav items */}
-      <nav className="flex-1 px-1.5 py-2 space-y-1">
-        {navItems.map(({ href, label, icon: Icon }) => {
-          const isActive = pathname === href;
-          return (
-            <Link
-              key={href}
-              href={href}
-              title={collapsed ? label : undefined}
-              className={`flex items-center rounded-md text-sm font-medium w-full transition-colors ${
-                collapsed ? 'justify-center p-2' : 'gap-3 px-3 py-2'
-              } ${
-                isActive
-                  ? 'bg-gray-900 text-white'
-                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-              }`}
-            >
-              <Icon size={16} className="flex-shrink-0" />
-              {!collapsed && label}
-            </Link>
-          );
-        })}
-      </nav>
     </aside>
   );
 }

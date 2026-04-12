@@ -9,3 +9,5 @@ export { DeleteConfirmDialog } from './DeleteConfirmDialog';
 export { GroupPickerModal } from './GroupPickerModal';
 export { BulkActionBar } from './BulkActionBar';
 export { StyleGuidePanel } from './StyleGuidePanel';
+export { CollectionTokensWorkspace } from './CollectionTokensWorkspace';
+export { StyleGuideTabPanel } from './StyleGuideTabPanel';

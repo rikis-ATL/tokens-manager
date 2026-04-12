@@ -39,13 +39,13 @@ export function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+        <button className="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-gray-100 transition-colors">
           <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary text-primary-foreground text-xs font-semibold flex-shrink-0">
             {initials}
           </span>
-          <span className="text-sm text-gray-700 dark:text-gray-200 max-w-[120px] truncate">
+          {/* <span className="text-sm text-gray-700 max-w-[120px] truncate">
             {session.user.name}
-          </span>
+          </span> */}
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

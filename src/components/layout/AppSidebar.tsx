@@ -16,20 +16,8 @@ export function AppSidebar() {
   const [collapsed, setCollapsed] = useState(true);
 
   return (
-    <aside className={`h-full bg-white border-r border-gray-200 flex flex-col transition-all duration-200 ${collapsed ? 'w-12' : 'w-[200px]'}`}>
-      {/* App name / logo area */}
-      <div className={`flex items-center border-b border-gray-100 flex-shrink-0 ${collapsed ? 'justify-center py-3' : 'px-4 py-3 justify-between'}`}>
-        {!collapsed && (
-          <span className="text-gray-900 font-semibold text-sm tracking-wide truncate">Token Manager</span>
-        )}
-        <button
-          onClick={() => setCollapsed(c => !c)}
-          className="text-gray-400 hover:text-gray-700 p-1 rounded transition-colors flex-shrink-0"
-          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
-        </button>
-      </div>
+    <aside className={`h-full bg-white border-r border-gray-200 flex flex-col justify-between transition-all duration-200 ${collapsed ? 'w-12' : 'w-[200px]'}`}>
+
 
       {/* Nav items */}
       <nav className="flex-1 px-1.5 py-2 space-y-1">
@@ -54,6 +42,20 @@ export function AppSidebar() {
           );
         })}
       </nav>
+
+      <div className={`flex items-center border-t border-gray-100 flex-shrink-0 ${collapsed ? 'justify-center py-3' : 'px-4 py-3 justify-between'}`}>
+        {!collapsed && (
+          <span className="text-gray-900 font-semibold text-sm tracking-wide truncate">Token Manager</span>
+        )}
+        <button
+          onClick={() => setCollapsed(c => !c)}
+          className="text-gray-400 hover:text-gray-700 p-1 rounded transition-colors flex-shrink-0"
+          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+        </button>
+      </div>
+
     </aside>
   );
 }

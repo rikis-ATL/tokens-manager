@@ -6,6 +6,8 @@ import { tokenService } from '@/services/token.service';
 import { showErrorToast } from '@/utils/toast.utils';
 import type { ITheme, ThemeGroupState, ColorMode } from '@/types/theme.types';
 import type { TokenGroup } from '@/types';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 
 interface ThemesPageProps {
   params: { id: string };
@@ -165,10 +167,13 @@ export default function CollectionThemesPage({ params }: ThemesPageProps) {
   }
 
   return (
-    <div className="flex flex-col flex-1 overflow-hidden border border-red-500">
+    <div className="flex flex-col flex-1 overflow-hidden border">
       {/* Heading bar */}
-      <div className="flex items-center gap-2 border-b border-gray-200 bg-white px-6 py-3 flex-shrink-0">
+      <div className="flex items-center justify-between gap-2 border-b border-gray-200 bg-white px-6 py-3 flex-shrink-0">
         <h1 className="text-lg font-semibold text-gray-900">Themes</h1>
+        <Button size="sm" className="px-2 bg-blue-600 hover:bg-blue-700 text-white gap-1" onClick={() => handleAddTheme('New Theme', 'light')}>
+        <Plus size={14} />
+          Add Theme</Button>  
       </div>
 
       {/* Two-panel layout */}

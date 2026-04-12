@@ -3,10 +3,14 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Info } from 'lucide-react';
 import { DATABASE_PROVIDERS } from '@/types/database.types';
 import { UserMenu } from '@/components/layout/UserMenu';
 import { useSession } from 'next-auth/react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { TokenGeneratorDocs } from '@/components/tokens/TokenGeneratorDocs';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 type ConnectionState = 'connected' | 'local' | 'loading';
 
@@ -45,35 +49,68 @@ function useDbStatus(): DbStatus {
   return status;
 }
 
-export function OrgHeader() {
+type OrgHeaderProps = {
+  /** When set (collection detail shell), replaces "Token Manager" as the primary title. */
+  pageTitle?: string;
+  /** Collection is playground mode — show badge next to the title. */
+  showPlaygroundBadge?: boolean;
+};
+
+export function OrgHeader({ pageTitle, showPlaygroundBadge }: OrgHeaderProps) {
   const db = useDbStatus();
   const pathname = usePathname();
   const isCollectionDetail = pathname.startsWith('/collections/');
   const { data: session } = useSession();
   const isDemoUser = session?.user?.role === 'Demo';
+  const [guideOpen, setGuideOpen] = useState(false);
+  const mainTitle = pageTitle?.trim() || 'Token Manager';
 
   return (
-    <header className="flex items-center justify-between px-5 py-3 border-b border-gray-200 bg-white flex-shrink-0">
-      <div className="flex items-center gap-3">
-        {isCollectionDetail && (
-          <Link
-            href="/collections"
-            className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-800 transition-colors"
-          >
-            <ChevronLeft size={14} />
-            Collections
+    <>
+      <header className="flex items-center justify-between px-5 py-3 border-b border-gray-200 bg-white flex-shrink-0">
+        <div className="flex items-center gap-3">
+          {isCollectionDetail && (
+            <Link
+              href="/collections"
+              className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-800 transition-colors"
+            >
+              <ChevronLeft size={14} />
+            </Link>
+          )}
+          <Link href="/collections" className="text-sm font-semibold text-gray-900 tracking-wide hover:text-gray-700 transition-colors">
+            {mainTitle}
           </Link>
-        )}
-        <Link href="/collections" className="text-sm font-semibold text-gray-900 tracking-wide hover:text-gray-700 transition-colors">
-          Token Manager
-        </Link>
-      </div>
+          {showPlaygroundBadge && (
+            <Badge className="bg-amber-50 text-amber-700 border-amber-200 shrink-0">
+              Playground
+            </Badge>
+          )}
+        </div>
 
-      <div className="flex items-center gap-3">
-        {isDemoUser ? <DemoModeBadge /> : <DbPill status={db} />}
-        <UserMenu />
-      </div>
-    </header>
+        <div className="flex items-center gap-3">
+          {isDemoUser ? <DemoModeBadge /> : <DbPill status={db} />}
+          <Button
+            variant="outline"
+            size="sm"
+            className="px-2"
+            onClick={() => setGuideOpen(true)}
+            title="Generator Guide"
+          >
+            <Info size={16} />
+          </Button>
+          <UserMenu />
+        </div>
+      </header>
+
+      <Dialog open={guideOpen} onOpenChange={setGuideOpen}>
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Token Generator Guide</DialogTitle>
+          </DialogHeader>
+          <TokenGeneratorDocs />
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 

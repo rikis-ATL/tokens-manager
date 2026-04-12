@@ -11,7 +11,7 @@ import { TypographySpecimen } from '../TypographySpecimen';
 import { ShadowPreview } from '../ShadowPreview';
 import { BorderRadiusPreview } from '../BorderRadiusPreview';
 import { StyleGuidePanel } from '../../StyleGuidePanel';
-import type { GeneratedToken } from '@/types/token.types';
+import type { GeneratedToken, TokenGroup } from '@/types/token.types';
 
 jest.mock('@/services', () => ({
   tokenService: {
@@ -138,6 +138,20 @@ describe('Style Guide previews (Phase 25)', () => {
       ];
       render(<StyleGuidePanel tokens={tokens} allGroups={[]} />);
       expect(screen.getByText('Colors')).toBeInTheDocument();
+    });
+
+    it('renders separate color rows per group when colorGroupsTree is set', () => {
+      const red: GeneratedToken = { id: '1', path: 'a.red', value: '#f00', type: 'color' };
+      const blue: GeneratedToken = { id: '2', path: 'b.blue', value: '#00f', type: 'color' };
+      const tree: TokenGroup[] = [
+        { id: 'g-a', name: 'Group A', level: 0, tokens: [red] },
+        { id: 'g-b', name: 'Group B', level: 0, tokens: [blue] },
+      ];
+      const flat = [red, blue];
+      render(<StyleGuidePanel tokens={flat} allGroups={[]} colorGroupsTree={tree} />);
+      expect(screen.getByText('Group A')).toBeInTheDocument();
+      expect(screen.getByText('Group B')).toBeInTheDocument();
+      expect(document.querySelectorAll('.cursor-default')).toHaveLength(2);
     });
   });
 });

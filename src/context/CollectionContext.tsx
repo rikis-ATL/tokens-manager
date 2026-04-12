@@ -7,6 +7,8 @@ const STORAGE_KEY = 'atui-selected-collection-id';
 export interface Collection {
   _id: string;
   name: string;
+  /** Present when loaded from list API — used for header/shell before detail fetch completes. */
+  isPlayground?: boolean;
 }
 
 interface CollectionContextValue {
