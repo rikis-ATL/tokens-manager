@@ -82,6 +82,8 @@ export async function GET() {
         figmaConfigured: !!(doc.figmaToken && doc.figmaFileId),
         githubConfigured: !!doc.githubRepo,
         isPlayground: doc.isPlayground ?? false,
+        accentColor: doc.accentColor ?? null,
+        themesCount: doc.themes?.length ?? 0,
       };
     });
 
@@ -104,6 +106,7 @@ export async function POST(request: Request) {
       sourceMetadata?: ISourceMetadata | null;
       description?: string | null;
       tags?: string[];
+      accentColor?: string | null;
     };
 
     if (!body.name || body.name.trim() === '') {
@@ -132,6 +135,7 @@ export async function POST(request: Request) {
       description: body.description ?? null,
       tags: body.tags ?? [],
       userId: null,
+      accentColor: body.accentColor ?? null,
     });
 
     return NextResponse.json(

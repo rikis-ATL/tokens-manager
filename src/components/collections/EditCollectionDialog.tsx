@@ -8,9 +8,9 @@ import { Input } from '@/components/ui/input';
 
 interface EditCollectionDialogProps {
   isOpen: boolean;
-  collection: { _id: string; name: string; description: string | null; tags: string[] };
+  collection: { _id: string; name: string; description: string | null; tags: string[]; accentColor?: string | null };
   onClose: () => void;
-  onSaved: (updated: { name: string; description: string | null; tags: string[] }) => void;
+  onSaved: (updated: { name: string; description: string | null; tags: string[]; accentColor: string | null }) => void;
 }
 
 export function EditCollectionDialog({ isOpen, collection, onClose, onSaved }: EditCollectionDialogProps) {
@@ -18,6 +18,7 @@ export function EditCollectionDialog({ isOpen, collection, onClose, onSaved }: E
   const [description, setDescription] = useState(collection.description ?? '');
   const [tags, setTags] = useState<string[]>(collection.tags);
   const [tagInput, setTagInput] = useState('');
+  const [accentColor, setAccentColor] = useState<string | null>(collection.accentColor ?? null);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
   const tagInputRef = useRef<HTMLInputElement>(null);
@@ -30,6 +31,7 @@ export function EditCollectionDialog({ isOpen, collection, onClose, onSaved }: E
       setTags(collection.tags);
       setTagInput('');
       setError('');
+      setAccentColor(collection.accentColor ?? null);
     }
   }, [isOpen, collection]);
 
@@ -73,6 +75,7 @@ export function EditCollectionDialog({ isOpen, collection, onClose, onSaved }: E
           name: trimmedName,
           description: description.trim() || null,
           tags,
+          accentColor,
         }),
       });
       if (!res.ok) {
@@ -80,7 +83,7 @@ export function EditCollectionDialog({ isOpen, collection, onClose, onSaved }: E
         setError(data.error ?? 'Failed to save.');
         return;
       }
-      onSaved({ name: trimmedName, description: description.trim() || null, tags });
+      onSaved({ name: trimmedName, description: description.trim() || null, tags, accentColor });
       onClose();
     } catch {
       setError('An unexpected error occurred.');
@@ -161,6 +164,39 @@ export function EditCollectionDialog({ isOpen, collection, onClose, onSaved }: E
               />
             </div>
             <p className="text-xs text-gray-500">Press Enter or comma to add a tag.</p>
+          </div>
+
+          {/* Accent Color */}
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-gray-700">
+              Accent color
+              <span className="font-normal text-gray-500 ml-1">(optional)</span>
+            </label>
+            <div className="flex items-center gap-3">
+              <input
+                type="color"
+                value={accentColor ?? '#3b82f6'}
+                onChange={(e) => setAccentColor(e.target.value)}
+                className="w-12 h-9 rounded border border-gray-300 cursor-pointer"
+              />
+              <Input
+                type="text"
+                value={accentColor ?? ''}
+                onChange={(e) => setAccentColor(e.target.value || null)}
+                placeholder="#3b82f6"
+                className="flex-1"
+              />
+              {accentColor && (
+                <button
+                  type="button"
+                  onClick={() => setAccentColor(null)}
+                  className="text-xs text-gray-500 hover:text-gray-700"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+            <p className="text-xs text-gray-500">Display color for this collection (used in UI views).</p>
           </div>
         </div>
 

@@ -39,6 +39,7 @@ const tokenCollectionSchema = new Schema<TokenCollectionDoc>(
     graphState:     { type: Schema.Types.Mixed, default: null },
     themes:         { type: Schema.Types.Mixed, default: [] },
     isPlayground:   { type: Boolean, default: false },
+    accentColor:    { type: String, default: null },
   },
   {
     timestamps: true,  // auto createdAt / updatedAt

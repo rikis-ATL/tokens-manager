@@ -2,15 +2,18 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { PlusCircle, Search, X } from 'lucide-react';
+import { PlusCircle, Search, X, LayoutGrid, List } from 'lucide-react';
 import { TagFilterCombobox } from '@/components/collections/TagFilterCombobox';
 import type { CollectionCardData } from '@/types/collection.types';
 import { CollectionCard } from '@/components/collections/CollectionCard';
+import { CollectionTableView } from '@/components/collections/CollectionTableView';
 import { DeleteCollectionDialog } from '@/components/collections/DeleteCollectionDialog';
 import { NewCollectionDialog } from '@/components/collections/NewCollectionDialog';
 import { EditCollectionDialog } from '@/components/collections/EditCollectionDialog';
 import { Button } from '@/components/ui/button';
 import { usePermissions } from '@/context/PermissionsContext';
+
+type ViewMode = 'grid' | 'table';
 
 export default function CollectionsPage() {
   const router = useRouter();
@@ -22,6 +25,7 @@ export default function CollectionsPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<CollectionCardData | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const { canCreate } = usePermissions();
 
   const fetchCollections = async () => {
@@ -54,7 +58,7 @@ export default function CollectionsPage() {
         c.tags.some((t) => t.toLowerCase().includes(q));
       const matchesTags =
         selectedTags.length === 0 ||
-        selectedTags.every((t) => c.tags.includes(t));
+        selectedTags.some((t) => c.tags.includes(t));
       return matchesQuery && matchesTags;
     });
   }, [collections, search, selectedTags]);
@@ -80,7 +84,7 @@ export default function CollectionsPage() {
     if (collection) setEditTarget(collection);
   };
 
-  const handleEditSaved = (id: string, updated: { name: string; description: string | null; tags: string[] }) => {
+  const handleEditSaved = (id: string, updated: { name: string; description: string | null; tags: string[]; accentColor: string | null }) => {
     setCollections((prev) => prev.map((c) => (c._id === id ? { ...c, ...updated } : c)));
   };
 
@@ -111,7 +115,7 @@ export default function CollectionsPage() {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-6 mx-auto">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold text-gray-900">Collections</h1>
         {canCreate && (
@@ -123,33 +127,61 @@ export default function CollectionsPage() {
       </div>
 
       {/* Search + Tag filter */}
-      <div className="flex items-center gap-2 mb-6">
-        <div className="relative">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-          <input
-            type="text"
-            className="w-72 pl-9 pr-8 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400"
-            placeholder="Search by name or description…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          {search && (
-            <button
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              onClick={() => setSearch('')}
-              aria-label="Clear search"
-            >
-              <X size={14} />
-            </button>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <input
+              type="text"
+              className="w-72 pl-9 pr-8 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400"
+              placeholder="Search by name or description…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            {search && (
+              <button
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                onClick={() => setSearch('')}
+                aria-label="Clear search"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+          {allTags.length > 0 && (
+            <TagFilterCombobox
+              allTags={allTags}
+              selectedTags={selectedTags}
+              onChange={setSelectedTags}
+            />
           )}
         </div>
-        {allTags.length > 0 && (
-          <TagFilterCombobox
-            allTags={allTags}
-            selectedTags={selectedTags}
-            onChange={setSelectedTags}
-          />
-        )}
+
+        {/* View toggle */}
+        <div className="flex items-center gap-1 border border-gray-300 rounded-md p-0.5">
+          <button
+            onClick={() => setViewMode('grid')}
+            className={`p-1.5 rounded transition-colors ${
+              viewMode === 'grid'
+                ? 'bg-gray-900 text-white'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+            title="Grid view"
+          >
+            <LayoutGrid size={16} />
+          </button>
+          <button
+            onClick={() => setViewMode('table')}
+            className={`p-1.5 rounded transition-colors ${
+              viewMode === 'table'
+                ? 'bg-gray-900 text-white'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+            title="Table view"
+          >
+            <List size={16} />
+          </button>
+        </div>
       </div>
 
       {/* Loading skeleton */}
@@ -190,8 +222,8 @@ export default function CollectionsPage() {
         </div>
       )}
 
-      {/* Grid */}
-      {!loading && (
+      {/* Grid or Table View */}
+      {!loading && viewMode === 'grid' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filtered.map((collection) => (
             <CollectionCard
@@ -205,6 +237,17 @@ export default function CollectionsPage() {
             />
           ))}
         </div>
+      )}
+
+      {!loading && viewMode === 'table' && filtered.length > 0 && (
+        <CollectionTableView
+          collections={filtered}
+          onRename={handleRename}
+          onEdit={handleEditRequest}
+          onDelete={handleDeleteRequest}
+          onDuplicate={handleDuplicate}
+          onClick={handleCardClick}
+        />
       )}
 
       <DeleteCollectionDialog

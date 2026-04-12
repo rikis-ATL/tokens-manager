@@ -3,18 +3,26 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { LayoutGrid, SlidersHorizontal, ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import { useDbStatus } from './OrgHeader';
 import { usePermissions } from '@/context/PermissionsContext';
 
 export function OrgSidebar() {
   const pathname = usePathname();
+  const { data: session } = useSession();
   const [collapsed, setCollapsed] = useState(false);
   const db = useDbStatus();
   const { isAdmin } = usePermissions();
 
   const isConnected = db.state === 'connected';
   const isLoading = db.state === 'loading';
+  const isDemoMode = session?.demoMode === true;
+
+  // Hide sidebar for demo users
+  if (isDemoMode) {
+    return null;
+  }
 
   const navItems = [
     {

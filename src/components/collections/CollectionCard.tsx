@@ -102,6 +102,14 @@ export function CollectionCard({
       className="relative bg-white rounded-lg border border-gray-200 p-4 cursor-pointer hover:shadow-md hover:border-gray-300 transition-all group"
       onClick={() => onClick(collection._id)}
     >
+      {/* Color swatch accent bar */}
+      {collection.accentColor && (
+        <div
+          className="absolute top-0 left-0 right-0 h-1 rounded-t-lg"
+          style={{ backgroundColor: collection.accentColor }}
+        />
+      )}
+
       {/* Kebab menu button */}
       <div
         ref={menuRef}

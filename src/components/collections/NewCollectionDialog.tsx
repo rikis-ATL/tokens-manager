@@ -45,6 +45,7 @@ export function NewCollectionDialog({
   const [spacingPresetId, setSpacingPresetId] = useState('none');
   /** When set, palette/types/spacing ids match this awesome-design-md bundle */
   const [designMdBundleId, setDesignMdBundleId] = useState('');
+  const [accentColor, setAccentColor] = useState<string | null>(null);
 
   const tagInputRef = useRef<HTMLInputElement>(null);
   const isDuplicating = !!duplicateSourceId;
@@ -84,6 +85,7 @@ export function NewCollectionDialog({
     setTypescalePresetId('none');
     setSpacingPresetId('none');
     setDesignMdBundleId('');
+    setAccentColor(null);
   };
 
   const applyDesignMdBundle = (bundleId: string) => {
@@ -160,6 +162,7 @@ export function NewCollectionDialog({
             description: description.trim() || null,
             tags,
             tokens,
+            accentColor,
           }),
         });
         if (!res.ok) {
@@ -270,6 +273,40 @@ export function NewCollectionDialog({
                 onBlur={commitTagInput}
                 placeholder={tags.length === 0 ? 'brand, mobile, dark-mode…' : ''}
               />
+            </div>
+          </div>
+
+          {/* Accent Color */}
+          <div className="space-y-1">
+            <div>
+              <label className="text-sm font-medium text-gray-700">
+                Accent color <span className="font-normal text-gray-500">(optional)</span>
+              </label>
+              <p className="text-xs text-gray-500 mt-0.5">Display color for this collection (used in UI views)</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <input
+                type="color"
+                value={accentColor ?? '#3b82f6'}
+                onChange={(e) => setAccentColor(e.target.value)}
+                className="w-12 h-9 rounded border border-gray-300 cursor-pointer"
+              />
+              <Input
+                type="text"
+                value={accentColor ?? ''}
+                onChange={(e) => setAccentColor(e.target.value || null)}
+                placeholder="#3b82f6"
+                className="flex-1"
+              />
+              {accentColor && (
+                <button
+                  type="button"
+                  onClick={() => setAccentColor(null)}
+                  className="text-xs text-gray-500 hover:text-gray-700"
+                >
+                  Clear
+                </button>
+              )}
             </div>
           </div>
 
