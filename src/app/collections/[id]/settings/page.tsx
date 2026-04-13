@@ -14,6 +14,86 @@ import { Copy, Check } from 'lucide-react';
 
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
+type FigmaConnectionPhase = 'idle' | 'testing' | 'ok' | 'error';
+
+interface FigmaConnectionVerify {
+  phase: FigmaConnectionPhase;
+  message: string;
+  /** Credentials that produced the last ok/error; used to invalidate after edits */
+  resultFingerprint: string | null;
+}
+
+type IntegrationDisplayStatus =
+  | { kind: 'incomplete' }
+  | { kind: 'unverified' }
+  | { kind: 'testing' }
+  | { kind: 'ok'; message: string }
+  | { kind: 'error'; message: string };
+
+function figmaCredentialsFingerprint(token: string, fileId: string): string {
+  return `${token.trim()}|${fileId.trim()}`;
+}
+
+/** Pill label only — full messages render in `IntegrationStatusDetail` */
+function IntegrationStatusBadge({ status }: { status: IntegrationDisplayStatus }) {
+  if (status.kind === 'incomplete') {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded-full border border-gray-200">
+        <span className="w-1.5 h-1.5 rounded-full bg-gray-400" aria-hidden />
+        Not configured
+      </span>
+    );
+  }
+  if (status.kind === 'unverified') {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs text-amber-800 bg-amber-50 px-2 py-1 rounded-full border border-amber-200">
+        <span className="w-1.5 h-1.5 rounded-full bg-amber-400" aria-hidden />
+        Not verified
+      </span>
+    );
+  }
+  if (status.kind === 'testing') {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs text-blue-800 bg-blue-50 px-2 py-1 rounded-full border border-blue-200">
+        <span className="inline-block w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" aria-hidden />
+        Testing…
+      </span>
+    );
+  }
+  if (status.kind === 'ok') {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs text-green-800 bg-green-50 px-2 py-1 rounded-full border border-green-200">
+        <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" aria-hidden />
+        Connected
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1.5 text-xs text-red-800 bg-red-50 px-2 py-1 rounded-full border border-red-200">
+      <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" aria-hidden />
+      Failed
+    </span>
+  );
+}
+
+function IntegrationStatusDetail({ status }: { status: IntegrationDisplayStatus }) {
+  if (status.kind === 'ok' && status.message.trim()) {
+    return (
+      <p className="text-xs text-green-900 bg-green-50 border border-green-200 rounded-md px-3 py-2 leading-relaxed">
+        {status.message}
+      </p>
+    );
+  }
+  if (status.kind === 'error' && status.message.trim()) {
+    return (
+      <p className="text-xs text-red-900 bg-red-50 border border-red-200 rounded-md px-3 py-2 leading-relaxed whitespace-pre-wrap">
+        {status.message}
+      </p>
+    );
+  }
+  return null;
+}
+
 interface SettingsPageProps {
   params: { id: string };
 }
@@ -41,6 +121,16 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
   const [showExportFigmaDialog, setShowExportFigmaDialog] = useState(false);
   const [showImportFigmaDialog, setShowImportFigmaDialog] = useState(false);
   const [embedScriptCopied, setEmbedScriptCopied] = useState(false);
+  const [figmaVerify, setFigmaVerify] = useState<FigmaConnectionVerify>({
+    phase: 'idle',
+    message: '',
+    resultFingerprint: null,
+  });
+  const [githubVerify, setGithubVerify] = useState<FigmaConnectionVerify>({
+    phase: 'idle',
+    message: '',
+    resultFingerprint: null,
+  });
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const didMountRef = useRef(false);
@@ -165,15 +255,98 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
     // Set fields to empty and save immediately (bypassing debounce)
     setFigmaToken('');
     setFigmaFileId('');
+    setFigmaVerify({ phase: 'idle', message: '', resultFingerprint: null });
     setSaveStatus('saving');
     saveToDb({ figmaToken: '', figmaFileId: '', githubRepo, githubBranch, githubPath, isPlayground });
   }
+
+  function getFigmaDisplayStatus(): IntegrationDisplayStatus {
+    const t = figmaToken.trim();
+    if (!t) {
+      return { kind: 'incomplete' };
+    }
+    if (figmaVerify.phase === 'testing') {
+      return { kind: 'testing' };
+    }
+    const fp = figmaCredentialsFingerprint(figmaToken, figmaFileId);
+    if (figmaVerify.phase === 'ok' && figmaVerify.resultFingerprint === fp) {
+      return { kind: 'ok', message: figmaVerify.message };
+    }
+    if (figmaVerify.phase === 'error' && figmaVerify.resultFingerprint === fp) {
+      return { kind: 'error', message: figmaVerify.message };
+    }
+    return { kind: 'unverified' };
+  }
+
+  const handleTestFigmaConnection = async () => {
+    const token = figmaToken.trim();
+    if (!token) {
+      showErrorToast('Enter your Figma personal access token first');
+      return;
+    }
+    setFigmaVerify({ phase: 'testing', message: '', resultFingerprint: null });
+    const fp = figmaCredentialsFingerprint(figmaToken, figmaFileId);
+    try {
+      const testRes = await fetch(`/api/figma/test?token=${encodeURIComponent(token)}`);
+      const testData = (await testRes.json().catch(() => ({}))) as { error?: string; email?: string };
+      if (!testRes.ok) {
+        const msg =
+          typeof testData.error === 'string' ? testData.error : 'Invalid or expired token';
+        setFigmaVerify({ phase: 'error', message: msg, resultFingerprint: fp });
+        showErrorToast(msg);
+        return;
+      }
+      const email = typeof testData.email === 'string' ? testData.email : '';
+      const fileId = figmaFileId.trim();
+      if (!fileId) {
+        const msg = email
+          ? `Token OK · ${email} — add file ID to verify file`
+          : 'Token OK — add file ID to verify file';
+        setFigmaVerify({ phase: 'ok', message: msg, resultFingerprint: fp });
+        showSuccessToast('Figma token is valid');
+        return;
+      }
+      const colRes = await fetch(
+        `/api/figma/collections?token=${encodeURIComponent(token)}&fileKey=${encodeURIComponent(fileId)}`
+      );
+      const colData = (await colRes.json().catch(() => ({}))) as {
+        error?: string;
+        hint?: string;
+        collections?: unknown[];
+      };
+      if (!colRes.ok) {
+        const msg =
+          typeof colData.error === 'string'
+            ? colData.error
+            : 'Cannot access file — check file ID and permissions';
+        const hint = typeof colData.hint === 'string' ? colData.hint : '';
+        const full = hint ? `${msg} ${hint}` : msg;
+        setFigmaVerify({ phase: 'error', message: full, resultFingerprint: fp });
+        showErrorToast(full.length > 180 ? `${msg} (see badge for details)` : full);
+        return;
+      }
+      const n = Array.isArray(colData.collections) ? colData.collections.length : 0;
+      const msg = email
+        ? `Connected · ${email} · ${n} variable collection(s)`
+        : `Connected · ${n} variable collection(s)`;
+      setFigmaVerify({ phase: 'ok', message: msg, resultFingerprint: fp });
+      showSuccessToast('Figma connection verified');
+    } catch {
+      setFigmaVerify({
+        phase: 'error',
+        message: 'Network error',
+        resultFingerprint: fp,
+      });
+      showErrorToast('Could not reach the server');
+    }
+  };
 
   function clearGithubFields() {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     setGithubRepo('');
     setGithubBranch('');
     setGithubPath('');
+    setGithubVerify({ phase: 'idle', message: '', resultFingerprint: null });
     setSaveStatus('saving');
     saveToDb({ figmaToken, figmaFileId, githubRepo: '', githubBranch: '', githubPath: '', isPlayground });
   }
@@ -286,6 +459,86 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
     
     return cleaned;
   }
+
+  function githubCredentialsFingerprint(token: string, repo: string): string {
+    const c = cleanRepositoryName(repo) ?? repo.trim();
+    return `${token.trim()}|${c}`;
+  }
+
+  function getGithubDisplayStatus(): IntegrationDisplayStatus {
+    const t = githubToken.trim();
+    if (!t) {
+      return { kind: 'incomplete' };
+    }
+    if (githubVerify.phase === 'testing') {
+      return { kind: 'testing' };
+    }
+    const fp = githubCredentialsFingerprint(githubToken, githubRepo);
+    if (githubVerify.phase === 'ok' && githubVerify.resultFingerprint === fp) {
+      return { kind: 'ok', message: githubVerify.message };
+    }
+    if (githubVerify.phase === 'error' && githubVerify.resultFingerprint === fp) {
+      return { kind: 'error', message: githubVerify.message };
+    }
+    return { kind: 'unverified' };
+  }
+
+  const handleTestGithubConnection = async () => {
+    const token = githubToken.trim();
+    if (!token) {
+      showErrorToast('Enter your GitHub personal access token first');
+      return;
+    }
+    setGithubVerify({ phase: 'testing', message: '', resultFingerprint: null });
+    const fp = githubCredentialsFingerprint(githubToken, githubRepo);
+    const trimmedRepo = githubRepo.trim();
+    const cleaned = cleanRepositoryName(githubRepo);
+    const repoForTest =
+      cleaned ??
+      (/^[\w.-]+\/[\w.-]+$/.test(trimmedRepo) ? trimmedRepo : null);
+
+    try {
+      const qs = new URLSearchParams({ githubToken: token });
+      if (repoForTest) {
+        qs.set('repository', repoForTest);
+      }
+
+      const res = await fetch(`/api/github/test?${qs.toString()}`);
+      const data = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
+        error?: string;
+        hint?: string;
+        message?: string;
+      };
+
+      if (!res.ok || !data.ok) {
+        const msg = typeof data.error === 'string' ? data.error : 'GitHub connection failed';
+        const hint = typeof data.hint === 'string' ? data.hint : '';
+        const full = hint ? `${msg} ${hint}` : msg;
+        setGithubVerify({ phase: 'error', message: full, resultFingerprint: fp });
+        showErrorToast(full.length > 180 ? `${msg} (see badge for details)` : full);
+        return;
+      }
+
+      const msg =
+        typeof data.message === 'string'
+          ? data.message
+          : 'GitHub connection verified';
+      setGithubVerify({ phase: 'ok', message: msg, resultFingerprint: fp });
+      showSuccessToast(
+        repoForTest
+          ? 'GitHub token and repository verified'
+          : 'GitHub token verified — add owner/repo to check repository access'
+      );
+    } catch {
+      setGithubVerify({
+        phase: 'error',
+        message: 'Network error',
+        resultFingerprint: fp,
+      });
+      showErrorToast('Could not reach the server');
+    }
+  };
 
   const handleDirectorySelect = async (selectedPath: string, selectedBranch: string) => {
     setShowDirectoryPicker(false);
@@ -454,18 +707,39 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
       <div className="space-y-8">
         {/* Figma section */}
         <section>
-          <div className="flex items-center mb-4">
+          <div className="flex flex-wrap items-center gap-2 gap-y-2 mb-2">
             <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
               Figma
             </h2>
-            <button
-              onClick={clearFigmaFields}
-              className="text-xs text-gray-400 hover:text-red-500 ml-2"
+            <IntegrationStatusBadge status={getFigmaDisplayStatus()} />
+            <div className="flex-1 min-w-[0.5rem]" />
+            <Button
               type="button"
+              variant="outline"
+              size="sm"
+              className="text-blue-700 border-blue-200 hover:bg-blue-50"
+              onClick={handleTestFigmaConnection}
+              disabled={!figmaToken.trim() || figmaVerify.phase === 'testing'}
             >
-              Clear
-            </button>
+              {figmaVerify.phase === 'testing' ? 'Testing…' : 'Test connection'}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="text-red-700 border-red-200 hover:bg-red-50"
+              onClick={clearFigmaFields}
+              disabled={!figmaToken.trim() && !figmaFileId.trim()}
+            >
+              Reset
+            </Button>
           </div>
+          <div className="mb-3 space-y-2">
+            <IntegrationStatusDetail status={getFigmaDisplayStatus()} />
+          </div>
+          <p className="text-xs text-gray-500 mb-4">
+            Test checks your token and file access. Reset clears saved token and file ID for this collection.
+          </p>
 
           <div className="space-y-4">
             <div>
@@ -494,7 +768,8 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
                 placeholder="ABC123..."
               />
               <p className="text-xs text-gray-500 mt-1">
-                The file key from your Figma file URL (figma.com/design/<strong>FILE_KEY</strong>/...)
+                The file key from your Figma file URL (figma.com/design/<strong>FILE_KEY</strong>/...). If the token
+                test passes but you see <strong>404</strong> here, the key or file access is wrong — not the token.
               </p>
             </div>
 
@@ -537,18 +812,40 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
 
         {/* GitHub section */}
         <section>
-          <div className="flex items-center mb-4">
+          <div className="flex flex-wrap items-center gap-2 gap-y-2 mb-2">
             <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
               GitHub
             </h2>
-            <button
-              onClick={clearGithubFields}
-              className="text-xs text-gray-400 hover:text-red-500 ml-2"
+            <IntegrationStatusBadge status={getGithubDisplayStatus()} />
+            <div className="flex-1 min-w-[0.5rem]" />
+            <Button
               type="button"
+              variant="outline"
+              size="sm"
+              className="text-blue-700 border-blue-200 hover:bg-blue-50"
+              onClick={handleTestGithubConnection}
+              disabled={!githubToken.trim() || githubVerify.phase === 'testing'}
             >
-              Clear
-            </button>
+              {githubVerify.phase === 'testing' ? 'Testing…' : 'Test connection'}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="text-red-700 border-red-200 hover:bg-red-50"
+              onClick={clearGithubFields}
+              disabled={!githubRepo.trim() && !githubBranch.trim() && !githubPath.trim()}
+            >
+              Reset
+            </Button>
           </div>
+          <div className="mb-3 space-y-2">
+            <IntegrationStatusDetail status={getGithubDisplayStatus()} />
+          </div>
+          <p className="text-xs text-gray-500 mb-4">
+            Test checks your token and (when owner/repo is set) repository access. Token stays in this browser only.
+            Reset clears saved repo, branch, and path for this collection.
+          </p>
 
           <div className="space-y-4">
             <div>
@@ -793,6 +1090,8 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
         onClose={() => setShowExportFigmaDialog(false)}
         tokenSet={collectionTokens}
         loadedCollectionId={id}
+        collectionFigmaToken={figmaToken || null}
+        collectionFigmaFileId={figmaFileId || null}
       />
 
       {/* Figma Import Dialog */}
@@ -800,6 +1099,8 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
         isOpen={showImportFigmaDialog}
         onClose={() => setShowImportFigmaDialog(false)}
         onImported={handleFigmaImported}
+        collectionFigmaToken={figmaToken || null}
+        collectionFigmaFileId={figmaFileId || null}
       />
     </div>
   );

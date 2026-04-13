@@ -101,6 +101,9 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   const [directoryPickerMode, setDirectoryPickerMode] = useState<'export' | 'import'>('export');
   const [availableBranches, setAvailableBranches] = useState<string[]>([]);
   const [showExportFigmaDialog, setShowExportFigmaDialog] = useState(false);
+  /** Collection Settings — Figma fields; dialogs fall back when header localStorage is empty */
+  const [savedFigmaToken, setSavedFigmaToken] = useState<string | null>(null);
+  const [savedFigmaFileId, setSavedFigmaFileId] = useState<string | null>(null);
   const [showLoadDialog, setShowLoadDialog] = useState(false);
   const [showClearDialog, setShowClearDialog] = useState(false);
   const [showJsonDialog, setShowJsonDialog] = useState(false);
@@ -200,6 +203,8 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
         const rawTokens = (col.tokens ?? {}) as Record<string, unknown>;
         setRawCollectionTokens(rawTokens);
         rawCollectionTokensRef.current = rawTokens;
+        setSavedFigmaToken(col.figmaToken ?? null);
+        setSavedFigmaFileId(col.figmaFileId ?? null);
         const { groups } = tokenService.processImportedTokens(rawTokens, col.namespace ?? globalNamespace);
         setMasterGroups(groups);
         setTokenFormReloadVersion(v => v + 1);
@@ -242,6 +247,8 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
 
       setCollectionName(col.name ?? '');
       if (col.namespace) setGlobalNamespace(col.namespace);
+      setSavedFigmaToken(col.figmaToken ?? null);
+      setSavedFigmaFileId(col.figmaFileId ?? null);
       setRawCollectionTokens(rawTokens);
       rawCollectionTokensRef.current = rawTokens;
       setSelectedSourceMetadata(col.sourceMetadata ?? null);
@@ -1384,6 +1391,8 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       <ImportFromFigmaDialog
         isOpen={importFigmaOpen}
         onClose={() => setImportFigmaOpen(false)}
+        collectionFigmaToken={savedFigmaToken}
+        collectionFigmaFileId={savedFigmaFileId}
         onImported={async (collectionId, name) => {
           router.push(`/collections/${collectionId}/tokens`);
           setImportFigmaOpen(false);
@@ -1407,6 +1416,9 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
         isOpen={showExportFigmaDialog}
         onClose={() => setShowExportFigmaDialog(false)}
         tokenSet={generateTokenSet()}
+        loadedCollectionId={id}
+        collectionFigmaToken={savedFigmaToken}
+        collectionFigmaFileId={savedFigmaFileId}
       />
 
       <LoadCollectionDialog

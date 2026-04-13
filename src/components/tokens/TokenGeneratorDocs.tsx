@@ -205,8 +205,40 @@ export function TokenGeneratorDocs() {
               Save, bulk edits, destructive menu items, and GitHub/Figma sync are not available.
             </li>
             <li>
-              <span className="font-semibold text-gray-900">Demo</span> — Read everywhere. Write is limited to designated <span className="font-semibold text-gray-900">playground</span>{' '}
-              collections (or demo sessions, depending on setup). GitHub and Figma sync are not part of the Demo permission set.
+              <span className="font-semibold text-gray-900">Demo</span> — Read across collections you can open. Editing and Save are limited to{' '}
+              <span className="font-semibold text-gray-900">playground</span> collections, except in a{' '}
+              <span className="font-semibold text-gray-900">public demo session</span> (see the next section). GitHub and Figma sync are only available in that public
+              demo deployment, not for a Demo role on a normal account.
+            </li>
+          </ul>
+        </section>
+
+        <section className="space-y-3">
+          <h4 className="text-base font-bold text-gray-900">Demo mode</h4>
+          <p className="leading-relaxed ml-1">
+            You might use the app in demo mode in two different situations. Both use the <span className="font-semibold text-gray-900">Demo</span> role, but the
+            rules are slightly different.
+          </p>
+          <ul className="list-disc list-outside space-y-2 ml-5 leading-relaxed">
+            <li>
+              <span className="font-semibold text-gray-900">Public demo (try without a full account)</span> — On deployments that turn on open demos, you can land
+              already signed in as a shared <span className="font-semibold text-gray-900">Demo Visitor</span>. The header shows a <span className="font-semibold text-gray-900">Demo mode</span>{' '}
+              badge instead of the usual database status. The main sidebar may be hidden so the screen stays focused on collections and tokens. The interface
+              typically lets you <span className="font-semibold text-gray-900">edit and Save</span> more freely so you can explore; treat anything you change as{' '}
+              <span className="font-semibold text-gray-900">temporary</span> — demo data can be reset at any time. Open your account menu and choose{' '}
+              <span className="font-semibold text-gray-900">Exit Demo</span> when you are done (the page reloads to leave the demo session).
+            </li>
+            <li>
+              <span className="font-semibold text-gray-900">Demo role on a normal account</span> — If your organization assigns you the Demo role on a regular
+              sign-in, you can browse collections the same way, but <span className="font-semibold text-gray-900">Save</span>, the graph, bulk actions, and other
+              edits only work on collections marked as <span className="font-semibold text-gray-900">Playground</span>. Everything else is view-only, like a Viewer.
+              Playground collections are meant as a safe sandbox; production libraries stay protected.
+            </li>
+            <li>
+              <span className="font-semibold text-gray-900">Sync in public demo</span> — On a deployment with open demo mode, GitHub and Figma import/export are
+              available so you can try integrations using <span className="font-semibold text-gray-900">your own</span> tokens and file details. The{' '}
+              <span className="font-semibold text-gray-900">Demo role on a normal account</span> still does not include those actions; use{' '}
+              <span className="font-semibold text-gray-900">Preview JSON</span> and <span className="font-semibold text-gray-900">Download JSON</span> there.
             </li>
           </ul>
         </section>

@@ -5,12 +5,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
+import { resolveFigmaCredentials } from '@/utils/figma-credentials';
 
 interface ExportToFigmaDialogProps {
   isOpen: boolean;
   onClose: () => void;
   tokenSet: Record<string, unknown>;
   loadedCollectionId?: string | null;
+  /** Saved on collection Settings — used when header localStorage is not set */
+  collectionFigmaToken?: string | null;
+  collectionFigmaFileId?: string | null;
 }
 
 interface FigmaCollection {
@@ -18,17 +22,13 @@ interface FigmaCollection {
   name: string;
 }
 
-interface FigmaConfig {
-  token: string;
-  fileUrl: string;
-  fileKey: string;
-}
-
 export function ExportToFigmaDialog({
   isOpen,
   onClose,
   tokenSet,
   loadedCollectionId,
+  collectionFigmaToken,
+  collectionFigmaFileId,
 }: ExportToFigmaDialogProps) {
   const [figmaToken, setFigmaToken] = useState('');
   const [fileKey, setFileKey] = useState('');
@@ -74,29 +74,25 @@ export function ExportToFigmaDialog({
       setSelectedCollectionId('');
 
       const raw = localStorage.getItem('figma-config');
-      if (!raw) {
+      const resolved = resolveFigmaCredentials(
+        raw,
+        collectionFigmaToken,
+        collectionFigmaFileId
+      );
+      if (!resolved) {
         setHasCredentials(false);
         setFigmaToken('');
         setFileKey('');
       } else {
-        try {
-          const config: FigmaConfig = JSON.parse(raw);
-          if (config.token && config.fileKey) {
-            setHasCredentials(true);
-            setFigmaToken(config.token);
-            setFileKey(config.fileKey);
-            fetchCollections(config.token, config.fileKey);
-          } else {
-            setHasCredentials(false);
-          }
-        } catch {
-          setHasCredentials(false);
-        }
+        setHasCredentials(true);
+        setFigmaToken(resolved.token);
+        setFileKey(resolved.fileKey);
+        fetchCollections(resolved.token, resolved.fileKey);
       }
     }
     prevIsOpen.current = isOpen;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]);
+  }, [isOpen, collectionFigmaToken, collectionFigmaFileId]);
 
   const handleLoadCollections = () => {
     setCollections([]);
@@ -152,7 +148,9 @@ export function ExportToFigmaDialog({
           <>
             <div className="space-y-4">
               <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-md p-3">
-                Configure Figma credentials first using the Figma config button in the app header.
+                Add your Figma personal access token and file key in this collection&apos;s{' '}
+                <span className="font-medium">Settings</span> (Integrations), or use the Figma button in the app header
+                to save them in this browser.
               </p>
             </div>
             <DialogFooter>

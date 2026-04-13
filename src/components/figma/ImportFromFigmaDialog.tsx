@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
+import { resolveFigmaCredentials } from '@/utils/figma-credentials';
 
 interface FigmaCollectionMode {
   modeId: string;
@@ -19,12 +20,17 @@ interface ImportFromFigmaDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onImported: (collectionId: string, collectionName: string) => void;
+  /** When opening from a collection page — Settings-saved token + file id if header config is empty */
+  collectionFigmaToken?: string | null;
+  collectionFigmaFileId?: string | null;
 }
 
 export function ImportFromFigmaDialog({
   isOpen,
   onClose,
   onImported,
+  collectionFigmaToken,
+  collectionFigmaFileId,
 }: ImportFromFigmaDialogProps) {
   const [step, setStep] = useState<'pick' | 'name'>('pick');
   const [figmaToken, setFigmaToken] = useState('');
@@ -52,29 +58,21 @@ export function ImportFromFigmaDialog({
     setNoCredentials(false);
 
     const raw = localStorage.getItem('figma-config');
-    if (!raw) {
+    const resolved = resolveFigmaCredentials(
+      raw,
+      collectionFigmaToken,
+      collectionFigmaFileId
+    );
+    if (!resolved) {
       setNoCredentials(true);
       return;
     }
 
-    let config: { token?: string; fileKey?: string };
-    try {
-      config = JSON.parse(raw);
-    } catch {
-      setNoCredentials(true);
-      return;
-    }
-
-    if (!config.token || !config.fileKey) {
-      setNoCredentials(true);
-      return;
-    }
-
-    setFigmaToken(config.token);
-    setFileKey(config.fileKey);
-    fetchCollections(config.token, config.fileKey);
+    setFigmaToken(resolved.token);
+    setFileKey(resolved.fileKey);
+    fetchCollections(resolved.token, resolved.fileKey);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]);
+  }, [isOpen, collectionFigmaToken, collectionFigmaFileId]);
 
   const fetchCollections = async (token: string, key: string) => {
     setLoading(true);
@@ -155,10 +153,11 @@ export function ImportFromFigmaDialog({
           {noCredentials ? (
             <div className="space-y-3">
               <p className="text-sm text-gray-700">
-                Configure Figma credentials first.
+                Add your Figma personal access token and file key first.
               </p>
               <p className="text-sm text-gray-500">
-                Click the Figma button in the app header to add your Personal Access Token and file URL.
+                Use this collection&apos;s <span className="font-medium">Settings</span> (Integrations), or the Figma
+                button in the app header to store them in this browser.
               </p>
             </div>
           ) : step === 'pick' ? (

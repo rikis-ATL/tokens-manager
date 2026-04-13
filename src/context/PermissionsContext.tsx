@@ -10,8 +10,8 @@ export interface PermissionsContextValue {
   canEdit:   boolean;  // Action.Write on active collection (effective role), or Action.WritePlayground for Demo on playground
   canCreate: boolean;  // Action.CreateCollection (org role)
   isAdmin:   boolean;  // org role === 'Admin'
-  canGitHub: boolean;  // Action.PushGithub on active collection (effective role)
-  canFigma:  boolean;  // Action.PushFigma on active collection (effective role)
+  canGitHub: boolean;  // Action.PushGithub (effective role, or public DEMO_MODE session)
+  canFigma:  boolean;  // Action.PushFigma (effective role, or public DEMO_MODE session)
 }
 
 const DEFAULT_PERMISSIONS: PermissionsContextValue = {
@@ -110,8 +110,13 @@ export function PermissionsProvider({ children }: { children: React.ReactNode })
     canEdit,
     canCreate: orgRole       ? canPerform(orgRole, Action.CreateCollection)       : false,
     isAdmin:   orgRole === 'Admin',
-    canGitHub: effectiveRole ? canPerform(effectiveRole, Action.PushGithub)       : false,
-    canFigma:  effectiveRole ? canPerform(effectiveRole, Action.PushFigma)        : false,
+    // Public demo session (DEMO_MODE): show GitHub/Figma sync; org-assigned Demo role stays gated by canPerform
+    canGitHub:
+      !!effectiveRole &&
+      (canPerform(effectiveRole, Action.PushGithub) || isDemoEnvSession),
+    canFigma:
+      !!effectiveRole &&
+      (canPerform(effectiveRole, Action.PushFigma) || isDemoEnvSession),
   };
 
   return (

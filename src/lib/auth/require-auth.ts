@@ -64,6 +64,7 @@ export async function requireAuth(): Promise<AuthResult> {
  *
  * Demo role special handling:
  * - When DEMO_MODE is true: Action.Write is allowed (token/graph saves for public demos)
+ * - When DEMO_MODE is true: Action.PushGithub and Action.PushFigma are allowed (sync with user-supplied tokens)
  * - WritePlayground action: Only allowed if collection.isPlayground === true
  * - All other actions: Checked via canPerform('Demo', action)
  *
@@ -96,6 +97,14 @@ export async function requireRole(action: ActionType, collectionId?: string): Pr
   if (orgRole === 'Demo') {
     // DEMO_MODE: allow token/graph persistence (Action.Write) on any collection — UI uses session.demoMode
     if (isDemoMode() && action === Action.Write) {
+      return session;
+    }
+
+    // DEMO_MODE: allow GitHub/Figma sync so public demos can use integrations with user-supplied credentials
+    if (
+      isDemoMode() &&
+      (action === Action.PushGithub || action === Action.PushFigma)
+    ) {
       return session;
     }
 
