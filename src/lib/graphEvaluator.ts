@@ -258,6 +258,47 @@ function resolveAExpr(aExpr: string | undefined, resolve?: (ref: string) => stri
   return isNaN(n) ? undefined : n;
 }
 
+/**
+ * Evaluate Math node expression mode for a given formula string.
+ * Used by the graph evaluator and by MathNode to preview while typing without persisting expression yet.
+ */
+export function computeMathExpressionResult(
+  config: MathConfig,
+  inputs: Record<string, PortValue>,
+  expr: string,
+  options?: EvaluateGraphOptions,
+): PortValue {
+  if (!expr.trim()) return null;
+
+  const a = inputs['a'];
+  const aFallback = (a == null) ? resolveAExpr(config.aExpr, options?.resolveTokenReference) : undefined;
+
+  const applyExpr = (aVal?: number): string | number | null => {
+    const raw = evaluateExpression(expr, {
+      resolveTokenReference: options?.resolveTokenReference,
+      a: aVal,
+    });
+    if (raw === null) return null;
+    const res = roundTo(raw, config.precision);
+    return config.suffix ? `${res}${config.suffix}` : res;
+  };
+
+  if (Array.isArray(a)) {
+    const mapped = (a as (number | string)[]).map(n =>
+      applyExpr(typeof n === 'number' ? n : parseFloat(String(n))),
+    );
+    return mapped as string[];
+  }
+  if (typeof a === 'number') {
+    return applyExpr(a);
+  }
+  if (typeof a === 'string' && a.trim()) {
+    const n = parseFloat(a);
+    if (!isNaN(n)) return applyExpr(n);
+  }
+  return applyExpr(aFallback);
+}
+
 function evalMath(
   config: MathConfig,
   inputs: Record<string, PortValue>,
@@ -268,37 +309,7 @@ function evalMath(
   // ── Expression mode ───────────────────────────────────────────────────────
   if (config.mathMode === 'expression') {
     const expr = config.expression ?? '';
-    if (!expr.trim()) return { result: null };
-
-    // Resolve fallback `a` from aExpr when no wire is connected
-    const aFallback = (a == null) ? resolveAExpr(config.aExpr, options?.resolveTokenReference) : undefined;
-
-    const applyExpr = (aVal?: number): string | number | null => {
-      const raw = evaluateExpression(expr, {
-        resolveTokenReference: options?.resolveTokenReference,
-        a: aVal,
-      });
-      if (raw === null) return null;
-      const res = roundTo(raw, config.precision);
-      return config.suffix ? `${res}${config.suffix}` : res;
-    };
-
-    if (Array.isArray(a)) {
-      const mapped = (a as (number | string)[]).map(n =>
-        applyExpr(typeof n === 'number' ? n : parseFloat(String(n))),
-      );
-      return { result: mapped as string[] };
-    }
-    if (typeof a === 'number') {
-      return { result: applyExpr(a) };
-    }
-    // String input from a wired Token/Constant node — coerce to number
-    if (typeof a === 'string' && a.trim()) {
-      const n = parseFloat(a);
-      if (!isNaN(n)) return { result: applyExpr(n) };
-    }
-    // No wired `a` — use aExpr fallback or evaluate without binding
-    return { result: applyExpr(aFallback) };
+    return { result: computeMathExpressionResult(config, inputs, expr, options) };
   }
 
   // ── Operations mode (default) ─────────────────────────────────────────────

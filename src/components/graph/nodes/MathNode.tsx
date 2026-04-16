@@ -7,8 +7,9 @@ import {
   NodeWrapper, NodeHeader, Row, RowHandle, NativeSelect, NumberInput, TextInput,
   PreviewSection, HANDLE_NUMBER, HANDLE_ARRAY, HANDLE_OUT,
 } from './nodeShared';
-import type { ComposableNodeData, MathConfig, MathMode, MathOp } from '@/types/graph-nodes.types';
+import type { ComposableNodeData, MathConfig, MathMode, MathOp, PortValue } from '@/types/graph-nodes.types';
 import { validateExpression } from '@/lib/mathExpression';
+import { computeMathExpressionResult } from '@/lib/graphEvaluator';
 
 const OPERATIONS: { value: MathOp; label: string }[] = [
   { value: 'multiply', label: 'Multiply (× B)' },
@@ -33,7 +34,6 @@ function MathNodeComponent({ data }: NodeProps) {
   const cfg = config as MathConfig;
 
   const [localExpr, setLocalExpr] = useState(cfg.expression ?? '');
-  const syncTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const exprRef = useRef<HTMLTextAreaElement | null>(null);
   /** True while the formula field is focused — avoids syncing props that would fight local typing. */
   const exprFocusedRef = useRef(false);
@@ -95,23 +95,27 @@ function MathNodeComponent({ data }: NodeProps) {
   const handleExprChange = useCallback((value: string, sel: [number, number]) => {
     exprSelRef.current = sel;
     setLocalExpr(value);
-    if (syncTimer.current) clearTimeout(syncTimer.current);
-    syncTimer.current = setTimeout(() => update({ expression: value }), 300);
-  }, [update]);
+    // Do not persist expression to graph state while typing — debounced saves were
+    // re-running evaluateGraph + setNodes and repeatedly dropping textarea focus.
+    // Commit on blur (same model as TextInput / NumberInput in nodeShared).
+  }, []);
 
   const handleExprBlur = useCallback(() => {
     exprFocusedRef.current = false;
-    if (syncTimer.current) {
-      clearTimeout(syncTimer.current);
-      syncTimer.current = null;
-    }
     update({ expression: localExpr });
   }, [update, localExpr]);
 
   const isBinary  = !isExpression && BINARY_OPS.includes(cfg.operation);
   const isClamp   = !isExpression && cfg.operation === 'clamp';
 
-  const result = outputs['result'];
+  /** Live preview from local formula while typing; persisted `config.expression` updates on blur only. */
+  const exprLiveResult = useMemo(() => {
+    if (!isExpression) return null;
+    return computeMathExpressionResult(cfg, inputs, localExpr, { resolveTokenReference });
+  }, [isExpression, cfg, inputs, localExpr, resolveTokenReference]);
+
+  const result: PortValue = isExpression ? exprLiveResult : outputs['result'];
+
   const previewItems: string[] = Array.isArray(result)
     ? (result as (string | number)[]).slice(0, 6).map(String)
     : result != null ? [String(result)] : [];
