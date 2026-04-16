@@ -82,10 +82,16 @@ export type MathOp =
   | 'ceil'
   | 'clamp';
 
+export type MathMode = 'operations' | 'expression';
+
 export type CssColorFormat = 'hex' | 'rgb' | 'hsl' | 'oklch';
 
 export interface MathConfig {
   kind: 'math';
+  /** Evaluation mode — 'operations' (default) preserves existing behaviour */
+  mathMode?: MathMode;
+  /** Freeform formula string used in expression mode, e.g. "a * 2 + {spacing.base}" */
+  expression?: string;
   operation: MathOp;
   operand: number;
   clampMin: number;

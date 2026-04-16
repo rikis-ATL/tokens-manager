@@ -785,22 +785,27 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     if (!activeThemeId || !selectedGroupId) return null;
     const defaultState = collectionGraphState[selectedGroupId];
     const themeState = graphStateMap[selectedGroupId] ?? defaultState;
+    const resolveTokenReference = masterGroups.length
+      ? (ref: string) => tokenService.resolveTokenReference(ref, masterGroups)
+      : undefined;
     const defaultPaths = getTokenPathsFromGraphState(
       defaultState ?? { nodes: {}, edges: [], generators: [] },
       selectedGroupId,
       globalNamespace || undefined,
+      { resolveTokenReference },
     );
     const themePaths = getTokenPathsFromGraphState(
       themeState ?? { nodes: {}, edges: [], generators: [] },
       selectedGroupId,
       globalNamespace || undefined,
+      { resolveTokenReference },
     );
     const mismatch = compareTokenPaths(defaultPaths, themePaths);
     if (mismatch.inThemeNotDefault.length === 0 && mismatch.inDefaultNotTheme.length === 0) {
       return null;
     }
     return mismatch;
-  }, [activeThemeId, selectedGroupId, collectionGraphState, graphStateMap, globalNamespace]);
+  }, [activeThemeId, selectedGroupId, collectionGraphState, graphStateMap, globalNamespace, masterGroups]);
 
   const activeGroupState = useMemo<'enabled' | 'source' | 'disabled' | null>(() => {
     if (!activeThemeId || !selectedGroupId) return null;

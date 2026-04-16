@@ -22,6 +22,7 @@ import type {
 } from '@/types/graph-nodes.types';
 import { previewGeneratedTokens } from './tokenGenerators';
 import { parseArrayToValues } from './jsonTokenParser';
+import { evaluateExpression } from './mathExpression';
 import type { GeneratorConfig, ColorGeneratorConfig, DimensionGeneratorConfig } from '@/types/generator.types';
 import { getPaletteFamilyColors } from '@/lib/presets';
 import {
@@ -248,9 +249,39 @@ function applyScalarOp(
 function evalMath(
   config: MathConfig,
   inputs: Record<string, PortValue>,
+  options?: EvaluateGraphOptions,
 ): Record<string, PortValue> {
   const a = inputs['a'];
 
+  // ── Expression mode ───────────────────────────────────────────────────────
+  if (config.mathMode === 'expression') {
+    const expr = config.expression ?? '';
+    if (!expr.trim()) return { result: null };
+
+    const applyExpr = (aVal?: number): string | number | null => {
+      const raw = evaluateExpression(expr, {
+        resolveTokenReference: options?.resolveTokenReference,
+        a: aVal,
+      });
+      if (raw === null) return null;
+      const res = roundTo(raw, config.precision);
+      return config.suffix ? `${res}${config.suffix}` : res;
+    };
+
+    if (Array.isArray(a)) {
+      const mapped = (a as (number | string)[]).map(n =>
+        applyExpr(typeof n === 'number' ? n : parseFloat(String(n))),
+      );
+      return { result: mapped as string[] };
+    }
+    if (typeof a === 'number') {
+      return { result: applyExpr(a) };
+    }
+    // No wired `a` — evaluate expression without binding
+    return { result: applyExpr() };
+  }
+
+  // ── Operations mode (default) ─────────────────────────────────────────────
   // Resolve wired operand overrides from Constant nodes
   const bInput        = inputs['b'];
   const clampMinInput = inputs['clampMin'];
@@ -570,12 +601,13 @@ function evalA11yContrast(
 export function evaluateNode(
   config: ComposableNodeConfig,
   inputs: Record<string, PortValue>,
+  options?: EvaluateGraphOptions,
 ): Record<string, PortValue> {
   switch (config.kind) {
     case 'constant':     return evalConstant(config, inputs);
     case 'harmonic':     return evalHarmonic(config, inputs);
     case 'array':        return evalArray(config, inputs);
-    case 'math':         return evalMath(config, inputs);
+    case 'math':         return evalMath(config, inputs, options);
     case 'colorConvert': return evalColorConvert(config, inputs);
     case 'a11yContrast': return evalA11yContrast(config, inputs);
     case 'palette':      return evalPalette(config, inputs);
@@ -673,10 +705,16 @@ export interface NodeEvalResult {
   outputs: Record<string, PortValue>;
 }
 
+export interface EvaluateGraphOptions {
+  /** Resolve a full token reference string including braces, e.g. "{colors.brand.500}" */
+  resolveTokenReference?: (reference: string) => string;
+}
+
 export function evaluateGraph(
   configs: Map<string, ComposableNodeConfig>,
   edges: Edge[],
   namespace?: string,
+  options?: EvaluateGraphOptions,
 ): Map<string, NodeEvalResult> {
   const result = new Map<string, NodeEvalResult>();
   const outputsOnly = new Map<string, Record<string, PortValue>>();
@@ -696,7 +734,7 @@ export function evaluateGraph(
 
     const outputs = config.kind === 'tokenOutput'
       ? evalTokenOutput(config, inputs, namespace)
-      : evaluateNode(config, inputs);
+      : evaluateNode(config, inputs, options);
 
     result.set(nodeId, { inputs, outputs });
     outputsOnly.set(nodeId, outputs);

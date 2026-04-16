@@ -10,6 +10,7 @@ export function getTokenPathsFromGraphState(
   state: GraphGroupState,
   groupId: string,
   namespace?: string,
+  options?: { resolveTokenReference?: (reference: string) => string },
 ): Set<string> {
   const paths = new Set<string>();
   if (!state?.nodes || Object.keys(state.nodes).length === 0) return paths;
@@ -38,7 +39,9 @@ export function getTokenPathsFromGraphState(
 
   if (tokenSourceNodeIds.size === 0) return paths;
 
-  const results = evaluateGraph(configs, edges, namespace);
+  const results = evaluateGraph(configs, edges, namespace, {
+    resolveTokenReference: options?.resolveTokenReference,
+  });
 
   for (const nodeId of tokenSourceNodeIds) {
     const result = results.get(nodeId);
