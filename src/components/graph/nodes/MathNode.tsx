@@ -1,13 +1,14 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import { Calculator } from 'lucide-react';
 import {
   NodeWrapper, NodeHeader, Row, RowHandle, NativeSelect, NumberInput, TextInput,
   PreviewSection, HANDLE_NUMBER, HANDLE_ARRAY, HANDLE_OUT,
 } from './nodeShared';
-import type { ComposableNodeData, MathConfig, MathOp } from '@/types/graph-nodes.types';
+import type { ComposableNodeData, MathConfig, MathMode, MathOp } from '@/types/graph-nodes.types';
+import { validateExpression } from '@/lib/mathExpression';
 
 const OPERATIONS: { value: MathOp; label: string }[] = [
   { value: 'multiply', label: 'Multiply (× B)' },
@@ -31,11 +32,16 @@ function MathNodeComponent({ data }: NodeProps) {
     data as unknown as ComposableNodeData;
   const cfg = config as MathConfig;
 
+  const [exprError, setExprError] = useState<string | null>(null);
+
   const update = (partial: Partial<MathConfig>) =>
     onConfigChange(nodeId, { ...cfg, ...partial });
 
-  const isBinary  = BINARY_OPS.includes(cfg.operation);
-  const isClamp   = cfg.operation === 'clamp';
+  const mode = cfg.mathMode ?? 'operations';
+  const isExpression = mode === 'expression';
+
+  const isBinary  = !isExpression && BINARY_OPS.includes(cfg.operation);
+  const isClamp   = !isExpression && cfg.operation === 'clamp';
 
   const hasB        = inputs['b']        != null;
   const hasClampMin = inputs['clampMin'] != null;
@@ -51,68 +57,115 @@ function MathNodeComponent({ data }: NodeProps) {
       <NodeHeader
         icon={<Calculator size={12} className="text-amber-500" />}
         title="Math"
-        badge={cfg.operation}
+        badge={isExpression ? 'expr' : cfg.operation}
         headerClass="bg-amber-50 border-amber-200 text-amber-700"
         onDelete={onDeleteNode ? () => onDeleteNode(nodeId) : undefined}
       />
       <div className="px-3 py-2 space-y-1.5 nodrag">
-        <Row label="Operation">
-          <NativeSelect
-            value={cfg.operation}
-            onChange={v => update({ operation: v as MathOp })}
-            options={OPERATIONS}
-          />
-        </Row>
 
-        {/* Input A — always present */}
+        {/* Mode toggle */}
+        <div className="flex rounded overflow-hidden border border-gray-200 text-[10px] font-medium">
+          {(['operations', 'expression'] as MathMode[]).map(m => (
+            <button
+              key={m}
+              onClick={() => update({ mathMode: m })}
+              className={`flex-1 py-0.5 capitalize transition-colors ${
+                mode === m
+                  ? 'bg-amber-100 text-amber-700'
+                  : 'bg-white text-gray-400 hover:bg-gray-50'
+              }`}
+            >
+              {m === 'operations' ? 'Ops' : 'Expr'}
+            </button>
+          ))}
+        </div>
+
+        {/* Input A — always present (binds `a` in expression mode) */}
         <Row
-          label="Input A"
+          label={isExpression ? 'Bind a' : 'Input A'}
           handle={<RowHandle id="a" className={HANDLE_ARRAY} title="a (number | array)" />}
         >
           <span className="text-[10px] text-gray-300 italic">← wire input</span>
         </Row>
 
-        {/* Binary operand B */}
-        {isBinary && (
-          <Row
-            label={<span className="flex items-center">Operand B<Dot on={hasB} /></span>}
-            handle={<RowHandle id="b" className={HANDLE_NUMBER} title="b — operand (connect a Constant)" />}
-          >
-            <NumberInput
-              value={hasB ? Number(inputs['b']) : cfg.operand}
-              onChange={v => update({ operand: v })}
-              step={0.1}
-              className={hasB ? 'border-blue-300 bg-blue-50' : ''}
-            />
-          </Row>
+        {/* ── Operations mode ── */}
+        {!isExpression && (
+          <>
+            <Row label="Operation">
+              <NativeSelect
+                value={cfg.operation}
+                onChange={v => update({ operation: v as MathOp })}
+                options={OPERATIONS}
+              />
+            </Row>
+
+            {/* Binary operand B */}
+            {isBinary && (
+              <Row
+                label={<span className="flex items-center">Operand B<Dot on={hasB} /></span>}
+                handle={<RowHandle id="b" className={HANDLE_NUMBER} title="b — operand (connect a Constant)" />}
+              >
+                <NumberInput
+                  value={hasB ? Number(inputs['b']) : cfg.operand}
+                  onChange={v => update({ operand: v })}
+                  step={0.1}
+                  className={hasB ? 'border-blue-300 bg-blue-50' : ''}
+                />
+              </Row>
+            )}
+
+            {/* Clamp bounds */}
+            {isClamp && (
+              <>
+                <Row
+                  label={<span className="flex items-center">Min<Dot on={hasClampMin} /></span>}
+                  handle={<RowHandle id="clampMin" className={HANDLE_NUMBER} title="clamp min" />}
+                >
+                  <NumberInput
+                    value={hasClampMin ? Number(inputs['clampMin']) : cfg.clampMin}
+                    onChange={v => update({ clampMin: v })}
+                    step={0.1}
+                    className={hasClampMin ? 'border-blue-300 bg-blue-50' : ''}
+                  />
+                </Row>
+                <Row
+                  label={<span className="flex items-center">Max<Dot on={hasClampMax} /></span>}
+                  handle={<RowHandle id="clampMax" className={HANDLE_NUMBER} title="clamp max" />}
+                >
+                  <NumberInput
+                    value={hasClampMax ? Number(inputs['clampMax']) : cfg.clampMax}
+                    onChange={v => update({ clampMax: v })}
+                    step={0.1}
+                    className={hasClampMax ? 'border-blue-300 bg-blue-50' : ''}
+                  />
+                </Row>
+              </>
+            )}
+          </>
         )}
 
-        {/* Clamp bounds */}
-        {isClamp && (
-          <>
-            <Row
-              label={<span className="flex items-center">Min<Dot on={hasClampMin} /></span>}
-              handle={<RowHandle id="clampMin" className={HANDLE_NUMBER} title="clamp min" />}
-            >
-              <NumberInput
-                value={hasClampMin ? Number(inputs['clampMin']) : cfg.clampMin}
-                onChange={v => update({ clampMin: v })}
-                step={0.1}
-                className={hasClampMin ? 'border-blue-300 bg-blue-50' : ''}
-              />
-            </Row>
-            <Row
-              label={<span className="flex items-center">Max<Dot on={hasClampMax} /></span>}
-              handle={<RowHandle id="clampMax" className={HANDLE_NUMBER} title="clamp max" />}
-            >
-              <NumberInput
-                value={hasClampMax ? Number(inputs['clampMax']) : cfg.clampMax}
-                onChange={v => update({ clampMax: v })}
-                step={0.1}
-                className={hasClampMax ? 'border-blue-300 bg-blue-50' : ''}
-              />
-            </Row>
-          </>
+        {/* ── Expression mode ── */}
+        {isExpression && (
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[10px] text-gray-400">Formula</span>
+            <textarea
+              value={cfg.expression ?? ''}
+              onChange={e => update({ expression: e.target.value })}
+              onBlur={e => setExprError(validateExpression(e.target.value))}
+              rows={2}
+              placeholder="e.g. a * 2 + {spacing.base}"
+              className={`nodrag w-full text-[11px] font-mono bg-white rounded px-1.5 py-1 text-gray-700 focus:outline-none resize-none border ${
+                exprError
+                  ? 'border-red-400 focus:ring-1 focus:ring-red-400'
+                  : 'border-gray-200 focus:ring-1 focus:ring-indigo-300'
+              }`}
+            />
+            {exprError ? (
+              <span className="text-[9px] text-red-500">{exprError}</span>
+            ) : (
+              <span className="text-[9px] text-gray-300">Use a for wired input · {'{token.path}'} for refs</span>
+            )}
+          </div>
         )}
 
         <Row label="Precision">
