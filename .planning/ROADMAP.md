@@ -184,7 +184,7 @@ Plans:
 **Plans:** 4 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Jest unit tests for evaluateExpression (D-06, D-07)
-- [ ] 01-02-PLAN.md — Invalid-expression error feedback on MathNode (red border + message on blur; D-03, D-04, D-05)
-- [ ] 01-03-PLAN.md — graphTokenPaths resolveTokenReference plumbing (D-08)
-- [ ] 01-04-PLAN.md — Browser UAT + phase commit (D-01, D-02)
+- [x] 01-01-PLAN.md — Jest unit tests for evaluateExpression (D-06, D-07)
+- [x] 01-02-PLAN.md — Invalid-expression error feedback on MathNode (red border + message on blur; D-03, D-04, D-05)
+- [x] 01-03-PLAN.md — graphTokenPaths resolveTokenReference plumbing (D-08)
+- [x] 01-04-PLAN.md — Browser UAT + phase commit (D-01, D-02)
