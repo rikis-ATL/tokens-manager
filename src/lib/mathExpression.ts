@@ -13,6 +13,27 @@ export interface ExpressionContext {
   a?: number;
 }
 
+/**
+ * Validate an expression without suppressing the error message.
+ * Returns null when the expression is valid or empty.
+ * Returns a human-readable error string when the expression is invalid.
+ */
+export function validateExpression(raw: string, ctx?: ExpressionContext): string | null {
+  const expr = raw.trim();
+  if (!expr) return null;
+  try {
+    const stripped = stripCalc(expr);
+    const substituted = substituteRefs(stripped, ctx?.resolveTokenReference);
+    if (substituted === null) return 'Unresolved token reference';
+    const result = parseExpr(substituted, ctx?.a);
+    if (!isFinite(result)) return 'Invalid expression';
+    return null;
+  } catch (err) {
+    return err instanceof Error ? err.message : 'Invalid expression';
+  }
+}
+
+
 export function evaluateExpression(raw: string, ctx?: ExpressionContext): number | null {
   try {
     let expr = raw.trim();
