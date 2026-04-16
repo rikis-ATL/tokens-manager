@@ -427,6 +427,26 @@ export class TokenService {
       };
     };
 
+    /** Emit `{}` at path so empty groups survive JSON round-trip (processImportedTokens recreates them). */
+    const ensureEmptyObjectAtPath = (root: Record<string, unknown>, path: string[]) => {
+      if (path.length === 0) return;
+      let current: Record<string, unknown> = root;
+      for (let i = 0; i < path.length; i++) {
+        const part = path[i];
+        const isLast = i === path.length - 1;
+        if (isLast) {
+          if (!(part in current)) {
+            current[part] = {};
+          }
+        } else {
+          if (!current[part] || typeof current[part] !== 'object' || Array.isArray(current[part])) {
+            current[part] = {};
+          }
+          current = current[part] as Record<string, unknown>;
+        }
+      }
+    };
+
     const processGroup = (group: TokenGroup, pathPrefix: string[] = []) => {
       // omitFromPath: skip this group's name segment in the output path
       const currentPath = group.omitFromPath ? pathPrefix : [...pathPrefix, group.name];
@@ -442,6 +462,12 @@ export class TokenService {
         for (const childGroup of group.children) {
           processGroup(childGroup, currentPath);
         }
+      }
+
+      const hasRenderableTokens = group.tokens.some(t => Boolean(t.path && t.value));
+      const hasChildren = Boolean(group.children && group.children.length > 0);
+      if (!hasRenderableTokens && !hasChildren) {
+        ensureEmptyObjectAtPath(output as Record<string, unknown>, currentPath);
       }
     };
 

@@ -3,6 +3,7 @@
 import { useMemo, useEffect, useState, useCallback, useRef } from 'react';
 import {
   ReactFlow,
+  ReactFlowProvider,
   Controls,
   Background,
   BackgroundVariant,
@@ -10,6 +11,7 @@ import {
   ConnectionLineType,
   useNodesState,
   useEdgesState,
+  useReactFlow,
   type Node,
   type Edge,
   type Connection,
@@ -256,7 +258,16 @@ interface GroupStructureGraphProps {
   onGraphStateChange?: (state: GraphGroupState, options?: { flushImmediate?: boolean }) => void;
 }
 
-export function GroupStructureGraph({
+/** Wraps the canvas with {@link ReactFlowProvider} so placement can use the flow viewport. */
+export function GroupStructureGraph(props: GroupStructureGraphProps) {
+  return (
+    <ReactFlowProvider>
+      <GroupStructureGraphInner {...props} />
+    </ReactFlowProvider>
+  );
+}
+
+function GroupStructureGraphInner({
   group,
   allGroupsMode = false,
   allGroupsData,
@@ -269,6 +280,8 @@ export function GroupStructureGraph({
   onBulkCreateGroups,
   onGraphStateChange
 }: GroupStructureGraphProps) {
+  const { screenToFlowPosition } = useReactFlow();
+  const flowPaneRef = useRef<HTMLDivElement>(null);
   
   // Validate props - either single group mode or all groups mode
   if (!allGroupsMode && !group) {
@@ -304,15 +317,6 @@ export function GroupStructureGraph({
   const [nodeValues, setNodeValues] = useState<
     Map<string, { inputs: Record<string, PortValue>; outputs: Record<string, PortValue> }>
   >(() => new Map());
-
-  // ── Last-focused node — for placement of new nodes ───────────────────────
-  const [lastFocusedPos, setLastFocusedPos]     = useState<{ x: number; y: number } | null>(null);
-  const [lastFocusedWidth, setLastFocusedWidth] = useState(260);
-
-  const handleNodeClick = useCallback((_evt: React.MouseEvent, node: Node) => {
-    setLastFocusedPos(node.position);
-    setLastFocusedWidth(NODE_WIDTHS[node.type ?? ''] ?? 260);
-  }, []);
 
   const handleDeleteComposableNode = useCallback((nodeId: string) => {
     setComposableNodeMetas(prev => {
@@ -382,15 +386,35 @@ export function GroupStructureGraph({
   // ── Composable node callbacks ────────────────────────────────────────────
   const handleAddComposableNode = useCallback((kind: ComposableNodeConfig['kind']) => {
     const id = `comp-${generateId()}`;
-    const position = lastFocusedPos
-      ? { x: lastFocusedPos.x + lastFocusedWidth + 40, y: lastFocusedPos.y }
-      : { x: 650 + Math.floor(composableNodeMetas.size / 4) * 320, y: (composableNodeMetas.size % 4) * 340 + 50 };
+    const nodeType = KIND_TO_NODE_TYPE[kind];
+    const width = NODE_WIDTHS[nodeType] ?? 260;
+    /** Rough vertical centering for typical composable card height */
+    const heightEstimate = 140;
+
+    let position: { x: number; y: number };
+    const pane = flowPaneRef.current;
+    if (pane) {
+      const rect = pane.getBoundingClientRect();
+      const centerFlow = screenToFlowPosition({
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2,
+      });
+      position = {
+        x: centerFlow.x - width / 2,
+        y: centerFlow.y - heightEstimate / 2,
+      };
+    } else {
+      position = {
+        x: 650 + Math.floor(composableNodeMetas.size / 4) * 320,
+        y: (composableNodeMetas.size % 4) * 340 + 50,
+      };
+    }
 
     setComposableNodeMetas(prev => new Map(prev).set(id, {
       config: defaultComposableConfig(kind),
       position,
     }));
-  }, [composableNodeMetas.size, lastFocusedPos, lastFocusedWidth]);
+  }, [composableNodeMetas.size, screenToFlowPosition]);
 
   const handleComposableConfigChange = useCallback((nodeId: string, config: ComposableNodeConfig) => {
     setComposableNodeMetas(prev => {
@@ -682,6 +706,7 @@ export function GroupStructureGraph({
         namespace,
         allTokens,
         allGroups,
+        resolveTokenReference,
       };
       result.push({
         id,
@@ -689,10 +714,11 @@ export function GroupStructureGraph({
         position: meta.position,
         data: nodeData as unknown as Record<string, unknown>,
         draggable: true,
+        focusable: false,
       });
     });
     return result;
-  }, [composableNodeMetas, nodeValues, handleComposableConfigChange, handleComposableGenerate, namespace, allTokens, allGroups]);
+  }, [composableNodeMetas, nodeValues, handleComposableConfigChange, handleComposableGenerate, namespace, allTokens, allGroups, resolveTokenReference]);
 
   const allNodes = useMemo(
     () => [...groupNodes, ...composableReactFlowNodes],
@@ -799,14 +825,13 @@ export function GroupStructureGraph({
       </div>
 
       {/* Canvas */}
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 min-h-0" ref={flowPaneRef}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
           onNodesChange={handleNodesChange}
           onEdgesChange={handleEdgesChange}
           onConnect={handleConnect}
-          onNodeClick={handleNodeClick}
           nodeTypes={NODE_TYPES}
           edgeTypes={EDGE_TYPES}
           connectionLineType={ConnectionLineType.Bezier}

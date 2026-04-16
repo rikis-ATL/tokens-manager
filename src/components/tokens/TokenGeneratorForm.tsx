@@ -53,7 +53,6 @@ import {
   validateTokenPath,
   validateTokenValue,
   parseTokenValue,
-  countTokensRecursive,
   bulkDeleteTokens,
   bulkMoveTokens,
   bulkChangeType,
@@ -586,6 +585,11 @@ interface TokenGeneratorFormProps {
   onDownloadJSON?: () => void;
   /** Called before a bulk mutation in non-theme mode; parent pushes snapshot to its undo stack */
   onUndoSnapshot?: (groups: TokenGroup[]) => void;
+  /**
+   * Default mode (no themeTokens): collection tree owned by the parent — single source of truth.
+   * All edits flow through onGroupsChange; the form does not keep a parallel copy.
+   */
+  groups?: TokenGroup[];
 }
 
 export function TokenGeneratorForm({
@@ -620,10 +624,28 @@ export function TokenGeneratorForm({
   onPreviewJSON,
   onDownloadJSON,
   onUndoSnapshot,
+  groups,
 }: TokenGeneratorFormProps) {
-  const [tokenGroups, setTokenGroups] = useState<TokenGroup[]>([
+  const [internalTokenGroups, setInternalTokenGroups] = useState<TokenGroup[]>([
     { id: "1", name: "colors", tokens: [], level: 0, expanded: true },
   ]);
+  /** Parent-owned tree in default mode; internal copy only when no onGroupsChange (e.g. isolated use). */
+  const isCollectionControlled =
+    typeof onGroupsChange === 'function' && themeTokens === undefined;
+  const tokenGroups = isCollectionControlled ? (groups ?? []) : internalTokenGroups;
+
+  const updateGroups = useCallback(
+    (updater: React.SetStateAction<TokenGroup[]>) => {
+      if (isCollectionControlled && onGroupsChange) {
+        const current = groups ?? [];
+        const next = typeof updater === 'function' ? updater(current) : updater;
+        onGroupsChange(next);
+        return;
+      }
+      setInternalTokenGroups(updater);
+    },
+    [isCollectionControlled, onGroupsChange, groups],
+  );
   const [showJsonDialog, setShowJsonDialog] = useState(false);
   const [isAddingGroup, setIsAddingGroup] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");
@@ -661,15 +683,9 @@ export function TokenGeneratorForm({
       onTokensChange(null, globalNamespace, collectionName);
       return;
     }
-    // Count tokens recursively — loaded collections may have all tokens in nested child
-    // groups (e.g. { colors: { brand: { primary: {$value} } } } → root group has 0 direct
-    // tokens but child groups have tokens). Without recursion, allTokens would always be 0
-    // for nested structures and the button would stay disabled after loading a collection.
-    const allTokens = countTokensRecursive(tokenGroups);
-    if (allTokens === 0) {
-      onTokensChange(null, globalNamespace, collectionName);
-      return;
-    }
+    // Always emit JSON when any groups exist — including empty groups (serialized as `{}`)
+    // so saves do not drop newly created groups. Do not send null when token count is 0
+    // but groups still exist, or parent refs keep stale tokens.
     const rawJson = tokenService.generateStyleDictionaryOutput(
       tokenGroups,
       globalNamespace,
@@ -685,14 +701,20 @@ export function TokenGeneratorForm({
   // Auto-load a collection when the parent passes a new one (e.g. user selects from shared header)
   useEffect(() => {
     if (!collectionToLoad) return;
-    const { groups, detectedGlobalNamespace } =
-      tokenService.processImportedTokens(collectionToLoad.tokens, "");
-    setTokenGroups(groups);
-    setGlobalNamespace(detectedGlobalNamespace);
     setLoadedCollection({
       id: collectionToLoad.id,
       name: collectionToLoad.name,
     });
+    // Parent owns masterGroups in controlled mode; only sync metadata here.
+    if (isCollectionControlled) {
+      if (namespace !== undefined) setGlobalNamespace(namespace);
+      setIsDirty(false);
+      return;
+    }
+    const { groups: importedGroups, detectedGlobalNamespace } =
+      tokenService.processImportedTokens(collectionToLoad.tokens, "");
+    setInternalTokenGroups(importedGroups);
+    setGlobalNamespace(detectedGlobalNamespace);
     setIsDirty(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [collectionToLoad?.id]);
@@ -743,11 +765,15 @@ export function TokenGeneratorForm({
         return;
       }
       const { collection } = data;
-      const { groups, detectedGlobalNamespace } = convertToTokenGroups(
+      const { groups: importedGroups, detectedGlobalNamespace } = convertToTokenGroups(
         collection.tokens,
       );
       // Programmatic state update — do NOT set dirty
-      setTokenGroups(groups);
+      if (isCollectionControlled && onGroupsChange) {
+        onGroupsChange(importedGroups);
+      } else {
+        setInternalTokenGroups(importedGroups);
+      }
       setGlobalNamespace(detectedGlobalNamespace);
       setLoadedCollection({ id: collection._id, name: collection.name });
       setIsDirty(false);
@@ -786,7 +812,7 @@ export function TokenGeneratorForm({
         return group;
       });
     };
-    setTokenGroups(updateGroup(tokenGroups));
+    updateGroups((prev) => updateGroup(prev));
   };
 
   // Create a wrapper for buildFullPath that includes global namespace
@@ -827,7 +853,7 @@ export function TokenGeneratorForm({
       level: 0,
       expanded: true,
     };
-    setTokenGroups((prev) => [...prev, newGroup]);
+    updateGroups((prev) => [...prev, newGroup]);
     setIsDirty(true);
     setNewGroupName("");
     setIsAddingGroup(false);
@@ -838,11 +864,13 @@ export function TokenGeneratorForm({
   const prevGroupsRef = useRef<string>("");
   useEffect(() => {
     if (!onGroupsChange) return;
+    // Controlled: parent owns masterGroups; updates already go through onGroupsChange.
+    if (isCollectionControlled) return;
     const serialized = JSON.stringify(tokenGroups);
     if (serialized === prevGroupsRef.current) return;
     prevGroupsRef.current = serialized;
     onGroupsChange(tokenGroups);
-  }, [tokenGroups, onGroupsChange]);
+  }, [tokenGroups, onGroupsChange, isCollectionControlled]);
 
   // Handle external pending new group
   const prevPendingGroupRef = useRef<string | null>(null);
@@ -901,7 +929,7 @@ export function TokenGeneratorForm({
             return { ...g, children: upsertSubgroup(g.children) };
           return g;
         });
-      setTokenGroups((prev) => upsertSubgroup(prev));
+      updateGroups((prev) => upsertSubgroup(prev));
     } else {
       const upsertIntoGroup = (groups: TokenGroup[]): TokenGroup[] =>
         groups.map((group) => {
@@ -914,7 +942,7 @@ export function TokenGeneratorForm({
             return { ...group, children: upsertIntoGroup(group.children) };
           return group;
         });
-      setTokenGroups((prev) => upsertIntoGroup(prev));
+      updateGroups((prev) => upsertIntoGroup(prev));
     }
 
     setIsDirty(true);
@@ -925,48 +953,47 @@ export function TokenGeneratorForm({
   useEffect(() => {
     if (!pendingGroupCreation) return;
     const { parentGroupId, groupData } = pendingGroupCreation;
+    const name = groupData.name.trim() || 'new-group';
+    const tokensToAdd = groupData.tokens ?? [];
 
     if (parentGroupId) {
-      // Create as subgroup
-      addSubGroup(parentGroupId, groupData.name);
-      // Find the newly created group and add tokens to it
-      setTokenGroups(prev => {
-        const findAndAddTokens = (groups: TokenGroup[]): TokenGroup[] =>
+      // Single atomic update: create subgroup with tokens (avoids batched setState misses)
+      updateGroups(prev => {
+        const insertChild = (groups: TokenGroup[]): TokenGroup[] =>
           groups.map(g => {
-            if (g.id === parentGroupId && g.children) {
-              const newChild = g.children.find(child => child.name === groupData.name);
-              if (newChild) {
-                return {
-                  ...g,
-                  children: g.children.map(child =>
-                    child.name === groupData.name
-                      ? { ...child, tokens: [...child.tokens, ...groupData.tokens] }
-                      : child
-                  ),
-                };
-              }
+            if (g.id === parentGroupId) {
+              const newChild: TokenGroup = {
+                id: generateId(),
+                name,
+                tokens: [...tokensToAdd],
+                level: g.level + 1,
+                parent: parentGroupId,
+                children: [],
+                expanded: true,
+              };
+              return {
+                ...g,
+                children: [...(g.children ?? []), newChild],
+                expanded: true,
+              };
             }
-            if (g.children) {
-              return { ...g, children: findAndAddTokens(g.children) };
+            if (g.children?.length) {
+              return { ...g, children: insertChild(g.children) };
             }
             return g;
           });
-        return findAndAddTokens(prev);
+        return insertChild(prev);
       });
     } else {
-      // Create as root level group
-      addTokenGroup(groupData.name);
-      // Find the newly created group and add tokens to it
-      setTokenGroups(prev => {
-        const newGroup = prev.find(g => g.name === groupData.name);
-        if (newGroup) {
-          return prev.map(g =>
-            g.name === groupData.name
-              ? { ...g, tokens: [...g.tokens, ...groupData.tokens] }
-              : g
-          );
-        }
-        return prev;
+      updateGroups(prev => {
+        const newGroup: TokenGroup = {
+          id: generateId(),
+          name,
+          tokens: [...tokensToAdd],
+          level: 0,
+          expanded: true,
+        };
+        return [...prev, newGroup];
       });
     }
 
@@ -1002,7 +1029,7 @@ export function TokenGeneratorForm({
         }));
     };
 
-    setTokenGroups(removeGroup(tokenGroups));
+    updateGroups((prev) => removeGroup(prev));
     setIsDirty(true);
   };
 
@@ -1018,7 +1045,7 @@ export function TokenGeneratorForm({
         return group;
       });
     };
-    setTokenGroups(updateGroup(tokenGroups));
+    updateGroups((prev) => updateGroup(prev));
     setIsDirty(true);
   };
 
@@ -1053,7 +1080,7 @@ export function TokenGeneratorForm({
     if (groupInTheme) {
       onThemeTokensChange!(updateGroup(themeTokens!));
     } else {
-      setTokenGroups(updateGroup(tokenGroups));
+      updateGroups((prev) => updateGroup(prev));
       setIsDirty(true);
     }
   };
@@ -1162,7 +1189,7 @@ export function TokenGeneratorForm({
     if (groupInTheme) {
       onThemeTokensChange!(updatedGroups);
     } else {
-      setTokenGroups(updatedGroups);
+      updateGroups(updatedGroups);
       setIsDirty(true);
     }
   };
@@ -1213,7 +1240,7 @@ export function TokenGeneratorForm({
     if (groupInTheme) {
       onThemeTokensChange!(updateGroup(themeTokens!));
     } else {
-      setTokenGroups(updateGroup(tokenGroups));
+      updateGroups((prev) => updateGroup(prev));
       setIsDirty(true);
     }
   };
@@ -1257,7 +1284,7 @@ export function TokenGeneratorForm({
     if (groupInTheme) {
       onThemeTokensChange!(updateGroup(themeTokens!));
     } else {
-      setTokenGroups(updateGroup(tokenGroups));
+      updateGroups((prev) => updateGroup(prev));
       setIsDirty(true);
     }
   };
@@ -1287,7 +1314,7 @@ export function TokenGeneratorForm({
     if (groupInTheme) {
       onThemeTokensChange!(updateGroup(themeTokens!));
     } else {
-      setTokenGroups(updateGroup(tokenGroups));
+      updateGroups((prev) => updateGroup(prev));
       setIsDirty(true);
     }
   };
@@ -1351,7 +1378,7 @@ export function TokenGeneratorForm({
           return { ...g, children: insertChild(g.children) };
         return g;
       });
-    setTokenGroups(insertChild(tokenGroups));
+    updateGroups((prev) => insertChild(prev));
     setIsDirty(true);
   };
 
@@ -1374,13 +1401,13 @@ export function TokenGeneratorForm({
       if (isThemeMode) {
         onThemeTokensChange!(updated);
       } else {
-        setTokenGroups(updated);
+        updateGroups(updated);
         setIsDirty(true);
       }
       setSelectedTokenIds(new Set());
       lastSelectedIndexRef.current = -1;
     },
-    [themeTokens, onThemeTokensChange, tokenGroups, onUndoSnapshot]
+    [themeTokens, onThemeTokensChange, tokenGroups, onUndoSnapshot, updateGroups]
   );
 
   const handleBulkDelete = useCallback(() => {
@@ -1453,10 +1480,10 @@ export function TokenGeneratorForm({
     if (isThemeMode) {
       onThemeTokensChange!(mutated);
     } else {
-      setTokenGroups(mutated);
+      updateGroups(mutated);
       setIsDirty(true);
     }
-  }, [selectedGroupId, selectedTokenIds, themeTokens, onThemeTokensChange]);
+  }, [selectedGroupId, selectedTokenIds, themeTokens, onThemeTokensChange, updateGroups]);
 
   const handlePrefixBlur = useCallback(() => {
     isPrefixEditingRef.current = false;

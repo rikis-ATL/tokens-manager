@@ -243,6 +243,7 @@ export interface ComposableNodeData {
   namespace?: string;      // global collection namespace — prepended to output token names
   allTokens?: FlatToken[]; // all tokens in the collection for the source picker
   allGroups?: FlatGroup[]; // all groups in the collection for the destination picker
+  resolveTokenReference?: (ref: string) => string; // resolves {token.path} refs for Math expression validation
 }
 
 // ── Node metadata stored in parent component ──────────────────────────────────

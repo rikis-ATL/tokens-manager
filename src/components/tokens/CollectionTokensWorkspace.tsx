@@ -146,12 +146,14 @@ export function CollectionTokensWorkspace({
             </div>
             <TabsContent
               value="table"
+              forceMount
               className="flex-1 min-h-0 m-0 p-0 overflow-hidden flex flex-col focus-visible:outline-none"
             >
               <div className="flex-1 min-h-0 overflow-y-auto px-6 pb-6 pt-4">{mainContent}</div>
             </TabsContent>
             <TabsContent
               value="graph"
+              forceMount
               className="flex-1 min-h-0 m-0 p-0 overflow-hidden focus-visible:outline-none"
             >
               <div className="h-full min-h-0 bg-gray-50">{graphPanel}</div>

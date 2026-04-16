@@ -1350,6 +1350,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
             onUndoSnapshot={(snapshot) => {
               undoStackRef.current = [snapshot, ...undoStackRef.current.slice(0, MAX_UNDO - 1)];
             }}
+            groups={activeThemeId ? undefined : masterGroups}
             />
           }
         />

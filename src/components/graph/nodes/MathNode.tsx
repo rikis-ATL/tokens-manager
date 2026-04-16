@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useState, useRef, useCallback } from 'react';
+import { memo, useState, useRef, useCallback, useMemo, useEffect, useLayoutEffect } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import { Calculator } from 'lucide-react';
 import {
@@ -28,13 +28,45 @@ function Dot({ on }: { on: boolean }) {
 }
 
 function MathNodeComponent({ data }: NodeProps) {
-  const { nodeId, config, inputs, outputs, onConfigChange, onDeleteNode } =
+  const { nodeId, config, inputs, outputs, onConfigChange, onDeleteNode, resolveTokenReference } =
     data as unknown as ComposableNodeData;
   const cfg = config as MathConfig;
 
-  const [exprError, setExprError] = useState<string | null>(null);
   const [localExpr, setLocalExpr] = useState(cfg.expression ?? '');
   const syncTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const exprRef = useRef<HTMLTextAreaElement | null>(null);
+  /** True while the formula field is focused — avoids syncing props that would fight local typing. */
+  const exprFocusedRef = useRef(false);
+  /** Preserve caret across graph re-renders (evaluation updates node `data` often). */
+  const exprSelRef = useRef<[number, number]>([0, 0]);
+
+  const captureExprSelection = useCallback(() => {
+    const el = exprRef.current;
+    if (!el || document.activeElement !== el) return;
+    exprSelRef.current = [el.selectionStart ?? 0, el.selectionEnd ?? 0];
+  }, []);
+
+  useEffect(() => {
+    if (!exprFocusedRef.current) {
+      setLocalExpr(cfg.expression ?? '');
+    }
+  }, [cfg.expression]);
+
+  useLayoutEffect(() => {
+    if (!exprFocusedRef.current) return;
+    const el = exprRef.current;
+    if (!el || document.activeElement === el) return;
+    el.focus({ preventScroll: true });
+    const [a, b] = exprSelRef.current;
+    const len = el.value.length;
+    const start = Math.min(Math.max(0, a), len);
+    const end = Math.min(Math.max(0, b), len);
+    try {
+      el.setSelectionRange(start, end);
+    } catch {
+      /* ignore selection on hidden/disabled edge cases */
+    }
+  });
 
   const update = useCallback((partial: Partial<MathConfig>) =>
     onConfigChange(nodeId, { ...cfg, ...partial }), [onConfigChange, nodeId, cfg]);
@@ -51,14 +83,24 @@ function MathNodeComponent({ data }: NodeProps) {
   // expressions containing `a` don't show "Variable a is not bound" while typing.
   const aForValidation = typeof inputs['a'] === 'number' ? inputs['a'] : 0;
 
-  const handleExprChange = useCallback((value: string) => {
+  // Derive error inline so validation changes never trigger an extra setState that
+  // can cause the textarea to blur (React batches the localExpr update, but a
+  // separate setExprError call can still produce an extra render cycle through
+  // ReactFlow's node data propagation path).
+  const exprError = useMemo(
+    () => localExpr ? validateExpression(localExpr, { a: aForValidation, resolveTokenReference }) : null,
+    [localExpr, aForValidation, resolveTokenReference],
+  );
+
+  const handleExprChange = useCallback((value: string, sel: [number, number]) => {
+    exprSelRef.current = sel;
     setLocalExpr(value);
-    setExprError(validateExpression(value, { a: aForValidation }));
     if (syncTimer.current) clearTimeout(syncTimer.current);
     syncTimer.current = setTimeout(() => update({ expression: value }), 300);
-  }, [update, aForValidation]);
+  }, [update]);
 
   const handleExprBlur = useCallback(() => {
+    exprFocusedRef.current = false;
     if (syncTimer.current) {
       clearTimeout(syncTimer.current);
       syncTimer.current = null;
@@ -182,12 +224,24 @@ function MathNodeComponent({ data }: NodeProps) {
           <div className="flex flex-col gap-0.5">
             <span className="text-[10px] text-gray-400">Formula</span>
             <textarea
+              ref={exprRef}
               value={localExpr}
-              onChange={e => handleExprChange(e.target.value)}
+              onChange={e => {
+                const t = e.target as HTMLTextAreaElement;
+                handleExprChange(t.value, [t.selectionStart ?? 0, t.selectionEnd ?? 0]);
+              }}
+              onFocus={() => {
+                exprFocusedRef.current = true;
+                captureExprSelection();
+              }}
               onBlur={handleExprBlur}
+              onSelect={captureExprSelection}
+              onKeyUp={captureExprSelection}
+              onMouseDown={e => e.stopPropagation()}
+              onPointerDown={e => e.stopPropagation()}
               rows={2}
               placeholder="e.g. a * 2 + {spacing.base}"
-              className={`nodrag w-full text-[11px] font-mono bg-white rounded px-1.5 py-1 text-gray-700 focus:outline-none resize-none border ${
+              className={`nodrag nopan w-full text-[11px] font-mono bg-white rounded px-1.5 py-1 text-gray-700 focus:outline-none resize-none border ${
                 exprError
                   ? 'border-red-400 focus:ring-1 focus:ring-red-400'
                   : 'border-gray-200 focus:ring-1 focus:ring-indigo-300'
@@ -196,7 +250,7 @@ function MathNodeComponent({ data }: NodeProps) {
             {exprError ? (
               <span className="text-[9px] text-red-500">{exprError}</span>
             ) : (
-              <span className="text-[9px] text-gray-300">Use a for wired input · {'{token.path}'} for refs</span>
+              <span className="text-[9px] text-gray-300">Use a for wired input · {'{token.path}'} or {'{token-name}'}</span>
             )}
           </div>
         )}

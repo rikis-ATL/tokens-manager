@@ -42,6 +42,9 @@ export function evaluateExpression(raw: string, ctx?: ExpressionContext): number
     // Strip outer calc(...) wrapper
     expr = stripCalc(expr);
 
+    // If the expression contains token refs but no resolver is available, can't evaluate
+    if (/\{[^{}]+\}/.test(expr) && !ctx?.resolveTokenReference) return null;
+
     // Substitute {token.path} references
     const substituted = substituteRefs(expr, ctx?.resolveTokenReference);
     if (substituted === null) return null;
@@ -68,7 +71,10 @@ function stripCalc(s: string): string {
 
 /**
  * Replace every {token.path} in the expression with its resolved numeric value.
- * Returns null if any reference cannot be resolved or coerced to a number.
+ * Supports both dot-separated paths ({token.path}) and dash-separated ({token-name}).
+ * When no resolver is available, substitutes 0 so the expression can still be
+ * checked for syntactic validity.
+ * Returns null only when a resolver IS provided and a reference cannot be resolved.
  */
 function substituteRefs(
   s: string,
@@ -77,11 +83,17 @@ function substituteRefs(
   let failed = false;
   const result = s.replace(/\{[^{}]+\}/g, (match) => {
     if (!resolve) {
-      failed = true;
+      // No resolver available — treat as 0 so syntax can still be validated.
       return '0';
     }
-    const resolved = resolve(match);
-    const n = coerceToNumber(resolved);
+    let resolved = resolve(match);
+    let n = coerceToNumber(resolved);
+    // Fallback: try with dashes converted to dots ({token-name} → {token.name})
+    if (n === null && match.includes('-')) {
+      const dotRef = '{' + match.slice(1, -1).replace(/-/g, '.') + '}';
+      resolved = resolve(dotRef);
+      n = coerceToNumber(resolved);
+    }
     if (n === null) {
       failed = true;
       return '0';
