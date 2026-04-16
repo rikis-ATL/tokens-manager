@@ -246,6 +246,18 @@ function applyScalarOp(
   }
 }
 
+function resolveAExpr(aExpr: string | undefined, resolve?: (ref: string) => string): number | undefined {
+  if (!aExpr?.trim()) return undefined;
+  // Token reference: {token.path}
+  if (/^\{[^{}]+\}$/.test(aExpr.trim()) && resolve) {
+    const resolved = resolve(aExpr.trim());
+    const n = parseFloat(resolved);
+    return isNaN(n) ? undefined : n;
+  }
+  const n = parseFloat(aExpr);
+  return isNaN(n) ? undefined : n;
+}
+
 function evalMath(
   config: MathConfig,
   inputs: Record<string, PortValue>,
@@ -257,6 +269,9 @@ function evalMath(
   if (config.mathMode === 'expression') {
     const expr = config.expression ?? '';
     if (!expr.trim()) return { result: null };
+
+    // Resolve fallback `a` from aExpr when no wire is connected
+    const aFallback = (a == null) ? resolveAExpr(config.aExpr, options?.resolveTokenReference) : undefined;
 
     const applyExpr = (aVal?: number): string | number | null => {
       const raw = evaluateExpression(expr, {
@@ -277,8 +292,8 @@ function evalMath(
     if (typeof a === 'number') {
       return { result: applyExpr(a) };
     }
-    // No wired `a` — evaluate expression without binding
-    return { result: applyExpr() };
+    // No wired `a` — use aExpr fallback or evaluate without binding
+    return { result: applyExpr(aFallback) };
   }
 
   // ── Operations mode (default) ─────────────────────────────────────────────

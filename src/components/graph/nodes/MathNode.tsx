@@ -39,12 +39,24 @@ function MathNodeComponent({ data }: NodeProps) {
   const update = useCallback((partial: Partial<MathConfig>) =>
     onConfigChange(nodeId, { ...cfg, ...partial }), [onConfigChange, nodeId, cfg]);
 
+  const mode = cfg.mathMode ?? 'operations';
+  const isExpression = mode === 'expression';
+
+  const hasA        = inputs['a']        != null;
+  const hasB        = inputs['b']        != null;
+  const hasClampMin = inputs['clampMin'] != null;
+  const hasClampMax = inputs['clampMax'] != null;
+
+  // For validation: use wired `a` value or 0 as fallback so syntactically-valid
+  // expressions containing `a` don't show "Variable a is not bound" while typing.
+  const aForValidation = typeof inputs['a'] === 'number' ? inputs['a'] : 0;
+
   const handleExprChange = useCallback((value: string) => {
     setLocalExpr(value);
-    setExprError(validateExpression(value));
+    setExprError(validateExpression(value, { a: aForValidation }));
     if (syncTimer.current) clearTimeout(syncTimer.current);
     syncTimer.current = setTimeout(() => update({ expression: value }), 300);
-  }, [update]);
+  }, [update, aForValidation]);
 
   const handleExprBlur = useCallback(() => {
     if (syncTimer.current) {
@@ -54,15 +66,8 @@ function MathNodeComponent({ data }: NodeProps) {
     update({ expression: localExpr });
   }, [update, localExpr]);
 
-  const mode = cfg.mathMode ?? 'operations';
-  const isExpression = mode === 'expression';
-
   const isBinary  = !isExpression && BINARY_OPS.includes(cfg.operation);
   const isClamp   = !isExpression && cfg.operation === 'clamp';
-
-  const hasB        = inputs['b']        != null;
-  const hasClampMin = inputs['clampMin'] != null;
-  const hasClampMax = inputs['clampMax'] != null;
 
   const result = outputs['result'];
   const previewItems: string[] = Array.isArray(result)
@@ -102,7 +107,18 @@ function MathNodeComponent({ data }: NodeProps) {
           label={isExpression ? 'Bind a' : 'Input A'}
           handle={<RowHandle id="a" className={HANDLE_ARRAY} title="a (number | array)" />}
         >
-          <span className="text-[10px] text-gray-300 italic">← wire input</span>
+          {isExpression && !hasA ? (
+            <TextInput
+              value={cfg.aExpr ?? ''}
+              onChange={v => update({ aExpr: v })}
+              placeholder="num or {token.path}"
+              className="font-mono text-[10px]"
+            />
+          ) : (
+            <span className="text-[10px] text-gray-300 italic">
+              {hasA ? '● wired' : '← wire input'}
+            </span>
+          )}
         </Row>
 
         {/* ── Operations mode ── */}

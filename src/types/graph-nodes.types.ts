@@ -92,6 +92,8 @@ export interface MathConfig {
   mathMode?: MathMode;
   /** Freeform formula string used in expression mode, e.g. "a * 2 + {spacing.base}" */
   expression?: string;
+  /** Fallback value for `a` when no wire is connected — accepts a number or {token.path} ref */
+  aExpr?: string;
   operation: MathOp;
   operand: number;
   clampMin: number;
