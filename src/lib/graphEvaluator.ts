@@ -622,7 +622,8 @@ function evalTokenRef(config: import('@/types/graph-nodes.types').TokenRefConfig
   const raw = config.tokenValue ?? '';
   const n = parseFloat(raw);
   // Numeric tokens output as number; everything else as string
-  return { output: isNaN(n) ? raw : n };
+  // Key must be "value" to match the TokenRefNode's output handle id="value"
+  return { value: isNaN(n) ? raw : n };
 }
 
 export function evaluateNode(
