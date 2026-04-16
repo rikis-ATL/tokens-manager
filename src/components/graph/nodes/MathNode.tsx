@@ -150,8 +150,10 @@ function MathNodeComponent({ data }: NodeProps) {
             <span className="text-[10px] text-gray-400">Formula</span>
             <textarea
               value={cfg.expression ?? ''}
-              onChange={e => update({ expression: e.target.value })}
-              onBlur={e => setExprError(validateExpression(e.target.value))}
+              onChange={e => {
+                update({ expression: e.target.value });
+                setExprError(validateExpression(e.target.value));
+              }}
               rows={2}
               placeholder="e.g. a * 2 + {spacing.base}"
               className={`nodrag w-full text-[11px] font-mono bg-white rounded px-1.5 py-1 text-gray-700 focus:outline-none resize-none border ${
