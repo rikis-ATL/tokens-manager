@@ -292,6 +292,11 @@ function evalMath(
     if (typeof a === 'number') {
       return { result: applyExpr(a) };
     }
+    // String input from a wired Token/Constant node — coerce to number
+    if (typeof a === 'string' && a.trim()) {
+      const n = parseFloat(a);
+      if (!isNaN(n)) return { result: applyExpr(n) };
+    }
     // No wired `a` — use aExpr fallback or evaluate without binding
     return { result: applyExpr(aFallback) };
   }
