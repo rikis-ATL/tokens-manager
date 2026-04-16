@@ -60,6 +60,13 @@ describe('evaluateExpression', () => {
       ).toBe(20);
     });
 
+    it('substitutes hyphenated token paths when resolver returns the value', () => {
+      const resolve = (ref: string) => (ref === '{spacing.token-num}' ? '8' : '');
+      expect(
+        evaluateExpression('a + {spacing.token-num}', { a: 2, resolveTokenReference: resolve }),
+      ).toBe(10);
+    });
+
     it('returns null when token reference resolves to non-numeric value', () => {
       const resolve = (_ref: string) => 'not-a-number';
       expect(

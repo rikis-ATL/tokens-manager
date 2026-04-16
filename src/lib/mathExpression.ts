@@ -108,8 +108,16 @@ function substituteRefs(
  * Handles plain numbers and dimension-like strings such as "16px", "1.5rem".
  */
 function coerceToNumber(value: string): number | null {
-  const n = parseFloat(value);
-  return isNaN(n) ? null : n;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  // Same spirit as parsePrimary: leading number, optional unit (16px, 1.5rem, …)
+  const numMatch = trimmed.match(/^(\d+\.?\d*|\.\d+)/);
+  if (numMatch) {
+    const n = parseFloat(numMatch[0]);
+    if (!isNaN(n) && Number.isFinite(n)) return n;
+  }
+  const n = parseFloat(trimmed);
+  return isNaN(n) || !Number.isFinite(n) ? null : n;
 }
 
 // ── Recursive descent parser ──────────────────────────────────────────────────

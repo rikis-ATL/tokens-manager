@@ -368,12 +368,19 @@ export class TokenService {
     const search = (groups: TokenGroup[]): string | null => {
       for (const group of groups) {
         for (const token of group.tokens) {
-          const fullPath = `${group.path ?? group.name}.${token.path}`;
+          // `path ?? name` treats "" as valid — empty path would yield ".token" and break matching.
+          const groupSegment = group.path != null && group.path.length > 0 ? group.path : group.name;
+          const fullPath = `${groupSegment}.${token.path}`;
           // Match exact path, or when the reference has a namespace prefix that was stripped
           // from group paths during import (e.g. cleanRef='token.colors.base.red' matches
           // fullPath='colors.base.red'). Check segment boundaries with a dot prefix to
           // avoid partial segment matches (e.g. 'red' must not match 'infrared').
-          if (fullPath === cleanRef || cleanRef.endsWith('.' + fullPath) || fullPath.endsWith('.' + cleanRef)) {
+          if (
+            fullPath === cleanRef ||
+            token.path === cleanRef ||
+            cleanRef.endsWith('.' + fullPath) ||
+            fullPath.endsWith('.' + cleanRef)
+          ) {
             const value = String(token.value);
             // Recursively resolve if the found value is also a reference
             if (value.startsWith('{') && value.endsWith('}')) {
