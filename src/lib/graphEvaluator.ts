@@ -618,6 +618,13 @@ function evalA11yContrast(
   };
 }
 
+function evalTokenRef(config: import('@/types/graph-nodes.types').TokenRefConfig): Record<string, PortValue> {
+  const raw = config.tokenValue ?? '';
+  const n = parseFloat(raw);
+  // Numeric tokens output as number; everything else as string
+  return { output: isNaN(n) ? raw : n };
+}
+
 export function evaluateNode(
   config: ComposableNodeConfig,
   inputs: Record<string, PortValue>,
@@ -632,6 +639,7 @@ export function evaluateNode(
     case 'a11yContrast': return evalA11yContrast(config, inputs);
     case 'palette':      return evalPalette(config, inputs);
     case 'tokenOutput':  return evalTokenOutput(config, inputs);
+    case 'tokenRef':     return evalTokenRef(config);
     case 'json':           return evalJson(config);
     case 'generator':      return evalGenerator(config, inputs);
     case 'group':          return evalGroup(config);
