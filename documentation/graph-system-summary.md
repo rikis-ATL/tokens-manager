@@ -1,7 +1,7 @@
 # Token Graph System — Current State Summary
 
 > **Purpose of this document**: Context for continuing graph feature development in a new chat session.
-> Last updated: 2026-03-19
+> Last updated: 2026-04-16
 
 ---
 
@@ -41,7 +41,8 @@ src/
 │   ├── graph-nodes.types.ts          # All composable node config + data types
 │   └── graph-state.types.ts          # GraphGroupState, CollectionGraphState (DB persistence)
 ├── lib/
-│   └── graphEvaluator.ts             # Pure evaluation engine (topological sort + per-node logic)
+│   ├── graphEvaluator.ts             # Pure evaluation engine (topological sort + per-node logic)
+│   └── mathExpression.ts             # Safe numeric expression parser/evaluator for Math expression mode
 └── components/graph/
     ├── GroupStructureGraph.tsx        # Main graph component — manages all state
     ├── TokenGraphPanel.tsx            # Split-pane wrapper; allGroups=TokenGroup[], flatGroups=FlatGroup[]
@@ -144,12 +145,39 @@ When saving an array constant: value is stored as `string[]`.
 ---
 
 #### `MathNode` (type: `composableMath`) — amber
-- Config: `operation` (multiply/divide/add/subtract/round/floor/ceil/clamp/colorConvert), `operand`, `clampMin/Max`, `colorFrom/To`, `precision`, `suffix`
-- Input handle: `a` (violet, accepts `number | number[] | string`)
-- Input handles for operands: `b`, `clampMin`, `clampMax` — accept Constant node `output`
+
+Two evaluation **modes** selectable via an Ops/Expr toggle in the node header:
+
+**Operations mode** (default — fully backward-compatible):
+- Config: `operation` (multiply/divide/add/subtract/round/floor/ceil/clamp), `operand`, `clampMin/Max`, `precision`, `suffix`
+- Input handle `a` (violet) — scalar or array; all array elements are processed individually
+- Input handles `b`, `clampMin`, `clampMax` — accept a Constant node output to override config values at runtime
 - Output handle: `result` (gray)
-- Operations: arithmetic on scalar or array; `colorConvert` converts a CSS color string between hex/rgb/hsl/oklch
-- Color conversion: hex↔rgb↔hsl↔oklch (oklch parse not supported, only output)
+
+**Expression mode** (new):
+- Config: `expression` (freeform formula string), `precision`, `suffix`
+- Formula supports: `+ - * /`, parentheses, unary `-`, decimal literals, variable `a` (bound to wired input), and `{token.path}` references resolved against the full token tree
+- Optional `calc(...)` wrapper is stripped automatically before evaluation
+- `{token.path}` references are resolved via `tokenService.resolveTokenReference` (transitive aliases, circular guard) — requires the token tree to be wired in from `TokenGraphPanel`
+- Dimension-like values (`16px`, `1.5rem`) are coerced to their leading numeric component for arithmetic
+- When input `a` is an array, the expression is evaluated **once per element** with `a` bound to that element
+- Returns `null` on any parse error, unresolvable reference, or non-numeric coercion — preview stays empty
+- Input handle `a` (violet) — optional; labelled "Bind a" in expression mode
+
+Config shape:
+```ts
+interface MathConfig {
+  kind: 'math';
+  mathMode?: 'operations' | 'expression';  // defaults to 'operations'
+  expression?: string;                      // used in expression mode
+  operation: MathOp;      // preserved — operations mode unchanged
+  operand: number;
+  clampMin: number;
+  clampMax: number;
+  precision: number;
+  suffix: string;
+}
+```
 
 ---
 
@@ -179,14 +207,24 @@ When saving an array constant: value is stored as `string[]`.
 
 Pure functions, no React dependencies.
 
+```ts
+evaluateGraph(
+  configs: Map<id, ComposableNodeConfig>,
+  edges: Edge[],
+  namespace?: string,
+  options?: EvaluateGraphOptions,
+) → Map<id, { inputs: Record<portId, PortValue>; outputs: Record<portId, PortValue> }>
+
+interface EvaluateGraphOptions {
+  resolveTokenReference?: (reference: string) => string;
+}
 ```
-evaluateGraph(configs: Map<id, ComposableNodeConfig>, edges: Edge[])
-  → Map<id, { inputs: Record<portId, PortValue>; outputs: Record<portId, PortValue> }>
-```
+
+`options.resolveTokenReference` is an optional closure injected by `GroupStructureGraph` so the evaluator can resolve `{token.path}` references inside Math expression nodes without importing `tokenService` directly. When absent (e.g. in `graphTokenPaths.ts` utilities), expression nodes with `{refs}` return `null`.
 
 Steps:
 1. **Topological sort** of nodes based on edge dependencies (cycle-safe, DFS)
-2. For each node in order: resolve `inputs` from connected upstream `outputs`, then call `evaluateNode(config, inputs)`
+2. For each node in order: resolve `inputs` from connected upstream `outputs`, then call `evaluateNode(config, inputs, options)`
 3. Returns both `inputs` AND `outputs` per node so nodes can display what they received
 
 `PortValue = number | string | number[] | string[] | null`
@@ -195,10 +233,33 @@ Per-node evaluators:
 - `evalConstant` — parses `config.value` to number; returns `string[]` for array type from `config.arrayValues`; returns string otherwise
 - `evalHarmonic` — geometric series with input overrides for base/stepsDown/stepsUp/precision
 - `evalArray` — maps number[] → string[] using unit + precision; falls back to `staticValues` CSV
-- `evalMath` — scalar or array arithmetic; colorConvert via hex→RGB→target format pipeline
+- `evalMath` — operations mode: scalar or array arithmetic; **expression mode**: delegates to `evaluateExpression()` from `src/lib/mathExpression.ts`
 - `evalTokenOutput` — builds `tokenData` (JSON string of `{name,value}[]`) + `count` + `subgroupName`
 
-Exported utilities: `buildOutputNames(count, naming)`, `convertCssColor(value, from, to)`
+Exported utilities: `convertCssColor(value, from, to)`, `EvaluateGraphOptions`
+
+---
+
+## Expression Engine (`src/lib/mathExpression.ts`)
+
+Safe numeric formula evaluator — **no `eval()`, no arbitrary JS**.
+
+```ts
+evaluateExpression(raw: string, ctx?: ExpressionContext): number | null
+
+interface ExpressionContext {
+  resolveTokenReference?: (ref: string) => string;
+  a?: number;  // bound variable for wired input
+}
+```
+
+Processing pipeline:
+1. **Trim** whitespace
+2. **Strip `calc()`** — if the entire string is `calc(...)` with balanced parens, evaluate the inner substring
+3. **Substitute `{token.path}` refs** — each `{...}` match is resolved via `ctx.resolveTokenReference`; dimension-like values (`16px`, `1.5rem`) are coerced to their leading float; returns `null` if any reference fails to resolve or coerce
+4. **Recursive descent parse + evaluate** — grammar: `addSub → mulDiv → unary → primary`; supports `+ - * /`, parentheses, unary `-/+`, decimal literals (with optional unit suffix consumed), and identifier `a`
+
+Returns `null` on any parse error, divide-by-zero, unresolvable reference, or non-finite result. Never throws during routine graph re-evaluation.
 
 ---
 
@@ -246,6 +307,10 @@ setNodes(prev => {
 
 ---
 
+**Math expression token resolver**: `GroupStructureGraph` builds a memoised `resolveTokenReference` closure from the `collectionTokenGroups` prop and passes it to `evaluateGraph` as `options.resolveTokenReference`. The evaluator passes it down to `evalMath` → `evaluateExpression` where it is used to substitute `{token.path}` refs. The closure is stable as long as `collectionTokenGroups` reference is unchanged.
+
+---
+
 ## Props threading
 
 ```
@@ -255,14 +320,19 @@ page.tsx
   │
   ▼
 TokenGraphPanel
-  allGroups: TokenGroup[]       (full tree, used for navigation + TokenDetailGraph)
+  allGroups: TokenGroup[]       (full tree — navigation, TokenDetailGraph, AND expression resolver)
   flatGroups: FlatGroup[]       (destination picker for nodes)
   allTokens: FlatToken[]        (source-token picker for ConstantNode)
+  │
+  ├─ collectionTokenGroups={allGroups} ──► GroupStructureGraph (both instances)
   │
   ▼
 GroupStructureGraph
   allGroups: FlatGroup[]
   allTokens: FlatToken[]
+  collectionTokenGroups: TokenGroup[]   ← used to build resolveTokenReference closure
+  │
+  ├─ resolveTokenReference (memoised) ──► evaluateGraph options
   │
   ▼ (injected into every composable node's data)
 ComposableNodeData.allGroups
@@ -293,8 +363,9 @@ All input elements use `className="nodrag"` to prevent React Flow from intercept
 
 ---
 
-## Example Pipeline
+## Example Pipelines
 
+### Operations mode — harmonic spacing scale
 ```
 [Constant: base=1]   ──base──►  [Harmonic: ratio=Major 3rd, steps 2↓ 6↑]
                                            │
@@ -313,8 +384,31 @@ All input elements use `className="nodrag"` to prevent React Flow from intercept
                                            ▼
                                       [GroupNode] → Apply 9 tokens
 ```
-
 Result: `size-100: 0.64rem`, `size-200: 0.8rem`, `size-300: 1rem`, `size-400: 1.25rem` …
+
+---
+
+### Expression mode — formula with token reference
+```
+[Harmonic: series] ──a──►  [Math: mode=Expr, formula="a * {spacing.base} + 4", suffix="px"]
+                                           │
+                                         result
+                                           │
+                                           ▼
+                               [TokenOutput: type=dimension]
+```
+- `{spacing.base}` is resolved from the live token tree (e.g. resolves to `"8"` → coerced to `8`)
+- Each element of the harmonic series is substituted as `a` in the formula
+- Result: `12px`, `20px`, `36px`, …
+
+---
+
+### Expression mode — `calc()` wrapper (CSS authoring style)
+```
+[Math: mode=Expr, formula="calc({spacing.base} * 2 + 16)", suffix="px"]
+```
+- `calc(...)` wrapper is stripped automatically before evaluation
+- Useful for pasting formulas directly from CSS or design specs
 
 ---
 
@@ -326,3 +420,4 @@ Result: `size-100: 0.64rem`, `size-200: 0.8rem`, `size-300: 1rem`, `size-400: 1.
 - **No edge labels**: Port names are only shown via `title` attributes (hover tooltips). Visual port labels would improve discoverability.
 - **`HarmonicSeriesNode` Row label typing workaround**: The `Row` component expects `label: string` but the node passes JSX (for the blue dot indicator). This compiles but TypeScript casts it as `unknown as string` — a minor type hack.
 - **Array Constant + source token**: Array-type constants do not support linking to a source token (the modal's source tab is hidden). Could be extended to support array-valued tokens. Also allow array nodes to plug into const source input.
+- **Math expression server-side**: `getTokenPathsFromGraphState` (in `graphTokenPaths.ts`) calls `evaluateGraph` without a resolver, so expression nodes using `{token.path}` refs will produce `null` results there. Acceptable for v1 — pass token groups into that utility if server-side path extraction needs full resolution.

@@ -122,7 +122,7 @@ See: `.planning/milestones/v1.4-ROADMAP.md` for full phase details.
 **Milestone Goal:** Complete the AI feature set, verify the Style Guide, and unify MCP and in-app chat behind a shared tool service layer.
 
 - [ ] **Phase 30: AI-Assisted Naming and Queries** — AI theme creation, natural language token queries and bulk edits, canonical naming suggestions
-- [ ] **Phase 31: Style Guide Verification** — Browser verification of Phase 25 Style Guide tab; fix any regressions or nyquist coverage gaps
+- [x] **Phase 31: Style Guide Verification** — Browser verification of Phase 25 Style Guide tab; fix any regressions or nyquist coverage gaps (completed 2026-04-09)
 - [ ] **Phase 32: MCP Tool Service Layer** — Extract shared token/group/theme service functions; add theme mutation tools to MCP server
 
 ## Phase Details
@@ -153,9 +153,9 @@ Plans:
   3. Any regressions or nyquist coverage gaps discovered during verification are fixed and re-verified before the phase is signed off
 **Plans**: 3 plans
 Plans:
-- [ ] 31-01-PLAN.md — Run automated test baseline (Jest/RTL for Style Guide components + filterGroupsForActiveTheme)
-- [ ] 31-02-PLAN.md — Create browser verification checklist (8 items from D-05 covering all token types, themes, disabled groups)
-- [ ] 31-03-PLAN.md — Browser verification session + HUMAN-UAT.md documentation (human-verify checkpoint)
+- [x] 31-01-PLAN.md — Run automated test baseline (Jest/RTL for Style Guide components + filterGroupsForActiveTheme)
+- [x] 31-02-PLAN.md — Create browser verification checklist (8 items from D-05 covering all token types, themes, disabled groups)
+- [x] 31-03-PLAN.md — Browser verification session + HUMAN-UAT.md documentation (human-verify checkpoint)
 
 ### Phase 32: MCP Tool Service Layer
 **Goal**: Extract shared token/group/theme service functions used by both the MCP server and the in-app HTTP tool handlers; add theme mutation tools to the MCP server for feature parity with in-app chat
@@ -173,5 +173,18 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 30. AI-Assisted Naming and Queries | 0/3 | Not started | - |
-| 31. Style Guide Verification | 0/3 | Not started | - |
+| 31. Style Guide Verification | 3/3 | Complete   | 2026-04-09 |
 | 32. MCP Tool Service Layer | 0/? | Not started | - |
+
+### Phase 1: review math node features
+
+**Goal:** Verify and complete the Math node Expression mode — unit tests, UI error feedback on invalid expressions, graphTokenPaths resolver wiring, and browser-verified end-to-end
+**Requirements**: PHASE1-TEST, PHASE1-UI-ERROR, PHASE1-GRAPHPATHS, PHASE1-VERIFY
+**Depends on:** Phase 0
+**Plans:** 4 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Jest unit tests for evaluateExpression (D-06, D-07)
+- [ ] 01-02-PLAN.md — Invalid-expression error feedback on MathNode (red border + message on blur; D-03, D-04, D-05)
+- [ ] 01-03-PLAN.md — graphTokenPaths resolveTokenReference plumbing (D-08)
+- [ ] 01-04-PLAN.md — Browser UAT + phase commit (D-01, D-02)

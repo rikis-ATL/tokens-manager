@@ -93,6 +93,7 @@ export function TokenGraphPanel({
           namespace={namespace}
           allTokens={allTokens}
           allGroups={flatGroups}
+          collectionTokenGroups={allGroups}
           initialGraphState={graphStateMap?.__all_groups__}
           onBulkAddTokens={onBulkAddTokens}
           onBulkCreateGroups={onBulkCreateGroups}
@@ -116,6 +117,7 @@ export function TokenGraphPanel({
           namespace={namespace}
           allTokens={allTokens}
           allGroups={flatGroups}
+          collectionTokenGroups={allGroups}
           initialGraphState={graphStateMap?.[selectedGroup.id]}
           onBulkAddTokens={onBulkAddTokens}
           onBulkCreateGroups={onBulkCreateGroups}

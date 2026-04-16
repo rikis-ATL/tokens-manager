@@ -35,6 +35,7 @@ import {
 
 import { buildGroupGraph, buildAllGroupsGraph } from '@/lib/tokenGroupToGraph';
 import { evaluateGraph } from '@/lib/graphEvaluator';
+import { tokenService } from '@/services/token.service';
 
 import { GroupNode } from './nodes/GroupNode';
 import type { GroupNodeData } from './nodes/GroupNode';
@@ -188,7 +189,7 @@ function defaultComposableConfig(kind: ComposableNodeConfig['kind']): Composable
         destGroupId: '',
       };
     case 'math':
-      return { kind: 'math', operation: 'multiply', operand: 16, clampMin: 0, clampMax: 100, precision: 2, suffix: '' };
+      return { kind: 'math', mathMode: 'operations', expression: '', operation: 'multiply', operand: 16, clampMin: 0, clampMax: 100, precision: 2, suffix: '' };
     case 'colorConvert':
       return { kind: 'colorConvert', mode: 'convert', colorFrom: 'hex', colorTo: 'hsl', hue: 220, saturation: 80, format: 'hsl' };
     case 'a11yContrast':
@@ -247,23 +248,26 @@ interface GroupStructureGraphProps {
   namespace?: string;
   allTokens?: FlatToken[];
   allGroups?: FlatGroup[];
+  /** Full token group tree used to resolve {token.path} references in Math expression mode */
+  collectionTokenGroups?: TokenGroup[];
   initialGraphState?: GraphGroupState;
   onBulkAddTokens?: (groupId: string, tokens: GeneratedToken[], subgroupName?: string) => void;
   onBulkCreateGroups?: (parentGroupId: string | null, groupData: { name: string; tokens: GeneratedToken[] }) => void;
   onGraphStateChange?: (state: GraphGroupState, options?: { flushImmediate?: boolean }) => void;
 }
 
-export function GroupStructureGraph({ 
-  group, 
-  allGroupsMode = false, 
-  allGroupsData, 
-  namespace, 
-  allTokens, 
-  allGroups, 
-  initialGraphState, 
+export function GroupStructureGraph({
+  group,
+  allGroupsMode = false,
+  allGroupsData,
+  namespace,
+  allTokens,
+  allGroups,
+  collectionTokenGroups,
+  initialGraphState,
   onBulkAddTokens,
-  onBulkCreateGroups, 
-  onGraphStateChange 
+  onBulkCreateGroups,
+  onGraphStateChange
 }: GroupStructureGraphProps) {
   
   // Validate props - either single group mode or all groups mode
@@ -319,13 +323,19 @@ export function GroupStructureGraph({
     setComposableEdges(prev => prev.filter(e => e.source !== nodeId && e.target !== nodeId));
   }, []);
 
+  // ── Token reference resolver for Math expression mode ───────────────────
+  const resolveTokenReference = useMemo(() => {
+    if (!collectionTokenGroups?.length) return undefined;
+    return (ref: string) => tokenService.resolveTokenReference(ref, collectionTokenGroups);
+  }, [collectionTokenGroups]);
+
   // ── Graph evaluation ─────────────────────────────────────────────────────
   useEffect(() => {
     if (composableNodeMetas.size === 0) { setNodeValues(new Map()); return; }
     const configs = new Map<string, ComposableNodeConfig>();
     composableNodeMetas.forEach((meta, id) => configs.set(id, meta.config));
-    setNodeValues(evaluateGraph(configs, composableEdges, namespace));
-  }, [composableNodeMetas, composableEdges, namespace]);
+    setNodeValues(evaluateGraph(configs, composableEdges, namespace, { resolveTokenReference }));
+  }, [composableNodeMetas, composableEdges, namespace, resolveTokenReference]);
 
   // ── Always-current serialised state ref ─────────────────────────────────
   // Updated synchronously on every state change so the unmount flush always
