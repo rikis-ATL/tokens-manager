@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useState } from 'react';
+import { memo, useState, useRef, useCallback } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import { Calculator } from 'lucide-react';
 import {
@@ -33,9 +33,26 @@ function MathNodeComponent({ data }: NodeProps) {
   const cfg = config as MathConfig;
 
   const [exprError, setExprError] = useState<string | null>(null);
+  const [localExpr, setLocalExpr] = useState(cfg.expression ?? '');
+  const syncTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const update = (partial: Partial<MathConfig>) =>
-    onConfigChange(nodeId, { ...cfg, ...partial });
+  const update = useCallback((partial: Partial<MathConfig>) =>
+    onConfigChange(nodeId, { ...cfg, ...partial }), [onConfigChange, nodeId, cfg]);
+
+  const handleExprChange = useCallback((value: string) => {
+    setLocalExpr(value);
+    setExprError(validateExpression(value));
+    if (syncTimer.current) clearTimeout(syncTimer.current);
+    syncTimer.current = setTimeout(() => update({ expression: value }), 300);
+  }, [update]);
+
+  const handleExprBlur = useCallback(() => {
+    if (syncTimer.current) {
+      clearTimeout(syncTimer.current);
+      syncTimer.current = null;
+    }
+    update({ expression: localExpr });
+  }, [update, localExpr]);
 
   const mode = cfg.mathMode ?? 'operations';
   const isExpression = mode === 'expression';
@@ -149,11 +166,9 @@ function MathNodeComponent({ data }: NodeProps) {
           <div className="flex flex-col gap-0.5">
             <span className="text-[10px] text-gray-400">Formula</span>
             <textarea
-              value={cfg.expression ?? ''}
-              onChange={e => {
-                update({ expression: e.target.value });
-                setExprError(validateExpression(e.target.value));
-              }}
+              value={localExpr}
+              onChange={e => handleExprChange(e.target.value)}
+              onBlur={handleExprBlur}
               rows={2}
               placeholder="e.g. a * 2 + {spacing.base}"
               className={`nodrag w-full text-[11px] font-mono bg-white rounded px-1.5 py-1 text-gray-700 focus:outline-none resize-none border ${
