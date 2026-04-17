@@ -128,10 +128,11 @@ export const getValuePlaceholder = (type: string): string => {
     boxShadow: '0 2px 4px rgba(0,0,0,0.1), {token.shadow.small.value}',
     textShadow: '1px 1px 2px rgba(0,0,0,0.5)',
     number: '16, 1.5, 400, {token.scale.base.value}',
-    string: 'value, "text content", {token.content.label.value}'
+    string:
+      'var(--prop), calc(var(--x) + {spacing.sm}), {token.path}',
   };
 
-  return placeholders[type] || 'Enter value, e.g., {token.reference.value}';
+  return placeholders[type] || 'e.g. var(--x), {token.path}';
 };
 
 /**

@@ -879,7 +879,8 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
 
   const generateTokenSet = () => {
     const tokensPayload = generateTabTokens ?? rawCollectionTokens ?? {};
-    return tokensPayload;
+    const { groups } = tokenService.processImportedTokens(tokensPayload, globalNamespace);
+    return tokenService.generateStyleDictionaryOutput(groups, globalNamespace, true);
   };
 
   const loadBranches = async () => {
@@ -949,8 +950,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   };
 
   const handleDownloadJSON = () => {
-    const tokensPayload = generateTabTokens ?? rawCollectionTokens ?? {};
-    const content = JSON.stringify(tokensPayload, null, 2);
+    const content = JSON.stringify(generateTokenSet(), null, 2);
     
     // Create and trigger download
     const blob = new Blob([content], { type: 'application/json' });
@@ -981,8 +981,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   };
 
   const handleDownloadJSONFromHeader = () => {
-    const tokensPayload = generateTabTokens ?? rawCollectionTokens ?? {};
-    const content = JSON.stringify(tokensPayload, null, 2);
+    const content = JSON.stringify(generateTokenSet(), null, 2);
     
     // Create and trigger download
     const blob = new Blob([content], { type: 'application/json' });
@@ -1458,7 +1457,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       <JsonPreviewDialog
         isOpen={showJsonDialog}
         onClose={() => setShowJsonDialog(false)}
-        jsonData={generateTabTokens ?? rawCollectionTokens ?? {}}
+        jsonData={generateTokenSet()}
       />
 
       <Dialog open={isAddingGroup} onOpenChange={(open) => { if (!open) { setIsAddingGroup(false); setNewGroupName(''); setAddSubGroupParentId(null); } }}>

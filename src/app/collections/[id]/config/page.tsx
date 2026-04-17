@@ -65,7 +65,7 @@ export default function CollectionConfigPage({ params }: ConfigPageProps) {
   // Derive merged tokens and theme label from current selection
   const selectedTheme = themes.find(t => t.id === selectedThemeId) ?? null;
   const themeLabel = selectedTheme ? selectedTheme.name : undefined;
-  const mergedTokens = selectedTheme && tokens && namespace
+  const mergedTokens = tokens && namespace
     ? mergeThemeTokens(tokens, selectedTheme, namespace)
     : tokens;
 

@@ -23,7 +23,10 @@ export function mergeThemeTokens(
   theme: ITheme | null,
   namespace: string
 ): Record<string, unknown> {
-  if (!theme) return masterTokens;
+  if (!theme) {
+    const { groups } = tokenService.processImportedTokens(masterTokens, namespace);
+    return tokenService.generateStyleDictionaryOutput(groups, namespace, true);
+  }
 
   // Parse master collection tokens into TokenGroup tree
   const { groups: masterGroups } = tokenService.processImportedTokens(masterTokens, namespace);

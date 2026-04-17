@@ -11,6 +11,7 @@ import type {
   HarmonicConfig,
   ArrayConfig,
   MathConfig,
+  CssStringConfig,
   ColorConvertConfig,
   A11yContrastConfig,
   TokenOutputConfig,
@@ -23,6 +24,7 @@ import type {
 import { previewGeneratedTokens } from './tokenGenerators';
 import { parseArrayToValues } from './jsonTokenParser';
 import { evaluateExpression } from './mathExpression';
+import { substituteTokenReferencesInString } from './substituteTokenReferencesInString';
 import type { GeneratorConfig, ColorGeneratorConfig, DimensionGeneratorConfig } from '@/types/generator.types';
 import { getPaletteFamilyColors } from '@/lib/presets';
 import {
@@ -629,6 +631,22 @@ function evalA11yContrast(
   };
 }
 
+function evalCssString(
+  config: CssStringConfig,
+  inputs: Record<string, PortValue>,
+  options?: EvaluateGraphOptions,
+): Record<string, PortValue> {
+  const wired = inputs['template'];
+  let base = config.expression ?? '';
+  if (typeof wired === 'string' && wired.trim() !== '') {
+    base = wired;
+  } else if (wired != null && wired !== '') {
+    base = String(wired);
+  }
+  const value = substituteTokenReferencesInString(base, options?.resolveTokenReference);
+  return { value };
+}
+
 function evalTokenRef(config: import('@/types/graph-nodes.types').TokenRefConfig): Record<string, PortValue> {
   const raw = config.tokenValue ?? '';
   const n = parseFloat(raw);
@@ -647,6 +665,7 @@ export function evaluateNode(
     case 'harmonic':     return evalHarmonic(config, inputs);
     case 'array':        return evalArray(config, inputs);
     case 'math':         return evalMath(config, inputs, options);
+    case 'cssString':    return evalCssString(config, inputs, options);
     case 'colorConvert': return evalColorConvert(config, inputs);
     case 'a11yContrast': return evalA11yContrast(config, inputs);
     case 'palette':      return evalPalette(config, inputs);

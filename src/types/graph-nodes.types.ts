@@ -102,6 +102,14 @@ export interface MathConfig {
   suffix: string;     // e.g. 'rem', 'px' — appended to result
 }
 
+// ── CSS string node — opaque CSS value; `{token}` refs resolved at eval ───────
+
+export interface CssStringConfig {
+  kind: 'cssString';
+  /** Template: literal `var(--*)`, `calc()`, etc.; `{token.path}` substituted at graph eval */
+  expression: string;
+}
+
 // ── Color Convert node ────────────────────────────────────────────────────────
 
 export type ColorConvertMode = 'convert' | 'hslCompose';
@@ -221,6 +229,7 @@ export type ComposableNodeConfig =
   | PaletteConfig
   | ArrayConfig
   | MathConfig
+  | CssStringConfig
   | ColorConvertConfig
   | A11yContrastConfig
   | TokenRefConfig

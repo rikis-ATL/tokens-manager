@@ -26,7 +26,8 @@ export async function GET(
       );
     }
 
-    let tokensToExport = collection.tokens;
+    const namespace = collection.namespace || 'token';
+    let tokensToExport: any;
     let themeLabel = 'Default';
 
     if (themeId && themeId !== '__default__') {
@@ -36,25 +37,27 @@ export async function GET(
       if (!theme) {
         return new NextResponse(
           `console.error('[ATUI Tokens] Theme not found: ${themeId}');`,
-          { 
+          {
             status: 404,
             headers: { 'Content-Type': 'application/javascript' }
           }
         );
       }
 
-      const namespace = collection.namespace || 'token';
       tokensToExport = tokenService.generateStyleDictionaryOutput(
         theme.tokens as TokenGroup[],
         namespace,
         true
       );
       themeLabel = theme.name;
+    } else {
+      const { groups } = tokenService.processImportedTokens(collection.tokens, namespace);
+      tokensToExport = tokenService.generateStyleDictionaryOutput(groups, namespace, true);
     }
 
     const result = await buildTokens({
       tokens: tokensToExport,
-      namespace: collection.namespace || 'token',
+      namespace,
       collectionName: collection.name,
       themeLabel,
     });

@@ -23,7 +23,7 @@ import { DeletableEdge } from './edges/DeletableEdge';
 import {
   Plus,
   Palette, Zap, Eye, Pipette, Coins, Type,
-  Hash, Waves, List, Calculator, Tag, FileJson, Layers,
+  Hash, Waves, List, Calculator, Tag, FileJson, Layers, Braces,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -54,6 +54,7 @@ import { TokenOutputNode }    from './nodes/TokenOutputNode';
 import { JsonNode }           from './nodes/JsonNode';
 import { GeneratorNode }      from './nodes/GeneratorNode';
 import { GroupCreatorNode } from './nodes/GroupCreatorNode';
+import { CssStringNode } from './nodes/CssStringNode';
 
 import type { TokenGroup, GeneratedToken, TokenType } from '@/types';
 import { GENERATOR_CATEGORIES } from '@/types/generator.types';
@@ -92,6 +93,7 @@ const COMPOSABLE_BADGE: Record<string, string> = {
   generator:      'bg-indigo-50 text-indigo-700 border border-indigo-200',
   palette:        'bg-rose-50 text-rose-700 border border-rose-200',
   group: 'bg-cyan-50 text-cyan-700 border border-cyan-200',
+  cssString: 'bg-cyan-50 text-cyan-800 border border-cyan-200',
 };
 
 const COMPOSABLE_NODES: {
@@ -104,6 +106,7 @@ const COMPOSABLE_NODES: {
   { kind: 'harmonic',    label: 'Harmonic Series', desc: 'Geometric progression',      icon: <Waves size={12} /> },
   { kind: 'array',       label: 'Array',           desc: 'Format values with units',   icon: <List size={12} /> },
   { kind: 'math',         label: 'Math',            desc: 'Arithmetic operations',      icon: <Calculator size={12} /> },
+  { kind: 'cssString',    label: 'CSS string',      desc: 'CSS value with var(…) and {token}', icon: <Braces size={12} /> },
   { kind: 'colorConvert', label: 'Color Converter', desc: 'CSS color format conversion', icon: <Pipette size={12} /> },
   { kind: 'a11yContrast', label: 'A11y Contrast',   desc: 'WCAG contrast checker',       icon: <Eye size={12} /> },
   { kind: 'tokenRef',     label: 'Token',           desc: 'Reference an existing token', icon: <Coins size={12} /> },
@@ -120,6 +123,7 @@ const KIND_TO_NODE_TYPE: Record<ComposableNodeConfig['kind'], string> = {
   harmonic:     'composableHarmonic',
   array:        'composableArray',
   math:         'composableMath',
+  cssString:    'composableCssString',
   colorConvert: 'composableColorConvert',
   a11yContrast: 'composableA11yContrast',
   tokenRef:     'composableTokenRef',
@@ -137,6 +141,7 @@ const NODE_WIDTHS: Record<string, number> = {
   composableHarmonic:    252,
   composableArray:       230,
   composableMath:        240,
+  composableCssString:     268,
   composableColorConvert: 252,
   composableA11yContrast: 252,
   composableTokenRef:     240,
@@ -156,6 +161,7 @@ const NODE_TYPES = {
   composableHarmonic:     HarmonicSeriesNode,
   composableArray:        ArrayNode,
   composableMath:         MathNode,
+  composableCssString:    CssStringNode,
   composableColorConvert: ColorConvertNode,
   composableA11yContrast: A11yContrastNode,
   composableTokenRef:     TokenRefNode,
@@ -192,6 +198,8 @@ function defaultComposableConfig(kind: ComposableNodeConfig['kind']): Composable
       };
     case 'math':
       return { kind: 'math', mathMode: 'operations', expression: '', operation: 'multiply', operand: 16, clampMin: 0, clampMax: 100, precision: 2, suffix: '' };
+    case 'cssString':
+      return { kind: 'cssString', expression: '' };
     case 'colorConvert':
       return { kind: 'colorConvert', mode: 'convert', colorFrom: 'hex', colorTo: 'hsl', hue: 220, saturation: 80, format: 'hsl' };
     case 'a11yContrast':

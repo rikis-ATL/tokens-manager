@@ -291,7 +291,13 @@ function TokenTableRow({
 
         {/* Value */}
         <td className="px-0 py-0 border-r border-gray-100 w-[180px]">
-          <div className="h-9 flex items-center gap-1.5 px-2">
+          <div
+            className={`flex gap-1.5 px-2 ${
+              editingField === "value" && token.type === "string"
+                ? "items-start min-h-[76px] py-1"
+                : "h-9 items-center"
+            }`}
+          >
             {/* Color swatch / picker */}
             {token.type === "color" && (
               <Popover open={isReadOnly ? false : colorPickerOpen} onOpenChange={isReadOnly ? undefined : setColorPickerOpen}>
@@ -322,22 +328,43 @@ function TokenTableRow({
 
             {/* Value input / display */}
             {editingField === "value" ? (
-              <Input
-                autoFocus
-                value={token.value?.toString() ?? ""}
-                onChange={(e) =>
-                  onUpdateToken(
-                    group.id,
-                    token.id,
-                    "value",
-                    parseValue(e.target.value, token.type),
-                  )
-                }
-                onBlur={handleBlur}
-                onClick={(e) => e.stopPropagation()}
-                placeholder={getValuePlaceholder(token.type)}
-                className="flex-1 h-7 border border-gray-300 rounded px-2 text-sm font-mono shadow-none focus-visible:ring-1 focus-visible:ring-blue-400"
-              />
+              token.type === "string" ? (
+                <textarea
+                  autoFocus
+                  value={token.value?.toString() ?? ""}
+                  onChange={(e) =>
+                    onUpdateToken(
+                      group.id,
+                      token.id,
+                      "value",
+                      parseValue(e.target.value, token.type),
+                    )
+                  }
+                  onBlur={handleBlur}
+                  onClick={(e) => e.stopPropagation()}
+                  placeholder={getValuePlaceholder(token.type)}
+                  rows={3}
+                  spellCheck={false}
+                  className="flex-1 min-h-[60px] border border-gray-300 rounded px-2 py-1.5 text-sm font-mono shadow-none focus-visible:ring-1 focus-visible:ring-blue-400 resize-y"
+                />
+              ) : (
+                <Input
+                  autoFocus
+                  value={token.value?.toString() ?? ""}
+                  onChange={(e) =>
+                    onUpdateToken(
+                      group.id,
+                      token.id,
+                      "value",
+                      parseValue(e.target.value, token.type),
+                    )
+                  }
+                  onBlur={handleBlur}
+                  onClick={(e) => e.stopPropagation()}
+                  placeholder={getValuePlaceholder(token.type)}
+                  className="flex-1 h-7 border border-gray-300 rounded px-2 text-sm font-mono shadow-none focus-visible:ring-1 focus-visible:ring-blue-400"
+                />
+              )
             ) : (
               <div className="flex-1 flex items-center gap-1">
                 <div

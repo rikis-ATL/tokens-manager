@@ -26,7 +26,8 @@ export async function GET(
       return NextResponse.json({ error: 'Collection not found' }, { status: 404 });
     }
 
-    let tokensToExport = collection.tokens;
+    const namespace = collection.namespace || 'token';
+    let tokensToExport: any;
     let themeLabel = 'Default';
 
     if (themeId && themeId !== '__default__') {
@@ -37,18 +38,20 @@ export async function GET(
         return NextResponse.json({ error: 'Theme not found' }, { status: 404 });
       }
 
-      const namespace = collection.namespace || 'token';
       tokensToExport = tokenService.generateStyleDictionaryOutput(
         theme.tokens as TokenGroup[],
         namespace,
         true
       );
       themeLabel = theme.name;
+    } else {
+      const { groups } = tokenService.processImportedTokens(collection.tokens, namespace);
+      tokensToExport = tokenService.generateStyleDictionaryOutput(groups, namespace, true);
     }
 
     const result = await buildTokens({
       tokens: tokensToExport,
-      namespace: collection.namespace || 'token',
+      namespace,
       collectionName: collection.name,
       themeLabel,
     });
