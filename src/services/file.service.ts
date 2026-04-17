@@ -110,7 +110,7 @@ export class FileService {
   }
 
   private exportAsJson(groups: TokenGroup[], globalNamespace: string, includeMetadata: boolean = false): string {
-    const tokens = tokenService.generateStyleDictionaryOutput(groups, globalNamespace);
+    const tokens = tokenService.generateStyleDictionaryOutput(groups, globalNamespace, true);
 
     if (includeMetadata) {
       const exportData = {
@@ -129,7 +129,7 @@ export class FileService {
   }
 
   private exportAsJavaScript(groups: TokenGroup[], globalNamespace: string): string {
-    const tokens = tokenService.generateStyleDictionaryOutput(groups, globalNamespace);
+    const tokens = tokenService.generateStyleDictionaryOutput(groups, globalNamespace, true);
 
     return `// Generated tokens
 const tokens = ${JSON.stringify(tokens, null, 2)};
@@ -139,7 +139,7 @@ module.exports = tokens;
   }
 
   private exportAsTypeScript(groups: TokenGroup[], globalNamespace: string): string {
-    const tokens = tokenService.generateStyleDictionaryOutput(groups, globalNamespace);
+    const tokens = tokenService.generateStyleDictionaryOutput(groups, globalNamespace, true);
 
     return `// Generated tokens
 export interface TokenSet {

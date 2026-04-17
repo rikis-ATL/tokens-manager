@@ -48,5 +48,5 @@ export function mergeThemeTokens(
     }
   }
 
-  return tokenService.generateStyleDictionaryOutput(mergedGroups, namespace);
+  return tokenService.generateStyleDictionaryOutput(mergedGroups, namespace, true);
 }

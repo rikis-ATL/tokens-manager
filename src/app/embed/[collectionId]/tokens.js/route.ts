@@ -46,7 +46,8 @@ export async function GET(
       const namespace = collection.namespace || 'token';
       tokensToExport = tokenService.generateStyleDictionaryOutput(
         theme.tokens as TokenGroup[],
-        namespace
+        namespace,
+        true
       );
       themeLabel = theme.name;
     }

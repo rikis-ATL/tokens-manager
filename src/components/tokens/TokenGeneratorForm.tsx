@@ -1334,6 +1334,7 @@ export function TokenGeneratorForm({
     return tokenService.generateStyleDictionaryOutput(
       tokenGroups,
       globalNamespace,
+      true,
     );
   };
 

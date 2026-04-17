@@ -203,6 +203,15 @@ export class TokenService {
         }
       }
 
+      // Read back group-level metadata written by persistence mode
+      if (!this.isTokenDefinition(value) && value && typeof value === 'object') {
+        const group = groupMap.get(path.join('/'));
+        if (group) {
+          if (value.$omitFromPath) group.omitFromPath = true;
+          if (value.$draft) group.draft = true;
+        }
+      }
+
       // Add token to the deepest group
       if (this.isTokenDefinition(value)) {
         const parentGroupPath = path.join('/');
@@ -408,9 +417,13 @@ export class TokenService {
   }
 
   /**
-   * Generate Style Dictionary compatible output
+   * Generate Style Dictionary compatible output.
+   *
+   * @param forExport - When true (CSS/GitHub/download), applies omitFromPath flattening and
+   *   skips draft groups. When false (default, persistence), writes the full group structure
+   *   with $omitFromPath/$draft sentinels so flags survive a round-trip through MongoDB.
    */
-  generateStyleDictionaryOutput(groups: TokenGroup[], globalNamespace: string): any {
+  generateStyleDictionaryOutput(groups: TokenGroup[], globalNamespace: string, forExport = false): any {
     const output: any = {};
 
     const addTokenToOutput = (token: GeneratedToken, groupPath: string[]) => {
@@ -454,10 +467,27 @@ export class TokenService {
       }
     };
 
+    /** Write $omitFromPath/$draft sentinels at a group path for persistence round-trips. */
+    const writeGroupMeta = (path: string[], group: TokenGroup) => {
+      let current: any = output;
+      for (const part of path) {
+        if (!current[part] || typeof current[part] !== 'object') current[part] = {};
+        current = current[part];
+      }
+      if (group.omitFromPath) current['$omitFromPath'] = true;
+      if (group.draft) current['$draft'] = true;
+    };
+
     const processGroup = (group: TokenGroup, pathPrefix: string[] = []) => {
-      if (group.draft) return;
-      // omitFromPath: skip this group's name segment in the output path
-      const currentPath = group.omitFromPath ? pathPrefix : [...pathPrefix, group.name];
+      if (forExport && group.draft) return;
+
+      // Export: flatten omitFromPath groups into parent path. Persist: always use full path.
+      const currentPath = (forExport && group.omitFromPath) ? pathPrefix : [...pathPrefix, group.name];
+
+      // Persistence: write metadata sentinels so flags survive round-trip
+      if (!forExport && (group.omitFromPath || group.draft)) {
+        writeGroupMeta(currentPath, group);
+      }
 
       // Add tokens from this group (skip placeholder tokens with empty path or value)
       for (const token of group.tokens) {
