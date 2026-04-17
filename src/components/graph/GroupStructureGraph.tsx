@@ -329,7 +329,12 @@ function GroupStructureGraphInner({
   const nodeValuesRef = useRef(nodeValues);
   useEffect(() => { nodeValuesRef.current = nodeValues; }, [nodeValues]);
 
-  /** While a composable node has a focused field, React Flow keeps last evaluated inputs/outputs for that node so upstream re-eval does not replace `data` and steal focus. */
+  /**
+   * While a composable field is focused, refs keep a frozen inputs/outputs snapshot so graph re-eval
+   * does not push new `data` into that node (avoids blur / caret loss). Focus updates refs only —
+   * no setState — so expression textareas are not re-rendered by the parent on focus.
+   * Blur bumps `graphInputLockEpoch` so we one re-render merges back to live `nodeValues`.
+   */
   const editingComposableNodesRef = useRef<Set<string>>(new Set());
   const frozenPortByNodeRef = useRef<Map<string, { inputs: Record<string, PortValue>; outputs: Record<string, PortValue> }>>(new Map());
   const [graphInputLockEpoch, setGraphInputLockEpoch] = useState(0);
@@ -341,7 +346,6 @@ function GroupStructureGraphInner({
       inputs: { ...(ev?.inputs ?? {}) },
       outputs: { ...(ev?.outputs ?? {}) },
     });
-    setGraphInputLockEpoch(n => n + 1);
   }, []);
 
   const handleComposableNodeInputBlur = useCallback((nodeId: string) => {
