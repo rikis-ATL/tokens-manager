@@ -766,7 +766,8 @@ function GroupStructureGraphInner({
         position: meta.position,
         data: nodeData as unknown as Record<string, unknown>,
         draggable: true,
-        focusable: false,
+        /** Must be true so expression textareas (Math, CSS string, etc.) can receive focus. */
+        focusable: true,
       });
     });
     return result;
