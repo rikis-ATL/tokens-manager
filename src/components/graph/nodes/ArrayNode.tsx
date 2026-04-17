@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useCallback, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import { List, Plus, X, Save } from 'lucide-react';
 import {
@@ -9,6 +9,7 @@ import {
 } from './nodeShared';
 import { SaveAsTokenDialog } from './SaveAsTokenDialog';
 import type { ComposableNodeData, ArrayConfig, ArrayUnit, ArrayInputMode } from '@/types/graph-nodes.types';
+import { graphInputLockProps } from '@/types/graph-nodes.types';
 
 const TYPES: { value: ArrayUnit; label: string }[] = [
   { value: 'none',  label: 'None (raw)' },
@@ -21,7 +22,15 @@ const TYPES: { value: ArrayUnit; label: string }[] = [
 
 function ArrayNodeComponent({ data }: NodeProps) {
   const { nodeId, config, inputs, outputs, onConfigChange, onGenerate, onDeleteNode, allGroups } = data as unknown as ComposableNodeData;
+  const graphLock = graphInputLockProps(data as ComposableNodeData);
+  const { onGraphInputFocus, onGraphInputBlur } = graphLock;
   const cfg = config as ArrayConfig;
+
+  const rawFocusedRef = useRef(false);
+  const [localRawArray, setLocalRawArray] = useState(cfg.rawArray ?? '');
+  useEffect(() => {
+    if (!rawFocusedRef.current) setLocalRawArray(cfg.rawArray ?? '');
+  }, [cfg.rawArray]);
 
   const update = useCallback(
     (partial: Partial<ArrayConfig>) => onConfigChange(nodeId, { ...cfg, ...partial }),
@@ -125,6 +134,7 @@ function ArrayNodeComponent({ data }: NodeProps) {
               onChange={v => update({ precision: Math.max(0, Math.min(8, v)) })}
               min={0}
               max={8}
+              {...graphLock}
             />
           </Row>
         )}
@@ -136,8 +146,14 @@ function ArrayNodeComponent({ data }: NodeProps) {
               <div className="space-y-1">
                 <div className="text-[10px] text-gray-400 uppercase tracking-wide">Paste array</div>
                 <textarea
-                  value={cfg.rawArray ?? ''}
-                  onChange={e => update({ rawArray: e.target.value })}
+                  value={localRawArray}
+                  onChange={e => setLocalRawArray(e.target.value)}
+                  onFocus={() => { rawFocusedRef.current = true; onGraphInputFocus?.(); }}
+                  onBlur={e => {
+                    rawFocusedRef.current = false;
+                    onGraphInputBlur?.();
+                    update({ rawArray: e.target.value });
+                  }}
                   placeholder={'[\n  "#BBDEFB",\n  "#90CAF9",\n  ...\n]'}
                   className="nodrag w-full text-[10px] font-mono bg-gray-50 border border-gray-200 rounded px-1.5 py-1 text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-sky-300 resize-none"
                   rows={4}
@@ -150,6 +166,7 @@ function ArrayNodeComponent({ data }: NodeProps) {
                   value={cfg.staticValues}
                   onChange={v => update({ staticValues: v })}
                   placeholder={cfg.unit === 'color' ? '#333333,#444444,#555555' : '1, 2, 4, 8, 16 or #BBDEFB, #90CAF9'}
+                  {...graphLock}
                 />
               </Row>
             ) : (
@@ -162,6 +179,7 @@ function ArrayNodeComponent({ data }: NodeProps) {
                       value={item}
                       onChange={v => updateListItem(i, v)}
                       placeholder={`item ${i + 1}`}
+                      {...graphLock}
                     />
                     <button
                       className="nodrag flex-shrink-0 w-5 h-5 flex items-center justify-center rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"

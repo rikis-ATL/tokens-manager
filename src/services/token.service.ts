@@ -455,6 +455,7 @@ export class TokenService {
     };
 
     const processGroup = (group: TokenGroup, pathPrefix: string[] = []) => {
+      if (group.draft) return;
       // omitFromPath: skip this group's name segment in the output path
       const currentPath = group.omitFromPath ? pathPrefix : [...pathPrefix, group.name];
 

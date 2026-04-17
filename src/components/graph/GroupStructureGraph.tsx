@@ -318,7 +318,46 @@ function GroupStructureGraphInner({
     Map<string, { inputs: Record<string, PortValue>; outputs: Record<string, PortValue> }>
   >(() => new Map());
 
+  const nodeValuesRef = useRef(nodeValues);
+  useEffect(() => { nodeValuesRef.current = nodeValues; }, [nodeValues]);
+
+  /** While a composable node has a focused field, React Flow keeps last evaluated inputs/outputs for that node so upstream re-eval does not replace `data` and steal focus. */
+  const editingComposableNodesRef = useRef<Set<string>>(new Set());
+  const frozenPortByNodeRef = useRef<Map<string, { inputs: Record<string, PortValue>; outputs: Record<string, PortValue> }>>(new Map());
+  const [graphInputLockEpoch, setGraphInputLockEpoch] = useState(0);
+
+  const handleComposableNodeInputFocus = useCallback((nodeId: string) => {
+    editingComposableNodesRef.current.add(nodeId);
+    const ev = nodeValuesRef.current.get(nodeId);
+    frozenPortByNodeRef.current.set(nodeId, {
+      inputs: { ...(ev?.inputs ?? {}) },
+      outputs: { ...(ev?.outputs ?? {}) },
+    });
+    setGraphInputLockEpoch(n => n + 1);
+  }, []);
+
+  const handleComposableNodeInputBlur = useCallback((nodeId: string) => {
+    editingComposableNodesRef.current.delete(nodeId);
+    frozenPortByNodeRef.current.delete(nodeId);
+    setGraphInputLockEpoch(n => n + 1);
+  }, []);
+
+  /** Stable per-node callbacks so node `data` does not churn on every graph eval */
+  const composableInputHandlersRef = useRef<Map<string, { onGraphInputFocus: () => void; onGraphInputBlur: () => void }>>(new Map());
+  const getComposableInputHandlers = useCallback((nodeId: string) => {
+    let entry = composableInputHandlersRef.current.get(nodeId);
+    if (!entry) {
+      entry = {
+        onGraphInputFocus: () => { handleComposableNodeInputFocus(nodeId); },
+        onGraphInputBlur: () => { handleComposableNodeInputBlur(nodeId); },
+      };
+      composableInputHandlersRef.current.set(nodeId, entry);
+    }
+    return entry;
+  }, [handleComposableNodeInputFocus, handleComposableNodeInputBlur]);
+
   const handleDeleteComposableNode = useCallback((nodeId: string) => {
+    composableInputHandlersRef.current.delete(nodeId);
     setComposableNodeMetas(prev => {
       const next = new Map(prev);
       next.delete(nodeId);
@@ -694,7 +733,10 @@ function GroupStructureGraphInner({
   const composableReactFlowNodes = useMemo<Node[]>(() => {
     const result: Node[] = [];
     composableNodeMetas.forEach((meta, id) => {
-      const evaluated = nodeValues.get(id);
+      const evaluated = editingComposableNodesRef.current.has(id)
+        ? frozenPortByNodeRef.current.get(id)
+        : nodeValues.get(id);
+      const { onGraphInputFocus, onGraphInputBlur } = getComposableInputHandlers(id);
       const nodeData: ComposableNodeData = {
         nodeId: id,
         config: meta.config,
@@ -703,6 +745,8 @@ function GroupStructureGraphInner({
         onConfigChange: handleComposableConfigChange,
         onGenerate:     handleComposableGenerate,
         onDeleteNode:   handleDeleteComposableNode,
+        onGraphInputFocus,
+        onGraphInputBlur,
         namespace,
         allTokens,
         allGroups,
@@ -718,7 +762,7 @@ function GroupStructureGraphInner({
       });
     });
     return result;
-  }, [composableNodeMetas, nodeValues, handleComposableConfigChange, handleComposableGenerate, namespace, allTokens, allGroups, resolveTokenReference]);
+  }, [composableNodeMetas, nodeValues, handleComposableConfigChange, handleComposableGenerate, getComposableInputHandlers, namespace, allTokens, allGroups, resolveTokenReference, graphInputLockEpoch]);
 
   const allNodes = useMemo(
     () => [...groupNodes, ...composableReactFlowNodes],

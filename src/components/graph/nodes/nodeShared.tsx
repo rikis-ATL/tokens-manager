@@ -93,6 +93,8 @@ export function NumberInput({
   step,
   disabled,
   className = '',
+  onGraphInputFocus,
+  onGraphInputBlur,
 }: {
   value: number;
   onChange: (v: number) => void;
@@ -101,6 +103,9 @@ export function NumberInput({
   step?: number;
   disabled?: boolean;
   className?: string;
+  /** From GroupStructureGraph — freeze evaluated ports while focused */
+  onGraphInputFocus?: () => void;
+  onGraphInputBlur?: () => void;
 }) {
   const [local, setLocal] = useState(String(value));
   const focused = useRef(false);
@@ -123,8 +128,8 @@ export function NumberInput({
       step={step ?? 1}
       disabled={disabled}
       onChange={e => setLocal(e.target.value)}
-      onFocus={() => { focused.current = true; }}
-      onBlur={e => { focused.current = false; commit(e.target.value); }}
+      onFocus={() => { focused.current = true; onGraphInputFocus?.(); }}
+      onBlur={e => { focused.current = false; commit(e.target.value); onGraphInputBlur?.(); }}
       onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
       className={`nodrag w-full text-[11px] bg-white border border-gray-200 rounded px-1.5 py-0.5 text-gray-700 focus:outline-none focus:ring-1 focus:ring-indigo-300 ${disabled ? 'opacity-40 cursor-not-allowed' : ''} ${className}`}
     />
@@ -139,11 +144,15 @@ export function TextInput({
   onChange,
   placeholder,
   className = '',
+  onGraphInputFocus,
+  onGraphInputBlur,
 }: {
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
   className?: string;
+  onGraphInputFocus?: () => void;
+  onGraphInputBlur?: () => void;
 }) {
   const [local, setLocal] = useState(value);
   const focused = useRef(false);
@@ -158,8 +167,8 @@ export function TextInput({
       value={local}
       placeholder={placeholder}
       onChange={e => setLocal(e.target.value)}
-      onFocus={() => { focused.current = true; }}
-      onBlur={e => { focused.current = false; onChange(e.target.value); }}
+      onFocus={() => { focused.current = true; onGraphInputFocus?.(); }}
+      onBlur={e => { focused.current = false; onChange(e.target.value); onGraphInputBlur?.(); }}
       onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
       className={`nodrag w-full text-[11px] bg-white border border-gray-200 rounded px-1.5 py-0.5 text-gray-700 focus:outline-none focus:ring-1 focus:ring-indigo-300 ${className}`}
     />

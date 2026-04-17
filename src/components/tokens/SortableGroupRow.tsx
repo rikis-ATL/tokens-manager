@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { useDroppable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
@@ -139,7 +139,7 @@ function GroupActions({
         {onRenameGroup && (
           <DropdownMenuItem
             className="gap-2 text-xs"
-            onSelect={e => { e.preventDefault(); onStartRename(); }}
+            onSelect={() => onStartRename()}
           >
             <Pencil size={12} /> Rename
           </DropdownMenuItem>
@@ -264,14 +264,18 @@ function SortableRowInner({
 
   const hasChildren = (node.group.children?.length ?? 0) > 0;
 
-  function startEdit() {
-    setEditValue(node.displayLabel);
-    setIsEditing(true);
-    // Defer focus until after Radix dropdown finishes its own focus management
-    setTimeout(() => {
+  useEffect(() => {
+    if (!isEditing) return;
+    const t = setTimeout(() => {
       editInputRef.current?.focus();
       editInputRef.current?.select();
     }, 0);
+    return () => clearTimeout(t);
+  }, [isEditing]);
+
+  function startEdit() {
+    setEditValue(node.displayLabel);
+    setIsEditing(true);
   }
 
   function commitEdit() {
@@ -352,8 +356,21 @@ function SortableRowInner({
         onStartEdit={startEdit}
       />
 
-      {/* omitFromPath badge */}
-      {node.group.omitFromPath && !isEditing && (
+      {/* omitFromPath toggle */}
+      {onToggleOmitFromPath && !isEditing && (
+        <button
+          title={node.group.omitFromPath ? 'Name skipped in output — click to include' : 'Click to skip name in output'}
+          className={`p-0.5 rounded flex-shrink-0 transition-colors ${
+            node.group.omitFromPath
+              ? 'text-amber-500 hover:text-amber-700'
+              : 'text-gray-300 opacity-0 group-hover/item:opacity-100 hover:text-gray-500'
+          }`}
+          onClick={e => { e.stopPropagation(); onToggleOmitFromPath(node.group.id); }}
+        >
+          <Slash size={10} />
+        </button>
+      )}
+      {!onToggleOmitFromPath && node.group.omitFromPath && !isEditing && (
         <span title="Name omitted from output path" className="text-amber-400 flex-shrink-0">
           <Slash size={10} />
         </span>

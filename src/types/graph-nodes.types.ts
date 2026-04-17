@@ -232,6 +232,12 @@ export type ComposableNodeConfig =
 
 // ── Node data passed via React Flow data prop ─────────────────────────────────
 
+/** Optional callbacks from GroupStructureGraph to freeze evaluated ports while an input is focused */
+export type GraphInputLockProps = {
+  onGraphInputFocus?: () => void;
+  onGraphInputBlur?: () => void;
+};
+
 export interface ComposableNodeData {
   nodeId: string;
   config: ComposableNodeConfig;
@@ -244,6 +250,16 @@ export interface ComposableNodeData {
   allTokens?: FlatToken[]; // all tokens in the collection for the source picker
   allGroups?: FlatGroup[]; // all groups in the collection for the destination picker
   resolveTokenReference?: (ref: string) => string; // resolves {token.path} refs for Math expression validation
+  /** While any field in this node is focused, graph evaluation results are not pushed into node data (avoids React Flow blur) */
+  onGraphInputFocus?: () => void;
+  onGraphInputBlur?: () => void;
+}
+
+export function graphInputLockProps(data: ComposableNodeData): GraphInputLockProps {
+  return {
+    onGraphInputFocus: data.onGraphInputFocus,
+    onGraphInputBlur: data.onGraphInputBlur,
+  };
 }
 
 // ── Node metadata stored in parent component ──────────────────────────────────

@@ -9,10 +9,12 @@ import {
 } from './nodeShared';
 import { ConstantNodeModal } from './ConstantNodeModal';
 import type { ComposableNodeData, ConstantConfig } from '@/types/graph-nodes.types';
+import { graphInputLockProps } from '@/types/graph-nodes.types';
 
 function ConstantNodeComponent({ data }: NodeProps) {
   const { nodeId, config, inputs, allTokens, allGroups, onConfigChange, onGenerate, onDeleteNode } =
     data as unknown as ComposableNodeData;
+  const graphLock = graphInputLockProps(data as ComposableNodeData);
   const cfg = config as ConstantConfig;
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -162,6 +164,7 @@ function ConstantNodeComponent({ data }: NodeProps) {
                       value={item}
                       onChange={v => updateItem(i, v)}
                       placeholder={`item ${i + 1}`}
+                      {...graphLock}
                     />
                   </div>
                   <button
@@ -215,6 +218,8 @@ function ConstantNodeComponent({ data }: NodeProps) {
                         type="color"
                         value={cfg.value.startsWith('#') ? cfg.value : '#6366f1'}
                         onChange={e => update({ value: e.target.value })}
+                        onFocus={() => graphLock.onGraphInputFocus?.()}
+                        onBlur={() => graphLock.onGraphInputBlur?.()}
                         className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
                       />
                     </label>
@@ -224,6 +229,7 @@ function ConstantNodeComponent({ data }: NodeProps) {
                       value={cfg.value}
                       onChange={v => update({ value: v })}
                       placeholder={cfg.valueType === 'number' ? '0' : cfg.valueType === 'string' ? '#hex or hsl(…)' : 'text value'}
+                      {...graphLock}
                     />
                   </div>
                   <button

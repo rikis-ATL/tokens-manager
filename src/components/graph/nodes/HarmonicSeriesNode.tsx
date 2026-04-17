@@ -8,6 +8,7 @@ import {
   PreviewSection, HANDLE_NUMBER, HANDLE_ARRAY,
 } from './nodeShared';
 import type { ComposableNodeData, HarmonicConfig } from '@/types/graph-nodes.types';
+import { graphInputLockProps } from '@/types/graph-nodes.types';
 
 const RATIOS = [
   { value: 1.067, label: 'Minor 2nd  ×1.067' },
@@ -29,6 +30,7 @@ function Dot({ on }: { on: boolean }) {
 function HarmonicSeriesNodeComponent({ data }: NodeProps) {
   const { nodeId, config, inputs, outputs, onConfigChange, onDeleteNode } =
     data as unknown as ComposableNodeData;
+  const graphLock = graphInputLockProps(data as ComposableNodeData);
   const cfg = config as HarmonicConfig;
 
   const update = (partial: Partial<HarmonicConfig>) =>
@@ -62,6 +64,7 @@ function HarmonicSeriesNodeComponent({ data }: NodeProps) {
             step={0.1}
             min={0.001}
             className={hasBase ? 'border-blue-300 bg-blue-50' : ''}
+            {...graphLock}
           />
         </Row>
 
@@ -75,6 +78,7 @@ function HarmonicSeriesNodeComponent({ data }: NodeProps) {
             min={0}
             max={12}
             className={hasStepsDown ? 'border-blue-300 bg-blue-50' : ''}
+            {...graphLock}
           />
         </Row>
 
@@ -88,6 +92,7 @@ function HarmonicSeriesNodeComponent({ data }: NodeProps) {
             min={0}
             max={12}
             className={hasStepsUp ? 'border-blue-300 bg-blue-50' : ''}
+            {...graphLock}
           />
         </Row>
 
@@ -113,6 +118,7 @@ function HarmonicSeriesNodeComponent({ data }: NodeProps) {
             min={0}
             max={8}
             className={hasPrecision ? 'border-blue-300 bg-blue-50' : ''}
+            {...graphLock}
           />
         </Row>
 

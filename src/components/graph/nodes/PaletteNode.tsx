@@ -9,12 +9,14 @@ import {
   HANDLE_STRING, HANDLE_ARRAY, HANDLE_NUMBER,
 } from './nodeShared';
 import { PALETTE_PRESETS, getPaletteFamilies } from '@/lib/presets';
-import type {
-  ComposableNodeData,
-  PaletteConfig,
-  PaletteNaming,
-  PaletteSecondary,
-  CssColorFormat,
+import {
+  graphInputLockProps,
+  type ComposableNodeData,
+  type PaletteConfig,
+  type PaletteNaming,
+  type PaletteSecondary,
+  type CssColorFormat,
+  type GraphInputLockProps,
 } from '@/types/graph-nodes.types';
 
 const NAMING_OPTIONS: { value: PaletteNaming; label: string }[] = [
@@ -43,10 +45,12 @@ function SecondaryRow({
   entry,
   onUpdate,
   onRemove,
+  graphLock,
 }: {
   entry: PaletteSecondary;
   onUpdate: (partial: Partial<PaletteSecondary>) => void;
   onRemove: () => void;
+  graphLock: GraphInputLockProps;
 }) {
   return (
     <div className="flex items-center gap-1">
@@ -60,16 +64,18 @@ function SecondaryRow({
           type="color"
           value={entry.color || '#6366f1'}
           onChange={e => onUpdate({ color: e.target.value })}
+          onFocus={() => graphLock.onGraphInputFocus?.()}
+          onBlur={() => graphLock.onGraphInputBlur?.()}
           className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
         />
       </label>
       {/* Step name */}
       <div style={{ width: 52 }} className="flex-shrink-0">
-        <TextInput value={entry.name} onChange={v => onUpdate({ name: v })} placeholder="name" />
+        <TextInput value={entry.name} onChange={v => onUpdate({ name: v })} placeholder="name" {...graphLock} />
       </div>
       {/* Hex value */}
       <div className="flex-1 min-w-0">
-        <TextInput value={entry.color} onChange={v => onUpdate({ color: v })} placeholder="#hex" />
+        <TextInput value={entry.color} onChange={v => onUpdate({ color: v })} placeholder="#hex" {...graphLock} />
       </div>
       <button
         onClick={onRemove}
@@ -88,6 +94,7 @@ function generateId() {
 function PaletteNodeComponent({ data }: NodeProps) {
   const { nodeId, config, inputs, onConfigChange, onDeleteNode } =
     data as unknown as ComposableNodeData;
+  const graphLock = graphInputLockProps(data as ComposableNodeData);
   const cfg = config as PaletteConfig;
 
   const update = (partial: Partial<PaletteConfig>) =>
@@ -213,6 +220,7 @@ function PaletteNodeComponent({ data }: NodeProps) {
             value={cfg.name}
             onChange={v => update({ name: v })}
             placeholder={usePreset ? presetFamily : 'e.g. brand, neutral'}
+            {...graphLock}
           />
         </Row>
 
@@ -233,6 +241,8 @@ function PaletteNodeComponent({ data }: NodeProps) {
                     type="color"
                     value={effectiveBaseColor.startsWith('#') ? effectiveBaseColor : '#6366f1'}
                     onChange={e => handleBaseColorChange(e.target.value)}
+                    onFocus={() => graphLock.onGraphInputFocus?.()}
+                    onBlur={() => graphLock.onGraphInputBlur?.()}
                     disabled={hasBaseColor}
                     className="absolute inset-0 opacity-0 w-full h-full cursor-pointer disabled:cursor-not-allowed"
                   />
@@ -242,6 +252,7 @@ function PaletteNodeComponent({ data }: NodeProps) {
                   onChange={v => handleBaseColorChange(v)}
                   placeholder="#hex or hsl(…)"
                   className={hasBaseColor ? 'border-green-300 bg-green-50' : ''}
+                  {...graphLock}
                 />
               </div>
             </Row>
@@ -256,6 +267,7 @@ function PaletteNodeComponent({ data }: NodeProps) {
                 onChange={v => update({ minLightness: Math.max(0, Math.min(100, v)) })}
                 min={0} max={100} step={1}
                 className={hasLightness ? 'opacity-40' : ''}
+                {...graphLock}
               />
             </Row>
 
@@ -265,6 +277,7 @@ function PaletteNodeComponent({ data }: NodeProps) {
                 onChange={v => update({ maxLightness: Math.max(0, Math.min(100, v)) })}
                 min={0} max={100} step={1}
                 className={hasLightness ? 'opacity-40' : ''}
+                {...graphLock}
               />
             </Row>
 
@@ -319,6 +332,7 @@ function PaletteNodeComponent({ data }: NodeProps) {
                             update({ customNames: next.join(', ') });
                           }}
                           placeholder={`step ${i + 1}`}
+                          {...graphLock}
                         />
                       </div>
                       <button
@@ -430,6 +444,7 @@ function PaletteNodeComponent({ data }: NodeProps) {
                 entry={s}
                 onUpdate={p => updateSecondary(s.id, p)}
                 onRemove={() => removeSecondary(s.id)}
+                graphLock={graphLock}
               />
             ))}
           </div>

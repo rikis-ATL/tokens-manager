@@ -13,6 +13,7 @@ import type {
   ColorConvertMode,
   CssColorFormat,
 } from '@/types/graph-nodes.types';
+import { graphInputLockProps } from '@/types/graph-nodes.types';
 
 const MODE_OPTIONS: { value: ColorConvertMode; label: string }[] = [
   { value: 'convert',    label: 'Color Convert' },
@@ -35,6 +36,7 @@ function Dot({ on }: { on: boolean }) {
 function ColorConvertNodeComponent({ data }: NodeProps) {
   const { nodeId, config, inputs, outputs, onConfigChange, onDeleteNode } =
     data as unknown as ComposableNodeData;
+  const graphLock = graphInputLockProps(data as ComposableNodeData);
   const cfg = config as ColorConvertConfig;
 
   const update = (partial: Partial<ColorConvertConfig>) =>
@@ -130,6 +132,7 @@ function ColorConvertNodeComponent({ data }: NodeProps) {
                 min={0} max={360} step={1}
                 disabled={hasHue}
                 className={hasHue ? 'border-blue-300 bg-blue-50' : ''}
+                {...graphLock}
               />
             </Row>
             {/* Saturation — wirable or typed */}
@@ -143,6 +146,7 @@ function ColorConvertNodeComponent({ data }: NodeProps) {
                 min={0} max={100} step={1}
                 disabled={hasSat}
                 className={hasSat ? 'border-blue-300 bg-blue-50' : ''}
+                {...graphLock}
               />
             </Row>
             {/* Output format */}

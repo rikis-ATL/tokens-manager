@@ -1049,6 +1049,17 @@ export function TokenGeneratorForm({
     setIsDirty(true);
   };
 
+  const updateGroupBooleanFlag = (groupId: string, field: 'omitFromPath' | 'draft') => {
+    const toggle = (groups: TokenGroup[]): TokenGroup[] =>
+      groups.map(g => {
+        if (g.id === groupId) return { ...g, [field]: !g[field] };
+        if (g.children?.length) return { ...g, children: toggle(g.children) };
+        return g;
+      });
+    updateGroups(prev => toggle(prev));
+    setIsDirty(true);
+  };
+
   const addToken = (groupId: string) => {
     if (isReadOnly) return; // Source group: read-only
     const newToken: GeneratedToken = {
@@ -1611,6 +1622,32 @@ export function TokenGeneratorForm({
                 </DropdownMenu>
               )}
             </div>
+            {!isReadOnly && (
+              <div className="flex items-center gap-5 mt-2 pt-2 border-t border-gray-100">
+                <label className="flex items-center gap-1.5 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={!!group.omitFromPath}
+                    onChange={() => updateGroupBooleanFlag(group.id, 'omitFromPath')}
+                    className="accent-amber-500 w-3.5 h-3.5 cursor-pointer"
+                  />
+                  <span className={`text-xs ${group.omitFromPath ? 'text-amber-600 font-medium' : 'text-gray-400'}`}>
+                    Organisational
+                  </span>
+                </label>
+                <label className="flex items-center gap-1.5 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={!!group.draft}
+                    onChange={() => updateGroupBooleanFlag(group.id, 'draft')}
+                    className="accent-gray-500 w-3.5 h-3.5 cursor-pointer"
+                  />
+                  <span className={`text-xs ${group.draft ? 'text-gray-600 font-medium' : 'text-gray-400'}`}>
+                    Draft
+                  </span>
+                </label>
+              </div>
+            )}
           </div>
 
           {hasTokens && (

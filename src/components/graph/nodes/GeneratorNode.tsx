@@ -21,7 +21,8 @@ import {
   NodeWrapper, NodeHeader, Row, RowHandle, NativeSelect, NumberInput,
   HANDLE_IN, HANDLE_ARRAY, HANDLE_STRING,
 } from './nodeShared';
-import type { ComposableNodeData, GeneratorNodeConfig } from '@/types/graph-nodes.types';
+import type { ComposableNodeData, GeneratorNodeConfig, GraphInputLockProps } from '@/types/graph-nodes.types';
+import { graphInputLockProps } from '@/types/graph-nodes.types';
 
 
 // ─── Color config form ────────────────────────────────────────────────────────
@@ -31,11 +32,13 @@ function ColorConfigForm({
   onChange,
   wiredColor,
   wiredBase,
+  graphLock,
 }: {
   cfg: ColorGeneratorConfig;
   onChange: (c: ColorGeneratorConfig) => void;
   wiredColor?: string | null;
   wiredBase?: number | null;
+  graphLock: GraphInputLockProps;
 }) {
   return (
     <>
@@ -66,6 +69,7 @@ function ColorConfigForm({
               onChange={v => onChange({ ...cfg, baseHue: v })}
               min={0} max={360}
               disabled={wiredBase != null}
+              {...graphLock}
             />
             <div
               className="w-4 h-4 rounded-full border border-gray-200 flex-shrink-0"
@@ -80,13 +84,14 @@ function ColorConfigForm({
           onChange={v => onChange({ ...cfg, baseSaturation: v })}
           min={0} max={100}
           disabled={!!wiredColor}
+          {...graphLock}
         />
       </Row>
       <Row label="Min L">
-        <NumberInput value={cfg.minChannel} onChange={v => onChange({ ...cfg, minChannel: v })} min={0} max={100} />
+        <NumberInput value={cfg.minChannel} onChange={v => onChange({ ...cfg, minChannel: v })} min={0} max={100} {...graphLock} />
       </Row>
       <Row label="Max L">
-        <NumberInput value={cfg.maxChannel} onChange={v => onChange({ ...cfg, maxChannel: v })} min={0} max={360} />
+        <NumberInput value={cfg.maxChannel} onChange={v => onChange({ ...cfg, maxChannel: v })} min={0} max={360} {...graphLock} />
       </Row>
       <Row label="Distribution">
         <NativeSelect
@@ -108,10 +113,12 @@ function DimensionConfigForm({
   cfg,
   onChange,
   wiredBase,
+  graphLock,
 }: {
   cfg: DimensionGeneratorConfig;
   onChange: (c: DimensionGeneratorConfig) => void;
   wiredBase?: number | null;
+  graphLock: GraphInputLockProps;
 }) {
   const isModular = cfg.scale === 'modular';
   const hasWired  = wiredBase != null;
@@ -137,7 +144,7 @@ function DimensionConfigForm({
             {hasWired ? (
               <span className="text-[10px] text-amber-700 font-mono bg-amber-50 rounded px-2 py-0.5">{wiredBase}</span>
             ) : (
-              <NumberInput value={cfg.modularBase} onChange={v => onChange({ ...cfg, modularBase: v })} step={0.1} min={0.1} />
+              <NumberInput value={cfg.modularBase} onChange={v => onChange({ ...cfg, modularBase: v })} step={0.1} min={0.1} {...graphLock} />
             )}
           </Row>
           <Row label="Ratio">
@@ -154,11 +161,11 @@ function DimensionConfigForm({
             {hasWired ? (
               <span className="text-[10px] text-amber-700 font-mono bg-amber-50 rounded px-2 py-0.5">{wiredBase}</span>
             ) : (
-              <NumberInput value={cfg.minValue} onChange={v => onChange({ ...cfg, minValue: v })} step={0.1} min={0} />
+              <NumberInput value={cfg.minValue} onChange={v => onChange({ ...cfg, minValue: v })} step={0.1} min={0} {...graphLock} />
             )}
           </Row>
           <Row label="Max">
-            <NumberInput value={cfg.maxValue} onChange={v => onChange({ ...cfg, maxValue: v })} step={0.1} min={0} />
+            <NumberInput value={cfg.maxValue} onChange={v => onChange({ ...cfg, maxValue: v })} step={0.1} min={0} {...graphLock} />
           </Row>
         </>
       )}
@@ -206,6 +213,7 @@ function TokenPreview({ values, names }: { values: string[]; names: string[] }) 
 function GeneratorNodeComponent({ data }: NodeProps) {
   const { nodeId, config, inputs, outputs, onConfigChange, onGenerate, onDeleteNode } =
     data as unknown as ComposableNodeData;
+  const graphLock = graphInputLockProps(data as ComposableNodeData);
   const cfg = config as GeneratorNodeConfig;
   const [generated, setGenerated] = useState(false);
 
@@ -278,6 +286,7 @@ function GeneratorNodeComponent({ data }: NodeProps) {
             value={cfg.count}
             onChange={v => update({ count: Math.max(1, Math.min(50, v)) })}
             min={1} max={50}
+            {...graphLock}
           />
         </Row>
 
@@ -296,12 +305,14 @@ function GeneratorNodeComponent({ data }: NodeProps) {
               onChange={c => update({ config: c })}
               wiredColor={wiredBaseColor}
               wiredBase={wiredBaseValue}
+              graphLock={graphLock}
             />
           ) : (
             <DimensionConfigForm
               cfg={cfg.config as DimensionGeneratorConfig}
               onChange={c => update({ config: c })}
               wiredBase={wiredBaseValue}
+              graphLock={graphLock}
             />
           )}
         </div>

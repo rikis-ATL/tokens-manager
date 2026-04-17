@@ -7,7 +7,8 @@ import {
   NodeWrapper, NodeHeader, Row, RowHandle, TextInput,
   HANDLE_STRING, HANDLE_NUMBER, HANDLE_OUT,
 } from './nodeShared';
-import type { ComposableNodeData, A11yContrastConfig } from '@/types/graph-nodes.types';
+import type { ComposableNodeData, A11yContrastConfig, GraphInputLockProps } from '@/types/graph-nodes.types';
+import { graphInputLockProps } from '@/types/graph-nodes.types';
 
 /** WCAG contrast ratio badge colours */
 function LevelBadge({ level, ratio }: { level: string; ratio: number | null }) {
@@ -31,6 +32,7 @@ function ColorInput({
   handleId,
   isWired,
   wiredValue,
+  graphLock,
 }: {
   label: string;
   value: string;
@@ -38,6 +40,7 @@ function ColorInput({
   handleId: string;
   isWired: boolean;
   wiredValue?: string;
+  graphLock: GraphInputLockProps;
 }) {
   const displayColor = isWired ? (wiredValue ?? value) : value;
   const isValidHex = /^#[0-9a-fA-F]{3,8}$/.test(displayColor.trim());
@@ -59,6 +62,8 @@ function ColorInput({
               type="color"
               value={isValidHex ? displayColor : '#ffffff'}
               onChange={e => onChange(e.target.value)}
+              onFocus={() => graphLock.onGraphInputFocus?.()}
+              onBlur={() => graphLock.onGraphInputBlur?.()}
               className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
             />
           )}
@@ -73,6 +78,7 @@ function ColorInput({
               value={value}
               onChange={onChange}
               placeholder="#hex or hsl(…)"
+              {...graphLock}
             />
           </div>
         )}
@@ -84,6 +90,7 @@ function ColorInput({
 function A11yContrastNodeComponent({ data }: NodeProps) {
   const { nodeId, config, inputs, outputs, onConfigChange, onDeleteNode } =
     data as unknown as ComposableNodeData;
+  const graphLock = graphInputLockProps(data as ComposableNodeData);
   const cfg = config as A11yContrastConfig;
 
   const update = (partial: Partial<A11yContrastConfig>) =>
@@ -125,6 +132,7 @@ function A11yContrastNodeComponent({ data }: NodeProps) {
           handleId="foreground"
           isWired={hasFgInput}
           wiredValue={hasFgInput ? String(inputs['foreground']) : undefined}
+          graphLock={graphLock}
         />
         <ColorInput
           label="Background"
@@ -133,6 +141,7 @@ function A11yContrastNodeComponent({ data }: NodeProps) {
           handleId="background"
           isWired={hasBgInput}
           wiredValue={hasBgInput ? String(inputs['background']) : undefined}
+          graphLock={graphLock}
         />
 
         {/* Live preview swatch */}

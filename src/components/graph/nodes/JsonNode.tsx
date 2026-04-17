@@ -7,6 +7,7 @@ import {
   NodeWrapper, NodeHeader, Row, NativeSelect, TextInput, HANDLE_OUT, HANDLE_ARRAY,
 } from './nodeShared';
 import type { ComposableNodeData, JsonConfig, TokenOutputTarget } from '@/types/graph-nodes.types';
+import { graphInputLockProps } from '@/types/graph-nodes.types';
 import { parseJsonToTokens } from '@/lib/jsonTokenParser';
 import { TOKEN_TYPES } from '@/types/token.types';
 
@@ -23,6 +24,8 @@ const TARGET_OPTIONS: { value: TokenOutputTarget; label: string }[] = [
 
 function JsonNodeComponent({ data }: NodeProps) {
   const { nodeId, config, outputs, onConfigChange, onGenerate, onDeleteNode } = data as unknown as ComposableNodeData;
+  const graphLock = graphInputLockProps(data as ComposableNodeData);
+  const { onGraphInputFocus, onGraphInputBlur } = graphLock;
   const cfg = config as JsonConfig;
   const [generated, setGenerated] = useState(false);
   const [parseError, setParseError] = useState<string | null>(null);
@@ -118,7 +121,11 @@ function JsonNodeComponent({ data }: NodeProps) {
             </div>
             <textarea
               placeholder="Or paste JSON here..."
-              onBlur={handlePasteBlur}
+              onFocus={() => onGraphInputFocus?.()}
+              onBlur={e => {
+                handlePasteBlur(e);
+                onGraphInputBlur?.();
+              }}
               className="nodrag w-full text-[10px] font-mono bg-gray-50 border border-gray-200 rounded px-1.5 py-1 text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-amber-300 resize-none"
               rows={2}
             />
@@ -154,6 +161,7 @@ function JsonNodeComponent({ data }: NodeProps) {
             value={cfg.namePrefix}
             onChange={v => update({ namePrefix: v })}
             placeholder="e.g. imported"
+            {...graphLock}
           />
         </Row>
 

@@ -7,6 +7,7 @@ import {
   NodeWrapper, NodeHeader, Row, NativeSelect, TextInput, HANDLE_STRING, HANDLE_ARRAY, HANDLE_OUT,
 } from './nodeShared';
 import type { ComposableNodeData, TokenOutputConfig, TokenOutputTarget } from '@/types/graph-nodes.types';
+import { graphInputLockProps } from '@/types/graph-nodes.types';
 import { TOKEN_TYPES } from '@/types/token.types';
 
 // Convert TokenType[] to label/value format for NativeSelect
@@ -45,6 +46,7 @@ function InlineHandle({
 
 function TokenOutputNodeComponent({ data }: NodeProps) {
   const { nodeId, config, inputs, outputs, onConfigChange, onGenerate, onDeleteNode, namespace } = data as unknown as ComposableNodeData;
+  const graphLock = graphInputLockProps(data as ComposableNodeData);
   const cfg = config as TokenOutputConfig;
   const [generated, setGenerated] = useState(false);
 
@@ -136,6 +138,7 @@ function TokenOutputNodeComponent({ data }: NodeProps) {
             value={cfg.namePrefix}
             onChange={v => update({ namePrefix: v })}
             placeholder="e.g. color"
+            {...graphLock}
           />
         </Row>
 

@@ -7,6 +7,7 @@ import {
   NodeWrapper, NodeHeader, Row, NativeSelect, TextInput, HANDLE_OUT,
 } from './nodeShared';
 import type { ComposableNodeData, GroupConfig } from '@/types/graph-nodes.types';
+import { graphInputLockProps } from '@/types/graph-nodes.types';
 import { TOKEN_TYPES } from '@/types/token.types';
 
 // Convert TokenType[] to label/value format for NativeSelect
@@ -22,6 +23,7 @@ const TARGET_OPTIONS: { value: string; label: string }[] = [
 
 function GroupCreatorNodeComponent({ data }: NodeProps) {
   const { nodeId, config, outputs, onConfigChange, onGenerate, onDeleteNode } = data as unknown as ComposableNodeData;
+  const graphLock = graphInputLockProps(data as ComposableNodeData);
   const cfg = config as GroupConfig;
   const [generated, setGenerated] = useState(false);
 
@@ -73,6 +75,7 @@ function GroupCreatorNodeComponent({ data }: NodeProps) {
           value={cfg.groupName || ''}
           onChange={v => update({ groupName: v })}
           placeholder="New Group"
+          {...graphLock}
         />
       </Row>
 
@@ -106,20 +109,24 @@ function GroupCreatorNodeComponent({ data }: NodeProps) {
 
         {tokens.map((token, index) => (
           <div key={index} className="flex items-center gap-2">
-            <input
-              type="text"
-              value={token.name}
-              onChange={e => updateToken(index, 'name', e.target.value)}
-              className="text-xs border border-gray-200 rounded px-2 py-1 flex-1"
-              placeholder="Token name"
-            />
-            <input
-              type="text"
-              value={token.value}
-              onChange={e => updateToken(index, 'value', e.target.value)}
-              className="text-xs border border-gray-200 rounded px-2 py-1 flex-1"
-              placeholder="Token value"
-            />
+            <div className="flex-1 min-w-0">
+              <TextInput
+                value={token.name}
+                onChange={v => updateToken(index, 'name', v)}
+                placeholder="Token name"
+                className="text-xs"
+                {...graphLock}
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <TextInput
+                value={token.value}
+                onChange={v => updateToken(index, 'value', v)}
+                placeholder="Token value"
+                className="text-xs"
+                {...graphLock}
+              />
+            </div>
             <button
               onClick={() => removeToken(index)}
               className="text-red-500 hover:text-red-700 p-1"

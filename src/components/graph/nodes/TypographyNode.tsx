@@ -8,6 +8,7 @@ import {
   PreviewSection, HANDLE_STRING, HANDLE_OUT,
 } from './nodeShared';
 import type { ComposableNodeData, TypographyConfig, FontStyle } from '@/types/graph-nodes.types';
+import { graphInputLockProps } from '@/types/graph-nodes.types';
 
 const FONT_STYLES: { value: FontStyle; label: string }[] = [
   { value: 'normal',  label: 'Normal' },
@@ -35,6 +36,7 @@ function WiredIndicator() {
 function TypographyNodeComponent({ data }: NodeProps) {
   const { nodeId, config, inputs, outputs, onConfigChange, onDeleteNode } =
     data as unknown as ComposableNodeData;
+  const graphLock = graphInputLockProps(data as ComposableNodeData);
   const cfg = config as TypographyConfig;
 
   const update = (partial: Partial<TypographyConfig>) =>
@@ -76,7 +78,7 @@ function TypographyNodeComponent({ data }: NodeProps) {
               <WiredIndicator />
             </div>
           ) : (
-            <TextInput value={cfg.fontWeight} onChange={v => update({ fontWeight: v })} placeholder="400" />
+            <TextInput value={cfg.fontWeight} onChange={v => update({ fontWeight: v })} placeholder="400" {...graphLock} />
           )}
         </Row>
 
@@ -91,7 +93,7 @@ function TypographyNodeComponent({ data }: NodeProps) {
               <WiredIndicator />
             </div>
           ) : (
-            <TextInput value={cfg.fontSize} onChange={v => update({ fontSize: v })} placeholder="1rem" />
+            <TextInput value={cfg.fontSize} onChange={v => update({ fontSize: v })} placeholder="1rem" {...graphLock} />
           )}
         </Row>
 
@@ -106,7 +108,7 @@ function TypographyNodeComponent({ data }: NodeProps) {
               <WiredIndicator />
             </div>
           ) : (
-            <TextInput value={cfg.lineHeight} onChange={v => update({ lineHeight: v })} placeholder="1.5" />
+            <TextInput value={cfg.lineHeight} onChange={v => update({ lineHeight: v })} placeholder="1.5" {...graphLock} />
           )}
         </Row>
 
@@ -121,7 +123,7 @@ function TypographyNodeComponent({ data }: NodeProps) {
               <WiredIndicator />
             </div>
           ) : (
-            <TextInput value={cfg.fontFamily} onChange={v => update({ fontFamily: v })} placeholder="Helvetica, sans-serif" />
+            <TextInput value={cfg.fontFamily} onChange={v => update({ fontFamily: v })} placeholder="Helvetica, sans-serif" {...graphLock} />
           )}
         </Row>
 
@@ -136,7 +138,7 @@ function TypographyNodeComponent({ data }: NodeProps) {
               <WiredIndicator />
             </div>
           ) : (
-            <TextInput value={cfg.letterSpacing} onChange={v => update({ letterSpacing: v })} placeholder="0px (optional)" />
+            <TextInput value={cfg.letterSpacing} onChange={v => update({ letterSpacing: v })} placeholder="0px (optional)" {...graphLock} />
           )}
         </Row>
 

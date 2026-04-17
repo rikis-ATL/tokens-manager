@@ -72,6 +72,11 @@ export interface TokenGroup {
    * instead of --token-semantic-color-primary.
    */
   omitFromPath?: boolean;
+  /**
+   * When true, this group and all its tokens are excluded from all output formats.
+   * Use for in-progress / draft groups that should not appear in exported files.
+   */
+  draft?: boolean;
 }
 
 export interface TokenSet {

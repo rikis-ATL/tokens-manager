@@ -8,6 +8,7 @@ import {
   PreviewSection, HANDLE_NUMBER, HANDLE_ARRAY, HANDLE_OUT,
 } from './nodeShared';
 import type { ComposableNodeData, MathConfig, MathMode, MathOp, PortValue } from '@/types/graph-nodes.types';
+import { graphInputLockProps } from '@/types/graph-nodes.types';
 import { validateExpression } from '@/lib/mathExpression';
 import { computeMathExpressionResult } from '@/lib/graphEvaluator';
 
@@ -31,6 +32,8 @@ function Dot({ on }: { on: boolean }) {
 function MathNodeComponent({ data }: NodeProps) {
   const { nodeId, config, inputs, outputs, onConfigChange, onDeleteNode, resolveTokenReference } =
     data as unknown as ComposableNodeData;
+  const graphLock = graphInputLockProps(data as ComposableNodeData);
+  const { onGraphInputFocus, onGraphInputBlur } = graphLock;
   const cfg = config as MathConfig;
 
   const [localExpr, setLocalExpr] = useState(cfg.expression ?? '');
@@ -103,7 +106,8 @@ function MathNodeComponent({ data }: NodeProps) {
   const handleExprBlur = useCallback(() => {
     exprFocusedRef.current = false;
     update({ expression: localExpr });
-  }, [update, localExpr]);
+    onGraphInputBlur?.();
+  }, [update, localExpr, onGraphInputBlur]);
 
   const isBinary  = !isExpression && BINARY_OPS.includes(cfg.operation);
   const isClamp   = !isExpression && cfg.operation === 'clamp';
@@ -159,6 +163,7 @@ function MathNodeComponent({ data }: NodeProps) {
               onChange={v => update({ aExpr: v })}
               placeholder="num or {token.path}"
               className="font-mono text-[10px]"
+              {...graphLock}
             />
           ) : (
             <span className="text-[10px] text-gray-300 italic">
@@ -189,6 +194,7 @@ function MathNodeComponent({ data }: NodeProps) {
                   onChange={v => update({ operand: v })}
                   step={0.1}
                   className={hasB ? 'border-blue-300 bg-blue-50' : ''}
+                  {...graphLock}
                 />
               </Row>
             )}
@@ -205,6 +211,7 @@ function MathNodeComponent({ data }: NodeProps) {
                     onChange={v => update({ clampMin: v })}
                     step={0.1}
                     className={hasClampMin ? 'border-blue-300 bg-blue-50' : ''}
+                    {...graphLock}
                   />
                 </Row>
                 <Row
@@ -216,6 +223,7 @@ function MathNodeComponent({ data }: NodeProps) {
                     onChange={v => update({ clampMax: v })}
                     step={0.1}
                     className={hasClampMax ? 'border-blue-300 bg-blue-50' : ''}
+                    {...graphLock}
                   />
                 </Row>
               </>
@@ -236,6 +244,7 @@ function MathNodeComponent({ data }: NodeProps) {
               }}
               onFocus={() => {
                 exprFocusedRef.current = true;
+                onGraphInputFocus?.();
                 captureExprSelection();
               }}
               onBlur={handleExprBlur}
@@ -264,6 +273,7 @@ function MathNodeComponent({ data }: NodeProps) {
             value={cfg.precision}
             onChange={v => update({ precision: Math.max(0, Math.min(8, v)) })}
             min={0} max={8}
+            {...graphLock}
           />
         </Row>
         <Row label="Suffix">
@@ -271,6 +281,7 @@ function MathNodeComponent({ data }: NodeProps) {
             value={cfg.suffix}
             onChange={v => update({ suffix: v })}
             placeholder="e.g. rem"
+            {...graphLock}
           />
         </Row>
 
