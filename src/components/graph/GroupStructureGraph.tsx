@@ -210,7 +210,32 @@ function defaultComposableConfig(kind: ComposableNodeConfig['kind']): Composable
         destGroupId: '',
       };
     case 'math':
-      return { kind: 'math', mathMode: 'operations', expression: '', operation: 'multiply', operand: 16, clampMin: 0, clampMax: 100, precision: 2, suffix: '' };
+      return {
+        kind: 'math',
+        mathMode: 'operations',
+        expression: '',
+        aExpr: '',
+        bExpr: '',
+        operation: 'multiply',
+        operand: 16,
+        clampMin: 0,
+        clampMax: 100,
+        precision: 2,
+        suffix: '',
+        variadicInputCount: 4,
+        variadicScalars: ['3', '5', '7', '9'],
+        variadicValues: '3, 5, 7, 9',
+        closestValues: '5, 10, 15, 25, 30',
+        closestTarget: 17,
+        fluidMinSize: 16,
+        fluidMaxSize: 24,
+        fluidMinViewport: 320,
+        fluidMaxViewport: 1920,
+        fluidViewport: 768,
+        lerpStart: 0,
+        lerpEnd: 1,
+        lerpT: 0.5,
+      };
     case 'cssString':
       return { kind: 'cssString', expression: '' };
     case 'patternCss':

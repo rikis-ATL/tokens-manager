@@ -80,7 +80,30 @@ export type MathOp =
   | 'round'
   | 'floor'
   | 'ceil'
-  | 'clamp';
+  | 'ceiling'
+  | 'clamp'
+  /** |a| — see https://documentation.tokens.studio/graph-engine/available-nodes/math/absolute */
+  | 'absolute'
+  /** Sum of all values in the wired list (or CSV fallback) */
+  | 'addVariadic'
+  /** Left-to-right division across a list */
+  | 'divideVariadic'
+  /** cos(angle) with angle in radians */
+  | 'cosine'
+  /** Array length — input A must be an array */
+  | 'count'
+  /** |a − b| with optional precision */
+  | 'difference'
+  /** e^exponent — input A is the exponent */
+  | 'exponentiation'
+  /** Snap to nearest value in a list */
+  | 'closestNumber'
+  /** Linear interpolation between min/max size across viewport range */
+  | 'fluid'
+  /** Linear interpolation a + t×(b−a); ports a,b,t — see Tokens Studio Lerp node */
+  | 'lerp'
+  /** Remainder A mod B; divisor on b (Tokens Studio Modulo — JavaScript % semantics). */
+  | 'modulo';
 
 export type MathMode = 'operations' | 'expression';
 
@@ -94,12 +117,34 @@ export interface MathConfig {
   expression?: string;
   /** Fallback value for `a` when no wire is connected — accepts a number or {token.path} ref */
   aExpr?: string;
+  /** Fallback for `b` in expression mode when the b port is not wired */
+  bExpr?: string;
   operation: MathOp;
   operand: number;
   clampMin: number;
   clampMax: number;
   precision: number;
   suffix: string;     // e.g. 'rem', 'px' — appended to result
+  /** How many operand rows to show (`variadic0` … `variadic{n-1}` handles), clamped at eval/UI */
+  variadicInputCount?: number;
+  /** Per-slot fallback when that handle is not wired (empty string = unused slot) */
+  variadicScalars?: string[];
+  /** CSV fallback when neither `inputs` nor slots yield numbers (legacy / quick paste) */
+  variadicValues?: string;
+  /** CSV fallback list for Closest number when `numbers` is not wired */
+  closestValues?: string;
+  closestTarget?: number;
+  /** Fluid scaling defaults (viewport may be overridden by wiring input A) */
+  fluidMinSize?: number;
+  fluidMaxSize?: number;
+  fluidMinViewport?: number;
+  fluidMaxViewport?: number;
+  fluidViewport?: number;
+  /** Lerp fallbacks when a / b / t handles are not wired (matches doc defaults style) */
+  lerpStart?: number;
+  lerpEnd?: number;
+  /** Interpolation factor; typically 0–1; outside range extrapolates per Tokens Studio Lerp */
+  lerpT?: number;
 }
 
 // ── CSS string node — opaque CSS value; `{token}` refs resolved at eval ───────

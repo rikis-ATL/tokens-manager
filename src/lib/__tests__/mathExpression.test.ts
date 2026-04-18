@@ -49,6 +49,16 @@ describe('evaluateExpression', () => {
     });
   });
 
+  describe('variable b binding', () => {
+    it('evaluates a + b with both bound', () => {
+      expect(evaluateExpression('a + b', { a: 3, b: 4 })).toBe(7);
+    });
+
+    it('returns null when b is not bound but referenced', () => {
+      expect(evaluateExpression('a + b', { a: 1 })).toBeNull();
+    });
+  });
+
   describe('token reference substitution', () => {
     it('substitutes and evaluates resolved refs', () => {
       const resolve = (ref: string) => (ref === '{spacing.base}' ? '16px' : '');

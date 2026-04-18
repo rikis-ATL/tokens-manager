@@ -51,6 +51,57 @@ function roundTo(value: number, precision: number): number {
   return Math.round(value * factor) / factor;
 }
 
+function formatMathResult(value: number, config: MathConfig): string | number {
+  const res = roundTo(value, config.precision);
+  return config.suffix ? `${res}${config.suffix}` : res;
+}
+
+function coerceToNumberPort(v: unknown): number | null {
+  if (typeof v === 'number' && !isNaN(v)) return v;
+  if (typeof v === 'string' && v.trim()) {
+    const n = parseFloat(v);
+    if (!isNaN(n)) return n;
+  }
+  return null;
+}
+
+function parseCsvNumbers(csv: string | undefined): number[] {
+  if (!csv?.trim()) return [];
+  return csv.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+}
+
+const VARIADIC_SLOT_MIN = 2;
+const VARIADIC_SLOT_MAX = 20;
+
+/** Collect numbers from `variadic0`…`variadic{n-1}` and matching `variadicScalars` entries. */
+function collectVariadicSlotNumbers(
+  config: MathConfig,
+  inputs: Record<string, PortValue>,
+): number[] {
+  const fromScalarsLen = config.variadicScalars?.length ?? 0;
+  const count = Math.max(
+    VARIADIC_SLOT_MIN,
+    Math.min(
+      VARIADIC_SLOT_MAX,
+      config.variadicInputCount ?? (fromScalarsLen > 0 ? fromScalarsLen : 4),
+    ),
+  );
+  const scalars = config.variadicScalars ?? [];
+  const out: number[] = [];
+  for (let i = 0; i < count; i++) {
+    const w = inputs[`variadic${i}`];
+    if (typeof w === 'number' && !isNaN(w)) {
+      out.push(w);
+      continue;
+    }
+    const s = (scalars[i] ?? '').trim();
+    if (s === '') continue;
+    const n = parseFloat(s);
+    if (!isNaN(n)) out.push(n);
+  }
+  return out;
+}
+
 // ── Color conversion for graph nodes ──────────────────────────────────────────
 
 /** Parse any CSS color format to RGB tuple for graph operations */
@@ -244,8 +295,13 @@ function applyScalarOp(
     case 'subtract': return value - operand;
     case 'round':    return Math.round(value);
     case 'floor':    return Math.floor(value);
-    case 'ceil':     return Math.ceil(value);
+    case 'ceil':
+    case 'ceiling':  return Math.ceil(value);
     case 'clamp':    return Math.max(clampMin, Math.min(clampMax, value));
+    case 'absolute': return Math.abs(value);
+    case 'cosine':   return Math.cos(value);
+    case 'exponentiation': return Math.exp(value);
+    case 'modulo':   return operand !== 0 ? value % operand : 0;
     default:         return value;
   }
 }
@@ -276,11 +332,15 @@ export function computeMathExpressionResult(
 
   const a = inputs['a'];
   const aFallback = (a == null) ? resolveAExpr(config.aExpr, options?.resolveTokenReference) : undefined;
+  const bWire = inputs['b'];
+  const bFallback = (bWire == null) ? resolveAExpr(config.bExpr, options?.resolveTokenReference) : undefined;
 
   const applyExpr = (aVal?: number): string | number | null => {
+    const bVal = typeof bWire === 'number' ? bWire : bFallback;
     const raw = evaluateExpression(expr, {
       resolveTokenReference: options?.resolveTokenReference,
       a: aVal,
+      b: bVal,
     });
     if (raw === null) return null;
     const res = roundTo(raw, config.precision);
@@ -303,6 +363,143 @@ export function computeMathExpressionResult(
   return applyExpr(aFallback);
 }
 
+function evalMathVariadic(
+  config: MathConfig,
+  inputs: Record<string, PortValue>,
+  op: 'addVariadic' | 'divideVariadic',
+): Record<string, PortValue> {
+  const wired = inputs['inputs'];
+  let nums: number[] = [];
+  if (Array.isArray(wired) && wired.length > 0) {
+    nums = (wired as (number | string)[])
+      .map(n => coerceToNumberPort(n))
+      .filter((n): n is number => n !== null);
+  } else {
+    nums = collectVariadicSlotNumbers(config, inputs);
+    if (nums.length === 0) nums = parseCsvNumbers(config.variadicValues);
+  }
+
+  if (op === 'addVariadic') {
+    const sum = nums.reduce((acc, n) => acc + n, 0);
+    return { result: formatMathResult(sum, config) };
+  }
+
+  if (nums.length === 0) return { result: null };
+  let acc = nums[0];
+  for (let i = 1; i < nums.length; i++) {
+    const d = nums[i];
+    if (d === 0) return { result: null };
+    acc /= d;
+  }
+  return { result: formatMathResult(acc, config) };
+}
+
+function evalMathClosest(config: MathConfig, inputs: Record<string, PortValue>): Record<string, PortValue> {
+  let nums: number[] = [];
+  const wired = inputs['numbers'];
+  if (Array.isArray(wired) && wired.length > 0) {
+    nums = (wired as (number | string)[])
+      .map(n => coerceToNumberPort(n))
+      .filter((n): n is number => n !== null);
+  } else {
+    nums = parseCsvNumbers(config.closestValues);
+  }
+  if (nums.length === 0) return { result: null, closestIndex: null, closestDiff: null };
+
+  const target = typeof inputs['b'] === 'number' ? inputs['b'] : (config.closestTarget ?? 0);
+  let bestIdx = 0;
+  let bestDiff = Math.abs(nums[0] - target);
+  for (let i = 1; i < nums.length; i++) {
+    const d = Math.abs(nums[i] - target);
+    if (d < bestDiff) {
+      bestDiff = d;
+      bestIdx = i;
+    }
+  }
+  const val = nums[bestIdx];
+  return {
+    result: formatMathResult(val, config),
+    closestIndex: bestIdx,
+    closestDiff: roundTo(bestDiff, config.precision),
+  };
+}
+
+function evalMathFluid(config: MathConfig, inputs: Record<string, PortValue>): Record<string, PortValue> {
+  const vwRaw = typeof inputs['a'] === 'number' ? inputs['a'] : (config.fluidViewport ?? 768);
+  const minS = config.fluidMinSize ?? 16;
+  const maxS = config.fluidMaxSize ?? 24;
+  const minVw = config.fluidMinViewport ?? 320;
+  const maxVw = config.fluidMaxViewport ?? 1920;
+  const vw = Math.max(minVw, Math.min(maxVw, vwRaw));
+  const span = maxVw - minVw;
+  const t = span === 0 ? 0 : (vw - minVw) / span;
+  const raw = minS + t * (maxS - minS);
+  const lo = Math.min(minS, maxS);
+  const hi = Math.max(minS, maxS);
+  const out = Math.max(lo, Math.min(hi, raw));
+  return { result: formatMathResult(out, config) };
+}
+
+function evalMathCount(config: MathConfig, inputs: Record<string, PortValue>): Record<string, PortValue> {
+  const a = inputs['a'];
+  if (!Array.isArray(a)) return { result: null };
+  return { result: formatMathResult(a.length, config) };
+}
+
+function evalMathLerp(config: MathConfig, inputs: Record<string, PortValue>): Record<string, PortValue> {
+  const tWire = inputs['t'];
+  const t =
+    typeof tWire === 'number' && !isNaN(tWire)
+      ? tWire
+      : (config.lerpT ?? 0.5);
+  const end =
+    typeof inputs['b'] === 'number' && !isNaN(inputs['b'] as number)
+      ? (inputs['b'] as number)
+      : (config.lerpEnd ?? 1);
+
+  const lerpVal = (start: number): number => start + t * (end - start);
+
+  const a = inputs['a'];
+  if (Array.isArray(a) && a.length > 0) {
+    const mapped = (a as (number | string)[]).map(n => {
+      const s = typeof n === 'number' ? n : parseFloat(String(n));
+      const start = !isNaN(s) ? s : (config.lerpStart ?? 0);
+      const raw = lerpVal(start);
+      return formatMathResult(raw, config);
+    }) as string[];
+    return { result: mapped };
+  }
+
+  const start =
+    typeof a === 'number' && !isNaN(a)
+      ? a
+      : typeof a === 'string' && a.trim()
+        ? parseFloat(a)
+        : (config.lerpStart ?? 0);
+  if (typeof start !== 'number' || isNaN(start)) return { result: null };
+  return { result: formatMathResult(lerpVal(start), config) };
+}
+
+function evalMathDifference(config: MathConfig, inputs: Record<string, PortValue>): Record<string, PortValue> {
+  const a = inputs['a'];
+  const bIn = inputs['b'];
+  const b = typeof bIn === 'number' ? bIn : config.operand;
+  const applyPair = (x: number, y: number): string | number => {
+    const d = Math.abs(x - y);
+    return formatMathResult(d, config);
+  };
+  if (Array.isArray(a)) {
+    const mapped = (a as (number | string)[]).map(n =>
+      applyPair(typeof n === 'number' ? n : parseFloat(String(n)), b),
+    );
+    return { result: mapped as string[] };
+  }
+  if (typeof a === 'number') {
+    return { result: applyPair(a, b) };
+  }
+  return { result: null };
+}
+
 function evalMath(
   config: MathConfig,
   inputs: Record<string, PortValue>,
@@ -310,14 +507,34 @@ function evalMath(
 ): Record<string, PortValue> {
   const a = inputs['a'];
 
-  // ── Expression mode ───────────────────────────────────────────────────────
+  // ── Expression mode (Evaluate Math) ───────────────────────────────────────
   if (config.mathMode === 'expression') {
     const expr = config.expression ?? '';
     return { result: computeMathExpressionResult(config, inputs, expr, options) };
   }
 
-  // ── Operations mode (default) ─────────────────────────────────────────────
-  // Resolve wired operand overrides from Constant nodes
+  const op = config.operation;
+
+  if (op === 'addVariadic' || op === 'divideVariadic') {
+    return evalMathVariadic(config, inputs, op);
+  }
+  if (op === 'closestNumber') {
+    return evalMathClosest(config, inputs);
+  }
+  if (op === 'fluid') {
+    return evalMathFluid(config, inputs);
+  }
+  if (op === 'count') {
+    return evalMathCount(config, inputs);
+  }
+  if (op === 'difference') {
+    return evalMathDifference(config, inputs);
+  }
+  if (op === 'lerp') {
+    return evalMathLerp(config, inputs);
+  }
+
+  // ── Standard unary/binary on input A ───────────────────────────────────────
   const bInput        = inputs['b'];
   const clampMinInput = inputs['clampMin'];
   const clampMaxInput = inputs['clampMax'];
@@ -652,7 +869,11 @@ function evalCssString(
 function evalPatternCss(config: PatternCssConfig): Record<string, PortValue> {
   const name = (config.name ?? '').trim();
   const body = (config.body ?? '').trim();
-  return { value: { name, body } };
+  return {
+    value: { name, body },
+    /** Wire to Token Output `name` handle for token path segment */
+    name,
+  };
 }
 
 function evalPatternHtml(config: PatternHtmlConfig): Record<string, PortValue> {
@@ -661,7 +882,10 @@ function evalPatternHtml(config: PatternHtmlConfig): Record<string, PortValue> {
   const css = (config.css ?? '').trim();
   const value =
     css.length > 0 ? { name, body, css } : { name, body };
-  return { value };
+  return {
+    value,
+    name,
+  };
 }
 
 function evalTokenRef(config: import('@/types/graph-nodes.types').TokenRefConfig): Record<string, PortValue> {

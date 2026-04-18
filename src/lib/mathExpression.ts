@@ -1,6 +1,6 @@
 /**
  * Safe numeric expression evaluator for Math node Expression mode.
- * Supports: + - * / parentheses, unary -, decimal literals, variable `a`.
+ * Supports: + - * / parentheses, unary -, decimal literals, variables `a` and `b`.
  * Optionally strips outer calc(...) wrapper.
  * Substitutes {token.path} references via resolveTokenReference.
  * Returns null on any parse/evaluation error.
@@ -11,6 +11,8 @@ export interface ExpressionContext {
   resolveTokenReference?: (ref: string) => string;
   /** Bound variable `a` — wired input value for per-element evaluation */
   a?: number;
+  /** Bound variable `b` — second operand (Evaluate Math / multi-variable formulas) */
+  b?: number;
 }
 
 /**
@@ -25,7 +27,7 @@ export function validateExpression(raw: string, ctx?: ExpressionContext): string
     const stripped = stripCalc(expr);
     const substituted = substituteRefs(stripped, ctx?.resolveTokenReference);
     if (substituted === null) return 'Unresolved token reference';
-    const result = parseExpr(substituted, ctx?.a);
+    const result = parseExpr(substituted, ctx?.a, ctx?.b);
     if (!isFinite(result)) return 'Invalid expression';
     return null;
   } catch (err) {
@@ -50,7 +52,7 @@ export function evaluateExpression(raw: string, ctx?: ExpressionContext): number
     if (substituted === null) return null;
 
     // Parse and evaluate
-    const result = parseExpr(substituted, ctx?.a);
+    const result = parseExpr(substituted, ctx?.a, ctx?.b);
     return isFinite(result) ? result : null;
   } catch {
     return null;
@@ -126,16 +128,17 @@ function coerceToNumber(value: string): number | null {
 //   addSub → mulDiv ( ('+' | '-') mulDiv )*
 //   mulDiv → unary  ( ('*' | '/') unary  )*
 //   unary  → '-' unary | '+' unary | primary
-//   primary→ '(' expr ')' | number | 'a'
+//   primary→ '(' expr ')' | number | 'a' | 'b'
 
 interface ParseState {
   input: string;
   pos: number;
   a: number | undefined;
+  b: number | undefined;
 }
 
-function parseExpr(input: string, a?: number): number {
-  const state: ParseState = { input, pos: 0, a };
+function parseExpr(input: string, a?: number, b?: number): number {
+  const state: ParseState = { input, pos: 0, a, b };
   skipWS(state);
   const result = parseAddSub(state);
   skipWS(state);
@@ -233,6 +236,16 @@ function parsePrimary(s: ParseState): number {
     s.pos++;
     if (s.a === undefined) throw new Error('Variable a is not bound');
     return s.a;
+  }
+
+  // Variable `b` — second bound input (Evaluate Math)
+  if (
+    s.input[s.pos] === 'b' &&
+    (s.pos + 1 >= s.input.length || !/\w/.test(s.input[s.pos + 1]))
+  ) {
+    s.pos++;
+    if (s.b === undefined) throw new Error('Variable b is not bound');
+    return s.b;
   }
 
   // Numeric literal, optionally followed by a unit suffix (px, rem, em, %, …)
