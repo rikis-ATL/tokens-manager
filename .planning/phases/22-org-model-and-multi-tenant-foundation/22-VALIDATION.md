@@ -40,7 +40,7 @@ created: 2026-04-18
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
 | 22-01-01 | 01 | 1 | TENANT-01 | T-22-01 | Organization model enforces required name field | unit | `yarn jest src/lib/db/models/__tests__/organization.test.ts` | ❌ W0 | ⬜ pending |
 | 22-01-02 | 01 | 1 | TENANT-01 | T-22-01 | organizationId required on User schema | unit | `yarn jest src/lib/db/models/__tests__/user-org.test.ts` | ❌ W0 | ⬜ pending |
-| 22-01-03 | 01 | 1 | TENANT-01 | T-22-01 | organizationId required on TokenCollection schema | unit | `yarn jest src/lib/db/models/__tests__/token-collection-org.test.ts` | ❌ W0 | ⬜ pending |
+| 22-01-03 | 01 | 1 | TENANT-01 | T-22-01 | organizationId required on TokenCollection schema | unit | `yarn jest src/lib/db/models/__tests__/tokenCollection-org.test.ts` | ❌ W0 | ⬜ pending |
 | 22-02-01 | 02 | 2 | TENANT-01 | T-22-02 | assertOrgOwnership returns 404 for cross-tenant access | unit | `yarn jest src/lib/auth/__tests__/assert-org-ownership.test.ts` | ❌ W0 | ⬜ pending |
 | 22-02-02 | 02 | 2 | TENANT-01 | T-22-02 | JWT includes organizationId claim | unit | `yarn jest src/lib/auth/__tests__/jwt-org.test.ts` | ❌ W0 | ⬜ pending |
 | 22-02-03 | 02 | 2 | TENANT-01 | T-22-07 | Demo session uses DEMO_ORG_ID for ownership | unit | `yarn jest src/lib/auth/__tests__/demo-session-org.test.ts` | ❌ W0 | ⬜ pending |
