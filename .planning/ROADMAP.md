@@ -218,6 +218,7 @@ Plans:
 | 30. AI-Assisted Naming and Queries | 0/3 | Not started | - |
 | 31. Style Guide Verification | 3/3 | Complete   | 2026-04-09 |
 | 32. MCP Tool Service Layer | 0/? | Not started | - |
+| 999.3. Tokens Studio graph math node parity | 1 plan + UAT | Implemented — verification open | - |
 
 ### Phase 1: review math node features
 
@@ -233,6 +234,19 @@ Plans:
 - [x] 01-04-PLAN.md — Browser UAT + phase commit (D-01, D-02)
 
 ## Backlog
+
+### Phase 999.3: Tokens Studio graph math node parity (BACKLOG)
+
+**Goal:** Align the composable Math node with [Tokens Studio Graph Engine — Math](https://documentation.tokens.studio/graph-engine/available-nodes/math): extended operations (absolute, variadic add/divide, closest number with extra outputs, fluid scaling, count, difference, cosine, exponentiation e^x, ceiling), expression mode with variables `a` and `b` (Evaluate Math), tests and human UAT.
+
+**Requirements:** MATH-TS-01, MATH-TS-02, MATH-TS-03 (see `.planning/REQUIREMENTS.md`)
+
+**Plans:** 1 plan bundle (CONTEXT + PLAN + VERIFICATION)
+
+Plans:
+- [x] [999.3-CONTEXT.md](phases/999.3-tokens-studio-graph-math-node-parity/999.3-CONTEXT.md) — scope and reference
+- [x] [999.3-PLAN.md](phases/999.3-tokens-studio-graph-math-node-parity/999.3-PLAN.md) — implementation tasks (code landed; see `status` in frontmatter)
+- [ ] [999.3-VERIFICATION.md](phases/999.3-tokens-studio-graph-math-node-parity/999.3-VERIFICATION.md) — human browser UAT (complete to close phase)
 
 ### Phase 999.2: Versioning and NPM publish (BACKLOG)
 
