@@ -24,7 +24,7 @@ Add a first-class Organization model so every User and TokenCollection is scoped
 
 ### assertOrgOwnership()
 - **D-06:** Standalone function called *after* `requireAuth()` in route handlers — does not modify or replace `requireAuth()`. Explicit, composable, follows existing pattern.
-- **D-07:** Signature: `assertOrgOwnership(session: Session, collectionId: string): Promise<NextResponse | null>` — returns `null` on success (caller continues), `NextResponse 403` on org mismatch.
+- **D-07:** Signature: `assertOrgOwnership(session: Session, collectionId: string): Promise<NextResponse | null>` — returns `null` on success (caller continues), `NextResponse 404` on org mismatch (avoids confirming resource existence to cross-tenant attackers).
 - **D-08:** Must be applied to all collection routes: `GET/PUT /api/collections/[id]`, themes CRUD, export, Figma, GitHub routes.
 
 ### JWT Extension
@@ -42,7 +42,7 @@ Add a first-class Organization model so every User and TokenCollection is scoped
 ### Claude's Discretion
 - API route for org creation during signup (likely `POST /api/orgs` or handled inline in `POST /api/auth/signup`)
 - Whether signup API route is a new `/api/auth/signup` or `/api/orgs/create`
-- Exact error messages for 403 responses from `assertOrgOwnership()`
+- Exact error messages for 404 responses from `assertOrgOwnership()`
 
 </decisions>
 
