@@ -8,7 +8,7 @@
 - ✅ **v1.3 Add Tokens Modes** — Phases 8-9 (shipped 2026-03-19)
 - ✅ **v1.4 Theme Token Sets** — Phases 10-15 (shipped 2026-03-27)
 - ✅ **v1.5 Org User Management** — Phases 16-21 (shipped 2026-03-29)
-- ⏸ **v1.6 Multi-Tenant SaaS** — Phases 22-24 (deferred — resume after v1.9)
+- 🔜 **v1.6 Multi-Tenant SaaS** — Phases 22-24 (next — begins after v1.9)
 - ✅ **v1.7 AI Integration** — Phases 25-28 (shipped 2026-04-06; known gaps — see milestones/v1.7-ROADMAP.md)
 - ✅ **v1.8 AI Fix + Completion** — Phase 29 (shipped 2026-04-08)
 - 🔄 **v1.9 AI Completion + MCP Alignment** — Phases 30-32 (active)
@@ -107,15 +107,55 @@ See: `.planning/milestones/v1.4-ROADMAP.md` for full phase details.
 
 </details>
 
-### ⏸ v1.6 Multi-Tenant SaaS (Deferred — resumes after v1.9)
+### 🔜 v1.6 Multi-Tenant SaaS (Next — begins after v1.9)
 
 **Milestone Goal:** Convert the app into a multi-org SaaS with configurable free/pro/team tiers enforced at the API layer and paid upgrades via Stripe Checkout.
-
-**Branch:** `feature/v1.6-multi-tenant-saas` — all v1.6 work must be done in this branch.
 
 - [ ] **Phase 22: Org Model and Multi-Tenant Foundation** — Organization model, organizationId on User+TokenCollection, JWT extension, idempotent migration bootstrap, assertOrgOwnership() on all collection routes, compound indexes, self-serve org signup
 - [ ] **Phase 23: Billing Module and Limit Enforcement** — src/lib/billing/ module skeleton, LIMITS config (tiers.ts), check functions, usage tracking with lazy UTC-month reset, rate limiter (per user ID, never IP), SELF_HOSTED bypass, 402 responses on all capped routes, UpgradeModal
 - [ ] **Phase 24: Stripe Checkout and Webhook Integration** — Stripe singleton, checkout session creation, billing portal session, webhook handler (req.text() — CRITICAL), ProcessedWebhookEvent idempotency guard, all three webhook event types, success page session refresh
+
+### Phase 22: Org Model and Multi-Tenant Foundation
+**Goal**: Add a first-class Organization model so every user and collection is scoped to an org, with a self-serve signup flow and full API-layer ownership enforcement.
+**Depends on**: Phase 21 (Org User Management)
+**Requirements**: TENANT-01, TENANT-02, TENANT-03
+**Success Criteria** (what must be TRUE):
+  1. Every TokenCollection and User document has an `organizationId` field enforced at the API layer via `assertOrgOwnership()` (TENANT-01)
+  2. A new user can create an organization during self-serve signup without admin intervention (TENANT-02)
+  3. Existing single-tenant data is migrated to a seeded org on first boot via idempotent migration bootstrap (TENANT-03)
+  4. Compound indexes on `(organizationId, _id)` exist on User and TokenCollection collections
+  5. JWT tokens include `organizationId` claim and all route handlers validate it
+**Plans**: 4 plans
+- [ ] 22-01-PLAN.md — Organization model + User/TokenCollection schemas with required organizationId + compound indexes (D-01, D-02, D-14)
+- [ ] 22-02-PLAN.md — JWT organizationId claim, demo session extension, assertOrgOwnership() utility (D-06, D-07, D-09, D-10)
+- [ ] 22-03-PLAN.md — Self-serve signup flow: POST /api/auth/signup + /auth/signup page with atomic Org+User creation (D-03, D-04)
+- [ ] 22-04-PLAN.md — scripts/migrate-to-org.ts idempotent back-fill + GET /api/collections org-scoping (D-11, D-12, D-13 + TENANT-01 closure)
+
+### Phase 23: Billing Module and Limit Enforcement
+**Goal**: Enforce configurable free/pro/team tier limits at the API layer with 402 responses and an in-app upgrade prompt.
+**Depends on**: Phase 22
+**Requirements**: BILLING-01, BILLING-07, LIMIT-01, LIMIT-05, RATE-01
+**Success Criteria** (what must be TRUE):
+  1. `src/lib/billing/tiers.ts` defines LIMITS config for free/pro/team tiers and is the single source of truth
+  2. All capped API routes respond 402 with a structured error when the org exceeds its tier limit
+  3. Usage tracking resets lazily on UTC-month boundary — no cron job required
+  4. Rate limiter enforces per-user-ID limits on export and token-update endpoints (never per-IP)
+  5. `SELF_HOSTED=true` env var bypasses all limit checks
+  6. UpgradeModal surfaces in the UI when a 402 is received
+**Plans**: TBD
+
+### Phase 24: Stripe Checkout and Webhook Integration
+**Goal**: Wire Stripe Checkout for plan upgrades and a webhook handler to keep org billing state in sync.
+**Depends on**: Phase 23
+**Requirements**: STRIPE-01, STRIPE-02, STRIPE-03
+**Success Criteria** (what must be TRUE):
+  1. User can initiate a Stripe Checkout session from the UpgradeModal and complete a plan upgrade
+  2. Billing portal session creation allows users to manage their subscription
+  3. Webhook handler uses `req.text()` (not `req.json()`) for Stripe signature verification — CRITICAL
+  4. `ProcessedWebhookEvent` idempotency guard prevents duplicate processing
+  5. All three webhook event types handled: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`
+  6. Successful checkout triggers a session refresh so the UI reflects the new tier immediately
+**Plans**: TBD
 
 ### 🔄 v1.9 AI Completion + MCP Alignment (Active)
 
@@ -172,6 +212,9 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
+| 22. Org Model and Multi-Tenant Foundation | 0/? | Not started | - |
+| 23. Billing Module and Limit Enforcement | 0/? | Not started | - |
+| 24. Stripe Checkout and Webhook Integration | 0/? | Not started | - |
 | 30. AI-Assisted Naming and Queries | 0/3 | Not started | - |
 | 31. Style Guide Verification | 3/3 | Complete   | 2026-04-09 |
 | 32. MCP Tool Service Layer | 0/? | Not started | - |
@@ -188,3 +231,17 @@ Plans:
 - [x] 01-02-PLAN.md — Invalid-expression error feedback on MathNode (red border + message on blur; D-03, D-04, D-05)
 - [x] 01-03-PLAN.md — graphTokenPaths resolveTokenReference plumbing (D-08)
 - [x] 01-04-PLAN.md — Browser UAT + phase commit (D-01, D-02)
+
+## Backlog
+
+### Phase 999.1: CSS/HTML pattern token types (BACKLOG)
+
+**Goal:** Extend the app with **non–W3C-design-token** types used as **CSS/HTML pattern storage** alongside existing tokens: (1) **CSS class** — table type + dedicated graph node; stores CSS class patterns. (2) **HTML template** — tokenized HTML that may reference CSS classes or variables inline. (3) **HTML/CSS component** — combined model: CSS and HTML held as structured string fields (object shape TBD at planning time), previewed in a **minimal third-party sandbox** (e.g. iframe with strict isolation). Official export pipelines may treat these as out-of-band or separate artifacts — decide at promotion.
+
+**Problem / motivation:** Linear text editing of HTML/CSS/JS makes structure and relationships hard to see; future work may explore **visual, navigable** representations (e.g. block-oriented HTML, library-style CSS) — **not** in scope for this backlog item until promoted and scoped.
+
+**Requirements:** TBD (promote to milestone and add REQ-* IDs as needed)
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
