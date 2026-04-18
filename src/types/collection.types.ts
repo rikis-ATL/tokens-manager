@@ -40,6 +40,12 @@ export interface ITokenCollection {
   githubRepo: string | null;
   githubBranch: string | null;
   githubPath: string | null;
+  /** NPM publish — package name including scope, e.g. @org/tokens */
+  npmPackageName: string | null;
+  /** Registry origin URL (npmjs or GitHub Packages) */
+  npmRegistryUrl: string | null;
+  /** True when an NPM automation token is stored (never expose the token) */
+  npmTokenConfigured: boolean;
   // Graph canvas state (composable nodes, edges, legacy generators) keyed by group id
   graphState: CollectionGraphState | null;
   // Themes — named configurations that assign group states (disabled/enabled/source)
@@ -76,4 +82,4 @@ export type CreateTokenCollectionInput = Omit<ITokenCollection, '_id' | 'created
 /**
  * Shape for updating an existing collection.
  */
-export type UpdateTokenCollectionInput = Partial<Pick<ITokenCollection, 'name' | 'namespace' | 'tokens' | 'sourceMetadata' | 'description' | 'tags' | 'colorFormat' | 'figmaToken' | 'figmaFileId' | 'githubRepo' | 'githubBranch' | 'githubPath' | 'graphState' | 'themes' | 'isPlayground' | 'accentColor'>>;
+export type UpdateTokenCollectionInput = Partial<Pick<ITokenCollection, 'name' | 'namespace' | 'tokens' | 'sourceMetadata' | 'description' | 'tags' | 'colorFormat' | 'figmaToken' | 'figmaFileId' | 'githubRepo' | 'githubBranch' | 'githubPath' | 'npmPackageName' | 'npmRegistryUrl' | 'graphState' | 'themes' | 'isPlayground' | 'accentColor'>>;

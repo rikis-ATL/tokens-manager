@@ -7,6 +7,9 @@ import type { ITokenCollection, UpdateTokenCollectionInput, ISourceMetadata } fr
 export type CollectionDoc = Omit<ITokenCollection, 'createdAt' | 'updatedAt'> & {
   createdAt: string;
   updatedAt: string;
+  /** Server-only — present when loaded from Mongo for publish */
+  npmTokenEncrypted?: string | null;
+  npmTokenIv?: string | null;
 };
 
 export interface CreateCollectionInput {

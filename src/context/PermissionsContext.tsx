@@ -12,6 +12,8 @@ export interface PermissionsContextValue {
   isAdmin:   boolean;  // org role === 'Admin'
   canGitHub: boolean;  // Action.PushGithub (effective role, or public DEMO_MODE session)
   canFigma:  boolean;  // Action.PushFigma (effective role, or public DEMO_MODE session)
+  canManageVersions: boolean;  // Action.ManageVersions
+  canPublishNpm: boolean;      // Action.PublishNpm
 }
 
 const DEFAULT_PERMISSIONS: PermissionsContextValue = {
@@ -20,6 +22,8 @@ const DEFAULT_PERMISSIONS: PermissionsContextValue = {
   isAdmin:   false,
   canGitHub: false,
   canFigma:  false,
+  canManageVersions: false,
+  canPublishNpm: false,
 };
 
 const PermissionsContext = createContext<PermissionsContextValue>(DEFAULT_PERMISSIONS);
@@ -117,6 +121,12 @@ export function PermissionsProvider({ children }: { children: React.ReactNode })
     canFigma:
       !!effectiveRole &&
       (canPerform(effectiveRole, Action.PushFigma) || isDemoEnvSession),
+    canManageVersions:
+      !!effectiveRole &&
+      (canPerform(effectiveRole, Action.ManageVersions) || isDemoEnvSession),
+    canPublishNpm:
+      !!effectiveRole &&
+      (canPerform(effectiveRole, Action.PublishNpm) || isDemoEnvSession),
   };
 
   return (

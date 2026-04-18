@@ -103,7 +103,10 @@ export async function requireRole(action: ActionType, collectionId?: string): Pr
     // DEMO_MODE: allow GitHub/Figma sync so public demos can use integrations with user-supplied credentials
     if (
       isDemoMode() &&
-      (action === Action.PushGithub || action === Action.PushFigma)
+      (action === Action.PushGithub ||
+        action === Action.PushFigma ||
+        action === Action.ManageVersions ||
+        action === Action.PublishNpm)
     ) {
       return session;
     }

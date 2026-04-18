@@ -21,9 +21,12 @@ interface SupabaseRow {
   github_repo: string | null;
   github_branch: string | null;
   github_path: string | null;
+  npm_package_name?: string | null;
+  npm_registry_url?: string | null;
   graph_state: Record<string, unknown> | null;
   themes: ITheme[] | null;
   is_playground: boolean | null;
+  accent_color?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -44,8 +47,12 @@ function rowToDoc(row: SupabaseRow): CollectionDoc {
     githubRepo: row.github_repo ?? null,
     githubBranch: row.github_branch ?? null,
     githubPath: row.github_path ?? null,
+    npmPackageName: row.npm_package_name ?? null,
+    npmRegistryUrl: row.npm_registry_url ?? null,
+    npmTokenConfigured: false,
     graphState: (row.graph_state as CollectionDoc['graphState']) ?? null,
     isPlayground: row.is_playground ?? false,
+    accentColor: row.accent_color ?? null,
     themes: row.themes ?? [],
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -83,9 +90,12 @@ function toUpdateRow(data: UpdateTokenCollectionInput) {
   if (data.githubRepo !== undefined) row.github_repo = data.githubRepo;
   if (data.githubBranch !== undefined) row.github_branch = data.githubBranch;
   if (data.githubPath !== undefined) row.github_path = data.githubPath;
+  if (data.npmPackageName !== undefined) row.npm_package_name = data.npmPackageName;
+  if (data.npmRegistryUrl !== undefined) row.npm_registry_url = data.npmRegistryUrl;
   if (data.graphState !== undefined) row.graph_state = data.graphState;
   if (data.themes !== undefined) row.themes = data.themes;
   if (data.isPlayground !== undefined) row.is_playground = data.isPlayground;
+  if (data.accentColor !== undefined) row.accent_color = data.accentColor;
   return row;
 }
 

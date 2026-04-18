@@ -17,6 +17,13 @@ const nextConfig = {
       'socket.io',
       'engine.io',
       'ws',
+      // NPM publish — deep dependency tree breaks webpack resolution
+      'libnpmpublish',
+      'tar',
+      'npm-registry-fetch',
+      'make-fetch-happen',
+      '@npmcli/git',
+      '@sigstore/sign',
     ],
   },
   transpilePackages: [

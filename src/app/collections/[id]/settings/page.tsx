@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
@@ -100,7 +101,7 @@ interface SettingsPageProps {
 
 export default function CollectionSettingsPage({ params }: SettingsPageProps) {
   const { id } = params;
-  const { isAdmin, canGitHub, canFigma } = usePermissions();
+  const { isAdmin, canGitHub, canFigma, canPublishNpm, canManageVersions } = usePermissions();
 
   const [collectionName, setCollectionName] = useState('');
   const [figmaToken, setFigmaToken] = useState('');
@@ -109,6 +110,11 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
   const [githubBranch, setGithubBranch] = useState('');
   const [githubPath, setGithubPath] = useState('');
   const [githubToken, setGithubToken] = useState('');
+  const [npmPackageName, setNpmPackageName] = useState('');
+  const [npmRegistryUrl, setNpmRegistryUrl] = useState('');
+  const [npmTokenInput, setNpmTokenInput] = useState('');
+  const [npmTokenConfigured, setNpmTokenConfigured] = useState(false);
+  const [npmWhoamiLoading, setNpmWhoamiLoading] = useState(false);
   const [isPlayground, setIsPlayground] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [loading, setLoading] = useState(true);
@@ -166,6 +172,10 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
         setGithubToken(savedGithubToken);
         
         setIsPlayground(col.isPlayground ?? false);
+        setNpmPackageName(col.npmPackageName ?? '');
+        setNpmRegistryUrl(col.npmRegistryUrl ?? '');
+        setNpmTokenConfigured(col.npmTokenConfigured ?? false);
+        setNpmTokenInput('');
       } catch (err) {
         console.error('[CollectionSettingsPage] Failed to load collection:', err);
       } finally {
@@ -192,7 +202,16 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
     setSaveStatus('saving');
 
     debounceRef.current = setTimeout(async () => {
-      await saveToDb({ figmaToken, figmaFileId, githubRepo, githubBranch, githubPath, isPlayground });
+      await saveToDb({
+        figmaToken,
+        figmaFileId,
+        githubRepo,
+        githubBranch,
+        githubPath,
+        isPlayground,
+        npmPackageName,
+        npmRegistryUrl,
+      });
     }, 800);
 
     return () => {
@@ -200,7 +219,7 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
     };
     // Note: githubToken is intentionally excluded — it's stored in localStorage only
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [figmaToken, figmaFileId, githubRepo, githubBranch, githubPath, isPlayground]);
+  }, [figmaToken, figmaFileId, githubRepo, githubBranch, githubPath, isPlayground, npmPackageName, npmRegistryUrl]);
 
   // Once loading finishes, mark mount as done so subsequent changes trigger auto-save
   useEffect(() => {
@@ -223,6 +242,8 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
     githubBranch: string;
     githubPath: string;
     isPlayground: boolean;
+    npmPackageName?: string;
+    npmRegistryUrl?: string;
   }) {
     try {
       const res = await fetch(`/api/collections/${id}`, {
@@ -235,6 +256,8 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
           githubBranch: fields.githubBranch || null,
           githubPath: fields.githubPath || null,
           isPlayground: fields.isPlayground,
+          npmPackageName: fields.npmPackageName?.trim() || null,
+          npmRegistryUrl: fields.npmRegistryUrl?.trim() || null,
         }),
       });
 
@@ -257,7 +280,16 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
     setFigmaFileId('');
     setFigmaVerify({ phase: 'idle', message: '', resultFingerprint: null });
     setSaveStatus('saving');
-    saveToDb({ figmaToken: '', figmaFileId: '', githubRepo, githubBranch, githubPath, isPlayground });
+    saveToDb({
+      figmaToken: '',
+      figmaFileId: '',
+      githubRepo,
+      githubBranch,
+      githubPath,
+      isPlayground,
+      npmPackageName,
+      npmRegistryUrl,
+    });
   }
 
   function getFigmaDisplayStatus(): IntegrationDisplayStatus {
@@ -348,7 +380,63 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
     setGithubPath('');
     setGithubVerify({ phase: 'idle', message: '', resultFingerprint: null });
     setSaveStatus('saving');
-    saveToDb({ figmaToken, figmaFileId, githubRepo: '', githubBranch: '', githubPath: '', isPlayground });
+    saveToDb({
+      figmaToken,
+      figmaFileId,
+      githubRepo: '',
+      githubBranch: '',
+      githubPath: '',
+      isPlayground,
+      npmPackageName,
+      npmRegistryUrl,
+    });
+  }
+
+  async function saveNpmTokenToServer() {
+    const trimmed = npmTokenInput.trim();
+    try {
+      const res = await fetch(`/api/collections/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ npmToken: trimmed || null }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(typeof data.error === 'string' ? data.error : 'Save failed');
+      }
+      const data = await res.json();
+      setNpmTokenConfigured(data.collection?.npmTokenConfigured ?? false);
+      setNpmTokenInput('');
+      showSuccessToast(trimmed ? 'NPM token saved' : 'NPM token cleared');
+    } catch (e) {
+      showErrorToast(e instanceof Error ? e.message : 'Failed to save NPM token');
+    }
+  }
+
+  async function testNpmRegistry() {
+    setNpmWhoamiLoading(true);
+    try {
+      const body: { npmToken?: string } = {};
+      if (npmTokenInput.trim()) {
+        body.npmToken = npmTokenInput.trim();
+      }
+      const res = await fetch(`/api/collections/${id}/npm/whoami`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(typeof data.error === 'string' ? data.error : 'Registry check failed');
+      }
+      showSuccessToast(
+        typeof data.username === 'string' ? `Registry OK · ${data.username}` : 'Registry OK'
+      );
+    } catch (e) {
+      showErrorToast(e instanceof Error ? e.message : 'Registry check failed');
+    } finally {
+      setNpmWhoamiLoading(false);
+    }
   }
 
   // ── GitHub sync actions ────────────────────────────────────────────
@@ -680,10 +768,18 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
   return (
     <div className="p-6 max-w-2xl">
       {/* Heading row */}
-      <div className="flex items-center gap-3 mb-8">
+      <div className="flex flex-wrap items-center gap-3 mb-8">
         <h1 className="text-xl font-semibold text-gray-900">
           Settings: {collectionName}
         </h1>
+        {(canManageVersions || canPublishNpm) && (
+          <Link
+            href={`/collections/${id}/versions`}
+            className="text-sm text-blue-600 hover:underline"
+          >
+            Versions &amp; NPM publish
+          </Link>
+        )}
         {saveStatus === 'saving' && (
           <span className="flex items-center gap-1.5 text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
             <span className="inline-block w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
@@ -972,6 +1068,86 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
             )}
           </div>
         </section>
+
+        {/* NPM registry (MongoDB — encrypted token server-side) */}
+        {(canPublishNpm || canManageVersions) && (
+          <section>
+            <div className="flex items-center mb-2">
+              <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
+                NPM registry
+              </h2>
+            </div>
+            <p className="text-xs text-gray-500 mb-4">
+              Used to publish built token packages from the{' '}
+              <Link href={`/collections/${id}/versions`} className="text-blue-600 hover:underline">
+                Versions
+              </Link>{' '}
+              page. Scoped packages on npmjs default to <code className="bg-gray-100 px-1 rounded">access=public</code>.
+              For GitHub Packages, set the registry URL to{' '}
+              <code className="bg-gray-100 px-1 rounded">https://npm.pkg.github.com/OWNER</code> and use a token with{' '}
+              <code className="bg-gray-100 px-1 rounded">write:packages</code>.
+            </p>
+            <div className="space-y-4 max-w-lg">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Package name</label>
+                <Input
+                  type="text"
+                  value={npmPackageName}
+                  onChange={(e) => setNpmPackageName(e.target.value)}
+                  placeholder="@scope/my-tokens"
+                  disabled={!canPublishNpm}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Registry URL</label>
+                <Input
+                  type="text"
+                  value={npmRegistryUrl}
+                  onChange={(e) => setNpmRegistryUrl(e.target.value)}
+                  placeholder="https://registry.npmjs.org/"
+                  disabled={!canPublishNpm}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  NPM token
+                  {npmTokenConfigured && (
+                    <span className="ml-2 text-xs font-normal text-green-700">(saved)</span>
+                  )}
+                </label>
+                <Input
+                  type="password"
+                  value={npmTokenInput}
+                  onChange={(e) => setNpmTokenInput(e.target.value)}
+                  placeholder={
+                    npmTokenConfigured ? 'Enter new token to replace' : 'npm automation token'
+                  }
+                  disabled={!canPublishNpm}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Stored encrypted on the server (requires <code className="bg-gray-100 px-1 rounded">ENCRYPTION_KEY</code>).
+                  Leave empty and save to remove.
+                </p>
+              </div>
+              {canPublishNpm && (
+                <div className="flex flex-wrap gap-2">
+                  <Button type="button" variant="outline" size="sm" onClick={saveNpmTokenToServer}>
+                    Save token
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={testNpmRegistry}
+                    disabled={npmWhoamiLoading}
+                  >
+                    {npmWhoamiLoading ? 'Testing…' : 'Test registry'}
+                  </Button>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
 
         {/* Playground section - Admin only */}
         {isAdmin && (
