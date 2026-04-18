@@ -90,7 +90,11 @@ function TokenOutputNodeComponent({ data }: NodeProps) {
 
   // Single token preview when a scalar is wired
   const singlePreviewName = [namespace, prefix, wiredName].filter(Boolean).join('-') || 'token';
-  const singlePreviewValue = isSingleMode ? String(rawValues) : '';
+  const singlePreviewValue = isSingleMode
+    ? typeof rawValues === 'object' && rawValues !== null
+      ? JSON.stringify(rawValues)
+      : String(rawValues ?? '')
+    : '';
 
   const preview = values.slice(0, 5).map((v, i) => ({
     name: makeName(v, stepNames?.[i]),

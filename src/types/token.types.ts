@@ -21,7 +21,11 @@ export type TokenType =
   | 'transition'
   | 'shadow'
   | 'gradient'
-  | 'typography';
+  | 'typography'
+  /** CSS/HTML pattern storage (non–W3C; omitted from Style Dictionary export) */
+  | 'cssClass'
+  | 'htmlTemplate'
+  | 'htmlCssComponent';
 
 export const TOKEN_TYPES: TokenType[] = [
   'color',
@@ -45,8 +49,75 @@ export const TOKEN_TYPES: TokenType[] = [
   'transition',
   'shadow',
   'gradient',
-  'typography'
+  'typography',
+  'cssClass',
+  'htmlTemplate',
+  'htmlCssComponent',
 ];
+
+/** Stored value for pattern token types — not W3C $value scalars. */
+export interface PatternTokenValue {
+  name: string;
+  body: string;
+  /** Only used when `type` is `htmlCssComponent` */
+  css?: string;
+}
+
+export const PATTERN_TOKEN_TYPES: TokenType[] = [
+  'cssClass',
+  'htmlTemplate',
+  'htmlCssComponent',
+];
+
+export function isPatternTokenType(t: TokenType): boolean {
+  return PATTERN_TOKEN_TYPES.includes(t);
+}
+
+const EMPTY_PATTERN: PatternTokenValue = { name: '', body: '' };
+
+/** Coerce legacy/empty data to a consistent pattern object for UI + persistence. */
+export function normalizePatternValue(raw: unknown): PatternTokenValue {
+  if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+    const o = raw as Record<string, unknown>;
+    const name = typeof o.name === 'string' ? o.name : '';
+    const body = typeof o.body === 'string' ? o.body : '';
+    const css = typeof o.css === 'string' ? o.css : undefined;
+    if (css !== undefined && css.trim() === '') {
+      return { name, body };
+    }
+    return css !== undefined ? { name, body, css } : { name, body };
+  }
+  if (typeof raw === 'string' && raw.trim() !== '') {
+    try {
+      const parsed = JSON.parse(raw) as unknown;
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        return normalizePatternValue(parsed);
+      }
+    } catch {
+      /* fall through */
+    }
+    return { name: '', body: raw };
+  }
+  return { ...EMPTY_PATTERN };
+}
+
+function truncateText(s: string, max: number): string {
+  if (s.length <= max) return s;
+  return `${s.slice(0, max)}…`;
+}
+
+/** Single-line summary for table cells (non-edit). */
+export function formatPatternValuePreview(raw: unknown, type: TokenType): string {
+  const v = normalizePatternValue(raw);
+  const bits: string[] = [];
+  if (v.name.trim()) bits.push(v.name);
+  const bodyPrev = truncateText(v.body.replace(/\s+/g, ' ').trim(), 48);
+  if (bodyPrev) bits.push(bodyPrev);
+  if (type === 'htmlCssComponent' && v.css && v.css.trim()) {
+    bits.push(`css: ${truncateText(v.css.replace(/\s+/g, ' ').trim(), 24)}`);
+  }
+  return bits.length > 0 ? bits.join(' · ') : '—';
+}
 
 export interface GeneratedToken {
   id: string;

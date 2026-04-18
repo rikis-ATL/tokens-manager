@@ -337,7 +337,7 @@ export function registerTokenTools(server: McpServer): void {
           .string()
           .optional()
           .describe(
-            "W3C design token type: 'color', 'dimension', 'number', 'string', 'duration'. Defaults to 'color'."
+            "W3C design token type: 'color', 'dimension', 'number', 'string', 'duration'. Defaults to 'color'. Pattern types (cssClass, htmlTemplate, htmlCssComponent) are app-only and omitted from Style Dictionary export."
           ),
       }),
     },

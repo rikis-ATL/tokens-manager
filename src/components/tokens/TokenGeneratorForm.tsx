@@ -42,6 +42,10 @@ import {
   TokenType,
   TOKEN_TYPES,
   LoadingState,
+  isPatternTokenType,
+  normalizePatternValue,
+  formatPatternValuePreview,
+  type PatternTokenValue,
 } from "../../types";
 import {
   generateId,
@@ -64,6 +68,7 @@ import {
 import { type ColorFormat } from "@/utils/color.utils";
 import { createLoadingState } from "../../utils";
 import { BulkActionBar } from "./BulkActionBar";
+import { Badge } from "@/components/ui/badge";
 
 // ─── TokenTableRow ─────────────────────────────────────────────────────────────
 
@@ -179,7 +184,11 @@ function TokenTableRow({
 
   const resolvedValue = resolveRef(token.value?.toString() ?? "");
   const tokenValueStr = token.value?.toString() ?? "";
-  const isReference = tokenValueStr.startsWith("{") && tokenValueStr.endsWith("}");
+  const isPatternRow = isPatternTokenType(token.type);
+  const isReference =
+    !isPatternRow &&
+    tokenValueStr.startsWith("{") &&
+    tokenValueStr.endsWith("}");
   const isUnresolvedReference = isReference && resolvedValue === tokenValueStr;
   
   const swatchBg = resolvedValue.startsWith("#")
@@ -195,7 +204,11 @@ function TokenTableRow({
       <tr
         ref={trRef}
         className={`transition-colors group/row ${isMultiSelected ? "bg-blue-50 ring-1 ring-inset ring-blue-200" : isSelected ? "bg-blue-50 ring-1 ring-inset ring-blue-200" : "hover:bg-gray-50/60"}`}
-        style={{ height: 36 }}
+        style={
+          isPatternRow && editingField === "value"
+            ? { minHeight: 36 }
+            : { height: 36 }
+        }
         onFocusCapture={() =>
           onTokenSelect?.(isSelected ? null : token, group.path ?? group.name)
         }
@@ -255,7 +268,18 @@ function TokenTableRow({
             <Select
               value={token.type}
               onValueChange={(v) => {
-                onUpdateToken(group.id, token.id, "type", v);
+                const newType = v as TokenType;
+                onUpdateToken(group.id, token.id, "type", newType);
+                if (isPatternTokenType(newType)) {
+                  onUpdateToken(
+                    group.id,
+                    token.id,
+                    "value",
+                    normalizePatternValue(token.value),
+                  );
+                } else if (isPatternTokenType(token.type)) {
+                  onUpdateToken(group.id, token.id, "value", "");
+                }
                 setEditingField(null);
               }}
               open
@@ -279,12 +303,21 @@ function TokenTableRow({
             </Select>
           ) : (
             <div
-              className={`h-9 flex items-center px-3 ${isReadOnly ? "cursor-default" : "cursor-pointer"}`}
+              className={`h-9 flex items-center gap-1.5 px-3 ${isReadOnly ? "cursor-default" : "cursor-pointer"}`}
               onClick={isReadOnly ? undefined : enterEdit("type")}
             >
               <span className="text-[11px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 font-medium">
                 {token.type}
               </span>
+              {isPatternRow && (
+                <Badge
+                  variant="secondary"
+                  className="text-[9px] px-1.5 py-0 h-5 font-normal shrink-0"
+                  title="Omitted from Style Dictionary / ZIP export"
+                >
+                  Not exported
+                </Badge>
+              )}
             </div>
           )}
         </td>
@@ -293,7 +326,8 @@ function TokenTableRow({
         <td className="px-0 py-0 border-r border-gray-100 w-[180px]">
           <div
             className={`flex gap-1.5 px-2 ${
-              editingField === "value" && token.type === "string"
+              editingField === "value" &&
+              (token.type === "string" || isPatternRow)
                 ? "items-start min-h-[76px] py-1"
                 : "h-9 items-center"
             }`}
@@ -328,7 +362,69 @@ function TokenTableRow({
 
             {/* Value input / display */}
             {editingField === "value" ? (
-              token.type === "string" ? (
+              isPatternRow ? (
+                (() => {
+                  const pv = normalizePatternValue(token.value);
+                  const commit = (next: PatternTokenValue) => {
+                    if (
+                      token.type === "htmlTemplate" ||
+                      token.type === "cssClass"
+                    ) {
+                      onUpdateToken(group.id, token.id, "value", {
+                        name: next.name,
+                        body: next.body,
+                      });
+                    } else {
+                      onUpdateToken(group.id, token.id, "value", next);
+                    }
+                  };
+                  return (
+                    <div
+                      className="flex-1 flex flex-col gap-1 min-w-0"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Input
+                        autoFocus
+                        value={pv.name}
+                        onChange={(e) =>
+                          commit({ ...pv, name: e.target.value })
+                        }
+                        onBlur={handleBlur}
+                        placeholder="Name / label"
+                        className="h-7 border border-gray-300 rounded px-2 text-[11px] font-mono shadow-none focus-visible:ring-1 focus-visible:ring-blue-400"
+                      />
+                      <textarea
+                        value={pv.body}
+                        onChange={(e) =>
+                          commit({ ...pv, body: e.target.value })
+                        }
+                        onBlur={handleBlur}
+                        placeholder={
+                          token.type === "cssClass"
+                            ? "CSS (e.g. .btn { … })"
+                            : "HTML"
+                        }
+                        rows={3}
+                        spellCheck={false}
+                        className="min-h-[52px] border border-gray-300 rounded px-2 py-1 text-[11px] font-mono shadow-none focus-visible:ring-1 focus-visible:ring-blue-400 resize-y w-full"
+                      />
+                      {token.type === "htmlCssComponent" && (
+                        <textarea
+                          value={pv.css ?? ""}
+                          onChange={(e) =>
+                            commit({ ...pv, css: e.target.value })
+                          }
+                          onBlur={handleBlur}
+                          placeholder="Optional CSS"
+                          rows={2}
+                          spellCheck={false}
+                          className="min-h-[40px] border border-gray-300 rounded px-2 py-1 text-[11px] font-mono shadow-none focus-visible:ring-1 focus-visible:ring-blue-400 resize-y w-full"
+                        />
+                      )}
+                    </div>
+                  );
+                })()
+              ) : token.type === "string" ? (
                 <textarea
                   autoFocus
                   value={token.value?.toString() ?? ""}
@@ -366,25 +462,37 @@ function TokenTableRow({
                 />
               )
             ) : (
-              <div className="flex-1 flex items-center gap-1">
-                <div
-                  className={`flex-1 text-sm font-mono text-gray-700 truncate ${isReadOnly ? "cursor-default" : "cursor-text"}`}
-                  onClick={isReadOnly ? undefined : enterEdit("value")}
-                >
-                  {token.value?.toString() || (
-                    <span className="text-gray-300">
-                      {getValuePlaceholder(token.type)}
-                    </span>
-                  )}
-                </div>
-                {/* Unresolved reference warning indicator */}
-                {isUnresolvedReference && (
-                  <span 
-                    className="flex-shrink-0 px-1 py-0.5 text-[9px] bg-amber-50 text-amber-600 border border-amber-200 rounded font-medium"
-                    title="Token reference cannot be resolved. The source token may not exist yet."
+              <div className="flex-1 flex items-center gap-1 min-w-0">
+                {isPatternRow ? (
+                  <div
+                    className={`flex-1 text-[11px] font-mono text-gray-700 truncate ${isReadOnly ? "cursor-default" : "cursor-text"}`}
+                    title={formatPatternValuePreview(token.value, token.type)}
+                    onClick={isReadOnly ? undefined : enterEdit("value")}
                   >
-                    ?
-                  </span>
+                    {formatPatternValuePreview(token.value, token.type)}
+                  </div>
+                ) : (
+                  <>
+                    <div
+                      className={`flex-1 text-sm font-mono text-gray-700 truncate ${isReadOnly ? "cursor-default" : "cursor-text"}`}
+                      onClick={isReadOnly ? undefined : enterEdit("value")}
+                    >
+                      {token.value?.toString() || (
+                        <span className="text-gray-300">
+                          {getValuePlaceholder(token.type)}
+                        </span>
+                      )}
+                    </div>
+                    {/* Unresolved reference warning indicator */}
+                    {isUnresolvedReference && (
+                      <span
+                        className="flex-shrink-0 px-1 py-0.5 text-[9px] bg-amber-50 text-amber-600 border border-amber-200 rounded font-medium"
+                        title="Token reference cannot be resolved. The source token may not exist yet."
+                      >
+                        ?
+                      </span>
+                    )}
+                  </>
                 )}
               </div>
             )}
@@ -393,7 +501,10 @@ function TokenTableRow({
             {!isReadOnly &&
               masterValue !== undefined &&
               onResetToDefault &&
-              String(token.value ?? "") !== masterValue && (
+              (isPatternRow
+                ? JSON.stringify(normalizePatternValue(token.value)) !==
+                  JSON.stringify(normalizePatternValue(masterValue))
+                : String(token.value ?? "") !== masterValue) && (
                 <button
                   type="button"
                   title="Reset to collection default"
@@ -407,8 +518,8 @@ function TokenTableRow({
                 </button>
               )}
 
-            {/* Reference picker — hidden for read-only roles */}
-            {!isReadOnly && (
+            {/* Reference picker — hidden for read-only roles and pattern tokens */}
+            {!isReadOnly && !isPatternRow && (
               <div onClick={(e) => e.stopPropagation()}>
                 <TokenReferencePicker
                   allGroups={tokenGroups}

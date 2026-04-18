@@ -75,7 +75,7 @@ export function getToolDefinitions(): Anthropic.Tool[] {
           type: {
             type: "string",
             description:
-              "W3C design token type: 'color', 'dimension', 'number', 'string', 'duration'. Defaults to 'color'.",
+              "W3C design token type: 'color', 'dimension', 'number', 'string', 'duration'. Defaults to 'color'. Pattern types (cssClass, htmlTemplate, htmlCssComponent) are app-only and omitted from Style Dictionary export.",
           },
         },
         required: ["tokenPath", "value"],

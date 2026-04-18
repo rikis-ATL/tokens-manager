@@ -1,4 +1,11 @@
-import { TokenGroup, GeneratedToken, ToastMessage } from '../types';
+import {
+  TokenGroup,
+  GeneratedToken,
+  ToastMessage,
+  TokenType,
+  isPatternTokenType,
+  normalizePatternValue,
+} from '../types';
 
 /**
  * Token utility functions
@@ -130,6 +137,9 @@ export const getValuePlaceholder = (type: string): string => {
     number: '16, 1.5, 400, {token.scale.base.value}',
     string:
       'var(--prop), calc(var(--x) + {spacing.sm}), {token.path}',
+    cssClass: '.my-class { … }',
+    htmlTemplate: '<div class="…">…</div>',
+    htmlCssComponent: 'HTML body + optional scoped CSS',
   };
 
   return placeholders[type] || 'e.g. var(--x), {token.path}';
@@ -177,6 +187,13 @@ export const validateTokenValue = (value: any, type: string): { isValid: boolean
     case 'number':
       return validateNumberValue(value);
     default:
+      if (isPatternTokenType(type as TokenType)) {
+        const v = normalizePatternValue(value);
+        if (!v.name.trim() && !v.body.trim() && !(v.css && v.css.trim())) {
+          return { isValid: false, error: 'Pattern needs a name, body, or CSS content' };
+        }
+        return { isValid: true };
+      }
       return { isValid: true };
   }
 };
@@ -352,9 +369,22 @@ export const sortTokensByPath = (
  * Pure function — no React or Next.js dependencies.
  */
 export const parseTokenValue = (value: string, type: string): unknown => {
-  if (!value) return '';
+  if (!value) {
+    if (isPatternTokenType(type as TokenType)) {
+      return normalizePatternValue('');
+    }
+    return '';
+  }
 
   switch (type) {
+    case 'cssClass':
+    case 'htmlTemplate':
+    case 'htmlCssComponent':
+      try {
+        return normalizePatternValue(JSON.parse(value));
+      } catch {
+        return normalizePatternValue(value);
+      }
     case 'color':
       return value;
     case 'dimension':

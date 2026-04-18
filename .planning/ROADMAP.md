@@ -254,6 +254,6 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] [999.1-01-PLAN.md](phases/999.1-css-html-pattern-token-types/999.1-01-PLAN.md) — Token types + `PatternTokenValue` + table editors
-- [ ] [999.1-02-PLAN.md](phases/999.1-css-html-pattern-token-types/999.1-02-PLAN.md) — Graph `patternCss` / `patternHtml` nodes + evaluator + Token Output wiring
-- [ ] [999.1-03-PLAN.md](phases/999.1-css-html-pattern-token-types/999.1-03-PLAN.md) — SD strip + non-exported badge + tests
+- [x] [999.1-01-PLAN.md](phases/999.1-css-html-pattern-token-types/999.1-01-PLAN.md) — Token types + `PatternTokenValue` + table editors
+- [x] [999.1-02-PLAN.md](phases/999.1-css-html-pattern-token-types/999.1-02-PLAN.md) — Graph `patternCss` / `patternHtml` nodes + evaluator + Token Output wiring
+- [x] [999.1-03-PLAN.md](phases/999.1-css-html-pattern-token-types/999.1-03-PLAN.md) — SD strip + non-exported badge + tests

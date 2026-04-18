@@ -110,6 +110,22 @@ export interface CssStringConfig {
   expression: string;
 }
 
+/** Pattern storage — CSS class / rule text (non–W3C token); output `value` is `{ name, body }`. */
+export interface PatternCssConfig {
+  kind: 'patternCss';
+  name: string;
+  body: string;
+}
+
+/** Pattern storage — HTML (+ optional CSS); output `value` is `{ name, body, css? }`. */
+export interface PatternHtmlConfig {
+  kind: 'patternHtml';
+  name: string;
+  body: string;
+  /** Scoped CSS for htmlCssComponent tokens; leave empty for htmlTemplate */
+  css: string;
+}
+
 // ── Color Convert node ────────────────────────────────────────────────────────
 
 export type ColorConvertMode = 'convert' | 'hslCompose';
@@ -230,6 +246,8 @@ export type ComposableNodeConfig =
   | ArrayConfig
   | MathConfig
   | CssStringConfig
+  | PatternCssConfig
+  | PatternHtmlConfig
   | ColorConvertConfig
   | A11yContrastConfig
   | TokenRefConfig

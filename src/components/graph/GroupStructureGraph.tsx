@@ -24,6 +24,7 @@ import {
   Plus,
   Palette, Zap, Eye, Pipette, Coins, Type,
   Hash, Waves, List, Calculator, Tag, FileJson, Layers, Braces,
+  FileCode, Code2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -55,6 +56,8 @@ import { JsonNode }           from './nodes/JsonNode';
 import { GeneratorNode }      from './nodes/GeneratorNode';
 import { GroupCreatorNode } from './nodes/GroupCreatorNode';
 import { CssStringNode } from './nodes/CssStringNode';
+import { PatternCssNode } from './nodes/PatternCssNode';
+import { PatternHtmlNode } from './nodes/PatternHtmlNode';
 
 import type { TokenGroup, GeneratedToken, TokenType } from '@/types';
 import { GENERATOR_CATEGORIES } from '@/types/generator.types';
@@ -94,6 +97,8 @@ const COMPOSABLE_BADGE: Record<string, string> = {
   palette:        'bg-rose-50 text-rose-700 border border-rose-200',
   group: 'bg-cyan-50 text-cyan-700 border border-cyan-200',
   cssString: 'bg-cyan-50 text-cyan-800 border border-cyan-200',
+  patternCss: 'bg-slate-50 text-slate-800 border border-slate-200',
+  patternHtml: 'bg-emerald-50 text-emerald-900 border border-emerald-200',
 };
 
 const COMPOSABLE_NODES: {
@@ -107,6 +112,8 @@ const COMPOSABLE_NODES: {
   { kind: 'array',       label: 'Array',           desc: 'Format values with units',   icon: <List size={12} /> },
   { kind: 'math',         label: 'Math',            desc: 'Arithmetic operations',      icon: <Calculator size={12} /> },
   { kind: 'cssString',    label: 'CSS string',      desc: 'CSS value with var(…) and {token}', icon: <Braces size={12} /> },
+  { kind: 'patternCss',   label: 'CSS pattern',     desc: 'Store CSS pattern → cssClass token', icon: <FileCode size={12} /> },
+  { kind: 'patternHtml',  label: 'HTML pattern',    desc: 'Store HTML (+ optional CSS) → html tokens', icon: <Code2 size={12} /> },
   { kind: 'colorConvert', label: 'Color Converter', desc: 'CSS color format conversion', icon: <Pipette size={12} /> },
   { kind: 'a11yContrast', label: 'A11y Contrast',   desc: 'WCAG contrast checker',       icon: <Eye size={12} /> },
   { kind: 'tokenRef',     label: 'Token',           desc: 'Reference an existing token', icon: <Coins size={12} /> },
@@ -124,6 +131,8 @@ const KIND_TO_NODE_TYPE: Record<ComposableNodeConfig['kind'], string> = {
   array:        'composableArray',
   math:         'composableMath',
   cssString:    'composableCssString',
+  patternCss:   'composablePatternCss',
+  patternHtml:  'composablePatternHtml',
   colorConvert: 'composableColorConvert',
   a11yContrast: 'composableA11yContrast',
   tokenRef:     'composableTokenRef',
@@ -142,6 +151,8 @@ const NODE_WIDTHS: Record<string, number> = {
   composableArray:       230,
   composableMath:        240,
   composableCssString:     268,
+  composablePatternCss:    280,
+  composablePatternHtml:   280,
   composableColorConvert: 252,
   composableA11yContrast: 252,
   composableTokenRef:     240,
@@ -162,6 +173,8 @@ const NODE_TYPES = {
   composableArray:        ArrayNode,
   composableMath:         MathNode,
   composableCssString:    CssStringNode,
+  composablePatternCss:   PatternCssNode,
+  composablePatternHtml:  PatternHtmlNode,
   composableColorConvert: ColorConvertNode,
   composableA11yContrast: A11yContrastNode,
   composableTokenRef:     TokenRefNode,
@@ -200,6 +213,10 @@ function defaultComposableConfig(kind: ComposableNodeConfig['kind']): Composable
       return { kind: 'math', mathMode: 'operations', expression: '', operation: 'multiply', operand: 16, clampMin: 0, clampMax: 100, precision: 2, suffix: '' };
     case 'cssString':
       return { kind: 'cssString', expression: '' };
+    case 'patternCss':
+      return { kind: 'patternCss', name: '', body: '' };
+    case 'patternHtml':
+      return { kind: 'patternHtml', name: '', body: '', css: '' };
     case 'colorConvert':
       return { kind: 'colorConvert', mode: 'convert', colorFrom: 'hex', colorTo: 'hsl', hue: 220, saturation: 80, format: 'hsl' };
     case 'a11yContrast':
@@ -485,7 +502,13 @@ function GroupStructureGraphInner({
     const tokenDataStr = evaluated?.outputs['tokenData'];
     if (typeof tokenDataStr !== 'string') return [];
     try {
-      const pairs: { name: string; value: string; type?: string; description?: string; attributes?: Record<string, string> }[] = JSON.parse(tokenDataStr);
+      const pairs: {
+        name: string;
+        value: unknown;
+        type?: string;
+        description?: string;
+        attributes?: Record<string, string>;
+      }[] = JSON.parse(tokenDataStr);
       return pairs.map((t, i) => ({
         id: `${group?.id || 'all-groups'}/${nodeId}/${i}-${generateId()}`,
         path: t.name,
@@ -585,11 +608,14 @@ function GroupStructureGraphInner({
         // Build simplified tokens: path = raw array value (the subgroup holds the name scope)
         const tokenDataStr = evaluated?.outputs['tokenData'];
         if (typeof tokenDataStr !== 'string') return;
-        const pairs: { name: string; value: string }[] = JSON.parse(tokenDataStr);
+        const pairs: { name: string; value: unknown }[] = JSON.parse(tokenDataStr);
         const sgName = (evaluated?.outputs['subgroupName'] as string | null) || cfg.namePrefix || 'generated';
         const sgTokens = pairs.map((t, i) => ({
           id: `${group?.id || 'all-groups'}/${nodeId}/${i}-${generateId()}`,
-          path: t.value,
+          path:
+            typeof t.value === 'string' || typeof t.value === 'number'
+              ? String(t.value)
+              : t.name || `token-${i}`,
           value: t.value,
           type: cfg.tokenType as TokenType,
           description: `Generated by Token Output node`,
@@ -611,7 +637,13 @@ function GroupStructureGraphInner({
       if (cfg.outputTarget === 'subgroup') {
         const tokenDataStr = evaluated?.outputs['tokenData'];
         if (typeof tokenDataStr !== 'string') return;
-        const pairs: { name: string; value: string; type?: string; description?: string; attributes?: Record<string, string> }[] = JSON.parse(tokenDataStr);
+        const pairs: {
+          name: string;
+          value: unknown;
+          type?: string;
+          description?: string;
+          attributes?: Record<string, string>;
+        }[] = JSON.parse(tokenDataStr);
         const sgName = (evaluated?.outputs['subgroupName'] as string | null) || cfg.namePrefix || 'imported';
         const sgTokens = pairs.map((t, i) => ({
           id: `${group?.id || 'all-groups'}/${nodeId}/${i}-${generateId()}`,

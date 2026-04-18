@@ -12,6 +12,8 @@ import type {
   ArrayConfig,
   MathConfig,
   CssStringConfig,
+  PatternCssConfig,
+  PatternHtmlConfig,
   ColorConvertConfig,
   A11yContrastConfig,
   TokenOutputConfig,
@@ -647,6 +649,21 @@ function evalCssString(
   return { value };
 }
 
+function evalPatternCss(config: PatternCssConfig): Record<string, PortValue> {
+  const name = (config.name ?? '').trim();
+  const body = (config.body ?? '').trim();
+  return { value: { name, body } };
+}
+
+function evalPatternHtml(config: PatternHtmlConfig): Record<string, PortValue> {
+  const name = (config.name ?? '').trim();
+  const body = (config.body ?? '').trim();
+  const css = (config.css ?? '').trim();
+  const value =
+    css.length > 0 ? { name, body, css } : { name, body };
+  return { value };
+}
+
 function evalTokenRef(config: import('@/types/graph-nodes.types').TokenRefConfig): Record<string, PortValue> {
   const raw = config.tokenValue ?? '';
   const n = parseFloat(raw);
@@ -666,6 +683,8 @@ export function evaluateNode(
     case 'array':        return evalArray(config, inputs);
     case 'math':         return evalMath(config, inputs, options);
     case 'cssString':    return evalCssString(config, inputs, options);
+    case 'patternCss':   return evalPatternCss(config as PatternCssConfig);
+    case 'patternHtml':  return evalPatternHtml(config as PatternHtmlConfig);
     case 'colorConvert': return evalColorConvert(config, inputs);
     case 'a11yContrast': return evalA11yContrast(config, inputs);
     case 'palette':      return evalPalette(config, inputs);

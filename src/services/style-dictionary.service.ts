@@ -6,6 +6,7 @@
 
 import StyleDictionary from 'style-dictionary';
 import type { BuildTokensRequest, BuildTokensResult, FormatOutput, BrandFormatOutput, ReferenceWarning } from '@/types';
+import { stripPatternTokensForStyleDictionary } from '@/lib/stripPatternTokensForStyleDictionary';
 
 const FORMATS = ['css', 'scss', 'less', 'js', 'ts', 'json', 'tailwind-v3', 'tailwind-v4', 'ios', 'android'] as const;
 type Format = typeof FORMATS[number];
@@ -532,7 +533,14 @@ async function buildCombinedOutput(
  * emitted as a separate output file when non-globals brands exist.
  */
 export async function buildTokens(request: BuildTokensRequest): Promise<BuildTokensResult> {
-  const { tokens, namespace, collectionName, darkTokens, colorMode } = request;
+  const { namespace, collectionName, colorMode } = request;
+
+  const tokens = stripPatternTokensForStyleDictionary(
+    request.tokens as Record<string, unknown>
+  );
+  const darkTokens = request.darkTokens
+    ? stripPatternTokensForStyleDictionary(request.darkTokens as Record<string, unknown>)
+    : undefined;
 
   const rawBrands = detectBrands(tokens);
 
