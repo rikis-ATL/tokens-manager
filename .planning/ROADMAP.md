@@ -234,6 +234,16 @@ Plans:
 
 ## Backlog
 
+### Phase 999.2: Versioning and NPM publish (BACKLOG)
+
+**Goal:** Immutable semver snapshots of each token collection (default tokens + `graphState` + all themes) with list/detail/restore; publish Style Dictionary outputs to a user-configured npm registry (or GitHub Packages) from the GUI with per-collection encrypted NPM token and package identity.
+
+**Requirements:** VERSION-01 (snapshots + restore), NPM-01 (publish + registry auth) — formal REQ IDs at promotion  
+**Plans:** 1 plan (`999.2-PLAN.md`)
+
+Plans:
+- [ ] [999.2-PLAN.md](phases/999.2-versioning-and-npm-publish/999.2-PLAN.md) — Versions API + NPM publish service + Settings/Versions UI (promote with /gsd-review-backlog when ready)
+
 ### Phase 999.1: CSS/HTML pattern token types (BACKLOG)
 
 **Goal:** Extend the app with **non–W3C-design-token** types used as **CSS/HTML pattern storage** alongside existing tokens: (1) **CSS class** — table type + dedicated graph node; stores CSS class patterns. (2) **HTML template** — tokenized HTML that may reference CSS classes or variables inline. (3) **HTML/CSS component** — combined model: CSS and HTML held as structured string fields (object shape TBD at planning time), previewed in a **minimal third-party sandbox** (e.g. iframe with strict isolation). Official export pipelines may treat these as out-of-band or separate artifacts — decide at promotion.
@@ -241,7 +251,9 @@ Plans:
 **Problem / motivation:** Linear text editing of HTML/CSS/JS makes structure and relationships hard to see; future work may explore **visual, navigable** representations (e.g. block-oriented HTML, library-style CSS) — **not** in scope for this backlog item until promoted and scoped.
 
 **Requirements:** TBD (promote to milestone and add REQ-* IDs as needed)
-**Plans:** 0 plans
+**Plans:** 3 plans
 
 Plans:
-- [ ] TBD (promote with /gsd-review-backlog when ready)
+- [ ] [999.1-01-PLAN.md](phases/999.1-css-html-pattern-token-types/999.1-01-PLAN.md) — Token types + `PatternTokenValue` + table editors
+- [ ] [999.1-02-PLAN.md](phases/999.1-css-html-pattern-token-types/999.1-02-PLAN.md) — Graph `patternCss` / `patternHtml` nodes + evaluator + Token Output wiring
+- [ ] [999.1-03-PLAN.md](phases/999.1-css-html-pattern-token-types/999.1-03-PLAN.md) — SD strip + non-exported badge + tests
