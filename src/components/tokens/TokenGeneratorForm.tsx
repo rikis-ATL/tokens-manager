@@ -1,10 +1,19 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { ChevronDown, ChevronUp, Trash2, RotateCcw, Lock, EllipsisVertical } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Trash2,
+  RotateCcw,
+  Lock,
+  EllipsisVertical,
+  Eye,
+} from "lucide-react";
 import { LoadingIndicator } from "@/components/layout/LoadingIndicator";
 import { showSuccessToast, showErrorToast } from "@/utils/toast.utils";
 import { JsonPreviewDialog } from "@/components/dev/JsonPreviewDialog";
+import { PatternCodePreviewDialog } from "@/components/tokens/PatternCodePreviewDialog";
 import { LoadCollectionDialog } from "@/components/collections/LoadCollectionDialog";
 import { TokenReferencePicker } from "@/components/tokens/TokenReferencePicker";
 import { MultiFormatColorPicker } from "@/components/ui/MultiFormatColorPicker";
@@ -43,8 +52,9 @@ import {
   TOKEN_TYPES,
   LoadingState,
   isPatternTokenType,
+  isPatternLikeValue,
   normalizePatternValue,
-  formatPatternValuePreview,
+  inferTokenTypeForPatternValue,
   type PatternTokenValue,
 } from "../../types";
 import {
@@ -167,6 +177,7 @@ function TokenTableRow({
   const [editingField, setEditingField] = useState<string | null>(null);
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
   const trRef = useRef<HTMLTableRowElement>(null);
+  const [patternPreviewOpen, setPatternPreviewOpen] = useState(false);
 
   const handleBlur = useCallback((e: React.FocusEvent) => {
     if (!trRef.current?.contains(e.relatedTarget as Node)) {
@@ -184,9 +195,10 @@ function TokenTableRow({
 
   const resolvedValue = resolveRef(token.value?.toString() ?? "");
   const tokenValueStr = token.value?.toString() ?? "";
-  const isPatternRow = isPatternTokenType(token.type);
+  const isPatternLikeRow =
+    isPatternTokenType(token.type) || isPatternLikeValue(token.value);
   const isReference =
-    !isPatternRow &&
+    !isPatternLikeRow &&
     tokenValueStr.startsWith("{") &&
     tokenValueStr.endsWith("}");
   const isUnresolvedReference = isReference && resolvedValue === tokenValueStr;
@@ -205,7 +217,7 @@ function TokenTableRow({
         ref={trRef}
         className={`transition-colors group/row ${isMultiSelected ? "bg-blue-50 ring-1 ring-inset ring-blue-200" : isSelected ? "bg-blue-50 ring-1 ring-inset ring-blue-200" : "hover:bg-gray-50/60"}`}
         style={
-          isPatternRow && editingField === "value"
+          isPatternLikeRow && editingField === "value"
             ? { minHeight: 36 }
             : { height: 36 }
         }
@@ -309,7 +321,7 @@ function TokenTableRow({
               <span className="text-[11px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 font-medium">
                 {token.type}
               </span>
-              {isPatternRow && (
+              {isPatternLikeRow && (
                 <Badge
                   variant="secondary"
                   className="text-[9px] px-1.5 py-0 h-5 font-normal shrink-0"
@@ -327,7 +339,7 @@ function TokenTableRow({
           <div
             className={`flex gap-1.5 px-2 ${
               editingField === "value" &&
-              (token.type === "string" || isPatternRow)
+              (token.type === "string" || isPatternLikeRow)
                 ? "items-start min-h-[76px] py-1"
                 : "h-9 items-center"
             }`}
@@ -362,9 +374,12 @@ function TokenTableRow({
 
             {/* Value input / display */}
             {editingField === "value" ? (
-              isPatternRow ? (
+              isPatternLikeRow ? (
                 (() => {
                   const pv = normalizePatternValue(token.value);
+                  const showCss =
+                    token.type === "htmlCssComponent" ||
+                    (pv.css != null && pv.css !== "");
                   const commit = (next: PatternTokenValue) => {
                     if (
                       token.type === "htmlTemplate" ||
@@ -408,7 +423,7 @@ function TokenTableRow({
                         spellCheck={false}
                         className="min-h-[52px] border border-gray-300 rounded px-2 py-1 text-[11px] font-mono shadow-none focus-visible:ring-1 focus-visible:ring-blue-400 resize-y w-full"
                       />
-                      {token.type === "htmlCssComponent" && (
+                      {showCss && (
                         <textarea
                           value={pv.css ?? ""}
                           onChange={(e) =>
@@ -463,13 +478,15 @@ function TokenTableRow({
               )
             ) : (
               <div className="flex-1 flex items-center gap-1 min-w-0">
-                {isPatternRow ? (
+                {isPatternLikeRow ? (
                   <div
-                    className={`flex-1 text-[11px] font-mono text-gray-700 truncate ${isReadOnly ? "cursor-default" : "cursor-text"}`}
-                    title={formatPatternValuePreview(token.value, token.type)}
+                    className={`flex-1 text-[11px] text-gray-400 italic truncate ${isReadOnly ? "cursor-default" : "cursor-text"}`}
+                    title="Pattern — click to edit body"
                     onClick={isReadOnly ? undefined : enterEdit("value")}
                   >
-                    {formatPatternValuePreview(token.value, token.type)}
+                    {normalizePatternValue(token.value).name.trim()
+                      ? `“${normalizePatternValue(token.value).name}”`
+                      : "—"}
                   </div>
                 ) : (
                   <>
@@ -501,7 +518,7 @@ function TokenTableRow({
             {!isReadOnly &&
               masterValue !== undefined &&
               onResetToDefault &&
-              (isPatternRow
+              (isPatternLikeRow
                 ? JSON.stringify(normalizePatternValue(token.value)) !==
                   JSON.stringify(normalizePatternValue(masterValue))
                 : String(token.value ?? "") !== masterValue) && (
@@ -519,7 +536,7 @@ function TokenTableRow({
               )}
 
             {/* Reference picker — hidden for read-only roles and pattern tokens */}
-            {!isReadOnly && !isPatternRow && (
+            {!isReadOnly && !isPatternLikeRow && (
               <div onClick={(e) => e.stopPropagation()}>
                 <TokenReferencePicker
                   allGroups={tokenGroups}
@@ -558,8 +575,23 @@ function TokenTableRow({
         </td>
 
         {/* Actions */}
-        <td className="px-2 py-0 w-[72px]">
+        <td className="px-2 py-0 min-w-[96px]">
           <div className="flex items-center gap-1 opacity-0 group-hover/row:opacity-100 transition-opacity">
+            {isPatternLikeRow && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 text-gray-400 hover:text-blue-600"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setPatternPreviewOpen(true);
+                }}
+                title="Preview CSS / HTML"
+                aria-label="Preview pattern code"
+              >
+                <Eye size={12} />
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="sm"
@@ -598,10 +630,27 @@ function TokenTableRow({
         </td>
       </tr>
 
+      {isPatternLikeRow && (
+        <PatternCodePreviewDialog
+          open={patternPreviewOpen}
+          onClose={() => setPatternPreviewOpen(false)}
+          title={
+            token.path?.trim()
+              ? `Pattern — ${token.path}`
+              : "Pattern preview"
+          }
+          tokenType={inferTokenTypeForPatternValue(
+            token.value,
+            token.type,
+          )}
+          pattern={normalizePatternValue(token.value)}
+        />
+      )}
+
       {/* Expanded: custom attributes */}
       {isExpanded && (
         <tr className="bg-gray-50">
-          <td colSpan={5} className="px-4 py-3">
+          <td colSpan={6} className="px-4 py-3">
             <div className="space-y-2">
               <h5 className="mb-2 text-sm font-medium text-gray-700">
                 Custom Attributes

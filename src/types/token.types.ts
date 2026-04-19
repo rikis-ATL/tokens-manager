@@ -106,6 +106,30 @@ function truncateText(s: string, max: number): string {
   return `${s.slice(0, max)}…`;
 }
 
+/** True if value looks like a stored pattern object (name + body), regardless of TokenType. */
+export function isPatternLikeValue(value: unknown): boolean {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const o = value as Record<string, unknown>;
+  return typeof o.name === 'string' && typeof o.body === 'string';
+}
+
+/**
+ * When Token Output still has default `dimension` (or other non-pattern type) but the value
+ * is a pattern object, infer cssClass / htmlTemplate / htmlCssComponent.
+ */
+export function inferTokenTypeForPatternValue(
+  value: unknown,
+  cfgTokenType: TokenType
+): TokenType {
+  if (isPatternTokenType(cfgTokenType)) return cfgTokenType;
+  if (!isPatternLikeValue(value)) return cfgTokenType;
+  const o = value as Record<string, unknown>;
+  if (typeof o.css === 'string' && o.css.trim() !== '') return 'htmlCssComponent';
+  const body = o.body.trim();
+  if (body.startsWith('<')) return 'htmlTemplate';
+  return 'cssClass';
+}
+
 /** Single-line summary for table cells (non-edit). */
 export function formatPatternValuePreview(raw: unknown, type: TokenType): string {
   const v = normalizePatternValue(raw);

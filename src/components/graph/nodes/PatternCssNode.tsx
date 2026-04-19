@@ -81,14 +81,30 @@ function PatternCssNodeComponent({ data }: NodeProps) {
 
         <PreviewSection>
           <Row
-            label="Output"
+            label="Name out"
+            handle={
+              <RowHandle
+                id="name"
+                type="source"
+                side="right"
+                className={HANDLE_STRING}
+                title="Wire to Token Output → Name (token path segment)"
+              />
+            }
+          >
+            <span className="text-[10px] font-mono text-slate-800 truncate" title={localName.trim() || '—'}>
+              {localName.trim() || '—'}
+            </span>
+          </Row>
+          <Row
+            label="Value out"
             handle={
               <RowHandle
                 id="value"
                 type="source"
                 side="right"
                 className={HANDLE_STRING}
-                title="Pattern object → Token Output"
+                title="Wire to Token Output → Values (pattern object)"
               />
             }
           >
