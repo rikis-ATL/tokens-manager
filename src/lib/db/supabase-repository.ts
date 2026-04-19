@@ -137,8 +137,10 @@ export class SupabaseCollectionRepository implements ICollectionRepository {
     return c;
   }
 
-  async list(): Promise<CollectionDoc[]> {
+  async list(options?: { organizationId?: string }): Promise<CollectionDoc[]> {
     const sb = await this.client();
+    // TODO (Phase 22.x): add organizationId filter when supabase schema migrates
+    // When options?.organizationId is non-empty, add .eq('organization_id', options.organizationId)
     const { data, error } = await sb
       .from(TABLE)
       .select('*')
