@@ -34,8 +34,12 @@ export interface CreateCollectionInput {
  * Each supported database provider implements this interface.
  */
 export interface ICollectionRepository {
-  /** List all collections, newest first. */
-  list(): Promise<CollectionDoc[]>;
+  /**
+   * List collection summaries. When `organizationId` is provided AND non-empty,
+   * results are filtered to that organization (TENANT-01). Empty string or omitted
+   * = no filter (preserves legacy behaviour for callers not yet migrated).
+   */
+  list(options?: { organizationId?: string }): Promise<CollectionDoc[]>;
 
   /** Find a single collection by its ID. */
   findById(id: string): Promise<CollectionDoc | null>;

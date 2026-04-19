@@ -1,3 +1,5 @@
+// GET /api/collections — lists collections visible to the caller, scoped to their organization
+// (Phase 22 TENANT-01). Within the org, per-user permission grants narrow the visible set further.
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { getRepository } from '@/lib/db/get-repository';
@@ -18,7 +20,11 @@ export async function GET() {
 
   try {
     const repo = await getRepository();
-    const docs = await repo.list();
+    // Phase 22 TENANT-01 — Filter by caller's organizationId so the list route cannot leak
+    // cross-tenant collections. Uses the compound (organizationId, _id) index from Plan 01 D-14.
+    // Empty string (pre-migration JWT or unset DEMO_ORG_ID) yields an empty list, which is the
+    // safe default — same failure mode as assertOrgOwnership() on per-id routes.
+    const docs = await repo.list({ organizationId: session.user.organizationId });
 
     let visibleDocs = docs;
 

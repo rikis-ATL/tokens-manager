@@ -44,9 +44,12 @@ export class MongoCollectionRepository implements ICollectionRepository {
     await dbConnect();
   }
 
-  async list(): Promise<CollectionDoc[]> {
+  async list(options?: { organizationId?: string }): Promise<CollectionDoc[]> {
     await this.connect();
-    const docs = await TokenCollection.find({}).sort({ updatedAt: -1 }).lean();
+    // Filter by organizationId when provided (TENANT-01). Empty string = no filter.
+    // Uses the compound (organizationId, _id) index from Plan 01 D-14 for fast reads.
+    const filter = options?.organizationId ? { organizationId: options.organizationId } : {};
+    const docs = await TokenCollection.find(filter).sort({ updatedAt: -1 }).lean();
     return docs.map((d) => toDoc(d as unknown as Record<string, unknown>));
   }
 
