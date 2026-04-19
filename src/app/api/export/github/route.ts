@@ -1,12 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireRole } from '@/lib/auth/require-auth';
 import { Action } from '@/lib/auth/permissions';
+import { assertOrgOwnership } from '@/lib/auth/assert-org-ownership';
 
 export async function POST(request: NextRequest) {
   const authResult = await requireRole(Action.PushGithub);
   if (authResult instanceof NextResponse) return authResult;
   try {
-    const { tokenSet, repository, branch = 'main', path = 'tokens.json', githubToken } = await request.json();
+    const body = await request.json();
+    const { tokenSet, repository, branch = 'main', path = 'tokens.json', githubToken } = body;
+
+    if (body.collectionId) {
+      const _ownershipGuard = await assertOrgOwnership(authResult, body.collectionId);
+      if (_ownershipGuard) return _ownershipGuard;
+    }
 
     if (!tokenSet || !repository || !githubToken || !path) {
       return NextResponse.json(

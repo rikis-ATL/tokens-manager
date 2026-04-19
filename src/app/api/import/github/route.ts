@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireRole } from '@/lib/auth/require-auth';
 import { Action } from '@/lib/auth/permissions';
+import { assertOrgOwnership } from '@/lib/auth/assert-org-ownership';
 
 // Recursive function to process directories and subdirectories
 async function processDirectory(
@@ -78,7 +79,13 @@ export async function POST(request: NextRequest) {
   const authResult = await requireRole(Action.PushGithub);
   if (authResult instanceof NextResponse) return authResult;
   try {
-    const { repository, branch = 'main', path = 'tokens.json', githubToken } = await request.json();
+    const body = await request.json();
+    const { repository, branch = 'main', path = 'tokens.json', githubToken } = body;
+
+    if (body.collectionId) {
+      const _ownershipGuard = await assertOrgOwnership(authResult, body.collectionId);
+      if (_ownershipGuard) return _ownershipGuard;
+    }
 
     if (!repository || !githubToken) {
       return NextResponse.json(

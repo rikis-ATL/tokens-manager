@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getRepository } from '@/lib/db/get-repository';
 import { requireRole } from '@/lib/auth/require-auth';
 import { Action } from '@/lib/auth/permissions';
+import { assertOrgOwnership } from '@/lib/auth/assert-org-ownership';
 
 // -------------------------------------------------------------------
 // Figma type helpers
@@ -94,12 +95,18 @@ export async function POST(request: NextRequest) {
     fileKey?: string;
     collectionId?: string;
     collectionName?: string;
+    mongoCollectionId?: string;
   };
 
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+  }
+
+  if (body.mongoCollectionId) {
+    const _ownershipGuard = await assertOrgOwnership(authResult, body.mongoCollectionId);
+    if (_ownershipGuard) return _ownershipGuard;
   }
 
   const { token, fileKey, collectionId, collectionName } = body;
