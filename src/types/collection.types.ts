@@ -54,6 +54,9 @@ export interface ITokenCollection {
   isPlayground: boolean;
   // Accent color for collection display (color swatch in UI)
   accentColor: string | null;
+  // Phase 22 D-02 — required ObjectId ref to Organization. scripts/migrate-to-org.ts (Plan 04)
+  // back-fills all existing TokenCollection docs BEFORE this code is deployed.
+  organizationId: string;
 }
 
 /**
