@@ -59,9 +59,11 @@ export class MongoCollectionRepository implements ICollectionRepository {
     return doc ? toDoc(doc as unknown as Record<string, unknown>) : null;
   }
 
-  async findByName(name: string): Promise<CollectionDoc | null> {
+  async findByName(name: string, organizationId?: string): Promise<CollectionDoc | null> {
     await this.connect();
-    const doc = await TokenCollection.findOne({ name }).lean();
+    const filter: Record<string, unknown> = { name };
+    if (organizationId) filter.organizationId = organizationId;
+    const doc = await TokenCollection.findOne(filter).lean();
     return doc ? toDoc(doc as unknown as Record<string, unknown>) : null;
   }
 
@@ -82,6 +84,7 @@ export class MongoCollectionRepository implements ICollectionRepository {
       githubBranch: data.githubBranch ?? null,
       githubPath: data.githubPath ?? null,
       isPlayground: data.isPlayground ?? false,
+      organizationId: data.organizationId,
     });
     return toDoc(doc.toObject() as Record<string, unknown>);
   }

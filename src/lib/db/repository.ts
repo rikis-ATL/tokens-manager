@@ -27,6 +27,7 @@ export interface CreateCollectionInput {
   githubBranch?: string | null;
   githubPath?: string | null;
   isPlayground?: boolean;
+  organizationId?: string;
 }
 
 /**
@@ -44,8 +45,8 @@ export interface ICollectionRepository {
   /** Find a single collection by its ID. */
   findById(id: string): Promise<CollectionDoc | null>;
 
-  /** Find a single collection by exact name match. */
-  findByName(name: string): Promise<CollectionDoc | null>;
+  /** Find a single collection by exact name match, scoped to an organization. */
+  findByName(name: string, organizationId?: string): Promise<CollectionDoc | null>;
 
   /** Create a new collection and return the persisted document. */
   create(data: CreateCollectionInput): Promise<CollectionDoc>;

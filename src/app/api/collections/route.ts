@@ -103,6 +103,8 @@ export async function GET() {
 export async function POST(request: Request) {
   const authResult = await requireRole(Action.CreateCollection);
   if (authResult instanceof NextResponse) return authResult;
+  const session = await getServerSession(authOptions);
+  const organizationId = session?.user?.organizationId ?? '';
   try {
     const body = await request.json() as {
       name?: string;
@@ -121,7 +123,7 @@ export async function POST(request: Request) {
 
     const repo = await getRepository();
 
-    const existing = await repo.findByName(body.name);
+    const existing = await repo.findByName(body.name, organizationId);
     if (existing) {
       return NextResponse.json(
         {
@@ -142,6 +144,7 @@ export async function POST(request: Request) {
       tags: body.tags ?? [],
       userId: null,
       accentColor: body.accentColor ?? null,
+      organizationId,
     });
 
     return NextResponse.json(
