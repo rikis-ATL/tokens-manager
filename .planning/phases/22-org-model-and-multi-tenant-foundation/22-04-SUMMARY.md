@@ -29,9 +29,9 @@ decisions:
   - "D-08: GET /api/collections scoped by session.user.organizationId (TENANT-01 closure)"
   - "Empty-string organizationId treated as no-filter (safe default for pre-migration JWTs)"
 metrics:
-  duration: "~20 minutes"
-  completed: "2026-04-19T04:44:35Z"
-  tasks_completed: 3
+  duration: "~25 minutes"
+  completed: "2026-04-19T00:00:00Z"
+  tasks_completed: 4
   tasks_total: 4
   files_created: 4
   files_modified: 5
@@ -48,7 +48,7 @@ metrics:
 | 1 | migrate-to-org.ts script + 8 unit tests | d928a26 | scripts/migrate-to-org.ts, scripts/__tests__/migrate-to-org.test.ts, src/lib/db/models/Organization.ts, jest.config.ts |
 | 2 | CollectionRepository.list() organizationId filter + 5 unit tests | b1db7c1 | src/lib/db/repository.ts, src/lib/db/mongo-repository.ts, src/lib/db/supabase-repository.ts, src/lib/db/__tests__/mongo-repository-list.test.ts |
 | 3 | Wire session.user.organizationId through GET /api/collections | b1db7c1 | src/app/api/collections/route.ts |
-| 4 | Operator runs migration script (checkpoint:human-action) | — | PENDING — see checkpoint below |
+| 4 | Operator runs migration script (checkpoint:human-action) | human | Created Organization "tokenflow.studio" (69e462c872e5f07e8c10f388), back-filled 5 users and 15 collections |
 
 ## Test Results
 
@@ -73,26 +73,16 @@ Script reads `process.env.INITIAL_ORG_NAME ?? 'Default Organization'` to name th
 ### Empty-string safety
 `options?.organizationId ? { organizationId } : {}` — empty string is falsy, so a misconfigured session (pre-migration JWT with no organizationId claim) passes an empty filter `{}` rather than querying by zero-ObjectId. The result is an unscoped list rather than a crash, matching the legacy pre-Phase-22 behavior.
 
-## Checkpoint: Task 4 (human-action) — BLOCKING
+## Task 4: Migration Script Execution — COMPLETE
 
-Task 4 requires the operator to run the migration script against their local MongoDB. This cannot be automated by Claude because it involves writes to the operator's actual database.
+The operator ran the migration script against their local MongoDB. Result:
 
-### Steps for operator:
-1. Ensure MongoDB is running and `.env.local` has `MONGODB_URI`.
-2. Add `INITIAL_ORG_NAME=Default Organization` (or team name) to `.env.local`.
-3. Run:
-   ```bash
-   DOTENV_CONFIG_PATH=.env.local npx ts-node --transpile-only -r dotenv/config \
-     --project tsconfig.scripts.json scripts/migrate-to-org.ts
-   ```
-4. Copy the printed `DEMO_ORG_ID=<id>` line into `.env.local`.
-5. Verify in mongosh:
-   ```js
-   db.organizations.countDocuments()  // expect 1
-   db.users.find({ organizationId: { $exists: false } }).count()  // expect 0
-   db.tokencollections.find({ organizationId: { $exists: false } }).count()  // expect 0
-   ```
-6. Re-run script to confirm idempotency (should log "skipping migration").
+- Created Organization "tokenflow.studio" (`69e462c872e5f07e8c10f388`)
+- Back-filled 5 User documents with organizationId
+- Back-filled 15 TokenCollection documents with organizationId
+- `DEMO_ORG_ID=69e462c872e5f07e8c10f388` set in `.env.local`
+
+All success criteria from TENANT-03 confirmed: idempotency guard active, back-fill complete, DEMO_ORG_ID populated for Plan 02 demo mode.
 
 ## Deviations from Plan
 
