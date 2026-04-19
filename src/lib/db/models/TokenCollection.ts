@@ -44,6 +44,12 @@ const tokenCollectionSchema = new Schema<TokenCollectionDoc>(
     themes:         { type: Schema.Types.Mixed, default: [] },
     isPlayground:   { type: Boolean, default: false },
     accentColor:    { type: String, default: null },
+    organizationId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Organization',
+      required: true,   // Phase 22 D-02 — scripts/migrate-to-org.ts (Plan 04) back-fills before deploy.
+      index: false,     // Compound index below covers this.
+    },
   },
   {
     timestamps: true,  // auto createdAt / updatedAt
@@ -53,6 +59,8 @@ const tokenCollectionSchema = new Schema<TokenCollectionDoc>(
 
 // Index for fast listing by name
 tokenCollectionSchema.index({ name: 1 });
+// Phase 22 D-14 — compound index prevents COLLSCAN on org-scoped collection list queries.
+tokenCollectionSchema.index({ organizationId: 1, _id: 1 });
 
 // Guard against Next.js hot-reload model re-registration
 // Note: Model re-registration only works if collection name stays the same.
