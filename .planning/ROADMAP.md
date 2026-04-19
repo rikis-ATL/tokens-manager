@@ -111,7 +111,7 @@ See: `.planning/milestones/v1.4-ROADMAP.md` for full phase details.
 
 **Milestone Goal:** Convert the app into a multi-org SaaS with configurable free/pro/team tiers enforced at the API layer and paid upgrades via Stripe Checkout.
 
-- [ ] **Phase 22: Org Model and Multi-Tenant Foundation** — Organization model, organizationId on User+TokenCollection, JWT extension, idempotent migration bootstrap, assertOrgOwnership() on all collection routes, compound indexes, self-serve org signup
+- [x] **Phase 22: Org Model and Multi-Tenant Foundation** — Organization model, organizationId on User+TokenCollection, JWT extension, idempotent migration bootstrap, assertOrgOwnership() on all collection routes, compound indexes, self-serve org signup (completed 2026-04-19)
 - [ ] **Phase 23: Billing Module and Limit Enforcement** — src/lib/billing/ module skeleton, LIMITS config (tiers.ts), check functions, usage tracking with lazy UTC-month reset, rate limiter (per user ID, never IP), SELF_HOSTED bypass, 402 responses on all capped routes, UpgradeModal
 - [ ] **Phase 24: Stripe Checkout and Webhook Integration** — Stripe singleton, checkout session creation, billing portal session, webhook handler (req.text() — CRITICAL), ProcessedWebhookEvent idempotency guard, all three webhook event types, success page session refresh
 
@@ -126,10 +126,10 @@ See: `.planning/milestones/v1.4-ROADMAP.md` for full phase details.
   4. Compound indexes on `(organizationId, _id)` exist on User and TokenCollection collections
   5. JWT tokens include `organizationId` claim and all route handlers validate it
 **Plans**: 4 plans
-- [ ] 22-01-PLAN.md — Organization model + User/TokenCollection schemas with required organizationId + compound indexes (D-01, D-02, D-14)
-- [ ] 22-02-PLAN.md — JWT organizationId claim, demo session extension, assertOrgOwnership() utility (D-06, D-07, D-09, D-10)
-- [ ] 22-03-PLAN.md — Self-serve signup flow: POST /api/auth/signup + /auth/signup page with atomic Org+User creation (D-03, D-04)
-- [ ] 22-04-PLAN.md — scripts/migrate-to-org.ts idempotent back-fill + GET /api/collections org-scoping (D-11, D-12, D-13 + TENANT-01 closure)
+- [x] 22-01-PLAN.md — Organization model + User/TokenCollection schemas with required organizationId + compound indexes (D-01, D-02, D-14)
+- [x] 22-02-PLAN.md — JWT organizationId claim, demo session extension, assertOrgOwnership() utility (D-06, D-07, D-09, D-10)
+- [x] 22-03-PLAN.md — Self-serve signup flow: POST /api/auth/signup + /auth/signup page with atomic Org+User creation (D-03, D-04)
+- [x] 22-04-PLAN.md — scripts/migrate-to-org.ts idempotent back-fill + GET /api/collections org-scoping (D-11, D-12, D-13 + TENANT-01 closure)
 
 ### Phase 23: Billing Module and Limit Enforcement
 **Goal**: Enforce configurable free/pro/team tier limits at the API layer with 402 responses and an in-app upgrade prompt.
@@ -212,7 +212,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 22. Org Model and Multi-Tenant Foundation | 0/? | Not started | - |
+| 22. Org Model and Multi-Tenant Foundation | 5/5 | Complete    | 2026-04-19 |
 | 23. Billing Module and Limit Enforcement | 0/? | Not started | - |
 | 24. Stripe Checkout and Webhook Integration | 0/? | Not started | - |
 | 30. AI-Assisted Naming and Queries | 0/3 | Not started | - |
@@ -225,7 +225,7 @@ Plans:
 **Goal:** Verify and complete the Math node Expression mode — unit tests, UI error feedback on invalid expressions, graphTokenPaths resolver wiring, and browser-verified end-to-end
 **Requirements**: PHASE1-TEST, PHASE1-UI-ERROR, PHASE1-GRAPHPATHS, PHASE1-VERIFY
 **Depends on:** Phase 0
-**Plans:** 4 plans
+**Plans:** 5/5 plans complete
 
 Plans:
 - [x] 01-01-PLAN.md — Jest unit tests for evaluateExpression (D-06, D-07)
