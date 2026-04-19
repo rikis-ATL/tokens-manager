@@ -27,7 +27,15 @@ export const authOptions: NextAuthOptions = {
         // Only 'disabled' is explicitly blocked
         const valid = await bcrypt.compare(credentials.password, user.passwordHash);
         if (!valid) throw new Error('Incorrect password');
-        return { id: user._id.toString(), email: user.email, name: user.displayName, role: user.role };
+        return {
+          id: user._id.toString(),
+          email: user.email,
+          name: user.displayName,
+          role: user.role,
+          // Phase 22 D-09 — organizationId flows into the JWT. Empty string fallback for any legacy doc
+          // somehow lacking it (shouldn't happen after Plan 04 migration, but defence-in-depth).
+          organizationId: user.organizationId ? user.organizationId.toString() : '',
+        } as unknown as { id: string; email: string; name: string; role: string; organizationId: string };
       },
     }),
   ],
@@ -44,6 +52,9 @@ export const authOptions: NextAuthOptions = {
         token.role = u.role;
         token.name = u.name;
         token.roleLastFetched = Date.now();
+        // Phase 22 D-09 — copy org claim on initial sign-in. Not re-fetched on role-TTL refresh
+        // because single-org-per-user means it does not change (see RESEARCH.md Open Question 2).
+        token.organizationId = (user as unknown as { organizationId?: string }).organizationId ?? '';
       }
 
       // SUPER_ADMIN_EMAIL short-circuit — apply first, return early to skip DB re-fetch
@@ -82,6 +93,8 @@ export const authOptions: NextAuthOptions = {
       if (token) {
         session.user.id   = token.id as string;
         session.user.role = token.role as string;
+        // Phase 22 D-09 — expose org claim on the client-side session.user.
+        session.user.organizationId = (token.organizationId as string | undefined) ?? '';
       }
       return session;
     },

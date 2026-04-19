@@ -8,6 +8,8 @@ declare module 'next-auth' {
     user: {
       id: string;
       role: string;
+      /** Phase 22 — Organization._id (stringified). Empty string if token predates migration. */
+      organizationId: string;
     } & DefaultSession['user'];
   }
 }
@@ -17,5 +19,7 @@ declare module 'next-auth/jwt' {
     id?: string;
     role?: string;
     roleLastFetched?: number;
+    /** Phase 22 — Organization._id (stringified). Undefined on tokens minted before Phase 22 deploy. */
+    organizationId?: string;
   }
 }
