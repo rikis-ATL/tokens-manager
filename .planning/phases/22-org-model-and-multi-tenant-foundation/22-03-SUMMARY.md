@@ -26,7 +26,7 @@ decisions:
 metrics:
   duration: ~20 minutes
   completed: "2026-04-19"
-  tasks_completed: 2
+  tasks_completed: 3
   files_changed: 3
 ---
 
@@ -94,13 +94,15 @@ None — plan executed exactly as written.
 
 ## Human Verification Checkpoint (Task 3)
 
-Task 3 is a `checkpoint:human-verify` gate requiring end-to-end browser testing:
-- Start dev server, navigate to `/auth/signup` in incognito
-- Verify four fields with correct labels
-- Test client-side validation (password < 8 chars)
-- Submit valid data → verify redirect to `/`, check MongoDB for Org + User docs
-- Test duplicate email → verify 409 error display
-- Verify sign-in still works with created credentials
+**Status: APPROVED** — End-to-end browser verification passed by user on 2026-04-19.
+
+Verified:
+- Dev server running, navigated to `/auth/signup` in incognito
+- Four fields with correct labels (Organization name, Your name, Email, Password)
+- Client-side validation (password < 8 chars) shows inline red error
+- Valid submission → redirect to `/`, MongoDB confirmed Org + User docs created
+- Duplicate email → 409 "Email already in use" displayed
+- Sign-in with created credentials succeeded
 - Regression check: `/auth/setup` behavior unchanged (D-05)
 
 ## Known Stubs
