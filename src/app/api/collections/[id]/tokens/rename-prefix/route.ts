@@ -3,6 +3,7 @@ import dbConnect from '@/lib/mongodb';
 import TokenCollection from '@/lib/db/models/TokenCollection';
 import { requireRole } from '@/lib/auth/require-auth';
 import { Action } from '@/lib/auth/permissions';
+import { assertOrgOwnership } from '@/lib/auth/assert-org-ownership';
 import { broadcastTokenUpdate } from '@/services/websocket/socket.service';
 
 /**
@@ -23,6 +24,8 @@ export async function PATCH(
 ) {
   const authResult = await requireRole(Action.Write, params.id);
   if (authResult instanceof NextResponse) return authResult;
+  const _ownershipGuard = await assertOrgOwnership(authResult, params.id);
+  if (_ownershipGuard) return _ownershipGuard;
 
   try {
     const body = await request.json() as {

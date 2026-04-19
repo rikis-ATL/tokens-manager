@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { getRepository } from '@/lib/db/get-repository';
 import { authOptions } from '@/lib/auth/nextauth.config';
 import { requireAuth } from '@/lib/auth/require-auth';
+import { assertOrgOwnership } from '@/lib/auth/assert-org-ownership';
 import { buildTokens } from '@/services/style-dictionary.service';
 import { tokenService } from '@/services';
 import type { ITheme } from '@/types/theme.types';
@@ -14,6 +15,8 @@ export async function GET(
 ) {
   const session = await requireAuth();
   if (session instanceof NextResponse) return session;
+  const _ownershipGuard = await assertOrgOwnership(session, params.id);
+  if (_ownershipGuard) return _ownershipGuard;
 
   try {
     const { searchParams } = new URL(request.url);

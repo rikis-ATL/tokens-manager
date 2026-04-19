@@ -3,6 +3,7 @@ import { getRepository } from '@/lib/db/get-repository';
 import dbConnect from '@/lib/mongodb';
 import { requireRole, requireAuth } from '@/lib/auth/require-auth';
 import { Action } from '@/lib/auth/permissions';
+import { assertOrgOwnership } from '@/lib/auth/assert-org-ownership';
 import TokenCollection from '@/lib/db/models/TokenCollection';
 import { tokenService } from '@/services/token.service';
 import type { TokenGroup } from '@/types';
@@ -16,7 +17,9 @@ export async function GET(
 ) {
   const session = await requireAuth();
   if (session instanceof NextResponse) return session;
-  
+  const _ownershipGuard = await assertOrgOwnership(session, params.id);
+  if (_ownershipGuard) return _ownershipGuard;
+
   try {
     const repo = await getRepository();
     const doc = await repo.findById(params.id);
@@ -38,6 +41,8 @@ export async function POST(
 ) {
   const authResult = await requireRole(Action.Write, params.id);
   if (authResult instanceof NextResponse) return authResult;
+  const _ownershipGuard = await assertOrgOwnership(authResult, params.id);
+  if (_ownershipGuard) return _ownershipGuard;
   try {
     const body = await request.json() as { name?: string; colorMode?: string };
 
