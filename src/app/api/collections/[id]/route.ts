@@ -4,6 +4,7 @@ import { getRepository } from '@/lib/db/get-repository';
 import dbConnect from '@/lib/mongodb';
 import { requireRole, requireAuth } from '@/lib/auth/require-auth';
 import { Action } from '@/lib/auth/permissions';
+import { assertOrgOwnership } from '@/lib/auth/assert-org-ownership';
 import { authOptions } from '@/lib/auth/nextauth.config';
 import CollectionPermission from '@/lib/db/models/CollectionPermission';
 import { broadcastTokenUpdate } from '@/services/websocket/socket.service';
@@ -20,6 +21,8 @@ export async function GET(
 ) {
   const session = await requireAuth();
   if (session instanceof NextResponse) return session;
+  const _ownershipGuard = await assertOrgOwnership(session, params.id);
+  if (_ownershipGuard) return _ownershipGuard;
 
   if (session.user.role === 'Demo') {
     // Demo users can view all collections
@@ -82,6 +85,8 @@ export async function PUT(
 ) {
   const authResult = await requireRole(Action.Write, params.id);
   if (authResult instanceof NextResponse) return authResult;
+  const _ownershipGuard = await assertOrgOwnership(authResult, params.id);
+  if (_ownershipGuard) return _ownershipGuard;
   try {
     const body = (await request.json()) as PutBody;
     const { npmToken, ...rest } = body;
@@ -180,6 +185,8 @@ export async function DELETE(
 ) {
   const authResult = await requireRole(Action.DeleteCollection, params.id);
   if (authResult instanceof NextResponse) return authResult;
+  const _ownershipGuard = await assertOrgOwnership(authResult, params.id);
+  if (_ownershipGuard) return _ownershipGuard;
   try {
     const repo = await getRepository();
     const deleted = await repo.delete(params.id);

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/nextauth.config';
 import { requireAuth } from '@/lib/auth/require-auth';
+import { assertOrgOwnership } from '@/lib/auth/assert-org-ownership';
 import CollectionPermission from '@/lib/db/models/CollectionPermission';
 import dbConnect from '@/lib/mongodb';
 import type { Role } from '@/lib/auth/permissions';
@@ -24,6 +25,8 @@ export async function GET(
 ) {
   const session = await requireAuth();
   if (session instanceof NextResponse) return session;
+  const _ownershipGuard = await assertOrgOwnership(session, params.id);
+  if (_ownershipGuard) return _ownershipGuard;
 
   const orgRole = session.user.role as Role;
   

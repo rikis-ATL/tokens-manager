@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireRole } from '@/lib/auth/require-auth';
 import { Action } from '@/lib/auth/permissions';
+import { assertOrgOwnership } from '@/lib/auth/assert-org-ownership';
 import CollectionPermission from '@/lib/db/models/CollectionPermission';
 import dbConnect from '@/lib/mongodb';
 
@@ -10,6 +11,8 @@ export async function POST(
 ) {
   const authResult = await requireRole(Action.ManageUsers);
   if (authResult instanceof NextResponse) return authResult;
+  const _ownershipGuard = await assertOrgOwnership(authResult, params.id);
+  if (_ownershipGuard) return _ownershipGuard;
 
   const { userId, role } = await request.json() as { userId: string; role: 'Editor' | 'Viewer' };
 
@@ -33,6 +36,8 @@ export async function DELETE(
 ) {
   const authResult = await requireRole(Action.ManageUsers);
   if (authResult instanceof NextResponse) return authResult;
+  const _ownershipGuard = await assertOrgOwnership(authResult, params.id);
+  if (_ownershipGuard) return _ownershipGuard;
 
   const { userId } = await request.json() as { userId: string };
   if (!userId) {
