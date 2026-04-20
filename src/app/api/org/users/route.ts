@@ -12,8 +12,10 @@ export async function GET() {
 
   await dbConnect();
 
-  const [users, grants, collections] = await Promise.all([
-    User.find({ status: { $ne: 'disabled' } })
+  const orgId = authResult.user.organizationId;
+
+  const [users, collections] = await Promise.all([
+    User.find({ status: { $ne: 'disabled' }, organizationId: orgId })
       .select('displayName email role status createdAt')
       .sort({ createdAt: 1 })
       .lean() as Promise<Array<{
@@ -24,9 +26,11 @@ export async function GET() {
         status: string;
         createdAt: Date;
       }>>,
-    CollectionPermission.find({}).lean(),
-    getRepository().then((r) => r.list()),
+    getRepository().then((r) => r.list({ organizationId: orgId })),
   ]);
+
+  const orgCollectionIds = new Set(collections.map((c) => c._id.toString()));
+  const grants = await CollectionPermission.find({ collectionId: { $in: [...orgCollectionIds] } }).lean();
 
   const collectionNameMap = new Map(collections.map((c) => [c._id, c.name]));
 

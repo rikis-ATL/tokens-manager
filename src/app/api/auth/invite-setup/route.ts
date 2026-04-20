@@ -78,6 +78,7 @@ export async function POST(request: Request) {
       email: invite.email,
       passwordHash,
       role: invite.role,
+      organizationId: invite.organizationId,
       status: 'active', // Must be explicit — schema defaults to 'invited', which would block sign-in via authorize()
     });
   }

@@ -17,8 +17,9 @@ export async function GET() {
   const authResult = await requireRole(Action.ManageUsers);
   if (authResult instanceof NextResponse) return authResult;
 
+  const orgId = authResult.user.organizationId;
   await dbConnect();
-  const invites = await Invite.find({ status: { $ne: 'accepted' } })
+  const invites = await Invite.find({ status: { $ne: 'accepted' }, organizationId: orgId })
     .sort({ createdAt: -1 })
     .lean();
 
@@ -80,6 +81,7 @@ export async function POST(request: Request) {
     token: hashedToken,
     role,
     createdBy: session.user.id,
+    organizationId: session.user.organizationId,
     expiresAt,
     status: 'pending',
     ...(collectionIds?.length ? { collectionIds } : {}),

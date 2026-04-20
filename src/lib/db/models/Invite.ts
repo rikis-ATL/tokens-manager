@@ -4,12 +4,13 @@ import type { Role } from '@/lib/db/models/User';
 export type InviteStatus = 'pending' | 'accepted' | 'expired';
 
 export interface IInvite {
-  email:        string;
-  token:        string;    // SHA-256 hash of plaintext token stored; plaintext sent in email
-  status:       InviteStatus;
-  expiresAt:    Date;
-  createdBy:    string;    // User._id as string
-  role:         Role;
+  email:          string;
+  token:          string;    // SHA-256 hash of plaintext token stored; plaintext sent in email
+  status:         InviteStatus;
+  expiresAt:      Date;
+  createdBy:      string;    // User._id as string
+  role:           Role;
+  organizationId: string;   // Org the invitee will join
   collectionIds?: string[];  // Optional: collection-scoped access; empty/absent = all-org
   createdAt?: Date;
   updatedAt?: Date;
@@ -23,8 +24,9 @@ const inviteSchema = new Schema<InviteDoc>(
     token:     { type: String, required: true, unique: true },
     status:    { type: String, enum: ['pending', 'accepted', 'expired'], default: 'pending' },
     expiresAt: { type: Date, required: true, default: () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) },
-    createdBy: { type: String, required: true },
-    role:         { type: String, enum: ['Admin', 'Editor', 'Viewer'], required: true },
+    createdBy:      { type: String, required: true },
+    organizationId: { type: String, required: false, default: '' },
+    role:           { type: String, enum: ['Admin', 'Editor', 'Viewer'], required: true },
     collectionIds: { type: [String], required: false, default: undefined },
   },
   { timestamps: true }
