@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireRole } from '@/lib/auth/require-auth';
 import { Action } from '@/lib/auth/permissions';
+import { checkRateLimit, checkAndIncrementExport } from '@/lib/billing';
 import { assertOrgOwnership } from '@/lib/auth/assert-org-ownership';
 
 export async function POST(request: NextRequest) {
@@ -10,10 +11,18 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { tokenSet, repository, branch = 'main', path = 'tokens.json', githubToken } = body;
 
+    // Ownership check for collection-scoped export
     if (body.collectionId) {
       const _ownershipGuard = await assertOrgOwnership(authResult, body.collectionId);
       if (_ownershipGuard) return _ownershipGuard;
     }
+
+    // Billing guards: rate limit + export quota (RATE-01, LIMIT-04)
+    const rateGuard = await checkRateLimit(authResult.user.id, authResult.user.organizationId);
+    if (rateGuard) return rateGuard;
+
+    const exportGuard = await checkAndIncrementExport(authResult.user.organizationId ?? '');
+    if (exportGuard) return exportGuard;
 
     if (!tokenSet || !repository || !githubToken || !path) {
       return NextResponse.json(

@@ -4,6 +4,7 @@ import type { ITheme } from '@/types/theme.types';
 import type { ColorMode } from '@/types/theme.types';
 import { requireRole } from '@/lib/auth/require-auth';
 import { Action } from '@/lib/auth/permissions';
+import { checkRateLimit, checkAndIncrementExport } from '@/lib/billing';
 import { assertOrgOwnership } from '@/lib/auth/assert-org-ownership';
 
 export async function POST(request: NextRequest) {
@@ -12,17 +13,25 @@ export async function POST(request: NextRequest) {
   try {
     const { tokenSet, figmaToken, fileKey, collectionId, mongoCollectionId } = await request.json();
 
-    if (mongoCollectionId) {
-      const _ownershipGuard = await assertOrgOwnership(authResult, mongoCollectionId);
-      if (_ownershipGuard) return _ownershipGuard;
-    }
-
     if (!tokenSet || !figmaToken || !fileKey) {
       return NextResponse.json(
         { error: 'Missing required fields: tokenSet, figmaToken, or fileKey' },
         { status: 400 }
       );
     }
+
+    // Ownership check for collection-scoped export
+    if (mongoCollectionId) {
+      const _ownershipGuard = await assertOrgOwnership(authResult, mongoCollectionId);
+      if (_ownershipGuard) return _ownershipGuard;
+    }
+
+    // Billing guards: rate limit + export quota (RATE-01, LIMIT-05)
+    const rateGuard = await checkRateLimit(authResult.user.id, authResult.user.organizationId);
+    if (rateGuard) return rateGuard;
+
+    const exportGuard = await checkAndIncrementExport(authResult.user.organizationId ?? '');
+    if (exportGuard) return exportGuard;
 
     // Fetch themes and namespace from MongoDB when mongoCollectionId is provided
     let themes: ITheme[] = [];

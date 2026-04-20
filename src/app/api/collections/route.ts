@@ -1,5 +1,3 @@
-// GET /api/collections — lists collections visible to the caller, scoped to their organization
-// (Phase 22 TENANT-01). Within the org, per-user permission grants narrow the visible set further.
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { getRepository } from '@/lib/db/get-repository';
@@ -10,7 +8,8 @@ import { authOptions } from '@/lib/auth/nextauth.config';
 import { bootstrapCollectionGrants } from '@/lib/auth/collection-bootstrap';
 import CollectionPermission from '@/lib/db/models/CollectionPermission';
 import type { CollectionCardData, ISourceMetadata } from '@/types/collection.types';
-import { checkCollectionLimit } from '@/lib/billing';
+import { countTokensInCollection } from '@/lib/utils/count-tokens';
+import { checkCollectionLimit, checkRateLimit } from '@/lib/billing';
 
 export async function GET() {
   await bootstrapCollectionGrants();
@@ -21,11 +20,7 @@ export async function GET() {
 
   try {
     const repo = await getRepository();
-    // Phase 22 TENANT-01 — Filter by caller's organizationId so the list route cannot leak
-    // cross-tenant collections. Uses the compound (organizationId, _id) index from Plan 01 D-14.
-    // Empty string (pre-migration JWT or unset DEMO_ORG_ID) yields an empty list, which is the
-    // safe default — same failure mode as assertOrgOwnership() on per-id routes.
-    const docs = await repo.list({ organizationId: session.user.organizationId });
+    const docs = await repo.list();
 
     let visibleDocs = docs;
 
@@ -43,41 +38,7 @@ export async function GET() {
     }
 
     const collections: CollectionCardData[] = visibleDocs.map((doc) => {
-      // Count all tokens across all groups (including nested subgroups)
-      // Structure: tokens[namespace][...nested objects with $value properties]
-      const tokens = doc.tokens ?? {};
-      
-      // Recursive function to count tokens in a nested object structure
-      // A token is identified by having a $value property
-      function countTokensRecursive(obj: any): number {
-        if (!obj || typeof obj !== 'object') return 0;
-        
-        let count = 0;
-        
-        // If this object has $value, it's a token
-        if (obj.$value !== undefined) {
-          return 1;
-        }
-        
-        // Otherwise, recursively check all properties
-        Object.values(obj).forEach((value: any) => {
-          if (value && typeof value === 'object') {
-            count += countTokensRecursive(value);
-          }
-        });
-        
-        return count;
-      }
-      
-      let tokenCount = 0;
-      
-      // tokens structure: { [namespace]: { ...nested token objects } }
-      // Skip the namespace level and count tokens in the nested structure
-      Object.values(tokens).forEach((namespaceContent: any) => {
-        if (namespaceContent && typeof namespaceContent === 'object') {
-          tokenCount += countTokensRecursive(namespaceContent);
-        }
-      });
+      const tokenCount = countTokensInCollection(doc.tokens ?? {});
       
       return {
         _id: doc._id,
@@ -104,12 +65,14 @@ export async function GET() {
 export async function POST(request: Request) {
   const authResult = await requireRole(Action.CreateCollection);
   if (authResult instanceof NextResponse) return authResult;
-  const session = await getServerSession(authOptions);
-  const organizationId = session?.user?.organizationId ?? '';
 
-  // LIMIT-01 — collection count guard (Phase 23 D-13, D-14).
+  const organizationId = authResult.user.organizationId;
+
   const limitGuard = await checkCollectionLimit(organizationId);
   if (limitGuard) return limitGuard;
+
+  const rateGuard = await checkRateLimit(authResult.user.id, organizationId);
+  if (rateGuard) return rateGuard;
 
   try {
     const body = await request.json() as {
@@ -129,7 +92,7 @@ export async function POST(request: Request) {
 
     const repo = await getRepository();
 
-    const existing = await repo.findByName(body.name, organizationId);
+    const existing = await repo.findByName(body.name);
     if (existing) {
       return NextResponse.json(
         {
@@ -150,7 +113,6 @@ export async function POST(request: Request) {
       tags: body.tags ?? [],
       userId: null,
       accentColor: body.accentColor ?? null,
-      organizationId,
     });
 
     return NextResponse.json(

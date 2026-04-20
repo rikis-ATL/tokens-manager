@@ -3,12 +3,17 @@ import { buildTokens } from '@/services/style-dictionary.service';
 import type { BuildTokensRequest, BuildTokensResult } from '@/types';
 import { requireRole } from '@/lib/auth/require-auth';
 import { Action } from '@/lib/auth/permissions';
+import { checkRateLimit } from '@/lib/billing';
 
 const COMMENT_FORMATS = new Set(['css', 'scss', 'less', 'js', 'ts']);
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   const authResult = await requireRole(Action.Write);
   if (authResult instanceof NextResponse) return authResult;
+
+  const rateGuard = await checkRateLimit(authResult.user.id, authResult.user.organizationId);
+  if (rateGuard) return rateGuard;
+
   try {
     const body = (await req.json()) as BuildTokensRequest;
 
