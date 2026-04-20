@@ -53,6 +53,7 @@
     "mongoose": "^9.2.2",
     "next": "13.5.9",
     "next-auth": "^4.24.13",
+    "rate-limiter-flexible": "^11.0.0",
     "react": "18.2.0",
     "react-colorful": "^5.6.1",
     "react-dom": "18.2.0",
