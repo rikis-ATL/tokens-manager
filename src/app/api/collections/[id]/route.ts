@@ -47,6 +47,12 @@ export async function GET(
       return NextResponse.json({ error: 'Collection not found' }, { status: 404 });
     }
 
+    // Org ownership check — prevent cross-tenant reads
+    if (session.user.role !== 'Demo' && doc.organizationId && session.user.organizationId &&
+        doc.organizationId.toString() !== session.user.organizationId) {
+      return NextResponse.json({ error: 'Collection not found' }, { status: 404 });
+    }
+
     return NextResponse.json({
       collection: {
         _id: doc._id,
@@ -89,6 +95,17 @@ export async function PUT(
 
   const tokenGuard = await checkTokenLimit(authResult.user.organizationId ?? '');
   if (tokenGuard) return tokenGuard;
+
+  // Org ownership check — prevent cross-tenant writes
+  {
+    const repo = await getRepository();
+    const existing = await repo.findById(params.id);
+    if (!existing) return NextResponse.json({ error: 'Collection not found' }, { status: 404 });
+    if (existing.organizationId && authResult.user.organizationId &&
+        existing.organizationId.toString() !== authResult.user.organizationId) {
+      return NextResponse.json({ error: 'Collection not found' }, { status: 404 });
+    }
+  }
 
   try {
     const body = (await request.json()) as PutBody;
@@ -190,6 +207,15 @@ export async function DELETE(
   if (authResult instanceof NextResponse) return authResult;
   try {
     const repo = await getRepository();
+
+    // Org ownership check — prevent cross-tenant deletes
+    const existing = await repo.findById(params.id);
+    if (!existing) return NextResponse.json({ error: 'Collection not found' }, { status: 404 });
+    if (existing.organizationId && authResult.user.organizationId &&
+        existing.organizationId.toString() !== authResult.user.organizationId) {
+      return NextResponse.json({ error: 'Collection not found' }, { status: 404 });
+    }
+
     const deleted = await repo.delete(params.id);
 
     if (!deleted) {

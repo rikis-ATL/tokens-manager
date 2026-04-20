@@ -145,6 +145,17 @@ export async function requireRole(action: ActionType, collectionId?: string): Pr
     }, { status: 403 });
   }
 
+  // Org ownership check for collection-scoped routes (non-Demo only).
+  // Prevents cross-tenant reads/writes when a user knows a foreign collection's ID.
+  if (collectionId && session.user.organizationId) {
+    await dbConnect();
+    const coll = await TokenCollection.findById(collectionId).select('organizationId').lean();
+    if (!coll) return NextResponse.json({ error: 'Not Found' }, { status: 404 });
+    if (coll.organizationId && coll.organizationId.toString() !== session.user.organizationId) {
+      return NextResponse.json({ error: 'Not Found' }, { status: 404 });
+    }
+  }
+
   if (orgRole === 'Admin') {
     if (canPerform('Admin', action)) {
       return session;

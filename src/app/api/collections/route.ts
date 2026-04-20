@@ -20,7 +20,14 @@ export async function GET() {
 
   try {
     const repo = await getRepository();
-    const orgId = session.user.role === 'Demo' ? undefined : session.user.organizationId;
+    const isDemo = session.user.role === 'Demo';
+    const orgId = isDemo ? undefined : session.user.organizationId;
+
+    // Prevent unscoped read: non-Demo users without an organizationId see nothing.
+    if (!isDemo && !orgId) {
+      return NextResponse.json({ collections: [] });
+    }
+
     const docs = await repo.list(orgId ? { organizationId: orgId } : undefined);
 
     let visibleDocs = docs;
@@ -93,7 +100,7 @@ export async function POST(request: Request) {
 
     const repo = await getRepository();
 
-    const existing = await repo.findByName(body.name);
+    const existing = await repo.findByName(body.name, organizationId);
     if (existing) {
       return NextResponse.json(
         {
@@ -114,6 +121,7 @@ export async function POST(request: Request) {
       tags: body.tags ?? [],
       userId: null,
       accentColor: body.accentColor ?? null,
+      organizationId,
     });
 
     return NextResponse.json(
