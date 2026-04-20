@@ -10,6 +10,8 @@ declare module 'next-auth' {
       role: string;
       /** Phase 22 — Organization._id (stringified). Empty string if token predates migration. */
       organizationId: string;
+      /** True when this user's email matches SUPER_ADMIN_EMAIL. */
+      isSuperAdmin: boolean;
     } & DefaultSession['user'];
   }
 }
@@ -21,5 +23,6 @@ declare module 'next-auth/jwt' {
     roleLastFetched?: number;
     /** Phase 22 — Organization._id (stringified). Undefined on tokens minted before Phase 22 deploy. */
     organizationId?: string;
+    isSuperAdmin?: boolean;
   }
 }

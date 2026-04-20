@@ -31,15 +31,19 @@ export default function SettingsPage() {
       <div className="space-y-8">
         <AIConfiguration />
 
-        <div className="border-t border-border pt-8">
-          <h2 className="text-xl font-semibold text-foreground mb-4">App theme (shell)</h2>
-          <AppThemeAdminSection />
-        </div>
-        
-        <div className="border-t border-border pt-8">
-          <h2 className="text-xl font-semibold text-foreground mb-4">Database Settings</h2>
-          <DatabaseConfig />
-        </div>
+        {session.user.isSuperAdmin && (
+          <div className="border-t border-border pt-8">
+            <h2 className="text-xl font-semibold text-foreground mb-4">App theme (shell)</h2>
+            <AppThemeAdminSection />
+          </div>
+        )}
+
+        {session.user.isSuperAdmin && (
+          <div className="border-t border-border pt-8">
+            <h2 className="text-xl font-semibold text-foreground mb-4">Database Settings</h2>
+            <DatabaseConfig />
+          </div>
+        )}
       </div>
     </div>
   );

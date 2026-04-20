@@ -61,9 +61,11 @@ export const authOptions: NextAuthOptions = {
       // Checks token.email (always present) per AUTH-06 decision in STATE.md
       if (token.email === process.env.SUPER_ADMIN_EMAIL) {
         token.role = 'Admin';
+        token.isSuperAdmin = true;
         token.roleLastFetched = Date.now(); // keep timestamp fresh, no DB hit needed
         return token;
       }
+      token.isSuperAdmin = false;
 
       // Role re-fetch when stale (> 60 seconds)
       // token.id is absent in very old pre-v1.5 sessions — skip re-fetch safely
@@ -95,6 +97,7 @@ export const authOptions: NextAuthOptions = {
         session.user.role = token.role as string;
         // Phase 22 D-09 — expose org claim on the client-side session.user.
         session.user.organizationId = (token.organizationId as string | undefined) ?? '';
+        session.user.isSuperAdmin = (token.isSuperAdmin as boolean | undefined) ?? false;
       }
       return session;
     },

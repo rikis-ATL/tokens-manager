@@ -6,6 +6,11 @@ import { requireRole } from '@/lib/auth/require-auth';
 import { Action } from '@/lib/auth/permissions';
 
 export async function GET() {
+  const authResult = await requireRole(Action.ManageUsers);
+  if (authResult instanceof NextResponse) return authResult;
+  if (!authResult.user.isSuperAdmin) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
   try {
     const saved = readDbConfig();
 
@@ -26,6 +31,9 @@ export async function GET() {
 export async function PUT(request: NextRequest) {
   const authResult = await requireRole(Action.ManageUsers);
   if (authResult instanceof NextResponse) return authResult;
+  if (!authResult.user.isSuperAdmin) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
   try {
     const body = (await request.json()) as DatabaseConfig & { persistFromEnv?: boolean };
 
