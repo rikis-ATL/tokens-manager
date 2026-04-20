@@ -70,19 +70,19 @@ export function BulkActionBar({
           if (e.key === 'Escape') onClearSelection();
         }}
       >
-        <Menubar className="h-auto px-2 py-1.5 gap-1 shadow-lg border-gray-300 bg-white">
+        <Menubar className="h-auto px-2 py-1.5 gap-1 shadow-lg border-border bg-card">
           {/* Selection count */}
-          <span className="text-xs font-medium text-gray-500 px-2 select-none">
+          <span className="text-xs font-medium text-muted-foreground px-2 select-none">
             {selectedCount} selected
           </span>
 
-          <div className="w-px h-4 bg-gray-200 mx-1" />
+          <div className="w-px h-4 bg-muted mx-1" />
 
           {/* Delete */}
           <Button
             variant="ghost"
             size="sm"
-            className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+            className="h-7 w-7 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
             onClick={() => setDeleteOpen(true)}
             title="Delete selected tokens"
           >
@@ -134,11 +134,11 @@ export function BulkActionBar({
             </Button>
           )}
 
-          <div className="w-px h-4 bg-gray-200 mx-1" />
+          <div className="w-px h-4 bg-muted mx-1" />
 
           {/* Prefix — single live-edit control */}
           <div className="flex items-center gap-1.5">
-            <span className="text-xs text-gray-400 select-none">Prefix</span>
+            <span className="text-xs text-muted-foreground select-none">Prefix</span>
             <Input
               value={prefixValue}
               onFocus={onPrefixFocus}
@@ -149,7 +149,7 @@ export function BulkActionBar({
             />
           </div>
 
-          <div className="w-px h-4 bg-gray-200 mx-1" />
+          <div className="w-px h-4 bg-muted mx-1" />
 
           {/* Clear selection */}
           <Button
@@ -159,7 +159,7 @@ export function BulkActionBar({
             onClick={onClearSelection}
             title="Clear selection (Esc)"
           >
-            <X className="w-3.5 h-3.5 text-gray-400" />
+            <X className="w-3.5 h-3.5 text-muted-foreground" />
           </Button>
         </Menubar>
       </div>

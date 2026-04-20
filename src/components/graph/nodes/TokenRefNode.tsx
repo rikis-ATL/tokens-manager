@@ -14,12 +14,12 @@ function looksLikeColor(v: string) {
 }
 
 const TYPE_BADGE: Record<string, string> = {
-  color:      'bg-rose-100 text-rose-700',
-  dimension:  'bg-sky-100 text-sky-700',
-  number:     'bg-violet-100 text-violet-700',
-  string:     'bg-amber-100 text-amber-700',
-  fontFamily: 'bg-green-100 text-green-700',
-  fontSize:   'bg-sky-100 text-sky-700',
+  color:      'bg-destructive/15 text-destructive',
+  dimension:  'bg-info/15 text-info',
+  number:     'bg-info/15 text-info',
+  string:     'bg-warning/15 text-warning',
+  fontFamily: 'bg-success/15 text-success',
+  fontSize:   'bg-info/15 text-info',
 };
 
 function TokenRefNodeComponent({ data }: NodeProps) {
@@ -40,35 +40,35 @@ function TokenRefNodeComponent({ data }: NodeProps) {
   const isColor      = cfg.tokenType === 'color' || (hasToken && looksLikeColor(cfg.tokenValue));
   const currentValue = (outputs['value'] as string | null) ?? cfg.tokenValue ?? '';
 
-  const badgeClass   = TYPE_BADGE[cfg.tokenType] ?? 'bg-gray-100 text-gray-600';
+  const badgeClass   = TYPE_BADGE[cfg.tokenType] ?? 'bg-muted text-muted-foreground';
 
   return (
     <>
-      <NodeWrapper borderColor="border-orange-300" width={240}>
+      <NodeWrapper borderColor="border-warning" width={240}>
         <NodeHeader
-          icon={<Coins size={12} className="text-orange-500" />}
+          icon={<Coins size={12} className="text-warning" />}
           title="Token"
           badge={cfg.tokenType || undefined}
-          headerClass="bg-orange-50 border-orange-200 text-orange-700"
+          headerClass="bg-warning/10 border-warning text-warning"
           onDelete={onDeleteNode ? () => onDeleteNode(nodeId) : undefined}
         />
 
         <div className="px-3 py-2 space-y-2 nodrag">
           {hasToken ? (
             /* ── Selected token display ── */
-            <div className="rounded border border-orange-200 bg-orange-50 overflow-hidden">
+            <div className="rounded border border-warning bg-warning/10 overflow-hidden">
               {/* Path row */}
               <div className="flex items-center gap-1.5 px-2 pt-2 pb-1">
                 <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded capitalize flex-shrink-0 ${badgeClass}`}>
                   {cfg.tokenType || 'token'}
                 </span>
-                <span className="font-mono text-[10px] text-gray-700 truncate flex-1 min-w-0">
+                <span className="font-mono text-[10px] text-foreground truncate flex-1 min-w-0">
                   {'{' + cfg.tokenPath + '}'}
                 </span>
                 <button
                   title="Clear token"
                   onClick={() => update({ tokenPath: '', tokenValue: '', tokenType: '' })}
-                  className="flex-shrink-0 text-gray-400 hover:text-red-500 transition-colors"
+                  className="flex-shrink-0 text-muted-foreground hover:text-destructive transition-colors"
                 >
                   <X size={11} />
                 </button>
@@ -78,11 +78,11 @@ function TokenRefNodeComponent({ data }: NodeProps) {
               <div className="flex items-center gap-2 px-2 pb-2">
                 {isColor && (
                   <div
-                    className="w-4 h-4 rounded border border-orange-200 flex-shrink-0"
+                    className="w-4 h-4 rounded border border-warning flex-shrink-0"
                     style={{ backgroundColor: cfg.tokenValue }}
                   />
                 )}
-                <span className="font-mono text-[10px] text-gray-500 truncate flex-1 min-w-0">
+                <span className="font-mono text-[10px] text-muted-foreground truncate flex-1 min-w-0">
                   {cfg.tokenValue || '—'}
                 </span>
               </div>
@@ -90,7 +90,7 @@ function TokenRefNodeComponent({ data }: NodeProps) {
               {/* Re-pick button */}
               <button
                 onClick={() => setPickerOpen(true)}
-                className="w-full text-[10px] text-orange-600 hover:text-orange-800 hover:bg-orange-100 border-t border-orange-200 py-1 flex items-center justify-center gap-1 transition-colors"
+                className="w-full text-[10px] text-warning hover:text-warning hover:bg-warning/15 border-t border-warning py-1 flex items-center justify-center gap-1 transition-colors"
               >
                 <Search size={10} />
                 Change token
@@ -100,7 +100,7 @@ function TokenRefNodeComponent({ data }: NodeProps) {
             /* ── Empty state ── */
             <button
               onClick={() => setPickerOpen(true)}
-              className="w-full rounded border-2 border-dashed border-orange-200 hover:border-orange-400 hover:bg-orange-50 transition-colors py-3 flex flex-col items-center gap-1 text-orange-400 hover:text-orange-600"
+              className="w-full rounded border-2 border-dashed border-warning hover:border-warning hover:bg-warning/10 transition-colors py-3 flex flex-col items-center gap-1 text-warning hover:text-warning"
             >
               <Search size={16} />
               <span className="text-[10px] font-medium">Search tokens…</span>
@@ -117,7 +117,7 @@ function TokenRefNodeComponent({ data }: NodeProps) {
               className={isColor ? HANDLE_STRING : HANDLE_OUT}
               title={`value — ${currentValue || 'token value'}`}
             />
-            <span className="text-[10px] text-gray-400 pr-4">value out</span>
+            <span className="text-[10px] text-muted-foreground pr-4">value out</span>
           </div>
         </div>
       </NodeWrapper>

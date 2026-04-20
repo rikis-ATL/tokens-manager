@@ -84,22 +84,22 @@ import { generateId } from '@/utils';
 // ── Static lookup maps ────────────────────────────────────────────────────────
 
 const COMPOSABLE_BADGE: Record<string, string> = {
-  constant:     'bg-slate-50 text-slate-700 border border-slate-200',
-  harmonic:     'bg-violet-50 text-violet-700 border border-violet-200',
-  array:        'bg-sky-50 text-sky-700 border border-sky-200',
-  math:         'bg-amber-50 text-amber-700 border border-amber-200',
-  colorConvert: 'bg-pink-50 text-pink-700 border border-pink-200',
-  a11yContrast: 'bg-teal-50 text-teal-700 border border-teal-200',
-  tokenRef:     'bg-orange-50 text-orange-700 border border-orange-200',
-  typography:   'bg-purple-50 text-purple-700 border border-purple-200',
-  tokenOutput:  'bg-emerald-50 text-emerald-700 border border-emerald-200',
-  json:         'bg-amber-50 text-amber-700 border border-amber-200',
-  generator:      'bg-indigo-50 text-indigo-700 border border-indigo-200',
-  palette:        'bg-rose-50 text-rose-700 border border-rose-200',
-  group: 'bg-cyan-50 text-cyan-700 border border-cyan-200',
-  cssString: 'bg-cyan-50 text-cyan-800 border border-cyan-200',
-  patternCss: 'bg-slate-50 text-slate-800 border border-slate-200',
-  patternHtml: 'bg-emerald-50 text-emerald-900 border border-emerald-200',
+  constant:     'bg-muted/50 text-foreground border border-border',
+  harmonic:     'bg-info/10 text-info border border-info/30',
+  array:        'bg-info/10 text-info border border-info/30',
+  math:         'bg-warning/10 text-warning border border-warning',
+  colorConvert: 'bg-primary/10 text-primary border border-primary',
+  a11yContrast: 'bg-info/10 text-info border border-info/30',
+  tokenRef:     'bg-warning/10 text-warning border border-warning',
+  typography:   'bg-info/10 text-info border border-info/30',
+  tokenOutput:  'bg-success/10 text-success border border-success',
+  json:         'bg-warning/10 text-warning border border-warning',
+  generator:      'bg-info/10 text-info border border-primary/30',
+  palette:        'bg-destructive/10 text-destructive border border-destructive',
+  group: 'bg-info/10 text-info border border-info/30',
+  cssString: 'bg-info/10 text-info border border-info/30',
+  patternCss: 'bg-muted/50 text-foreground border border-border',
+  patternHtml: 'bg-success/10 text-success border border-success',
 };
 
 const COMPOSABLE_NODES: {
@@ -914,8 +914,8 @@ function GroupStructureGraphInner({
   return (
     <div className="flex flex-col w-full h-full">
       {/* Toolbar */}
-      <div className="flex items-center gap-2 px-3 py-2 border-b border-gray-100 bg-white flex-shrink-0">
-        <span className="text-xs font-medium text-gray-500 flex-1 truncate">
+      <div className="flex items-center gap-2 px-3 py-2 border-b border-border bg-card flex-shrink-0">
+        <span className="text-xs font-medium text-muted-foreground flex-1 truncate">
           {allGroupsMode ? 'All Groups' : group?.name || 'Group'}
         </span>
         <DropdownMenu>
@@ -925,7 +925,7 @@ function GroupStructureGraphInner({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">
+            <DropdownMenuLabel className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
               Add Node
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
@@ -940,7 +940,7 @@ function GroupStructureGraphInner({
                 </span>
                 <div className="flex flex-col">
                   <span className="text-xs font-medium">{c.label}</span>
-                  <span className="text-[10px] text-gray-400">{c.desc}</span>
+                  <span className="text-[10px] text-muted-foreground">{c.desc}</span>
                 </div>
               </DropdownMenuItem>
             ))}
@@ -973,7 +973,7 @@ function GroupStructureGraphInner({
               return n.selected ? '#6366f1' : '#e2e8f0';
             }}
             maskColor="rgba(248,250,252,0.7)"
-            className="!border !border-gray-200 !rounded-lg !shadow-sm"
+            className="!border !border-border !rounded-lg !shadow-sm"
           />
           <Background variant={BackgroundVariant.Dots} gap={16} size={1} color="#e2e8f0" />
         </ReactFlow>

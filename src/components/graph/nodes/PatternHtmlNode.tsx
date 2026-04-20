@@ -46,17 +46,17 @@ function PatternHtmlNodeComponent({ data }: NodeProps) {
         });
 
   return (
-    <NodeWrapper borderColor="border-emerald-400" width={280}>
+    <NodeWrapper borderColor="border-success" width={280}>
       <NodeHeader
-        icon={<Code2 size={12} className="text-emerald-800" />}
+        icon={<Code2 size={12} className="text-success" />}
         title="HTML pattern"
-        headerClass="bg-emerald-50 border-emerald-200 text-emerald-950"
+        headerClass="bg-success/10 border-success text-success"
         onDelete={onDeleteNode ? () => onDeleteNode(nodeId) : undefined}
       />
 
       <div className="px-3 py-2 space-y-1.5 nodrag">
         <div className="flex flex-col gap-0.5">
-          <span className="text-[10px] text-gray-400">Name</span>
+          <span className="text-[10px] text-muted-foreground">Name</span>
           <input
             value={localName}
             onChange={(e) => setLocalName(e.target.value)}
@@ -66,12 +66,12 @@ function PatternHtmlNodeComponent({ data }: NodeProps) {
             }}
             onFocus={() => onGraphInputFocus?.()}
             onMouseDown={(e) => e.stopPropagation()}
-            className="nodrag nopan w-full text-[11px] font-mono bg-white rounded px-1.5 py-1 text-gray-700 border border-gray-200 focus:ring-1 focus:ring-emerald-400"
+            className="nodrag nopan w-full text-[11px] font-mono bg-card rounded px-1.5 py-1 text-foreground border border-border focus:ring-1 focus:ring-success"
             placeholder="Label"
           />
         </div>
         <div className="flex flex-col gap-0.5">
-          <span className="text-[10px] text-gray-400">HTML</span>
+          <span className="text-[10px] text-muted-foreground">HTML</span>
           <textarea
             value={localBody}
             onChange={(e) => setLocalBody(e.target.value)}
@@ -83,11 +83,11 @@ function PatternHtmlNodeComponent({ data }: NodeProps) {
             onMouseDown={(e) => e.stopPropagation()}
             rows={3}
             placeholder="<div>…</div>"
-            className="nodrag nopan w-full text-[11px] font-mono bg-white rounded px-1.5 py-1 text-gray-700 focus:outline-none resize-y min-h-[48px] border border-gray-200 focus:ring-1 focus:ring-emerald-400"
+            className="nodrag nopan w-full text-[11px] font-mono bg-card rounded px-1.5 py-1 text-foreground focus:outline-none resize-y min-h-[48px] border border-border focus:ring-1 focus:ring-success"
           />
         </div>
         <div className="flex flex-col gap-0.5">
-          <span className="text-[10px] text-gray-400">Optional CSS</span>
+          <span className="text-[10px] text-muted-foreground">Optional CSS</span>
           <textarea
             value={localCss}
             onChange={(e) => setLocalCss(e.target.value)}
@@ -99,7 +99,7 @@ function PatternHtmlNodeComponent({ data }: NodeProps) {
             onMouseDown={(e) => e.stopPropagation()}
             rows={2}
             placeholder="Scoped CSS (htmlCssComponent)"
-            className="nodrag nopan w-full text-[11px] font-mono bg-white rounded px-1.5 py-1 text-gray-700 focus:outline-none resize-y min-h-[40px] border border-gray-200 focus:ring-1 focus:ring-emerald-400"
+            className="nodrag nopan w-full text-[11px] font-mono bg-card rounded px-1.5 py-1 text-foreground focus:outline-none resize-y min-h-[40px] border border-border focus:ring-1 focus:ring-success"
           />
         </div>
 
@@ -116,7 +116,7 @@ function PatternHtmlNodeComponent({ data }: NodeProps) {
               />
             }
           >
-            <span className="text-[10px] font-mono text-emerald-950 truncate" title={localName.trim() || '—'}>
+            <span className="text-[10px] font-mono text-success truncate" title={localName.trim() || '—'}>
               {localName.trim() || '—'}
             </span>
           </Row>
@@ -132,7 +132,7 @@ function PatternHtmlNodeComponent({ data }: NodeProps) {
               />
             }
           >
-            <span className="text-[10px] font-mono text-emerald-950 break-all line-clamp-3" title={preview}>
+            <span className="text-[10px] font-mono text-success break-all line-clamp-3" title={preview}>
               {preview}
             </span>
           </Row>

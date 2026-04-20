@@ -88,12 +88,12 @@ function ArrayNodeComponent({ data }: NodeProps) {
 
   return (
     <>
-    <NodeWrapper borderColor="border-sky-300" width={240}>
+    <NodeWrapper borderColor="border-info/40" width={240}>
       <NodeHeader
-        icon={<List size={12} className="text-sky-500" />}
+        icon={<List size={12} className="text-info" />}
         title="Array"
         badge={`${values.length} items`}
-        headerClass="bg-sky-50 border-sky-200 text-sky-700"
+        headerClass="bg-info/10 border-info/30 text-info"
         onDelete={onDeleteNode ? () => onDeleteNode(nodeId) : undefined}
       />
       <div className="px-3 py-2 space-y-1.5 nodrag">
@@ -107,14 +107,14 @@ function ArrayNodeComponent({ data }: NodeProps) {
               options={TYPES}
             />
             {/* CSV / List toggle */}
-            <div className="flex rounded border border-gray-200 overflow-hidden flex-shrink-0">
+            <div className="flex rounded border border-border overflow-hidden flex-shrink-0">
               {(['csv', 'list', 'array'] as ArrayInputMode[]).map(m => (
                 <button
                   key={m}
                   className={`nodrag px-1.5 text-[10px] font-medium transition-colors ${
                     cfg.inputMode === m
-                      ? 'bg-sky-500 text-white'
-                      : 'bg-white text-gray-500 hover:bg-gray-50'
+                      ? 'bg-info text-info-foreground'
+                      : 'bg-card text-muted-foreground hover:bg-muted/50'
                   }`}
                   onClick={() => switchMode(m)}
                   title={m === 'csv' ? 'Comma-separated' : m === 'list' ? 'Individual fields' : 'Paste array (comments stripped)'}
@@ -144,7 +144,7 @@ function ArrayNodeComponent({ data }: NodeProps) {
           <>
             {cfg.inputMode === 'array' ? (
               <div className="space-y-1">
-                <div className="text-[10px] text-gray-400 uppercase tracking-wide">Paste array</div>
+                <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Paste array</div>
                 <textarea
                   value={localRawArray}
                   onChange={e => setLocalRawArray(e.target.value)}
@@ -155,10 +155,10 @@ function ArrayNodeComponent({ data }: NodeProps) {
                     update({ rawArray: e.target.value });
                   }}
                   placeholder={'[\n  "#BBDEFB",\n  "#90CAF9",\n  ...\n]'}
-                  className="nodrag w-full text-[10px] font-mono bg-gray-50 border border-gray-200 rounded px-1.5 py-1 text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-sky-300 resize-none"
+                  className="nodrag w-full text-[10px] font-mono bg-muted/50 border border-border rounded px-1.5 py-1 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-info resize-none"
                   rows={4}
                 />
-                <div className="text-[9px] text-gray-400">Comments stripped. Use for colors, strings, numbers.</div>
+                <div className="text-[9px] text-muted-foreground">Comments stripped. Use for colors, strings, numbers.</div>
               </div>
             ) : cfg.inputMode === 'csv' ? (
               <Row label="Values">
@@ -172,7 +172,7 @@ function ArrayNodeComponent({ data }: NodeProps) {
             ) : (
               /* List mode: individual fields */
               <div className="space-y-1">
-                <div className="text-[10px] text-gray-400 uppercase tracking-wide">Values</div>
+                <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Values</div>
                 {(cfg.listValues ?? []).map((item, i) => (
                   <div key={i} className="flex items-center gap-1">
                     <TextInput
@@ -182,7 +182,7 @@ function ArrayNodeComponent({ data }: NodeProps) {
                       {...graphLock}
                     />
                     <button
-                      className="nodrag flex-shrink-0 w-5 h-5 flex items-center justify-center rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                      className="nodrag flex-shrink-0 w-5 h-5 flex items-center justify-center rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                       onClick={() => removeListItem(i)}
                       title="Remove"
                     >
@@ -191,7 +191,7 @@ function ArrayNodeComponent({ data }: NodeProps) {
                   </div>
                 ))}
                 <button
-                  className="nodrag flex items-center gap-1 text-[10px] text-sky-600 hover:text-sky-800 font-medium mt-0.5"
+                  className="nodrag flex items-center gap-1 text-[10px] text-info hover:text-info font-medium mt-0.5"
                   onClick={addListItem}
                 >
                   <Plus size={10} /> Add item
@@ -202,7 +202,7 @@ function ArrayNodeComponent({ data }: NodeProps) {
         )}
 
         {hasInputSeries && (
-          <div className="text-[10px] text-sky-600 bg-sky-50 rounded px-2 py-1">
+          <div className="text-[10px] text-info bg-info/10 rounded px-2 py-1">
             ← series connected ({(inputs['series'] as unknown[]).length} values)
           </div>
         )}
@@ -211,26 +211,26 @@ function ArrayNodeComponent({ data }: NodeProps) {
           <PreviewSection>
             <div className="flex flex-wrap gap-1">
               {values.slice(0, 8).map((v, i) => (
-                <span key={i} className="text-[10px] font-mono bg-sky-50 text-sky-700 rounded px-1">
+                <span key={i} className="text-[10px] font-mono bg-info/10 text-info rounded px-1">
                   {v}
                 </span>
               ))}
               {values.length > 8 && (
-                <span className="text-[10px] text-gray-400">+{values.length - 8} more</span>
+                <span className="text-[10px] text-muted-foreground">+{values.length - 8} more</span>
               )}
             </div>
           </PreviewSection>
         )}
 
         {/* Compact save trigger */}
-        <div className="border-t border-sky-100 pt-2 mt-1">
+        <div className="border-t border-info/20 pt-2 mt-1">
           <button
             disabled={values.length === 0}
             onClick={() => setSaveDialogOpen(true)}
             className={`nodrag w-full flex items-center justify-center gap-1.5 text-xs font-medium rounded px-3 py-1.5 transition-colors ${
               values.length === 0
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                : 'bg-sky-600 hover:bg-sky-700 text-white'
+                ? 'bg-muted text-muted-foreground cursor-not-allowed'
+                : 'bg-info hover:bg-info/90 text-info-foreground'
             }`}
           >
             <Save size={11} />

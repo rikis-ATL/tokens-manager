@@ -46,34 +46,34 @@ export function TagFilterCombobox({ allTags, selectedTags, onChange }: TagFilter
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button
-          className={`flex items-center gap-1.5 h-9 px-3 text-sm border rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+          className={`flex items-center gap-1.5 h-9 px-3 text-sm border rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
             selectedTags.length > 0
-              ? 'border-blue-500 bg-blue-50 text-blue-700'
-              : 'border-gray-300 bg-white text-gray-600 hover:border-gray-400'
+              ? 'border-primary bg-primary/10 text-primary'
+              : 'border-border bg-card text-muted-foreground hover:border-border'
           }`}
         >
           <span className="truncate max-w-[140px]">{label}</span>
           {selectedTags.length > 0 ? (
-            <X size={13} className="shrink-0 text-blue-500 hover:text-blue-700" onClick={clearAll} />
+            <X size={13} className="shrink-0 text-primary hover:text-primary" onClick={clearAll} />
           ) : (
-            <ChevronDown size={13} className="shrink-0 text-gray-400" />
+            <ChevronDown size={13} className="shrink-0 text-muted-foreground" />
           )}
         </button>
       </PopoverTrigger>
 
       <PopoverContent align="start" className="w-56 p-0">
         {/* Search input */}
-        <div className="flex items-center gap-2 px-3 py-2 border-b border-gray-100">
-          <Search size={13} className="text-gray-400 shrink-0" />
+        <div className="flex items-center gap-2 px-3 py-2 border-b border-border">
+          <Search size={13} className="text-muted-foreground shrink-0" />
           <input
             ref={inputRef}
-            className="flex-1 text-sm bg-transparent outline-none placeholder:text-gray-400"
+            className="flex-1 text-sm bg-transparent outline-none placeholder:text-muted-foreground"
             placeholder="Search tags…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
           {query && (
-            <button onClick={() => setQuery('')} className="text-gray-400 hover:text-gray-600">
+            <button onClick={() => setQuery('')} className="text-muted-foreground hover:text-muted-foreground">
               <X size={12} />
             </button>
           )}
@@ -82,22 +82,22 @@ export function TagFilterCombobox({ allTags, selectedTags, onChange }: TagFilter
         {/* Tag list */}
         <div className="max-h-52 overflow-y-auto py-1">
           {filtered.length === 0 ? (
-            <p className="px-3 py-2 text-xs text-gray-400">No tags found</p>
+            <p className="px-3 py-2 text-xs text-muted-foreground">No tags found</p>
           ) : (
             filtered.map((tag) => {
               const active = selectedTags.includes(tag);
               return (
                 <button
                   key={tag}
-                  className="flex items-center w-full gap-2 px-3 py-1.5 text-sm text-left hover:bg-gray-50 transition-colors"
+                  className="flex items-center w-full gap-2 px-3 py-1.5 text-sm text-left hover:bg-muted/50 transition-colors"
                   onClick={() => toggle(tag)}
                 >
                   <span
                     className={`flex items-center justify-center w-4 h-4 rounded border shrink-0 ${
-                      active ? 'bg-blue-500 border-blue-500' : 'border-gray-300'
+                      active ? 'bg-primary border-primary' : 'border-border'
                     }`}
                   >
-                    {active && <Check size={10} className="text-white" strokeWidth={3} />}
+                    {active && <Check size={10} className="text-primary-foreground" strokeWidth={3} />}
                   </span>
                   <span className="truncate">{tag}</span>
                 </button>
@@ -108,9 +108,9 @@ export function TagFilterCombobox({ allTags, selectedTags, onChange }: TagFilter
 
         {/* Footer */}
         {selectedTags.length > 0 && (
-          <div className="border-t border-gray-100 px-3 py-1.5">
+          <div className="border-t border-border px-3 py-1.5">
             <button
-              className="text-xs text-gray-400 hover:text-gray-600"
+              className="text-xs text-muted-foreground hover:text-muted-foreground"
               onClick={() => onChange([])}
             >
               Clear all

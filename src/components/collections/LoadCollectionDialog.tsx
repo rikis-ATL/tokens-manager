@@ -76,12 +76,12 @@ export function LoadCollectionDialog({
         <div>
           {isFetching ? (
             <div className="flex justify-center py-6">
-              <span className="inline-block w-5 h-5 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin" />
+              <span className="inline-block w-5 h-5 border-2 border-border border-t-blue-600 rounded-full animate-spin" />
             </div>
           ) : fetchError ? (
-            <p className="text-sm text-red-600">{fetchError}</p>
+            <p className="text-sm text-destructive">{fetchError}</p>
           ) : collections.length === 0 ? (
-            <p className="text-sm text-gray-500">No collections saved yet.</p>
+            <p className="text-sm text-muted-foreground">No collections saved yet.</p>
           ) : (
             <div className="max-h-64 overflow-y-auto">
               {collections.map((item) => (
@@ -90,7 +90,7 @@ export function LoadCollectionDialog({
                   onClick={() => handleSelect(item._id)}
                   disabled={isLoading}
                   variant="ghost"
-                  className="w-full justify-start px-4 py-2 text-sm text-gray-800 disabled:opacity-50"
+                  className="w-full justify-start px-4 py-2 text-sm text-foreground disabled:opacity-50"
                 >
                   {item.name}
                 </Button>

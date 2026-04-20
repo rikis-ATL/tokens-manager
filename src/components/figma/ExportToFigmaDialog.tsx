@@ -147,7 +147,7 @@ export function ExportToFigmaDialog({
         {!hasCredentials ? (
           <>
             <div className="space-y-4">
-              <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-md p-3">
+              <p className="text-sm text-warning bg-warning/10 border border-warning rounded-md p-3">
                 Add your Figma personal access token and file key in this collection&apos;s{' '}
                 <span className="font-medium">Settings</span> (Integrations), or use the Figma button in the app header
                 to save them in this browser.
@@ -163,7 +163,7 @@ export function ExportToFigmaDialog({
           /* Success state */
           <>
             <div className="space-y-4">
-              <p className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-md p-3">
+              <p className="text-sm text-success bg-success/10 border border-success rounded-md p-3">
                 {successMessage}
               </p>
             </div>
@@ -179,7 +179,7 @@ export function ExportToFigmaDialog({
             <div className="space-y-4">
               {/* File key input */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Figma File Key
                 </label>
                 <div className="flex gap-2">
@@ -194,19 +194,19 @@ export function ExportToFigmaDialog({
                   <Button
                     onClick={handleLoadCollections}
                     disabled={loading || !fileKey.trim() || exporting}
-                    className="bg-purple-600 hover:bg-purple-700 whitespace-nowrap"
+                    className="bg-primary hover:bg-primary/90 whitespace-nowrap"
                   >
                     {loading ? 'Loading...' : 'Load collections'}
                   </Button>
                 </div>
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-muted-foreground">
                   Pre-filled from your Figma config. Edit to export to a different file.
                 </p>
               </div>
 
               {/* Collections dropdown */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Target variable collection
                 </label>
                 <Select
@@ -226,30 +226,30 @@ export function ExportToFigmaDialog({
                   </SelectContent>
                 </Select>
                 {loading && (
-                  <p className="mt-1 text-xs text-gray-500">Loading collections from Figma...</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Loading collections from Figma...</p>
                 )}
                 {!loading && collections.length === 0 && !error && hasCredentials && (
-                  <p className="mt-1 text-xs text-gray-500">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     Click &ldquo;Load collections&rdquo; to fetch available variable collections.
                   </p>
                 )}
               </div>
 
               {/* Multi-brand info */}
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted-foreground">
                 Each brand in your collection will map to a corresponding mode in the target Figma collection.
               </p>
 
               {/* Error message */}
               {error && (
-                <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md p-3">
+                <p className="text-sm text-destructive bg-destructive/10 border border-destructive rounded-md p-3">
                   {error}
                 </p>
               )}
             </div>
 
             <div className="flex flex-col gap-2 w-full">
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 Figma Variables API requires Enterprise plan.
               </p>
               <DialogFooter>
@@ -263,7 +263,7 @@ export function ExportToFigmaDialog({
                 <Button
                   onClick={handleExport}
                   disabled={!selectedCollectionId || exporting}
-                  className="bg-purple-600 hover:bg-purple-700"
+                  className="bg-primary hover:bg-primary/90"
                 >
                   {exporting ? 'Exporting...' : 'Export'}
                 </Button>

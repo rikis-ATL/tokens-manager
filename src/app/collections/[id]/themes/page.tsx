@@ -161,7 +161,7 @@ export default function CollectionThemesPage({ params }: ThemesPageProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full py-24">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600" />
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
       </div>
     );
   }
@@ -169,9 +169,9 @@ export default function CollectionThemesPage({ params }: ThemesPageProps) {
   return (
     <div className="flex flex-col flex-1 overflow-hidden border">
       {/* Heading bar */}
-      <div className="flex items-center justify-between gap-2 border-b border-gray-200 bg-white px-6 py-3 flex-shrink-0">
-        <h1 className="text-lg font-semibold text-gray-900">Themes</h1>
-        <Button size="sm" className="px-2 bg-blue-600 hover:bg-blue-700 text-white gap-1" onClick={() => handleAddTheme('New Theme', 'light')}>
+      <div className="flex items-center justify-between gap-2 border-b border-border bg-card px-6 py-3 flex-shrink-0">
+        <h1 className="text-lg font-semibold text-foreground">Themes</h1>
+        <Button size="sm" className="px-2 bg-primary hover:bg-primary text-primary-foreground gap-1" onClick={() => handleAddTheme('New Theme', 'light')}>
         <Plus size={14} />
           Add Theme</Button>  
       </div>
@@ -179,7 +179,7 @@ export default function CollectionThemesPage({ params }: ThemesPageProps) {
       {/* Two-panel layout */}
       <div className="flex h-full overflow-hidden">
         {/* Left panel — 192px fixed (w-48) */}
-        <aside className="w-48 flex-shrink-0 border-r border-gray-200 bg-gray-50 flex flex-col h-full">
+        <aside className="w-48 flex-shrink-0 border-r border-border bg-muted/50 flex flex-col h-full">
           <ThemeList
             themes={themes}
             selectedThemeId={selectedThemeId}
@@ -194,7 +194,7 @@ export default function CollectionThemesPage({ params }: ThemesPageProps) {
         <div className="flex-1 overflow-y-auto p-6">
           {selectedTheme ? (
             <>
-              <h2 className="text-sm font-semibold text-gray-700 mb-4">
+              <h2 className="text-sm font-semibold text-foreground mb-4">
                 {selectedTheme.name}
               </h2>
               <ThemeGroupMatrix
@@ -205,7 +205,7 @@ export default function CollectionThemesPage({ params }: ThemesPageProps) {
               />
             </>
           ) : (
-            <p className="text-sm text-gray-400 mt-8 text-center">
+            <p className="text-sm text-muted-foreground mt-8 text-center">
               {themes.length === 0
                 ? 'No themes yet. Click + to create one.'
                 : 'Select a theme to manage its groups.'}

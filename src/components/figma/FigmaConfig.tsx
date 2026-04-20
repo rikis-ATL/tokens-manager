@@ -148,13 +148,13 @@ export function FigmaConfig({ onConfigChange, className = '', alwaysOpen = false
             onClick={() => setIsOpen(true)}
             className={
               isConnected
-                ? 'bg-green-100 text-green-800 hover:bg-green-200 border-green-200'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200'
+                ? 'bg-success/15 text-success hover:bg-success/25 border-success'
+                : 'bg-muted text-foreground hover:bg-muted border-border'
             }
           >
             {isConnected ? (
               <span className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                <span className="w-2 h-2 bg-success rounded-full"></span>
                 <span className="max-w-[120px] truncate">{config.fileKey}</span>
               </span>
             ) : (
@@ -169,14 +169,14 @@ export function FigmaConfig({ onConfigChange, className = '', alwaysOpen = false
           /* Inline form — no modal overlay */
           <div>
             {isConnected && (
-              <p className="text-sm text-green-600 mb-4">
+              <p className="text-sm text-success mb-4">
                 Connected to {config.fileKey}
               </p>
             )}
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Personal Access Token
                 </label>
                 <Input
@@ -185,13 +185,13 @@ export function FigmaConfig({ onConfigChange, className = '', alwaysOpen = false
                   onChange={(e) => handleTokenChange(e.target.value)}
                   placeholder="figd_xxxx..."
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   Generate at figma.com &rarr; Account Settings &rarr; Personal access tokens
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Figma File URL
                 </label>
                 <Input
@@ -201,8 +201,8 @@ export function FigmaConfig({ onConfigChange, className = '', alwaysOpen = false
                   placeholder="https://www.figma.com/design/ABC123/..."
                 />
                 {config.fileKey && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    File key: <code className="bg-gray-100 px-1 rounded">{config.fileKey}</code>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    File key: <code className="bg-muted px-1 rounded">{config.fileKey}</code>
                   </p>
                 )}
               </div>
@@ -212,19 +212,19 @@ export function FigmaConfig({ onConfigChange, className = '', alwaysOpen = false
                   variant="outline"
                   onClick={handleTestConnection}
                   disabled={loading || !config.token}
-                  className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                  className="text-primary border-primary hover:bg-primary/10"
                 >
                   {loading ? 'Testing...' : 'Test Connection'}
                 </Button>
 
                 {testStatus === 'ok' && (
-                  <span className="text-sm text-green-600 flex items-center gap-1">
-                    <span className="w-2 h-2 bg-green-500 rounded-full inline-block"></span>
+                  <span className="text-sm text-success flex items-center gap-1">
+                    <span className="w-2 h-2 bg-success rounded-full inline-block"></span>
                     {testMessage}
                   </span>
                 )}
                 {testStatus === 'error' && (
-                  <span className="text-sm text-red-600">{testMessage}</span>
+                  <span className="text-sm text-destructive">{testMessage}</span>
                 )}
               </div>
             </div>
@@ -235,7 +235,7 @@ export function FigmaConfig({ onConfigChange, className = '', alwaysOpen = false
                   <Button
                     variant="outline"
                     onClick={handleReset}
-                    className="bg-red-100 text-red-700 hover:bg-red-200 border-red-200"
+                    className="bg-destructive/15 text-destructive hover:bg-destructive/25 border-destructive"
                     title="Completely disconnect and clear all Figma settings"
                   >
                     Reset Connection
@@ -254,13 +254,13 @@ export function FigmaConfig({ onConfigChange, className = '', alwaysOpen = false
           </div>
         ) : (
           /* Modal overlay */
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+          <div className="fixed inset-0 bg-foreground/50 flex items-center justify-center z-50">
+            <div className="bg-card rounded-lg p-6 w-full max-w-md">
               <div className="flex justify-between items-center mb-4">
                 <div>
                   <h3 className="text-lg font-semibold">Figma Configuration</h3>
                   {isConnected && (
-                    <p className="text-sm text-green-600 mt-1">
+                    <p className="text-sm text-success mt-1">
                       Connected to {config.fileKey}
                     </p>
                   )}
@@ -269,7 +269,7 @@ export function FigmaConfig({ onConfigChange, className = '', alwaysOpen = false
                   variant="ghost"
                   size="sm"
                   onClick={handleCancel}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-muted-foreground hover:text-foreground"
                 >
                   x
                 </Button>
@@ -277,7 +277,7 @@ export function FigmaConfig({ onConfigChange, className = '', alwaysOpen = false
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">
                     Personal Access Token
                   </label>
                   <Input
@@ -286,13 +286,13 @@ export function FigmaConfig({ onConfigChange, className = '', alwaysOpen = false
                     onChange={(e) => handleTokenChange(e.target.value)}
                     placeholder="figd_xxxx..."
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     Generate at figma.com &rarr; Account Settings &rarr; Personal access tokens
                   </p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">
                     Figma File URL
                   </label>
                   <Input
@@ -302,8 +302,8 @@ export function FigmaConfig({ onConfigChange, className = '', alwaysOpen = false
                     placeholder="https://www.figma.com/design/ABC123/..."
                   />
                   {config.fileKey && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      File key: <code className="bg-gray-100 px-1 rounded">{config.fileKey}</code>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      File key: <code className="bg-muted px-1 rounded">{config.fileKey}</code>
                     </p>
                   )}
                 </div>
@@ -313,19 +313,19 @@ export function FigmaConfig({ onConfigChange, className = '', alwaysOpen = false
                     variant="outline"
                     onClick={handleTestConnection}
                     disabled={loading || !config.token}
-                    className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                    className="text-primary border-primary hover:bg-primary/10"
                   >
                     {loading ? 'Testing...' : 'Test Connection'}
                   </Button>
 
                   {testStatus === 'ok' && (
-                    <span className="text-sm text-green-600 flex items-center gap-1">
-                      <span className="w-2 h-2 bg-green-500 rounded-full inline-block"></span>
+                    <span className="text-sm text-success flex items-center gap-1">
+                      <span className="w-2 h-2 bg-success rounded-full inline-block"></span>
                       {testMessage}
                     </span>
                   )}
                   {testStatus === 'error' && (
-                    <span className="text-sm text-red-600">{testMessage}</span>
+                    <span className="text-sm text-destructive">{testMessage}</span>
                   )}
                 </div>
               </div>
@@ -336,7 +336,7 @@ export function FigmaConfig({ onConfigChange, className = '', alwaysOpen = false
                     <Button
                       variant="outline"
                       onClick={handleReset}
-                      className="bg-red-100 text-red-700 hover:bg-red-200 border-red-200"
+                      className="bg-destructive/15 text-destructive hover:bg-destructive/25 border-destructive"
                       title="Completely disconnect and clear all Figma settings"
                     >
                       Reset Connection
@@ -347,7 +347,7 @@ export function FigmaConfig({ onConfigChange, className = '', alwaysOpen = false
                   <Button
                     variant="ghost"
                     onClick={handleCancel}
-                    className="text-gray-600 hover:text-gray-700"
+                    className="text-muted-foreground hover:text-foreground"
                   >
                     Cancel
                   </Button>

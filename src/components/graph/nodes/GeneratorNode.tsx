@@ -59,8 +59,8 @@ function ColorConfigForm({
       <Row label="Hue">
         {wiredColor ? (
           <div className="flex items-center gap-1">
-            <div className="w-4 h-4 rounded-full border border-gray-200 flex-shrink-0" style={{ backgroundColor: wiredColor }} />
-            <span className="text-[10px] text-blue-600 italic">from input</span>
+            <div className="w-4 h-4 rounded-full border border-border flex-shrink-0" style={{ backgroundColor: wiredColor }} />
+            <span className="text-[10px] text-primary italic">from input</span>
           </div>
         ) : (
           <div className="flex items-center gap-1">
@@ -72,7 +72,7 @@ function ColorConfigForm({
               {...graphLock}
             />
             <div
-              className="w-4 h-4 rounded-full border border-gray-200 flex-shrink-0"
+              className="w-4 h-4 rounded-full border border-border flex-shrink-0"
               style={{ background: `hsl(${wiredBase ?? cfg.baseHue},${cfg.baseSaturation}%,50%)` }}
             />
           </div>
@@ -142,7 +142,7 @@ function DimensionConfigForm({
         <>
           <Row label="Base value">
             {hasWired ? (
-              <span className="text-[10px] text-amber-700 font-mono bg-amber-50 rounded px-2 py-0.5">{wiredBase}</span>
+              <span className="text-[10px] text-warning font-mono bg-warning/10 rounded px-2 py-0.5">{wiredBase}</span>
             ) : (
               <NumberInput value={cfg.modularBase} onChange={v => onChange({ ...cfg, modularBase: v })} step={0.1} min={0.1} {...graphLock} />
             )}
@@ -159,7 +159,7 @@ function DimensionConfigForm({
         <>
           <Row label="Min">
             {hasWired ? (
-              <span className="text-[10px] text-amber-700 font-mono bg-amber-50 rounded px-2 py-0.5">{wiredBase}</span>
+              <span className="text-[10px] text-warning font-mono bg-warning/10 rounded px-2 py-0.5">{wiredBase}</span>
             ) : (
               <NumberInput value={cfg.minValue} onChange={v => onChange({ ...cfg, minValue: v })} step={0.1} min={0} {...graphLock} />
             )}
@@ -184,21 +184,21 @@ function TokenPreview({ values, names }: { values: string[]; names: string[] }) 
   const hasMore = count > PREVIEW_LIMIT;
 
   return (
-    <div className="mt-1 border-t border-gray-100 pt-2">
-      <div className="text-[10px] font-medium text-gray-400 uppercase tracking-wide mb-1.5">
+    <div className="mt-1 border-t border-border pt-2">
+      <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mb-1.5">
         Preview · {count} tokens
       </div>
       <div className="space-y-1">
         {visibleValues.map((v, i) => (
           <div key={names[i] ?? i} className="flex items-center gap-1.5">
-            <span className="font-mono text-[10px] text-gray-500 w-10 flex-shrink-0">{names[i]}</span>
-            <span className="font-mono text-[10px] text-gray-700 truncate">{v}</span>
+            <span className="font-mono text-[10px] text-muted-foreground w-10 flex-shrink-0">{names[i]}</span>
+            <span className="font-mono text-[10px] text-foreground truncate">{v}</span>
           </div>
         ))}
       </div>
       {hasMore && (
         <button
-          className="nodrag mt-1 text-[10px] text-indigo-500 hover:text-indigo-700 flex items-center gap-0.5"
+          className="nodrag mt-1 text-[10px] text-info hover:text-info flex items-center gap-0.5"
           onClick={() => setShowAll(s => !s)}
         >
           {showAll ? <><ChevronUp size={10} /> Show less</> : <><ChevronDown size={10} /> +{count - PREVIEW_LIMIT} more</>}
@@ -263,12 +263,12 @@ function GeneratorNodeComponent({ data }: NodeProps) {
   const hasOutput = previewValues.length > 0;
 
   return (
-    <NodeWrapper borderColor="border-indigo-300" width={290}>
+    <NodeWrapper borderColor="border-primary/40" width={290}>
       <NodeHeader
-        icon={<Zap size={12} className="text-indigo-500" />}
+        icon={<Zap size={12} className="text-info" />}
         title="Generator"
         badge={`${cfg.count} tokens`}
-        headerClass="bg-indigo-50 border-indigo-200 text-indigo-700"
+        headerClass="bg-info/10 border-primary/30 text-info"
         onDelete={onDeleteNode ? () => onDeleteNode(nodeId) : undefined}
       />
 
@@ -298,7 +298,7 @@ function GeneratorNodeComponent({ data }: NodeProps) {
           />
         </Row>
 
-        <div className="border-t border-gray-100 pt-1.5 mt-1.5">
+        <div className="border-t border-border pt-1.5 mt-1.5">
           {isColor ? (
             <ColorConfigForm
               cfg={cfg.config as ColorGeneratorConfig}
@@ -320,54 +320,54 @@ function GeneratorNodeComponent({ data }: NodeProps) {
         {/* Input handles aligned with their relevant config rows */}
         {isColor && (
           <Row
-            label={<span className="text-[10px] text-gray-400 italic">Base color</span>}
-            handle={<RowHandle id="baseColor" className={wiredBaseColor ? HANDLE_STRING + ' !bg-green-500' : HANDLE_STRING} title="baseColor — wire a Constant to override hue/sat" />}
+            label={<span className="text-[10px] text-muted-foreground italic">Base color</span>}
+            handle={<RowHandle id="baseColor" className={wiredBaseColor ? HANDLE_STRING + ' !bg-success' : HANDLE_STRING} title="baseColor — wire a Constant to override hue/sat" />}
           >
             {wiredBaseColor
-              ? <span className="text-[10px] text-green-700 font-mono bg-green-50 rounded px-1 truncate">{wiredBaseColor}</span>
-              : <span className="text-[10px] text-gray-300 italic">← wire color const</span>
+              ? <span className="text-[10px] text-success font-mono bg-success/10 rounded px-1 truncate">{wiredBaseColor}</span>
+              : <span className="text-[10px] text-muted-foreground italic">← wire color const</span>
             }
           </Row>
         )}
 
         <Row
-          label={<span className="text-[10px] text-gray-400 italic">Base value</span>}
-          handle={<RowHandle id="baseValue" className={wiredBaseValue != null ? HANDLE_IN + ' !bg-amber-500' : HANDLE_IN} title="baseValue — wire a number Constant to override base" />}
+          label={<span className="text-[10px] text-muted-foreground italic">Base value</span>}
+          handle={<RowHandle id="baseValue" className={wiredBaseValue != null ? HANDLE_IN + ' !bg-warning' : HANDLE_IN} title="baseValue — wire a number Constant to override base" />}
         >
           {wiredBaseValue != null
-            ? <span className="text-[10px] text-amber-700 font-mono bg-amber-50 rounded px-1">{wiredBaseValue}</span>
-            : <span className="text-[10px] text-gray-300 italic">← wire number const</span>
+            ? <span className="text-[10px] text-warning font-mono bg-warning/10 rounded px-1">{wiredBaseValue}</span>
+            : <span className="text-[10px] text-muted-foreground italic">← wire number const</span>
           }
         </Row>
 
         {/* Preview — scrollable, no handles inside */}
         {hasOutput && (
-          <div className="mt-1 border-t border-gray-100 pt-2">
-            <div className="text-[10px] font-medium text-gray-400 uppercase tracking-wide mb-1.5">
+          <div className="mt-1 border-t border-border pt-2">
+            <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mb-1.5">
               Preview · {previewValues.length} tokens
             </div>
             <div className="space-y-0.5 max-h-[100px] overflow-y-auto">
               {previewValues.slice(0, PREVIEW_LIMIT).map((v, i) => (
                 <div key={previewNames[i] ?? i} className="flex items-center gap-1.5">
-                  <span className="font-mono text-[10px] text-gray-500 w-10 flex-shrink-0">{previewNames[i]}</span>
-                  <span className="font-mono text-[10px] text-gray-700 truncate">{v}</span>
+                  <span className="font-mono text-[10px] text-muted-foreground w-10 flex-shrink-0">{previewNames[i]}</span>
+                  <span className="font-mono text-[10px] text-foreground truncate">{v}</span>
                 </div>
               ))}
               {previewValues.length > PREVIEW_LIMIT && (
-                <span className="text-[10px] text-gray-400">+{previewValues.length - PREVIEW_LIMIT} more</span>
+                <span className="text-[10px] text-muted-foreground">+{previewValues.length - PREVIEW_LIMIT} more</span>
               )}
             </div>
           </div>
         )}
 
         {/* Output ports — always visible, outside any overflow container */}
-        <div className="mt-1 border-t border-gray-100 pt-1.5 space-y-0.5">
-          <div className="text-[10px] font-medium text-gray-400 uppercase tracking-wide mb-1">Outputs</div>
+        <div className="mt-1 border-t border-border pt-1.5 space-y-0.5">
+          <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mb-1">Outputs</div>
           <Row
             label="values"
             handle={<RowHandle id="values" type="source" side="right" className={HANDLE_ARRAY} title="values (string[]) → TokenOutput.values" />}
           >
-            <span className="text-[10px] text-violet-600 bg-violet-50 rounded px-1.5 py-0.5">
+            <span className="text-[10px] text-info bg-info/10 rounded px-1.5 py-0.5">
               {hasOutput ? `${previewValues.length} values` : 'array'}
             </span>
           </Row>
@@ -375,7 +375,7 @@ function GeneratorNodeComponent({ data }: NodeProps) {
             label="names"
             handle={<RowHandle id="names" type="source" side="right" className={HANDLE_ARRAY} title="names (string[]) → TokenOutput.names" />}
           >
-            <span className="text-[10px] text-violet-600 bg-violet-50 rounded px-1.5 py-0.5 truncate max-w-[120px]">
+            <span className="text-[10px] text-info bg-info/10 rounded px-1.5 py-0.5 truncate max-w-[120px]">
               {hasOutput ? `${previewNames.slice(0, 3).join(', ')}${previewNames.length > 3 ? '…' : ''}` : 'array'}
             </span>
           </Row>
@@ -388,10 +388,10 @@ function GeneratorNodeComponent({ data }: NodeProps) {
           disabled={!hasOutput}
           className={`nodrag w-full flex items-center justify-center gap-1.5 text-xs font-medium rounded px-3 py-1.5 transition-colors ${
             generated
-              ? 'bg-green-100 text-green-700 border border-green-300'
+              ? 'bg-success/15 text-success border border-success'
               : !hasOutput
-              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+              ? 'bg-muted text-muted-foreground cursor-not-allowed'
+              : 'bg-primary hover:bg-primary/90 text-primary-foreground'
           }`}
           onClick={handleGenerate}
         >

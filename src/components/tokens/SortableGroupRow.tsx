@@ -40,8 +40,8 @@ interface SortableGroupRowProps {
 function rowClassName(node: FlatNode, isSelected: boolean): string {
   const base = 'group/item flex items-center pr-1 text-sm cursor-pointer transition-colors';
   const selected = isSelected
-    ? 'bg-indigo-50 text-indigo-900 font-medium'
-    : 'hover:bg-gray-100 text-gray-700';
+    ? 'bg-info/10 text-foreground font-medium'
+    : 'hover:bg-muted text-foreground';
   return `${base} ${selected}`;
 }
 
@@ -74,7 +74,7 @@ function InlineLabel({
     return (
       <input
         ref={inputRef}
-        className="flex-1 py-0.5 px-1 text-xs rounded border border-indigo-400 bg-white outline-none min-w-0"
+        className="flex-1 py-0.5 px-1 text-xs rounded border border-primary/50 bg-card outline-none min-w-0"
         value={editValue}
         onClick={e => e.stopPropagation()}
         onChange={e => onEditValueChange(e.target.value)}
@@ -128,7 +128,7 @@ function GroupActions({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
-          className="p-1 rounded hover:bg-gray-200 text-gray-400 hover:text-gray-700 transition-all flex-shrink-0"
+          className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-all flex-shrink-0"
           onClick={e => e.stopPropagation()}
           title="Group actions"
         >
@@ -149,7 +149,7 @@ function GroupActions({
             className="gap-2 text-xs"
             onClick={() => onToggleOmitFromPath(node.group.id)}
           >
-            <Slash size={12} className={isOmitted ? 'text-amber-500' : ''} />
+            <Slash size={12} className={isOmitted ? 'text-warning' : ''} />
             {isOmitted ? 'Include name in output' : 'Skip name in output'}
           </DropdownMenuItem>
         )}
@@ -166,7 +166,7 @@ function GroupActions({
         {!onAddSubGroup && (onRenameGroup || onToggleOmitFromPath) && onDeleteGroup && <DropdownMenuSeparator />}
         {onDeleteGroup && (
           <DropdownMenuItem
-            className="gap-2 text-xs text-red-600 focus:text-red-700"
+            className="gap-2 text-xs text-destructive focus:text-destructive"
             onClick={() => onDeleteGroup(node.group.id)}
           >
             <Trash2 size={12} /> Delete Group
@@ -201,7 +201,7 @@ export function SortableGroupRow({
         style={{ paddingLeft: node.depth * 14 + 8 }}
         className={rowClassName(node, isSelected)}
       >
-        <GripVertical size={12} className="text-gray-300 mr-1 flex-shrink-0" />
+        <GripVertical size={12} className="text-muted-foreground mr-1 flex-shrink-0" />
         <span className="flex-1 py-1.5 truncate text-xs">{node.displayLabel}</span>
       </div>
     );
@@ -290,7 +290,7 @@ function SortableRowInner({
     setIsEditing(false);
   }
 
-  const dropIntoRing = dropIntent === 'into' ? 'ring-2 ring-inset ring-blue-400 rounded' : '';
+  const dropIntoRing = dropIntent === 'into' ? 'ring-2 ring-inset ring-primary rounded' : '';
 
   return (
     <div
@@ -302,12 +302,12 @@ function SortableRowInner({
     >
       {/* Insertion line — top (before) */}
       {dropIntent === 'before' && (
-        <div className="absolute top-0 left-0 right-0 h-0.5 bg-blue-500 rounded-full z-10 pointer-events-none" />
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-primary rounded-full z-10 pointer-events-none" />
       )}
 
       {/* Insertion line — bottom (after) */}
       {dropIntent === 'after' && (
-        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 rounded-full z-10 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full z-10 pointer-events-none" />
       )}
 
       {/* Drag handle with expanded drop zone — hidden while editing */}
@@ -317,10 +317,10 @@ function SortableRowInner({
       >
         <button
           {...(isEditing ? {} : listeners)}
-          className={`p-2 text-gray-300 flex-shrink-0 transition-all ${
+          className={`p-2 text-muted-foreground flex-shrink-0 transition-all ${
             isEditing 
               ? 'pointer-events-none opacity-0' 
-              : 'cursor-grab hover:text-gray-500'
+              : 'cursor-grab hover:text-muted-foreground'
           }`}
           title="Drag to reorder"
           tabIndex={-1}
@@ -333,7 +333,7 @@ function SortableRowInner({
       {/* Expand/collapse caret for groups with children */}
       {hasChildren ? (
         <button
-          className="p-0.5 text-gray-400 hover:text-gray-600 flex-shrink-0 -ml-0.5 mr-0.5"
+          className="p-0.5 text-muted-foreground hover:text-muted-foreground flex-shrink-0 -ml-0.5 mr-0.5"
           onClick={e => { e.stopPropagation(); onToggleCollapse?.(node.group.id); }}
           tabIndex={-1}
           title={isCollapsed ? 'Expand' : 'Collapse'}
@@ -362,8 +362,8 @@ function SortableRowInner({
           title={node.group.omitFromPath ? 'Name skipped in output — click to include' : 'Click to skip name in output'}
           className={`p-0.5 rounded flex-shrink-0 transition-colors ${
             node.group.omitFromPath
-              ? 'text-amber-500 hover:text-amber-700'
-              : 'text-gray-300 opacity-0 group-hover/item:opacity-100 hover:text-gray-500'
+              ? 'text-warning hover:text-warning'
+              : 'text-muted-foreground opacity-0 group-hover/item:opacity-100 hover:text-muted-foreground'
           }`}
           onClick={e => { e.stopPropagation(); onToggleOmitFromPath(node.group.id); }}
         >
@@ -371,7 +371,7 @@ function SortableRowInner({
         </button>
       )}
       {!onToggleOmitFromPath && node.group.omitFromPath && !isEditing && (
-        <span title="Name omitted from output path" className="text-amber-400 flex-shrink-0">
+        <span title="Name omitted from output path" className="text-warning flex-shrink-0">
           <Slash size={10} />
         </span>
       )}

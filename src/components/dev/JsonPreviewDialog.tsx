@@ -39,7 +39,7 @@ export function JsonPreviewDialog({
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         <div className="overflow-auto flex-1 max-h-[60vh] py-4">
-          <pre className="overflow-auto p-4 text-xs bg-gray-50 rounded-md border font-mono">
+          <pre className="overflow-auto p-4 text-xs bg-muted/50 rounded-md border font-mono">
             {text}
           </pre>
         </div>

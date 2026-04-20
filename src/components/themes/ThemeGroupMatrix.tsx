@@ -25,7 +25,7 @@ export function ThemeGroupMatrix({ theme, groups, onStateChange, onColorModeChan
 
   if (groups.length === 0) {
     return (
-      <p className="text-sm text-gray-400 text-center mt-8">
+      <p className="text-sm text-muted-foreground text-center mt-8">
         No groups in this collection.
       </p>
     );
@@ -34,14 +34,14 @@ export function ThemeGroupMatrix({ theme, groups, onStateChange, onColorModeChan
   return (
     <div className="flex flex-col gap-1">
       {/* Color mode selector row */}
-      <div className="flex items-center justify-between gap-4 px-4 py-2 rounded-md hover:bg-gray-50 mb-2 border-b border-gray-100 pb-3">
-        <span className="text-sm text-gray-700 flex-1">Color Mode</span>
-        <div className="flex border border-gray-200 rounded-md overflow-hidden flex-shrink-0">
+      <div className="flex items-center justify-between gap-4 px-4 py-2 rounded-md hover:bg-muted/50 mb-2 border-b border-border pb-3">
+        <span className="text-sm text-foreground flex-1">Color Mode</span>
+        <div className="flex border border-border rounded-md overflow-hidden flex-shrink-0">
           <button
-            className={`px-3 py-1 text-xs font-medium transition-colors border-r border-gray-200 flex items-center gap-1 ${
+            className={`px-3 py-1 text-xs font-medium transition-colors border-r border-border flex items-center gap-1 ${
               colorMode === 'light'
-                ? 'bg-amber-500 text-white border-amber-500'
-                : 'bg-white text-gray-600 hover:bg-gray-50'
+                ? 'bg-warning text-warning-foreground border-warning'
+                : 'bg-card text-muted-foreground hover:bg-muted/50'
             }`}
             onClick={() => onColorModeChange?.(theme.id, 'light')}
           >
@@ -51,8 +51,8 @@ export function ThemeGroupMatrix({ theme, groups, onStateChange, onColorModeChan
           <button
             className={`px-3 py-1 text-xs font-medium transition-colors flex items-center gap-1 ${
               colorMode === 'dark'
-                ? 'bg-slate-600 text-white border-slate-600'
-                : 'bg-white text-gray-600 hover:bg-gray-50'
+                ? 'bg-foreground text-background border-border'
+                : 'bg-card text-muted-foreground hover:bg-muted/50'
             }`}
             onClick={() => onColorModeChange?.(theme.id, 'dark')}
           >
@@ -71,24 +71,24 @@ export function ThemeGroupMatrix({ theme, groups, onStateChange, onColorModeChan
         return (
           <div
             key={group.id}
-            className="flex items-center justify-between gap-4 px-4 py-2 rounded-md hover:bg-gray-50"
+            className="flex items-center justify-between gap-4 px-4 py-2 rounded-md hover:bg-muted/50"
           >
             {/* Group label */}
-            <span className="text-sm text-gray-700 flex-1 truncate">{label}</span>
+            <span className="text-sm text-foreground flex-1 truncate">{label}</span>
 
             {/* 3-state button group */}
-            <div className="flex border border-gray-200 rounded-md overflow-hidden flex-shrink-0">
+            <div className="flex border border-border rounded-md overflow-hidden flex-shrink-0">
               {STATES.map((state, idx) => {
                 const isActive = currentState === state;
                 return (
                   <button
                     key={state}
                     className={`px-3 py-1 text-xs font-medium transition-colors ${
-                      idx < STATES.length - 1 ? 'border-r border-gray-200' : ''
+                      idx < STATES.length - 1 ? 'border-r border-border' : ''
                     } ${
                       isActive
-                        ? 'bg-indigo-600 text-white border-indigo-600'
-                        : 'bg-white text-gray-600 hover:bg-gray-50'
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'bg-card text-muted-foreground hover:bg-muted/50'
                     }`}
                     onClick={() => onStateChange(group.id, state)}
                     title={STATE_LABELS[state]}

@@ -96,50 +96,50 @@ export function CollectionTableView({
 
   const getThemeDisplay = (collection: CollectionCardData) => {
     if (collection.themesCount === 0) {
-      return <span className="text-gray-400">—</span>;
+      return <span className="text-muted-foreground">—</span>;
     }
     const hasLightDark = collection.themesCount >= 2;
     if (hasLightDark) {
-      return <span className="text-sm text-gray-700">Light, Dark{collection.themesCount > 2 ? `, +${collection.themesCount - 2}` : ''}</span>;
+      return <span className="text-sm text-foreground">Light, Dark{collection.themesCount > 2 ? `, +${collection.themesCount - 2}` : ''}</span>;
     }
-    return <span className="text-sm text-gray-700">{collection.themesCount} theme{collection.themesCount > 1 ? 's' : ''}</span>;
+    return <span className="text-sm text-foreground">{collection.themesCount} theme{collection.themesCount > 1 ? 's' : ''}</span>;
   };
 
   return (
-    <div className="overflow-x-auto bg-white rounded-lg border border-gray-200">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
+    <div className="overflow-x-auto bg-card rounded-lg border border-border">
+      <table className="min-w-full divide-y divide-border">
+        <thead className="bg-muted/50">
           <tr>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-8">
+            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider w-8">
               {/* Color swatch column */}
             </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
               Name
             </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
               Description
             </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
               Tags
             </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
               Themes
             </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
               Connection
             </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
               Token Count
             </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
               Last Updated
             </th>
-            <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
+            <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider w-12">
               {/* Actions */}
             </th>
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
+        <tbody className="bg-card divide-y divide-border">
           {collections.map((collection) => {
             const formattedDate = new Date(collection.updatedAt).toLocaleDateString();
             const isRenaming = renamingId === collection._id;
@@ -148,12 +148,12 @@ export function CollectionTableView({
               <tr
                 key={collection._id}
                 onClick={() => onClick(collection._id)}
-                className="hover:bg-gray-50 cursor-pointer transition-colors group"
+                className="hover:bg-muted/50 cursor-pointer transition-colors group"
               >
                 {/* Color swatch */}
                 <td className="px-4 py-3">
                   <div
-                    className="w-6 h-6 rounded border border-gray-200"
+                    className="w-6 h-6 rounded border border-border"
                     style={{ backgroundColor: collection.accentColor ?? '#e5e7eb' }}
                     title={collection.accentColor ?? 'No color set'}
                   />
@@ -165,7 +165,7 @@ export function CollectionTableView({
                     <input
                       ref={inputRef}
                       autoFocus
-                      className="w-full text-sm text-gray-900 font-medium border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full text-sm text-foreground font-medium border border-border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary"
                       value={renameValue}
                       disabled={isRenamePending}
                       onChange={(e) => setRenameValue(e.target.value)}
@@ -175,10 +175,10 @@ export function CollectionTableView({
                     />
                   ) : (
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-gray-900">{collection.name}</span>
+                      <span className="text-sm font-medium text-foreground">{collection.name}</span>
                       {collection.isPlayground && (
-                        <span className="bg-amber-50 text-amber-700 text-xs px-1.5 py-0.5 rounded border border-amber-200 flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" />
+                        <span className="bg-warning/10 text-warning text-xs px-1.5 py-0.5 rounded border border-warning flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-warning inline-block" />
                           Playground
                         </span>
                       )}
@@ -188,8 +188,8 @@ export function CollectionTableView({
 
                 {/* Description */}
                 <td className="px-4 py-3 max-w-xs">
-                  <p className="text-sm text-gray-600 truncate">
-                    {collection.description || <span className="text-gray-400">—</span>}
+                  <p className="text-sm text-muted-foreground truncate">
+                    {collection.description || <span className="text-muted-foreground">—</span>}
                   </p>
                 </td>
 
@@ -200,19 +200,19 @@ export function CollectionTableView({
                       {collection.tags.slice(0, 3).map((tag) => (
                         <span
                           key={tag}
-                          className="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full"
+                          className="bg-muted text-muted-foreground text-xs px-2 py-0.5 rounded-full"
                         >
                           {tag}
                         </span>
                       ))}
                       {collection.tags.length > 3 && (
-                        <span className="text-xs text-gray-400">
+                        <span className="text-xs text-muted-foreground">
                           +{collection.tags.length - 3}
                         </span>
                       )}
                     </div>
                   ) : (
-                    <span className="text-gray-400">—</span>
+                    <span className="text-muted-foreground">—</span>
                   )}
                 </td>
 
@@ -226,68 +226,68 @@ export function CollectionTableView({
                   {(collection.figmaConfigured || collection.githubConfigured) ? (
                     <div className="flex gap-1">
                       {collection.figmaConfigured && (
-                        <span className="bg-green-50 text-green-700 text-xs px-1.5 py-0.5 rounded border border-green-200 flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
+                        <span className="bg-success/10 text-success text-xs px-1.5 py-0.5 rounded border border-success flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-success inline-block" />
                           Figma
                         </span>
                       )}
                       {collection.githubConfigured && (
-                        <span className="bg-green-50 text-green-700 text-xs px-1.5 py-0.5 rounded border border-green-200 flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
+                        <span className="bg-success/10 text-success text-xs px-1.5 py-0.5 rounded border border-success flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-success inline-block" />
                           GitHub
                         </span>
                       )}
                     </div>
                   ) : (
-                    <span className="text-gray-400">—</span>
+                    <span className="text-muted-foreground">—</span>
                   )}
                 </td>
 
                 {/* Token count */}
                 <td className="px-4 py-3">
-                  <span className="text-sm text-gray-600">{collection.tokenCount}</span>
+                  <span className="text-sm text-muted-foreground">{collection.tokenCount}</span>
                 </td>
 
                 {/* Last Updated */}
                 <td className="px-4 py-3">
-                  <span className="text-sm text-gray-600">{formattedDate}</span>
+                  <span className="text-sm text-muted-foreground">{formattedDate}</span>
                 </td>
 
                 {/* Actions */}
                 <td className="px-4 py-3 text-right relative" onClick={(e) => e.stopPropagation()}>
                   <button
-                    className="p-1 rounded hover:bg-gray-100 transition-colors"
+                    className="p-1 rounded hover:bg-muted transition-colors"
                     onClick={(e) => handleKebabClick(e, collection._id)}
                     aria-label="Collection options"
                   >
-                    <MoreVertical size={16} className="text-gray-500" />
+                    <MoreVertical size={16} className="text-muted-foreground" />
                   </button>
 
                   {openMenuId === collection._id && (
                     <div
                       ref={menuRef}
-                      className="absolute right-8 top-8 z-10 w-36 bg-white border border-gray-200 rounded-md shadow-lg py-1"
+                      className="absolute right-8 top-8 z-10 w-36 bg-card border border-border rounded-md shadow-lg py-1"
                     >
                       <button
-                        className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+                        className="w-full text-left px-3 py-1.5 text-sm text-foreground hover:bg-muted/50"
                         onClick={(e) => handleRenameSelect(e, collection)}
                       >
                         Rename
                       </button>
                       <button
-                        className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+                        className="w-full text-left px-3 py-1.5 text-sm text-foreground hover:bg-muted/50"
                         onClick={(e) => handleEditSelect(e, collection._id)}
                       >
                         Edit details
                       </button>
                       <button
-                        className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+                        className="w-full text-left px-3 py-1.5 text-sm text-foreground hover:bg-muted/50"
                         onClick={(e) => handleDuplicateSelect(e, collection._id)}
                       >
                         Duplicate
                       </button>
                       <button
-                        className="w-full text-left px-3 py-1.5 text-sm text-red-600 hover:bg-red-50"
+                        className="w-full text-left px-3 py-1.5 text-sm text-destructive hover:bg-destructive/10"
                         onClick={(e) => handleDeleteSelect(e, collection._id)}
                       >
                         Delete

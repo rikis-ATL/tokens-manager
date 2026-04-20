@@ -14,14 +14,14 @@ interface ConfigPageProps {
 function ColorModeBadge({ colorMode }: { colorMode: ColorMode }) {
   if (colorMode === 'dark') {
     return (
-      <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[10px] bg-slate-100 text-slate-600 flex-shrink-0">
+      <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[10px] bg-muted text-muted-foreground flex-shrink-0">
         <Moon size={9} />
         Dark
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[10px] bg-amber-50 text-amber-700 flex-shrink-0">
+    <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[10px] bg-warning/10 text-warning flex-shrink-0">
       <Sun size={9} />
       Light
     </span>
@@ -83,7 +83,7 @@ export default function CollectionConfigPage({ params }: ConfigPageProps) {
 
   return (
     <div className="px-6 py-6">
-      <h1 className="text-lg font-semibold text-gray-900 mb-6">
+      <h1 className="text-lg font-semibold text-foreground mb-6">
         Configuration{collectionName ? `: ${collectionName}` : ''}
       </h1>
       <div className="grid grid-cols-1 gap-6 h-[calc(100vh-160px)]">
@@ -91,10 +91,10 @@ export default function CollectionConfigPage({ params }: ConfigPageProps) {
 
 
         {/* Right column — Build output panel */}
-        <div className="border rounded-lg bg-white overflow-auto flex flex-col">
+        <div className="border rounded-lg bg-card overflow-auto flex flex-col">
           {themes.length > 0 && (
             <div className="flex items-center gap-2 mb-3 px-4 pt-4">
-              <span className="text-sm text-gray-600 whitespace-nowrap">Export theme:</span>
+              <span className="text-sm text-muted-foreground whitespace-nowrap">Export theme:</span>
               <Select
                 value={selectedThemeId}
                 onValueChange={(v) => setSelectedThemeId(v)}

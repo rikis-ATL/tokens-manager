@@ -117,7 +117,7 @@ export default function CollectionsPage() {
   return (
     <div className="p-6 mx-auto">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold text-gray-900">Collections</h1>
+        <h1 className="text-2xl font-bold text-foreground">Collections</h1>
         {canCreate && (
           <Button onClick={() => setCreateDialogOpen(true)}>
             <PlusCircle size={14} className="mr-1.5" />
@@ -130,17 +130,17 @@ export default function CollectionsPage() {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           <div className="relative">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
             <input
               type="text"
-              className="w-72 pl-9 pr-8 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400"
+              className="w-72 pl-9 pr-8 py-2 text-sm border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent placeholder:text-muted-foreground"
               placeholder="Search by name or description…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
             {search && (
               <button
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-muted-foreground"
                 onClick={() => setSearch('')}
                 aria-label="Clear search"
               >
@@ -158,13 +158,13 @@ export default function CollectionsPage() {
         </div>
 
         {/* View toggle */}
-        <div className="flex items-center gap-1 border border-gray-300 rounded-md p-0.5">
+        <div className="flex items-center gap-1 border border-border rounded-md p-0.5">
           <button
             onClick={() => setViewMode('grid')}
             className={`p-1.5 rounded transition-colors ${
               viewMode === 'grid'
-                ? 'bg-gray-900 text-white'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
             title="Grid view"
           >
@@ -174,8 +174,8 @@ export default function CollectionsPage() {
             onClick={() => setViewMode('table')}
             className={`p-1.5 rounded transition-colors ${
               viewMode === 'table'
-                ? 'bg-gray-900 text-white'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
             title="Table view"
           >
@@ -188,7 +188,7 @@ export default function CollectionsPage() {
       {loading && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="animate-pulse bg-gray-200 rounded-lg min-h-[120px]" />
+            <div key={i} className="animate-pulse bg-muted rounded-lg min-h-[120px]" />
           ))}
         </div>
       )}
@@ -196,8 +196,8 @@ export default function CollectionsPage() {
       {/* Empty state */}
       {!loading && collections.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-center">
-          <p className="text-lg font-medium text-gray-700">No collections yet</p>
-          <p className="text-sm text-gray-500 mt-1 mb-4">
+          <p className="text-lg font-medium text-foreground">No collections yet</p>
+          <p className="text-sm text-muted-foreground mt-1 mb-4">
             Create your first collection to start managing your design tokens.
           </p>
           {canCreate && (
@@ -212,9 +212,9 @@ export default function CollectionsPage() {
       {/* No search results */}
       {!loading && collections.length > 0 && filtered.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-center">
-          <p className="text-base font-medium text-gray-600">No collections match your filters</p>
+          <p className="text-base font-medium text-muted-foreground">No collections match your filters</p>
           <button
-            className="text-sm text-blue-600 hover:underline mt-2"
+            className="text-sm text-primary hover:underline mt-2"
             onClick={() => { setSearch(''); setSelectedTags([]); }}
           >
             Clear filters

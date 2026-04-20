@@ -44,7 +44,7 @@ export function GroupPickerModal({
                 onClick={() => !isSource && onSelect(node.group.id)}
                 style={{ paddingLeft: node.depth * 16 }}
                 className={[
-                  'w-full text-left py-1.5 pr-3 text-sm rounded hover:bg-gray-100',
+                  'w-full text-left py-1.5 pr-3 text-sm rounded hover:bg-muted',
                   isSource ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
                 ].join(' ')}
               >

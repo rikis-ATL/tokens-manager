@@ -46,7 +46,7 @@ describe('Style Guide previews (Phase 25)', () => {
         type: 'dimension',
       };
       render(<SpacingPreview token={token} resolvedValue="24" />);
-      const el = document.querySelector('.bg-gray-300') as HTMLElement;
+      const el = document.querySelector('.bg-muted') as HTMLElement;
       expect(el).toBeTruthy();
       expect(el.style.width).toBe('24px');
       expect(screen.getByText(/space\.md:\s*24/)).toBeInTheDocument();
@@ -60,7 +60,7 @@ describe('Style Guide previews (Phase 25)', () => {
         type: 'dimension',
       };
       render(<SpacingPreview token={token} resolvedValue="999" />);
-      const el = document.querySelector('.bg-gray-300') as HTMLElement;
+      const el = document.querySelector('.bg-muted') as HTMLElement;
       expect(el.style.width).toBe('300px');
     });
   });

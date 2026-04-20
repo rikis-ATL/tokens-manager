@@ -26,10 +26,10 @@ export function ClearFormDialog({
         <DialogHeader>
           <DialogTitle>Clear form</DialogTitle>
         </DialogHeader>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-muted-foreground">
           Are you sure you want to clear all tokens and groups? This will reset the form to its initial state with a single empty color group.
         </p>
-        <p className="text-sm text-amber-600 font-medium">
+        <p className="text-sm text-warning font-medium">
           ⚠️ This action cannot be undone.
         </p>
         <DialogFooter>
@@ -40,7 +40,7 @@ export function ClearFormDialog({
             Cancel
           </Button>
           <Button
-            className="bg-red-600 hover:bg-red-700 text-white"
+            className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
             onClick={onConfirm}
           >
             Clear Form

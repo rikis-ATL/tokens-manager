@@ -12,10 +12,10 @@ export function BorderRadiusPreview({ token, resolvedValue }: StyleGuideTokenPro
   return (
     <div className="flex flex-col gap-1 items-start">
       <div
-        className="w-[30px] h-[30px] bg-gray-200 border border-gray-300"
+        className="w-[30px] h-[30px] bg-muted border border-border"
         style={{ borderRadius: resolvedValue }}
       />
-      <span className="text-xs text-gray-500 font-mono">{token.path}</span>
+      <span className="text-xs text-muted-foreground font-mono">{token.path}</span>
     </div>
   );
 }

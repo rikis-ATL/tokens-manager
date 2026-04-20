@@ -89,7 +89,7 @@ function ConstantNodeComponent({ data }: NodeProps) {
 
   return (
     <>
-      <NodeWrapper borderColor="border-slate-300" width={220}>
+      <NodeWrapper borderColor="border-border" width={220}>
         {/* Input handle — accepts scalar or array from Math/other nodes */}
         <Handle
           type="target"
@@ -101,10 +101,10 @@ function ConstantNodeComponent({ data }: NodeProps) {
         />
 
         <NodeHeader
-          icon={<Hash size={12} className="text-slate-500" />}
+          icon={<Hash size={12} className="text-muted-foreground" />}
           title="Constant"
           badge={isWired ? '⇐ wired' : cfg.valueType}
-          headerClass="bg-slate-50 border-slate-200 text-slate-700"
+          headerClass="bg-muted/50 border-border text-foreground"
           onDelete={onDeleteNode ? () => onDeleteNode(nodeId) : undefined}
         />
 
@@ -128,8 +128,8 @@ function ConstantNodeComponent({ data }: NodeProps) {
           {/* ── Wired value display ───────────────────────────────────────── */}
           {isWired && (
             <div className="flex items-center gap-1">
-              <span className="text-[10px] text-gray-400 w-12 flex-shrink-0">Value</span>
-              <div className="flex-1 px-1.5 py-1 bg-amber-50 border border-amber-200 rounded text-[10px] font-mono text-amber-700 truncate">
+              <span className="text-[10px] text-muted-foreground w-12 flex-shrink-0">Value</span>
+              <div className="flex-1 px-1.5 py-1 bg-warning/10 border border-warning rounded text-[10px] font-mono text-warning truncate">
                 {preview}
               </div>
             </div>
@@ -141,18 +141,18 @@ function ConstantNodeComponent({ data }: NodeProps) {
               {/* Source token link row for array type */}
               {isLinked ? (
                 <div className="flex items-center gap-1 mb-1">
-                  <div className="flex-1 flex items-center gap-1 min-w-0 px-1.5 py-1 bg-blue-50 border border-blue-200 rounded text-[10px] font-mono text-blue-700 overflow-hidden">
-                    <Link2 size={9} className="text-blue-400 flex-shrink-0" />
+                  <div className="flex-1 flex items-center gap-1 min-w-0 px-1.5 py-1 bg-primary/10 border border-primary rounded text-[10px] font-mono text-primary overflow-hidden">
+                    <Link2 size={9} className="text-info flex-shrink-0" />
                     <span className="truncate min-w-0">{'{' + cfg.sourceTokenPath + '}'}</span>
                   </div>
                   <button title="Remove token link" onClick={() => update({ sourceTokenPath: undefined })}
-                    className="flex-shrink-0 p-0.5 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
+                    className="flex-shrink-0 p-0.5 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors">
                     <X size={10} />
                   </button>
                 </div>
               ) : (
                 <button onClick={() => setModalOpen(true)}
-                  className="flex items-center gap-1 text-[10px] text-gray-400 hover:text-blue-500 transition-colors py-0.5 mb-0.5">
+                  className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-primary transition-colors py-0.5 mb-0.5">
                   <Link2 size={9} /> link to token
                 </button>
               )}
@@ -169,7 +169,7 @@ function ConstantNodeComponent({ data }: NodeProps) {
                   </div>
                   <button
                     onClick={() => removeItem(i)}
-                    className="flex-shrink-0 p-0.5 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                    className="flex-shrink-0 p-0.5 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                   >
                     <X size={10} />
                   </button>
@@ -177,7 +177,7 @@ function ConstantNodeComponent({ data }: NodeProps) {
               ))}
               <button
                 onClick={addItem}
-                className="flex items-center gap-1 text-[10px] text-gray-400 hover:text-blue-500 transition-colors py-0.5"
+                className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-primary transition-colors py-0.5"
               >
                 <Plus size={10} /> add item
               </button>
@@ -187,19 +187,19 @@ function ConstantNodeComponent({ data }: NodeProps) {
           {/* ── Scalar value row (when not wired) ────────────────────────── */}
           {!isArray && !isWired && (
             <div className="flex items-center gap-1">
-              <span className="text-[10px] text-gray-400 w-12 flex-shrink-0 leading-tight">Value</span>
+              <span className="text-[10px] text-muted-foreground w-12 flex-shrink-0 leading-tight">Value</span>
 
               {isLinked ? (
                 /* Token reference pill */
                 <div className="flex-1 flex items-center gap-1 min-w-0">
-                  <div className="flex-1 flex items-center gap-1 min-w-0 px-1.5 py-1 bg-blue-50 border border-blue-200 rounded text-[10px] font-mono text-blue-700 overflow-hidden">
-                    <Link2 size={9} className="text-blue-400 flex-shrink-0" />
+                  <div className="flex-1 flex items-center gap-1 min-w-0 px-1.5 py-1 bg-primary/10 border border-primary rounded text-[10px] font-mono text-primary overflow-hidden">
+                    <Link2 size={9} className="text-info flex-shrink-0" />
                     <span className="truncate min-w-0">{'{' + cfg.sourceTokenPath + '}'}</span>
                   </div>
                   <button
                     title="Remove token link"
                     onClick={() => update({ sourceTokenPath: undefined })}
-                    className="flex-shrink-0 p-0.5 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                    className="flex-shrink-0 p-0.5 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                   >
                     <X size={10} />
                   </button>
@@ -211,7 +211,7 @@ function ConstantNodeComponent({ data }: NodeProps) {
                   {isStringColor && (
                     <label className="flex-shrink-0 cursor-pointer relative w-5 h-5" title="Pick color">
                       <div
-                        className="w-5 h-5 rounded border border-gray-200"
+                        className="w-5 h-5 rounded border border-border"
                         style={{ backgroundColor: cfg.value }}
                       />
                       <input
@@ -235,7 +235,7 @@ function ConstantNodeComponent({ data }: NodeProps) {
                   <button
                     title="Link to source token"
                     onClick={() => setModalOpen(true)}
-                    className="flex-shrink-0 p-1 rounded text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors"
+                    className="flex-shrink-0 p-1 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
                   >
                     <Link2 size={10} />
                   </button>
@@ -245,16 +245,16 @@ function ConstantNodeComponent({ data }: NodeProps) {
           )}
 
           {/* Output preview + save button */}
-          <div className="pt-1 border-t border-gray-100 flex items-center gap-1">
+          <div className="pt-1 border-t border-border flex items-center gap-1">
             <div className="flex-1 min-w-0">
-              <div className="text-[10px] font-mono text-gray-500 bg-gray-50 rounded px-2 py-1 truncate" title={preview}>
+              <div className="text-[10px] font-mono text-muted-foreground bg-muted/50 rounded px-2 py-1 truncate" title={preview}>
                 → {preview}
               </div>
             </div>
             <button
               title="Save as token…"
               onClick={() => setModalOpen(true)}
-              className="flex-shrink-0 p-1 rounded text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors"
+              className="flex-shrink-0 p-1 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
             >
               <Save size={10} />
             </button>

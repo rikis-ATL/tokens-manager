@@ -77,11 +77,11 @@ export function AIChatPanel({ collectionId, collectionName, activeThemeId, onToo
   }
 
   return (
-    <div className="flex flex-col h-full bg-white">
+    <div className="flex flex-col h-full bg-card">
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
         {messages.length === 0 && (
-          <p className="text-sm text-gray-400 text-center mt-8">
+          <p className="text-sm text-muted-foreground text-center mt-8">
             Ask about tokens, create themes, rename in bulk, or paste values for naming suggestions.
           </p>
         )}
@@ -93,8 +93,8 @@ export function AIChatPanel({ collectionId, collectionName, activeThemeId, onToo
             <div
               className={`max-w-[85%] rounded-lg px-3 py-2 text-sm whitespace-pre-wrap ${
                 msg.role === "user"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-900"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-foreground"
               }`}
             >
               {msg.content}
@@ -103,13 +103,13 @@ export function AIChatPanel({ collectionId, collectionName, activeThemeId, onToo
         ))}
         {isLoading && (
           <div className="flex justify-start">
-            <div className="bg-gray-100 rounded-lg px-3 py-2 text-sm text-gray-500">
+            <div className="bg-muted rounded-lg px-3 py-2 text-sm text-muted-foreground">
               Thinking...
             </div>
           </div>
         )}
         {error && (
-          <div className="rounded-lg px-3 py-2 bg-red-50 border border-red-200 text-sm text-red-700">
+          <div className="rounded-lg px-3 py-2 bg-destructive/10 border border-destructive text-sm text-destructive">
             {error}
           </div>
         )}
@@ -117,7 +117,7 @@ export function AIChatPanel({ collectionId, collectionName, activeThemeId, onToo
       </div>
 
       {/* Input */}
-      <div className="flex gap-2 px-4 py-3 border-t border-gray-200">
+      <div className="flex gap-2 px-4 py-3 border-t border-border">
         <Input
           value={input}
           onChange={e => setInput(e.target.value)}

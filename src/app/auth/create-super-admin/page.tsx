@@ -76,12 +76,12 @@ export default function CreateSuperAdminPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
-      <div className="w-full max-w-sm bg-white dark:bg-gray-900 rounded-xl shadow-md p-8">
-        <h1 className="text-xl font-semibold text-center text-gray-900 dark:text-gray-100 mb-1">
+    <div className="min-h-screen flex items-center justify-center bg-muted/50 dark:bg-background">
+      <div className="w-full max-w-sm bg-card dark:bg-card rounded-xl shadow-md p-8">
+        <h1 className="text-xl font-semibold text-center text-foreground dark:text-foreground mb-1">
           Create Super Admin Account
         </h1>
-        <p className="text-sm text-center text-gray-500 dark:text-gray-400 mb-6">
+        <p className="text-sm text-center text-muted-foreground dark:text-muted-foreground mb-6">
           Set up the super admin account configured in your environment.
         </p>
 
@@ -89,7 +89,7 @@ export default function CreateSuperAdminPage() {
           <div className="flex flex-col gap-1.5">
             <label
               htmlFor="displayName"
-              className="text-sm font-medium text-gray-700 dark:text-gray-300"
+              className="text-sm font-medium text-foreground dark:text-muted-foreground"
             >
               Display name
             </label>
@@ -107,7 +107,7 @@ export default function CreateSuperAdminPage() {
           <div className="flex flex-col gap-1.5">
             <label
               htmlFor="password"
-              className="text-sm font-medium text-gray-700 dark:text-gray-300"
+              className="text-sm font-medium text-foreground dark:text-muted-foreground"
             >
               Password
             </label>
@@ -126,7 +126,7 @@ export default function CreateSuperAdminPage() {
           <div className="flex flex-col gap-1.5">
             <label
               htmlFor="confirmPassword"
-              className="text-sm font-medium text-gray-700 dark:text-gray-300"
+              className="text-sm font-medium text-foreground dark:text-muted-foreground"
             >
               Confirm password
             </label>
@@ -142,11 +142,11 @@ export default function CreateSuperAdminPage() {
           </div>
 
           {error && (
-            <p className="text-sm text-red-600 dark:text-red-400 mt-1">{error}</p>
+            <p className="text-sm text-destructive dark:text-destructive mt-1">{error}</p>
           )}
 
           {success && (
-            <p className="text-sm text-green-600 dark:text-green-400 mt-1">{success}</p>
+            <p className="text-sm text-success dark:text-success mt-1">{success}</p>
           )}
 
           <Button type="submit" disabled={loading} className="w-full mt-2">
@@ -164,7 +164,7 @@ export default function CreateSuperAdminPage() {
         <div className="mt-4 text-center">
           <a
             href="/auth/sign-in"
-            className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+            className="text-sm text-primary dark:text-info hover:underline"
           >
             Already have an account? Sign in
           </a>

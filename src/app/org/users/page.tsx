@@ -175,8 +175,8 @@ export default function OrgUsersPage() {
     <div className="p-6 max-w-4xl">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Users</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+          <h1 className="text-xl font-semibold text-foreground dark:text-foreground">Users</h1>
+          <p className="text-sm text-muted-foreground dark:text-muted-foreground mt-0.5">
             Manage team members and pending invitations.
           </p>
         </div>
@@ -186,28 +186,28 @@ export default function OrgUsersPage() {
         </Button>
       </div>
 
-      <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 mt-0">Members</h2>
-      <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
+      <h2 className="text-sm font-semibold text-foreground dark:text-muted-foreground mb-2 mt-0">Members</h2>
+      <div className="bg-card dark:bg-card rounded-lg border border-border dark:border-border">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-100 dark:border-gray-800">
-              <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Name</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Email</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Role</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Collections</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Status</th>
-              <th className="text-right px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Actions</th>
+            <tr className="border-b border-border dark:border-border">
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground dark:text-muted-foreground">Name</th>
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground dark:text-muted-foreground">Email</th>
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground dark:text-muted-foreground">Role</th>
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground dark:text-muted-foreground">Collections</th>
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground dark:text-muted-foreground">Status</th>
+              <th className="text-right px-4 py-3 font-medium text-muted-foreground dark:text-muted-foreground">Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-gray-400">Loading...</td>
+                <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">Loading...</td>
               </tr>
             )}
             {!loading && users.length === 0 && invites.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-gray-400">No members yet. Click &quot;Invite User&quot; to get started.</td>
+                <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">No members yet. Click &quot;Invite User&quot; to get started.</td>
               </tr>
             )}
             {!loading && users.map((user) => {
@@ -216,10 +216,10 @@ export default function OrgUsersPage() {
               return (
                 <tr
                   key={user._id}
-                  className="border-b border-gray-50 dark:border-gray-800/50 last:border-0"
+                  className="border-b border-border/60 dark:border-border/50 last:border-0"
                 >
-                  <td className="px-4 py-3 text-gray-900 dark:text-gray-100 font-medium">{user.displayName}</td>
-                  <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{user.email}</td>
+                  <td className="px-4 py-3 text-foreground dark:text-foreground font-medium">{user.displayName}</td>
+                  <td className="px-4 py-3 text-muted-foreground dark:text-muted-foreground">{user.email}</td>
                   <td className="px-4 py-3">
                     <Select
                       value={user.role}
@@ -240,11 +240,11 @@ export default function OrgUsersPage() {
                   <td className="px-4 py-3">
                     <button
                       onClick={() => canAct && openCollectionsDialog(user)}
-                      className={`flex items-center gap-1.5 text-sm group ${canAct ? 'cursor-pointer hover:text-gray-900 dark:hover:text-gray-100' : 'cursor-default'} text-gray-600 dark:text-gray-300`}
+                      className={`flex items-center gap-1.5 text-sm group ${canAct ? 'cursor-pointer hover:text-foreground dark:hover:text-foreground' : 'cursor-default'} text-muted-foreground dark:text-muted-foreground`}
                       title={canAct ? 'Edit collection access' : undefined}
                     >
                       {user.collections.length === 0
-                        ? <span className="text-gray-400 dark:text-gray-500">All collections</span>
+                        ? <span className="text-muted-foreground dark:text-muted-foreground">All collections</span>
                         : <span>{user.collections.map((c) => c.name).join(', ')}</span>
                       }
                       {canAct && <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-50 flex-shrink-0" />}
@@ -262,7 +262,7 @@ export default function OrgUsersPage() {
                       onClick={() => setRemoveTarget(user)}
                       disabled={!canAct}
                       title={!canAct ? (user.isSuperAdmin ? 'Cannot remove superadmin' : 'Cannot remove yourself') : 'Remove user'}
-                      className="text-red-500 hover:text-red-600 disabled:opacity-30"
+                      className="text-destructive hover:text-destructive disabled:opacity-30"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
@@ -275,12 +275,12 @@ export default function OrgUsersPage() {
               return (
                 <tr
                   key={invite._id}
-                  className="border-b border-gray-50 dark:border-gray-800/50 last:border-0"
+                  className="border-b border-border/60 dark:border-border/50 last:border-0"
                 >
-                  <td className="px-4 py-3 text-gray-400 dark:text-gray-500">—</td>
-                  <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{invite.email}</td>
-                  <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{invite.role}</td>
-                  <td className="px-4 py-3 text-gray-400 dark:text-gray-500 text-sm">—</td>
+                  <td className="px-4 py-3 text-muted-foreground dark:text-muted-foreground">—</td>
+                  <td className="px-4 py-3 text-muted-foreground dark:text-muted-foreground">{invite.email}</td>
+                  <td className="px-4 py-3 text-muted-foreground dark:text-muted-foreground">{invite.role}</td>
+                  <td className="px-4 py-3 text-muted-foreground dark:text-muted-foreground text-sm">—</td>
                   <td className="px-4 py-3">
                     <Badge variant={expired ? 'destructive' : 'outline'}>
                       {expired ? 'Expired' : 'Pending'}
@@ -301,7 +301,7 @@ export default function OrgUsersPage() {
                         size="sm"
                         onClick={() => handleRevoke(invite._id)}
                         title="Revoke invitation"
-                        className="text-red-500 hover:text-red-600"
+                        className="text-destructive hover:text-destructive"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
@@ -333,9 +333,9 @@ export default function OrgUsersPage() {
                 checked={selectedCollectionIds.size === 0}
                 onCheckedChange={(checked) => { if (checked) setSelectedCollectionIds(new Set()); }}
               />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">All collections</span>
+              <span className="text-sm font-medium text-foreground dark:text-muted-foreground">All collections</span>
             </label>
-            <div className="border-t border-gray-100 dark:border-gray-800 pt-2 flex flex-col gap-2">
+            <div className="border-t border-border dark:border-border pt-2 flex flex-col gap-2">
               {allCollections.map((c) => (
                 <label key={c.id} className="flex items-center gap-3 cursor-pointer">
                   <Checkbox
@@ -348,7 +348,7 @@ export default function OrgUsersPage() {
                       });
                     }}
                   />
-                  <span className="text-sm text-gray-700 dark:text-gray-300">{c.name}</span>
+                  <span className="text-sm text-foreground dark:text-muted-foreground">{c.name}</span>
                 </label>
               ))}
             </div>
@@ -375,7 +375,7 @@ export default function OrgUsersPage() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => removeTarget && handleRemoveUser(removeTarget._id)}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
             >
               Remove
             </AlertDialogAction>

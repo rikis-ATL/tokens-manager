@@ -38,17 +38,17 @@ function PatternCssNodeComponent({ data }: NodeProps) {
     outVal != null ? JSON.stringify(outVal) : JSON.stringify({ name: localName.trim(), body: localBody.trim() });
 
   return (
-    <NodeWrapper borderColor="border-slate-400" width={280}>
+    <NodeWrapper borderColor="border-border" width={280}>
       <NodeHeader
-        icon={<FileCode size={12} className="text-slate-700" />}
+        icon={<FileCode size={12} className="text-foreground" />}
         title="CSS pattern"
-        headerClass="bg-slate-50 border-slate-200 text-slate-900"
+        headerClass="bg-muted/50 border-border text-foreground"
         onDelete={onDeleteNode ? () => onDeleteNode(nodeId) : undefined}
       />
 
       <div className="px-3 py-2 space-y-1.5 nodrag">
         <div className="flex flex-col gap-0.5">
-          <span className="text-[10px] text-gray-400">Name</span>
+          <span className="text-[10px] text-muted-foreground">Name</span>
           <input
             value={localName}
             onChange={(e) => setLocalName(e.target.value)}
@@ -58,12 +58,12 @@ function PatternCssNodeComponent({ data }: NodeProps) {
             }}
             onFocus={() => onGraphInputFocus?.()}
             onMouseDown={(e) => e.stopPropagation()}
-            className="nodrag nopan w-full text-[11px] font-mono bg-white rounded px-1.5 py-1 text-gray-700 border border-gray-200 focus:ring-1 focus:ring-slate-400"
+            className="nodrag nopan w-full text-[11px] font-mono bg-card rounded px-1.5 py-1 text-foreground border border-border focus:ring-1 focus:ring-ring"
             placeholder="Class / label"
           />
         </div>
         <div className="flex flex-col gap-0.5">
-          <span className="text-[10px] text-gray-400">CSS body</span>
+          <span className="text-[10px] text-muted-foreground">CSS body</span>
           <textarea
             value={localBody}
             onChange={(e) => setLocalBody(e.target.value)}
@@ -75,7 +75,7 @@ function PatternCssNodeComponent({ data }: NodeProps) {
             onMouseDown={(e) => e.stopPropagation()}
             rows={4}
             placeholder=".my-class { … }"
-            className="nodrag nopan w-full text-[11px] font-mono bg-white rounded px-1.5 py-1 text-gray-700 focus:outline-none resize-y min-h-[56px] border border-gray-200 focus:ring-1 focus:ring-slate-400"
+            className="nodrag nopan w-full text-[11px] font-mono bg-card rounded px-1.5 py-1 text-foreground focus:outline-none resize-y min-h-[56px] border border-border focus:ring-1 focus:ring-ring"
           />
         </div>
 
@@ -92,7 +92,7 @@ function PatternCssNodeComponent({ data }: NodeProps) {
               />
             }
           >
-            <span className="text-[10px] font-mono text-slate-800 truncate" title={localName.trim() || '—'}>
+            <span className="text-[10px] font-mono text-foreground truncate" title={localName.trim() || '—'}>
               {localName.trim() || '—'}
             </span>
           </Row>
@@ -108,7 +108,7 @@ function PatternCssNodeComponent({ data }: NodeProps) {
               />
             }
           >
-            <span className="text-[10px] font-mono text-slate-800 break-all line-clamp-3" title={preview}>
+            <span className="text-[10px] font-mono text-foreground break-all line-clamp-3" title={preview}>
               {preview}
             </span>
           </Row>

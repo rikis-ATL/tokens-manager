@@ -163,7 +163,7 @@ export function CollectionActions({
             variant="outline"
             size="sm"
             onClick={() => setShowDeleteModal(true)}
-            className="text-red-600 border-red-300 hover:bg-red-50"
+            className="text-destructive border-destructive hover:bg-destructive/10"
           >
             Delete
           </Button>
@@ -183,7 +183,7 @@ export function CollectionActions({
             <DialogTitle>Delete Collection</DialogTitle>
           </DialogHeader>
           <div>
-            <p className="text-sm text-gray-700">
+            <p className="text-sm text-foreground">
               Delete <strong>&ldquo;{selectedName}&rdquo;</strong>? This cannot be undone.
             </p>
           </div>
@@ -205,7 +205,7 @@ export function CollectionActions({
             <DialogTitle>Rename Collection</DialogTitle>
           </DialogHeader>
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Collection name</label>
+            <label className="block text-sm font-medium text-foreground">Collection name</label>
             <Input
               type="text"
               value={renameValue}
@@ -218,7 +218,7 @@ export function CollectionActions({
               disabled={isRenaming}
             />
             {renameIsDuplicate && (
-              <p className="text-sm text-red-600">
+              <p className="text-sm text-destructive">
                 A collection named &ldquo;{renameTrimmed}&rdquo; already exists.
               </p>
             )}
@@ -242,7 +242,7 @@ export function CollectionActions({
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Collection name</label>
+              <label className="block text-sm font-medium text-foreground">Collection name</label>
               <Input
                 type="text"
                 value={editNameValue}
@@ -255,14 +255,14 @@ export function CollectionActions({
                 disabled={isEditing}
               />
               {editNameIsDuplicate && (
-                <p className="text-sm text-red-600">
+                <p className="text-sm text-destructive">
                   A collection named &ldquo;{editNameTrimmed}&rdquo; already exists.
                 </p>
               )}
             </div>
             
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Token prefix (namespace)</label>
+              <label className="block text-sm font-medium text-foreground">Token prefix (namespace)</label>
               <Input
                 type="text"
                 value={editNamespaceValue}
@@ -275,7 +275,7 @@ export function CollectionActions({
                 disabled={isEditing}
               />
               {editNamespaceTrimed && (
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-muted-foreground">
                   Tokens will be prefixed with &ldquo;{editNamespaceTrimed}.&rdquo;
                 </p>
               )}

@@ -25,7 +25,7 @@ export function ColorPaletteRow({ tokens, resolveRef }: ColorPaletteRowProps) {
             <Tooltip key={token.id}>
               <TooltipTrigger asChild>
                 <div
-                  className="w-12 h-12 rounded border border-gray-200 cursor-default"
+                  className="w-12 h-12 rounded border border-border cursor-default"
                   style={{ backgroundColor: bg }}
                 />
               </TooltipTrigger>

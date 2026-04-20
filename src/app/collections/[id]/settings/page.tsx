@@ -39,39 +39,39 @@ function figmaCredentialsFingerprint(token: string, fileId: string): string {
 function IntegrationStatusBadge({ status }: { status: IntegrationDisplayStatus }) {
   if (status.kind === 'incomplete') {
     return (
-      <span className="inline-flex items-center gap-1.5 text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded-full border border-gray-200">
-        <span className="w-1.5 h-1.5 rounded-full bg-gray-400" aria-hidden />
+      <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full border border-border">
+        <span className="w-1.5 h-1.5 rounded-full bg-muted" aria-hidden />
         Not configured
       </span>
     );
   }
   if (status.kind === 'unverified') {
     return (
-      <span className="inline-flex items-center gap-1.5 text-xs text-amber-800 bg-amber-50 px-2 py-1 rounded-full border border-amber-200">
-        <span className="w-1.5 h-1.5 rounded-full bg-amber-400" aria-hidden />
+      <span className="inline-flex items-center gap-1.5 text-xs text-warning bg-warning/10 px-2 py-1 rounded-full border border-warning">
+        <span className="w-1.5 h-1.5 rounded-full bg-warning" aria-hidden />
         Not verified
       </span>
     );
   }
   if (status.kind === 'testing') {
     return (
-      <span className="inline-flex items-center gap-1.5 text-xs text-blue-800 bg-blue-50 px-2 py-1 rounded-full border border-blue-200">
-        <span className="inline-block w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" aria-hidden />
+      <span className="inline-flex items-center gap-1.5 text-xs text-primary bg-primary/10 px-2 py-1 rounded-full border border-primary">
+        <span className="inline-block w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin" aria-hidden />
         Testing…
       </span>
     );
   }
   if (status.kind === 'ok') {
     return (
-      <span className="inline-flex items-center gap-1.5 text-xs text-green-800 bg-green-50 px-2 py-1 rounded-full border border-green-200">
-        <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" aria-hidden />
+      <span className="inline-flex items-center gap-1.5 text-xs text-success bg-success/10 px-2 py-1 rounded-full border border-success">
+        <span className="w-1.5 h-1.5 rounded-full bg-success shrink-0" aria-hidden />
         Connected
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs text-red-800 bg-red-50 px-2 py-1 rounded-full border border-red-200">
-      <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" aria-hidden />
+    <span className="inline-flex items-center gap-1.5 text-xs text-destructive bg-destructive/10 px-2 py-1 rounded-full border border-destructive">
+      <span className="w-1.5 h-1.5 rounded-full bg-destructive shrink-0" aria-hidden />
       Failed
     </span>
   );
@@ -80,14 +80,14 @@ function IntegrationStatusBadge({ status }: { status: IntegrationDisplayStatus }
 function IntegrationStatusDetail({ status }: { status: IntegrationDisplayStatus }) {
   if (status.kind === 'ok' && status.message.trim()) {
     return (
-      <p className="text-xs text-green-900 bg-green-50 border border-green-200 rounded-md px-3 py-2 leading-relaxed">
+      <p className="text-xs text-success bg-success/10 border border-success rounded-md px-3 py-2 leading-relaxed">
         {status.message}
       </p>
     );
   }
   if (status.kind === 'error' && status.message.trim()) {
     return (
-      <p className="text-xs text-red-900 bg-red-50 border border-red-200 rounded-md px-3 py-2 leading-relaxed whitespace-pre-wrap">
+      <p className="text-xs text-destructive bg-destructive/10 border border-destructive rounded-md px-3 py-2 leading-relaxed whitespace-pre-wrap">
         {status.message}
       </p>
     );
@@ -760,7 +760,7 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
   if (loading) {
     return (
       <div className="p-6 max-w-2xl">
-        <p className="text-sm text-gray-500">Loading settings...</p>
+        <p className="text-sm text-muted-foreground">Loading settings...</p>
       </div>
     );
   }
@@ -769,32 +769,32 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
     <div className="p-6 max-w-2xl">
       {/* Heading row */}
       <div className="flex flex-wrap items-center gap-3 mb-8">
-        <h1 className="text-xl font-semibold text-gray-900">
+        <h1 className="text-xl font-semibold text-foreground">
           Settings: {collectionName}
         </h1>
         {(canManageVersions || canPublishNpm) && (
           <Link
             href={`/collections/${id}/versions`}
-            className="text-sm text-blue-600 hover:underline"
+            className="text-sm text-primary hover:underline"
           >
             Versions &amp; NPM publish
           </Link>
         )}
         {saveStatus === 'saving' && (
-          <span className="flex items-center gap-1.5 text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-            <span className="inline-block w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+          <span className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
+            <span className="inline-block w-3 h-3 border-2 border-border border-t-transparent rounded-full animate-spin" />
             Saving...
           </span>
         )}
         {saveStatus === 'saved' && (
-          <span className="flex items-center gap-1.5 text-xs text-green-700 bg-green-50 px-2 py-1 rounded-full">
-            <span className="inline-block w-2 h-2 bg-green-500 rounded-full" />
+          <span className="flex items-center gap-1.5 text-xs text-success bg-success/10 px-2 py-1 rounded-full">
+            <span className="inline-block w-2 h-2 bg-success rounded-full" />
             Saved
           </span>
         )}
         {saveStatus === 'error' && (
-          <span className="flex items-center gap-1.5 text-xs text-red-700 bg-red-50 px-2 py-1 rounded-full">
-            <span className="inline-block w-2 h-2 bg-red-500 rounded-full" />
+          <span className="flex items-center gap-1.5 text-xs text-destructive bg-destructive/10 px-2 py-1 rounded-full">
+            <span className="inline-block w-2 h-2 bg-destructive rounded-full" />
             Error saving
           </span>
         )}
@@ -804,7 +804,7 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
         {/* Figma section */}
         <section>
           <div className="flex flex-wrap items-center gap-2 gap-y-2 mb-2">
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
               Figma
             </h2>
             <IntegrationStatusBadge status={getFigmaDisplayStatus()} />
@@ -813,7 +813,7 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
               type="button"
               variant="outline"
               size="sm"
-              className="text-blue-700 border-blue-200 hover:bg-blue-50"
+              className="text-primary border-primary hover:bg-primary/10"
               onClick={handleTestFigmaConnection}
               disabled={!figmaToken.trim() || figmaVerify.phase === 'testing'}
             >
@@ -823,7 +823,7 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
               type="button"
               variant="outline"
               size="sm"
-              className="text-red-700 border-red-200 hover:bg-red-50"
+              className="text-destructive border-destructive hover:bg-destructive/10"
               onClick={clearFigmaFields}
               disabled={!figmaToken.trim() && !figmaFileId.trim()}
             >
@@ -833,13 +833,13 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
           <div className="mb-3 space-y-2">
             <IntegrationStatusDetail status={getFigmaDisplayStatus()} />
           </div>
-          <p className="text-xs text-gray-500 mb-4">
+          <p className="text-xs text-muted-foreground mb-4">
             Test checks your token and file access. Reset clears saved token and file ID for this collection.
           </p>
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-foreground mb-1">
                 Figma Token
               </label>
               <Input
@@ -848,13 +848,13 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
                 onChange={(e) => setFigmaToken(e.target.value)}
                 placeholder="figd_xxxx..."
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 Generate at figma.com &rarr; Account Settings &rarr; Personal access tokens
               </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-foreground mb-1">
                 Figma File ID
               </label>
               <Input
@@ -863,7 +863,7 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
                 onChange={(e) => setFigmaFileId(e.target.value)}
                 placeholder="ABC123..."
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 The file key from your Figma file URL (figma.com/design/<strong>FILE_KEY</strong>/...). If the token
                 test passes but you see <strong>404</strong> here, the key or file access is wrong — not the token.
               </p>
@@ -893,13 +893,13 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
             
             {/* Show helper text when buttons are hidden */}
             {canFigma && (!figmaToken || !figmaFileId) && (
-              <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-xs text-blue-700">
+              <div className="bg-primary/10 border border-primary rounded-md p-3 text-xs text-primary">
                 Fill in all Figma fields above to enable Push/Pull actions
               </div>
             )}
             
             {!canFigma && (figmaToken || figmaFileId) && (
-              <div className="bg-amber-50 border border-amber-200 rounded-md p-3 text-xs text-amber-700">
+              <div className="bg-warning/10 border border-warning rounded-md p-3 text-xs text-warning">
                 You don't have Figma sync permissions for this collection
               </div>
             )}
@@ -909,7 +909,7 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
         {/* GitHub section */}
         <section>
           <div className="flex flex-wrap items-center gap-2 gap-y-2 mb-2">
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
               GitHub
             </h2>
             <IntegrationStatusBadge status={getGithubDisplayStatus()} />
@@ -918,7 +918,7 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
               type="button"
               variant="outline"
               size="sm"
-              className="text-blue-700 border-blue-200 hover:bg-blue-50"
+              className="text-primary border-primary hover:bg-primary/10"
               onClick={handleTestGithubConnection}
               disabled={!githubToken.trim() || githubVerify.phase === 'testing'}
             >
@@ -928,7 +928,7 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
               type="button"
               variant="outline"
               size="sm"
-              className="text-red-700 border-red-200 hover:bg-red-50"
+              className="text-destructive border-destructive hover:bg-destructive/10"
               onClick={clearGithubFields}
               disabled={!githubRepo.trim() && !githubBranch.trim() && !githubPath.trim()}
             >
@@ -938,14 +938,14 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
           <div className="mb-3 space-y-2">
             <IntegrationStatusDetail status={getGithubDisplayStatus()} />
           </div>
-          <p className="text-xs text-gray-500 mb-4">
+          <p className="text-xs text-muted-foreground mb-4">
             Test checks your token and (when owner/repo is set) repository access. Token stays in this browser only.
             Reset clears saved repo, branch, and path for this collection.
           </p>
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-foreground mb-1">
                 GitHub Repo
               </label>
               <Input
@@ -961,16 +961,16 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
                 }}
                 placeholder="org/repo"
               />
-              <p className="text-xs text-gray-500 mt-1">
-                Format: <code className="bg-gray-100 px-1 rounded">username/repository</code>
+              <p className="text-xs text-muted-foreground mt-1">
+                Format: <code className="bg-muted px-1 rounded">username/repository</code>
               </p>
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 Tip: You can paste the full GitHub URL and it will be auto-cleaned to the correct format
               </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-foreground mb-1">
                 GitHub Token
               </label>
               <Input
@@ -980,15 +980,15 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
                 placeholder="ghp_xxxx..."
               />
               <div className="mt-1 space-y-1">
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   Personal access token with <strong>repo</strong> scope permissions (stored in browser only, not in DB)
                 </p>
-                <details className="text-xs text-gray-600">
-                  <summary className="cursor-pointer hover:text-gray-900 font-medium">
+                <details className="text-xs text-muted-foreground">
+                  <summary className="cursor-pointer hover:text-foreground font-medium">
                     How to create a token with correct permissions
                   </summary>
-                  <div className="mt-2 pl-3 space-y-1 text-gray-600 bg-gray-50 p-2 rounded">
-                    <p>1. Go to <a href="https://github.com/settings/tokens" target="_blank" rel="noopener" className="text-blue-600 hover:underline">github.com/settings/tokens</a></p>
+                  <div className="mt-2 pl-3 space-y-1 text-muted-foreground bg-muted/50 p-2 rounded">
+                    <p>1. Go to <a href="https://github.com/settings/tokens" target="_blank" rel="noopener" className="text-primary hover:underline">github.com/settings/tokens</a></p>
                     <p>2. Click "Generate new token" → "Generate new token (classic)"</p>
                     <p>3. Name it (e.g., "Token Manager Access")</p>
                     <p>4. <strong>Required: Check the "repo" checkbox</strong> (gives full repo access)</p>
@@ -1000,7 +1000,7 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-foreground mb-1">
                 GitHub Branch
               </label>
               <Input
@@ -1009,13 +1009,13 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
                 onChange={(e) => setGithubBranch(e.target.value)}
                 placeholder="main"
               />
-              <p className="text-xs text-gray-500 mt-1">
-                The branch to read tokens from (e.g. <code className="bg-gray-100 px-1 rounded">main</code>)
+              <p className="text-xs text-muted-foreground mt-1">
+                The branch to read tokens from (e.g. <code className="bg-muted px-1 rounded">main</code>)
               </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-foreground mb-1">
                 Default Output Path
               </label>
               <Input
@@ -1024,11 +1024,11 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
                 onChange={(e) => setGithubPath(e.target.value)}
                 placeholder="tokens/ or design-system/tokens/"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 Optional subdirectory path for token files. When pushing to GitHub, you'll be able to navigate existing directories or type a new path - GitHub will create any missing directories automatically.
               </p>
-              <p className="text-xs text-gray-400 mt-1">
-                Examples: <code className="bg-gray-100 px-1 rounded">tokens/</code>, <code className="bg-gray-100 px-1 rounded">design-system/tokens/</code>, <code className="bg-gray-100 px-1 rounded">src/styles/tokens/</code>
+              <p className="text-xs text-muted-foreground mt-1">
+                Examples: <code className="bg-muted px-1 rounded">tokens/</code>, <code className="bg-muted px-1 rounded">design-system/tokens/</code>, <code className="bg-muted px-1 rounded">src/styles/tokens/</code>
               </p>
             </div>
 
@@ -1056,13 +1056,13 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
             
             {/* Show helper text when buttons are hidden */}
             {canGitHub && (!githubRepo || !githubBranch || !githubToken) && (
-              <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-xs text-blue-700">
+              <div className="bg-primary/10 border border-primary rounded-md p-3 text-xs text-primary">
                 Fill in all GitHub fields above to enable Push/Pull actions
               </div>
             )}
             
             {!canGitHub && (githubRepo || githubBranch || githubToken) && (
-              <div className="bg-amber-50 border border-amber-200 rounded-md p-3 text-xs text-amber-700">
+              <div className="bg-warning/10 border border-warning rounded-md p-3 text-xs text-warning">
                 You don't have GitHub sync permissions for this collection
               </div>
             )}
@@ -1073,23 +1073,23 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
         {(canPublishNpm || canManageVersions) && (
           <section>
             <div className="flex items-center mb-2">
-              <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                 NPM registry
               </h2>
             </div>
-            <p className="text-xs text-gray-500 mb-4">
+            <p className="text-xs text-muted-foreground mb-4">
               Used to publish built token packages from the{' '}
-              <Link href={`/collections/${id}/versions`} className="text-blue-600 hover:underline">
+              <Link href={`/collections/${id}/versions`} className="text-primary hover:underline">
                 Versions
               </Link>{' '}
-              page. Scoped packages on npmjs default to <code className="bg-gray-100 px-1 rounded">access=public</code>.
+              page. Scoped packages on npmjs default to <code className="bg-muted px-1 rounded">access=public</code>.
               For GitHub Packages, set the registry URL to{' '}
-              <code className="bg-gray-100 px-1 rounded">https://npm.pkg.github.com/OWNER</code> and use a token with{' '}
-              <code className="bg-gray-100 px-1 rounded">write:packages</code>.
+              <code className="bg-muted px-1 rounded">https://npm.pkg.github.com/OWNER</code> and use a token with{' '}
+              <code className="bg-muted px-1 rounded">write:packages</code>.
             </p>
             <div className="space-y-4 max-w-lg">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Package name</label>
+                <label className="block text-sm font-medium text-foreground mb-1">Package name</label>
                 <Input
                   type="text"
                   value={npmPackageName}
@@ -1099,7 +1099,7 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Registry URL</label>
+                <label className="block text-sm font-medium text-foreground mb-1">Registry URL</label>
                 <Input
                   type="text"
                   value={npmRegistryUrl}
@@ -1109,10 +1109,10 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   NPM token
                   {npmTokenConfigured && (
-                    <span className="ml-2 text-xs font-normal text-green-700">(saved)</span>
+                    <span className="ml-2 text-xs font-normal text-success">(saved)</span>
                   )}
                 </label>
                 <Input
@@ -1124,8 +1124,8 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
                   }
                   disabled={!canPublishNpm}
                 />
-                <p className="text-xs text-gray-500 mt-1">
-                  Stored encrypted on the server (requires <code className="bg-gray-100 px-1 rounded">ENCRYPTION_KEY</code>).
+                <p className="text-xs text-muted-foreground mt-1">
+                  Stored encrypted on the server (requires <code className="bg-muted px-1 rounded">ENCRYPTION_KEY</code>).
                   Leave empty and save to remove.
                 </p>
               </div>
@@ -1153,12 +1153,12 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
         {isAdmin && (
           <section>
             <div className="flex items-center mb-4">
-              <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                 Playground Mode
               </h2>
             </div>
 
-            <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+            <div className="flex items-start gap-3 p-4 bg-warning/10 border border-warning rounded-lg">
               <Checkbox
                 id="playground-toggle"
                 checked={isPlayground}
@@ -1167,11 +1167,11 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
               <div className="flex-1">
                 <label
                   htmlFor="playground-toggle"
-                  className="block text-sm font-medium text-gray-900 cursor-pointer"
+                  className="block text-sm font-medium text-foreground cursor-pointer"
                 >
                   Playground Collection
                 </label>
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   When enabled, all edits are session-based (stored in browser memory). Changes are not saved to the database and will be lost when the browser is closed. Useful for demos, workshops, and experimentation.
                 </p>
               </div>
@@ -1182,25 +1182,25 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
         {/* Embed Script section */}
         <section>
           <div className="flex items-center mb-4">
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
               Embed in Your Project
             </h2>
           </div>
 
           <div className="space-y-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Add this script tag to your HTML to inject tokens as CSS variables. Works with any framework or vanilla HTML.
             </p>
 
             <div className="relative">
-              <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg text-sm overflow-x-auto">
+              <pre className="bg-foreground text-background p-4 rounded-lg text-sm overflow-x-auto">
                 <code>{`<script src="${typeof window !== 'undefined' ? window.location.origin : 'https://your-domain.com'}/embed/${id}/tokens.js"></script>`}</code>
               </pre>
               <Button
                 onClick={copyEmbedScript}
                 variant="ghost"
                 size="sm"
-                className="absolute top-2 right-2 text-gray-400 hover:text-gray-100"
+                className="absolute top-2 right-2 text-muted-foreground hover:text-foreground"
               >
                 {embedScriptCopied ? (
                   <>
@@ -1216,28 +1216,28 @@ export default function CollectionSettingsPage({ params }: SettingsPageProps) {
               </Button>
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-md p-3 space-y-2">
-              <p className="text-xs font-medium text-blue-900">Usage:</p>
-              <ol className="text-xs text-blue-800 space-y-1 list-decimal list-inside">
+            <div className="bg-primary/10 border border-primary rounded-md p-3 space-y-2">
+              <p className="text-xs font-medium text-primary">Usage:</p>
+              <ol className="text-xs text-primary space-y-1 list-decimal list-inside">
                 <li>Copy the script tag above</li>
-                <li>Paste it into your HTML <code className="bg-blue-100 px-1 rounded">&lt;head&gt;</code> section</li>
-                <li>Tokens load automatically as CSS variables (e.g., <code className="bg-blue-100 px-1 rounded">--token-color-primary</code>)</li>
+                <li>Paste it into your HTML <code className="bg-primary/15 px-1 rounded">&lt;head&gt;</code> section</li>
+                <li>Tokens load automatically as CSS variables (e.g., <code className="bg-primary/15 px-1 rounded">--token-color-primary</code>)</li>
                 <li>Refresh your page to see token updates</li>
               </ol>
             </div>
 
             <details className="text-sm">
-              <summary className="cursor-pointer text-gray-700 font-medium hover:text-gray-900">
+              <summary className="cursor-pointer text-foreground font-medium hover:text-foreground">
                 Using a specific theme?
               </summary>
-              <div className="mt-2 p-3 bg-gray-50 rounded space-y-2">
-                <p className="text-xs text-gray-600">
-                  Add <code className="bg-white px-1 py-0.5 rounded border">?theme=THEME_ID</code> to the script URL:
+              <div className="mt-2 p-3 bg-muted/50 rounded space-y-2">
+                <p className="text-xs text-muted-foreground">
+                  Add <code className="bg-card px-1 py-0.5 rounded border">?theme=THEME_ID</code> to the script URL:
                 </p>
-                <pre className="bg-gray-900 text-gray-100 p-3 rounded text-xs overflow-x-auto">
+                <pre className="bg-foreground text-background p-3 rounded text-xs overflow-x-auto">
                   <code>{`<script src="${typeof window !== 'undefined' ? window.location.origin : 'https://your-domain.com'}/embed/${id}/tokens.js?theme=YOUR_THEME_ID"></script>`}</code>
                 </pre>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   Find theme IDs in the Tokens page theme selector
                 </p>
               </div>

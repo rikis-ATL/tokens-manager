@@ -94,7 +94,7 @@ export function InviteModal({ open, onOpenChange, onSuccess }: InviteModalProps)
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-2">
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="invite-email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="invite-email" className="text-sm font-medium text-foreground dark:text-muted-foreground">
               Email address
             </label>
             <Input
@@ -109,7 +109,7 @@ export function InviteModal({ open, onOpenChange, onSuccess }: InviteModalProps)
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="invite-role" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="invite-role" className="text-sm font-medium text-foreground dark:text-muted-foreground">
               Role
             </label>
             <Select value={role} onValueChange={(v) => setRole(v as typeof role)}>
@@ -127,7 +127,7 @@ export function InviteModal({ open, onOpenChange, onSuccess }: InviteModalProps)
 
           {collections.length > 0 && (
             <div className="flex flex-col gap-2">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <span className="text-sm font-medium text-foreground dark:text-muted-foreground">
                 Collection access
               </span>
               <label className="flex items-center gap-3 cursor-pointer">
@@ -135,16 +135,16 @@ export function InviteModal({ open, onOpenChange, onSuccess }: InviteModalProps)
                   checked={selectedIds.size === 0}
                   onCheckedChange={(checked) => { if (checked) setSelectedIds(new Set()); }}
                 />
-                <span className="text-sm text-gray-700 dark:text-gray-300">All collections</span>
+                <span className="text-sm text-foreground dark:text-muted-foreground">All collections</span>
               </label>
-              <div className="border-t border-gray-100 dark:border-gray-800 pt-2 flex flex-col gap-2">
+              <div className="border-t border-border dark:border-border pt-2 flex flex-col gap-2">
                 {collections.map((c) => (
                   <label key={c._id} className="flex items-center gap-3 cursor-pointer">
                     <Checkbox
                       checked={selectedIds.has(c._id)}
                       onCheckedChange={(checked) => toggleCollection(c._id, !!checked)}
                     />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">{c.name}</span>
+                    <span className="text-sm text-foreground dark:text-muted-foreground">{c.name}</span>
                   </label>
                 ))}
               </div>
@@ -152,7 +152,7 @@ export function InviteModal({ open, onOpenChange, onSuccess }: InviteModalProps)
           )}
 
           {error && (
-            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+            <p className="text-sm text-destructive dark:text-destructive">{error}</p>
           )}
 
           <DialogFooter>

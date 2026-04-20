@@ -13,7 +13,7 @@ interface PresetSelectorProps {
 export function PresetSelector({ label, presets, value, onValueChange }: PresetSelectorProps) {
   return (
     <div className="space-y-1">
-      <label className="text-sm font-medium text-gray-700">{label}</label>
+      <label className="text-sm font-medium text-foreground">{label}</label>
       <Select value={value} onValueChange={onValueChange}>
         <SelectTrigger>
           <SelectValue placeholder="None" />
@@ -28,7 +28,7 @@ export function PresetSelector({ label, presets, value, onValueChange }: PresetS
         </SelectContent>
       </Select>
       {value !== 'none' && (
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-muted-foreground">
           {presets.find((p) => p.id === value)?.description}
         </p>
       )}

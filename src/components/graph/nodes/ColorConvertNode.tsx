@@ -29,7 +29,7 @@ const FORMAT_OPTIONS: { value: CssColorFormat; label: string }[] = [
 
 function Dot({ on }: { on: boolean }) {
   return on
-    ? <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-400 ml-1 flex-shrink-0" />
+    ? <span className="inline-block w-1.5 h-1.5 rounded-full bg-info ml-1 flex-shrink-0" />
     : null;
 }
 
@@ -65,12 +65,12 @@ function ColorConvertNodeComponent({ data }: NodeProps) {
   const isColorResult = previewItems.length > 0 && looksLikeColor(previewItems[0]);
 
   return (
-    <NodeWrapper borderColor="border-pink-300" width={240}>
+    <NodeWrapper borderColor="border-primary" width={240}>
       <NodeHeader
-        icon={<Pipette size={12} className="text-pink-500" />}
+        icon={<Pipette size={12} className="text-primary" />}
         title="Color Convert"
         badge={cfg.mode === 'hslCompose' ? 'HSL Compose' : 'Convert'}
-        headerClass="bg-pink-50 border-pink-200 text-pink-700"
+        headerClass="bg-primary/10 border-primary text-primary"
         onDelete={onDeleteNode ? () => onDeleteNode(nodeId) : undefined}
       />
 
@@ -92,7 +92,7 @@ function ColorConvertNodeComponent({ data }: NodeProps) {
               label="Color in"
               handle={<RowHandle id="color" className={HANDLE_STRING} title="color (string | string[]) — CSS color value(s)" />}
             >
-              <span className="text-[10px] text-gray-300 italic">← wire color</span>
+              <span className="text-[10px] text-muted-foreground italic">← wire color</span>
             </Row>
             <Row label="From">
               <NativeSelect
@@ -119,7 +119,7 @@ function ColorConvertNodeComponent({ data }: NodeProps) {
               label="Lightness L"
               handle={<RowHandle id="lightness" className={HANDLE_ARRAY} title="lightness (number | number[]) — L% value(s)" />}
             >
-              <span className="text-[10px] text-gray-300 italic">← wire L values</span>
+              <span className="text-[10px] text-muted-foreground italic">← wire L values</span>
             </Row>
             {/* Hue — wirable or typed */}
             <Row
@@ -131,7 +131,7 @@ function ColorConvertNodeComponent({ data }: NodeProps) {
                 onChange={v => update({ hue: Math.max(0, Math.min(360, v)) })}
                 min={0} max={360} step={1}
                 disabled={hasHue}
-                className={hasHue ? 'border-blue-300 bg-blue-50' : ''}
+                className={hasHue ? 'border-primary bg-primary/10' : ''}
                 {...graphLock}
               />
             </Row>
@@ -145,7 +145,7 @@ function ColorConvertNodeComponent({ data }: NodeProps) {
                 onChange={v => update({ saturation: Math.max(0, Math.min(100, v)) })}
                 min={0} max={100} step={1}
                 disabled={hasSat}
-                className={hasSat ? 'border-blue-300 bg-blue-50' : ''}
+                className={hasSat ? 'border-primary bg-primary/10' : ''}
                 {...graphLock}
               />
             </Row>
@@ -169,10 +169,10 @@ function ColorConvertNodeComponent({ data }: NodeProps) {
             >
               <div className="flex flex-wrap gap-1">
                 {previewItems.map((v, i) => (
-                  <span key={i} className="flex items-center gap-1 text-[10px] font-mono bg-pink-50 text-pink-700 rounded px-1.5 py-0.5">
+                  <span key={i} className="flex items-center gap-1 text-[10px] font-mono bg-primary/10 text-primary rounded px-1.5 py-0.5">
                     {isColorResult && (
                       <span
-                        className="inline-block w-2.5 h-2.5 rounded-sm border border-pink-200 flex-shrink-0"
+                        className="inline-block w-2.5 h-2.5 rounded-sm border border-primary flex-shrink-0"
                         style={{ backgroundColor: v }}
                       />
                     )}
@@ -180,7 +180,7 @@ function ColorConvertNodeComponent({ data }: NodeProps) {
                   </span>
                 ))}
                 {Array.isArray(result) && result.length > 6 && (
-                  <span className="text-[10px] text-gray-400">+{result.length - 6} more</span>
+                  <span className="text-[10px] text-muted-foreground">+{result.length - 6} more</span>
                 )}
               </div>
             </Row>

@@ -43,7 +43,7 @@ export function TypographySpecimen({ token, resolvedValue }: StyleGuideTokenProp
 
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-xs text-gray-500 font-mono">{token.path}</span>
+      <span className="text-xs text-muted-foreground font-mono">{token.path}</span>
       <span style={style}>The quick brown fox jumps over the lazy dog</span>
     </div>
   );

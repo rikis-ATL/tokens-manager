@@ -21,7 +21,7 @@ export function CollectionSelector({
 }: CollectionSelectorProps) {
   return (
     <div className="flex items-center">
-      <label className="text-sm font-medium text-gray-700 mr-3">Collection:</label>
+      <label className="text-sm font-medium text-foreground mr-3">Collection:</label>
       <Select value={selectedId} onValueChange={(v) => onChange(v)}>
         <SelectTrigger className="w-auto min-w-[160px] text-sm">
           <SelectValue placeholder="Select collection" />

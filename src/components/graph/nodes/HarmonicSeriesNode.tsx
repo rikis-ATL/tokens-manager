@@ -24,7 +24,7 @@ const RATIOS = [
 
 /** Blue dot shown in row label when that handle has an active connection */
 function Dot({ on }: { on: boolean }) {
-  return on ? <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-400 ml-1 flex-shrink-0" /> : null;
+  return on ? <span className="inline-block w-1.5 h-1.5 rounded-full bg-info ml-1 flex-shrink-0" /> : null;
 }
 
 function HarmonicSeriesNodeComponent({ data }: NodeProps) {
@@ -45,12 +45,12 @@ function HarmonicSeriesNodeComponent({ data }: NodeProps) {
   const hasPrecision = inputs['precision'] != null;
 
   return (
-    <NodeWrapper borderColor="border-violet-300" width={252}>
+    <NodeWrapper borderColor="border-info/40" width={252}>
       <NodeHeader
-        icon={<Waves size={12} className="text-violet-500" />}
+        icon={<Waves size={12} className="text-info" />}
         title="Harmonic Series"
         badge={`${total} values`}
-        headerClass="bg-violet-50 border-violet-200 text-violet-700"
+        headerClass="bg-info/10 border-info/30 text-info"
         onDelete={onDeleteNode ? () => onDeleteNode(nodeId) : undefined}
       />
       <div className="px-3 py-2 space-y-1.5 nodrag">
@@ -63,7 +63,7 @@ function HarmonicSeriesNodeComponent({ data }: NodeProps) {
             onChange={v => update({ base: v })}
             step={0.1}
             min={0.001}
-            className={hasBase ? 'border-blue-300 bg-blue-50' : ''}
+            className={hasBase ? 'border-primary bg-primary/10' : ''}
             {...graphLock}
           />
         </Row>
@@ -77,7 +77,7 @@ function HarmonicSeriesNodeComponent({ data }: NodeProps) {
             onChange={v => update({ stepsDown: Math.max(0, v) })}
             min={0}
             max={12}
-            className={hasStepsDown ? 'border-blue-300 bg-blue-50' : ''}
+            className={hasStepsDown ? 'border-primary bg-primary/10' : ''}
             {...graphLock}
           />
         </Row>
@@ -91,13 +91,13 @@ function HarmonicSeriesNodeComponent({ data }: NodeProps) {
             onChange={v => update({ stepsUp: Math.max(0, v) })}
             min={0}
             max={12}
-            className={hasStepsUp ? 'border-blue-300 bg-blue-50' : ''}
+            className={hasStepsUp ? 'border-primary bg-primary/10' : ''}
             {...graphLock}
           />
         </Row>
 
         <Row label="Notes">
-          <span className="text-[11px] text-gray-500 font-mono">{total}</span>
+          <span className="text-[11px] text-muted-foreground font-mono">{total}</span>
         </Row>
 
         <Row label="Ratio">
@@ -117,7 +117,7 @@ function HarmonicSeriesNodeComponent({ data }: NodeProps) {
             onChange={v => update({ precision: Math.max(0, Math.min(8, v)) })}
             min={0}
             max={8}
-            className={hasPrecision ? 'border-blue-300 bg-blue-50' : ''}
+            className={hasPrecision ? 'border-primary bg-primary/10' : ''}
             {...graphLock}
           />
         </Row>
@@ -130,12 +130,12 @@ function HarmonicSeriesNodeComponent({ data }: NodeProps) {
             >
               <div className="flex flex-wrap gap-1">
                 {series.slice(0, 9).map((n, i) => (
-                  <span key={i} className="text-[10px] font-mono bg-violet-50 text-violet-700 rounded px-1">
+                  <span key={i} className="text-[10px] font-mono bg-info/10 text-info rounded px-1">
                     {n}
                   </span>
                 ))}
                 {series.length > 9 && (
-                  <span className="text-[10px] text-gray-400">+{series.length - 9} more</span>
+                  <span className="text-[10px] text-muted-foreground">+{series.length - 9} more</span>
                 )}
               </div>
             </Row>

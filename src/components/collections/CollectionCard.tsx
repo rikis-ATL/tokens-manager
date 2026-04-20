@@ -99,7 +99,7 @@ export function CollectionCard({
 
   return (
     <div
-      className="relative bg-white rounded-lg border border-gray-200 p-4 cursor-pointer hover:shadow-md hover:border-gray-300 transition-all group"
+      className="relative bg-card rounded-lg border border-border p-4 cursor-pointer hover:shadow-md hover:border-border transition-all group"
       onClick={() => onClick(collection._id)}
     >
       {/* Color swatch accent bar */}
@@ -117,35 +117,35 @@ export function CollectionCard({
         onClick={(e) => e.stopPropagation()}
       >
         <button
-          className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-gray-100 transition-opacity"
+          className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-muted transition-opacity"
           onClick={handleKebabClick}
           aria-label="Collection options"
         >
-          <MoreVertical size={16} className="text-gray-500" />
+          <MoreVertical size={16} className="text-muted-foreground" />
         </button>
 
         {isMenuOpen && (
-          <div className="absolute right-0 top-7 z-10 w-36 bg-white border border-gray-200 rounded-md shadow-lg py-1">
+          <div className="absolute right-0 top-7 z-10 w-36 bg-card border border-border rounded-md shadow-lg py-1">
             <button
-              className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+              className="w-full text-left px-3 py-1.5 text-sm text-foreground hover:bg-muted/50"
               onClick={handleRenameSelect}
             >
               Rename
             </button>
             <button
-              className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+              className="w-full text-left px-3 py-1.5 text-sm text-foreground hover:bg-muted/50"
               onClick={handleEditSelect}
             >
               Edit details
             </button>
             <button
-              className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+              className="w-full text-left px-3 py-1.5 text-sm text-foreground hover:bg-muted/50"
               onClick={handleDuplicateSelect}
             >
               Duplicate
             </button>
             <button
-              className="w-full text-left px-3 py-1.5 text-sm text-red-600 hover:bg-red-50"
+              className="w-full text-left px-3 py-1.5 text-sm text-destructive hover:bg-destructive/10"
               onClick={handleDeleteSelect}
             >
               Delete
@@ -159,7 +159,7 @@ export function CollectionCard({
         <input
           ref={inputRef}
           autoFocus
-          className="w-full text-gray-900 font-semibold text-base border border-gray-300 rounded px-1 py-0.5 pr-6 mb-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full text-foreground font-semibold text-base border border-border rounded px-1 py-0.5 pr-6 mb-1 focus:outline-none focus:ring-2 focus:ring-primary"
           value={renameValue}
           disabled={isRenamePending}
           onChange={(e) => setRenameValue(e.target.value)}
@@ -168,15 +168,15 @@ export function CollectionCard({
           onClick={(e) => e.stopPropagation()}
         />
       ) : (
-        <h3 className="text-gray-900 font-semibold text-base truncate pr-6">
+        <h3 className="text-foreground font-semibold text-base truncate pr-6">
           {collection.name}
         </h3>
       )}
 
       {/* Description */}
-      <p className="text-gray-500 text-sm mt-1 line-clamp-2">
+      <p className="text-muted-foreground text-sm mt-1 line-clamp-2">
         {collection.description ?? (
-          <span className="text-gray-300">No description</span>
+          <span className="text-muted-foreground">No description</span>
         )}
       </p>
 
@@ -186,7 +186,7 @@ export function CollectionCard({
           {collection.tags.map((tag) => (
             <span
               key={tag}
-              className="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full"
+              className="bg-muted text-muted-foreground text-xs px-2 py-0.5 rounded-full"
             >
               {tag}
             </span>
@@ -195,7 +195,7 @@ export function CollectionCard({
       )}
 
       {/* Stats row */}
-      <div className="flex items-center gap-3 mt-3 text-xs text-gray-400">
+      <div className="flex items-center gap-3 mt-3 text-xs text-muted-foreground">
         <span>{collection.tokenCount} tokens</span>
         <span>Updated {formattedDate}</span>
       </div>
@@ -204,20 +204,20 @@ export function CollectionCard({
       {(collection.figmaConfigured || collection.githubConfigured || collection.isPlayground) && (
         <div className="flex gap-1.5 mt-2">
           {collection.isPlayground && (
-            <span className="bg-amber-50 text-amber-700 text-xs px-1.5 py-0.5 rounded border border-amber-200 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" />
+            <span className="bg-warning/10 text-warning text-xs px-1.5 py-0.5 rounded border border-warning flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-warning inline-block" />
               Playground
             </span>
           )}
           {collection.figmaConfigured && (
-            <span className="bg-green-50 text-green-700 text-xs px-1.5 py-0.5 rounded border border-green-200 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
+            <span className="bg-success/10 text-success text-xs px-1.5 py-0.5 rounded border border-success flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-success inline-block" />
               Figma
             </span>
           )}
           {collection.githubConfigured && (
-            <span className="bg-green-50 text-green-700 text-xs px-1.5 py-0.5 rounded border border-green-200 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
+            <span className="bg-success/10 text-success text-xs px-1.5 py-0.5 rounded border border-success flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-success inline-block" />
               GitHub
             </span>
           )}

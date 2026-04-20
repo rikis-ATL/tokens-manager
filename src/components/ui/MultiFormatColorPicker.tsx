@@ -107,7 +107,7 @@ export function MultiFormatColorPicker({
             className="font-mono text-sm"
             placeholder="#ffffff"
           />
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-muted-foreground">
             Universal format, supported everywhere
           </p>
         </TabsContent>
@@ -128,7 +128,7 @@ export function MultiFormatColorPicker({
             className="font-mono text-sm"
             placeholder="hsl(180, 50%, 50%)"
           />
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-muted-foreground">
             Intuitive hue, saturation, lightness values
           </p>
         </TabsContent>
@@ -149,7 +149,7 @@ export function MultiFormatColorPicker({
             className="font-mono text-sm"
             placeholder="oklch(0.5 0.1 180)"
           />
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-muted-foreground">
             Perceptually uniform color space
           </p>
         </TabsContent>

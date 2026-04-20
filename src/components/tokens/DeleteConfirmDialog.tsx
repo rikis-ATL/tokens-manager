@@ -28,7 +28,7 @@ export function DeleteConfirmDialog({
         <DialogHeader>
           <DialogTitle>Delete tokens</DialogTitle>
         </DialogHeader>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-muted-foreground">
           Delete {count} selected token{count === 1 ? '' : 's'}? This cannot be undone.
         </p>
         <DialogFooter>
@@ -36,7 +36,7 @@ export function DeleteConfirmDialog({
             Cancel
           </Button>
           <Button
-            className="bg-red-600 hover:bg-red-700 text-white"
+            className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
             onClick={onConfirm}
           >
             Delete

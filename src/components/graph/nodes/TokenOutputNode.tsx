@@ -108,12 +108,12 @@ function TokenOutputNodeComponent({ data }: NodeProps) {
   }, [nodeId, onGenerate]);
 
   return (
-    <NodeWrapper borderColor="border-emerald-300" width={268}>
+    <NodeWrapper borderColor="border-success" width={268}>
       <NodeHeader
-        icon={isSubgroup ? <FolderPlus size={12} className="text-emerald-500" /> : <Tag size={12} className="text-emerald-500" />}
+        icon={isSubgroup ? <FolderPlus size={12} className="text-success" /> : <Tag size={12} className="text-success" />}
         title="Token Output"
         badge={count > 0 ? `${count} tokens` : undefined}
-        headerClass="bg-emerald-50 border-emerald-200 text-emerald-700"
+        headerClass="bg-success/10 border-success text-success"
         onDelete={onDeleteNode ? () => onDeleteNode(nodeId) : undefined}
       />
 
@@ -153,14 +153,14 @@ function TokenOutputNodeComponent({ data }: NodeProps) {
             title="name (string) — wire Palette.name or a Constant"
             className={HANDLE_STRING}
           />
-          <span className="text-[10px] text-gray-400 w-20 flex-shrink-0 leading-tight">Name</span>
+          <span className="text-[10px] text-muted-foreground w-20 flex-shrink-0 leading-tight">Name</span>
           <div className="flex-1 min-w-0">
             {hasNameInput ? (
-              <span className="text-[10px] text-green-700 bg-green-50 border border-green-200 rounded px-2 py-0.5 font-mono truncate block">
+              <span className="text-[10px] text-success bg-success/10 border border-success rounded px-2 py-0.5 font-mono truncate block">
                 {wiredName || '—'}
               </span>
             ) : (
-              <span className="text-[10px] text-gray-300 italic">← wire palette name</span>
+              <span className="text-[10px] text-muted-foreground italic">← wire palette name</span>
             )}
           </div>
         </div>
@@ -176,17 +176,17 @@ function TokenOutputNodeComponent({ data }: NodeProps) {
             style={{ left: -20, top: '50%', transform: 'translateY(-50%)', position: 'absolute' }}
           />
           <div className="flex items-center gap-2">
-            <span className="text-[10px] text-gray-400 w-20 flex-shrink-0 leading-tight">Values</span>
+            <span className="text-[10px] text-muted-foreground w-20 flex-shrink-0 leading-tight">Values</span>
             {isSingleMode ? (
-              <span className="text-[10px] text-amber-700 bg-amber-50 rounded px-2 py-0.5 font-mono truncate max-w-[100px]">
+              <span className="text-[10px] text-warning bg-warning/10 rounded px-2 py-0.5 font-mono truncate max-w-[100px]">
                 {singlePreviewValue}
               </span>
             ) : hasArray ? (
-              <span className="text-[10px] text-violet-600 bg-violet-50 rounded px-2 py-0.5">
+              <span className="text-[10px] text-info bg-info/10 rounded px-2 py-0.5">
                 {values.length} values
               </span>
             ) : (
-              <span className="text-[10px] text-gray-400 bg-gray-50 rounded px-2 py-0.5">
+              <span className="text-[10px] text-muted-foreground bg-muted/50 rounded px-2 py-0.5">
                 scalar or array
               </span>
             )}
@@ -204,13 +204,13 @@ function TokenOutputNodeComponent({ data }: NodeProps) {
             style={{ left: -20, top: '50%', transform: 'translateY(-50%)', position: 'absolute' }}
           />
           <div className="flex items-center gap-2">
-            <span className="text-[10px] text-gray-400 w-20 flex-shrink-0 leading-tight">Step names</span>
+            <span className="text-[10px] text-muted-foreground w-20 flex-shrink-0 leading-tight">Step names</span>
             {hasStepNames ? (
-              <span className="text-[10px] text-violet-600 bg-violet-50 rounded px-2 py-0.5">
+              <span className="text-[10px] text-info bg-info/10 rounded px-2 py-0.5">
                 {stepNames!.slice(0, 4).join(', ')}{stepNames!.length > 4 ? '…' : ''}
               </span>
             ) : (
-              <span className="text-[10px] text-gray-400 bg-gray-50 rounded px-2 py-0.5">
+              <span className="text-[10px] text-muted-foreground bg-muted/50 rounded px-2 py-0.5">
                 from value or wire
               </span>
             )}
@@ -219,29 +219,29 @@ function TokenOutputNodeComponent({ data }: NodeProps) {
 
         {/* Preview */}
         {(preview.length > 0 || isSingleMode) && (
-          <div className="border-t border-gray-100 pt-2 mt-1">
-            <div className="text-[10px] font-medium text-gray-400 uppercase tracking-wide mb-0.5">
+          <div className="border-t border-border pt-2 mt-1">
+            <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mb-0.5">
               Preview
             </div>
-            <div className="text-[9px] text-gray-300 mb-1.5 font-mono truncate">
+            <div className="text-[9px] text-muted-foreground mb-1.5 font-mono truncate">
               {[namespace, prefix, wiredName, '<step>'].filter(Boolean).join('-')}
             </div>
             <div className="space-y-0.5">
               {isSingleMode ? (
                 <div className="flex items-center gap-1.5">
-                  <span className="font-mono text-[10px] text-gray-500 flex-1 truncate">{singlePreviewName}</span>
-                  <span className="font-mono text-[10px] text-gray-700 truncate">{singlePreviewValue}</span>
+                  <span className="font-mono text-[10px] text-muted-foreground flex-1 truncate">{singlePreviewName}</span>
+                  <span className="font-mono text-[10px] text-foreground truncate">{singlePreviewValue}</span>
                 </div>
               ) : (
                 <>
                   {preview.map(t => (
                     <div key={t.name} className="flex items-center gap-1.5">
-                      <span className="font-mono text-[10px] text-gray-500 flex-1 truncate">{t.name}</span>
-                      <span className="font-mono text-[10px] text-gray-700 truncate">{t.value}</span>
+                      <span className="font-mono text-[10px] text-muted-foreground flex-1 truncate">{t.name}</span>
+                      <span className="font-mono text-[10px] text-foreground truncate">{t.value}</span>
                     </div>
                   ))}
                   {values.length > 5 && (
-                    <div className="text-[10px] text-gray-400">+{values.length - 5} more</div>
+                    <div className="text-[10px] text-muted-foreground">+{values.length - 5} more</div>
                   )}
                 </>
               )}
@@ -256,10 +256,10 @@ function TokenOutputNodeComponent({ data }: NodeProps) {
           disabled={!hasValue}
           className={`nodrag w-full flex items-center justify-center gap-1.5 text-xs font-medium rounded px-3 py-1.5 transition-colors ${
             generated
-              ? 'bg-green-100 text-green-700 border border-green-300'
+              ? 'bg-success/15 text-success border border-success'
               : !hasValue
-              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+              ? 'bg-muted text-muted-foreground cursor-not-allowed'
+              : 'bg-success hover:bg-success/90 text-success-foreground'
           }`}
           onClick={handleGenerate}
         >

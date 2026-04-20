@@ -105,8 +105,8 @@ export default function InviteSetupForm({ token }: { token: string }) {
   // Loading state while validating token
   if (validating) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
-        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+      <div className="min-h-screen flex items-center justify-center bg-muted/50 dark:bg-background">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -114,30 +114,30 @@ export default function InviteSetupForm({ token }: { token: string }) {
   // Error state for invalid/expired/used tokens
   if (tokenError) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
-        <div className="w-full max-w-sm bg-white dark:bg-gray-900 rounded-xl shadow-md p-8 text-center">
-          <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+      <div className="min-h-screen flex items-center justify-center bg-muted/50 dark:bg-background">
+        <div className="w-full max-w-sm bg-card dark:bg-card rounded-xl shadow-md p-8 text-center">
+          <h1 className="text-xl font-semibold text-foreground dark:text-foreground mb-2">
             Invite Link Invalid
           </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{tokenError}</p>
+          <p className="text-sm text-muted-foreground dark:text-muted-foreground">{tokenError}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
-      <div className="w-full max-w-sm bg-white dark:bg-gray-900 rounded-xl shadow-md p-8">
-        <h1 className="text-xl font-semibold text-center text-gray-900 dark:text-gray-100 mb-1">
+    <div className="min-h-screen flex items-center justify-center bg-muted/50 dark:bg-background">
+      <div className="w-full max-w-sm bg-card dark:bg-card rounded-xl shadow-md p-8">
+        <h1 className="text-xl font-semibold text-center text-foreground dark:text-foreground mb-1">
           Set up your account
         </h1>
-        <p className="text-sm text-center text-gray-500 dark:text-gray-400 mb-6">
+        <p className="text-sm text-center text-muted-foreground dark:text-muted-foreground mb-6">
           You&apos;ve been invited as <strong>{inviteData?.role}</strong>.
         </p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="displayName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="displayName" className="text-sm font-medium text-foreground dark:text-muted-foreground">
               Display name
             </label>
             <Input
@@ -152,7 +152,7 @@ export default function InviteSetupForm({ token }: { token: string }) {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="password" className="text-sm font-medium text-foreground dark:text-muted-foreground">
               Password
             </label>
             <Input
@@ -167,19 +167,19 @@ export default function InviteSetupForm({ token }: { token: string }) {
             />
             {/* Hint shown always; validation error only after field touched */}
             {!passwordTouched && (
-              <p className="text-xs text-gray-400 dark:text-gray-500">
+              <p className="text-xs text-muted-foreground dark:text-muted-foreground">
                 Must be at least 8 characters.
               </p>
             )}
             {passwordTouched && password.length > 0 && password.length < 8 && (
-              <p className="text-xs text-red-500 dark:text-red-400">
+              <p className="text-xs text-destructive dark:text-destructive">
                 Password must be at least 8 characters.
               </p>
             )}
           </div>
 
           {error && (
-            <p className="text-sm text-red-600 dark:text-red-400 mt-1">{error}</p>
+            <p className="text-sm text-destructive dark:text-destructive mt-1">{error}</p>
           )}
 
           <Button type="submit" disabled={loading} className="w-full mt-2">

@@ -50,7 +50,7 @@ function ReferenceEdgeComponent({
         <EdgeLabelRenderer>
           <div
             style={{ transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)` }}
-            className="absolute pointer-events-none text-[10px] font-mono bg-amber-50 border border-amber-200 text-amber-700 px-1 py-0.5 rounded"
+            className="absolute pointer-events-none text-[10px] font-mono bg-warning/10 border border-warning text-warning px-1 py-0.5 rounded"
           >
             {label}
           </div>

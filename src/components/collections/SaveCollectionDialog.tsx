@@ -54,7 +54,7 @@ export function SaveCollectionDialog({
         <div>
           {step === 'name-entry' ? (
             <div className="space-y-3">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-foreground">
                 Collection name
               </label>
               <Input
@@ -73,7 +73,7 @@ export function SaveCollectionDialog({
               />
             </div>
           ) : (
-            <p className="text-sm text-gray-700">
+            <p className="text-sm text-foreground">
               A collection named <strong>&ldquo;{name}&rdquo;</strong> already exists. Overwrite it?
             </p>
           )}

@@ -32,7 +32,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
         // Collection pages and auth pages own their full layout
         children
       ) : isOrgRoute(pathname) ? (
-        <div className="flex flex-col h-screen overflow-hidden bg-gray-50">
+        <div className="flex flex-col h-screen overflow-hidden bg-background">
           <OrgHeader />
           <div className="flex flex-1 overflow-hidden">
             <OrgSidebar />
@@ -42,7 +42,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       ) : (
-        <div className="flex flex-col h-screen overflow-hidden bg-gray-50">
+        <div className="flex flex-col h-screen overflow-hidden bg-background">
           <AppHeader />
           <div className="flex flex-1 overflow-hidden">
             <AppSidebar />

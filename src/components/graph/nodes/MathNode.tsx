@@ -47,7 +47,7 @@ function ensureVariadicScalarsLen(arr: string[] | undefined, len: number): strin
 }
 
 function Dot({ on }: { on: boolean }) {
-  return on ? <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-400 ml-1 flex-shrink-0" /> : null;
+  return on ? <span className="inline-block w-1.5 h-1.5 rounded-full bg-info ml-1 flex-shrink-0" /> : null;
 }
 
 function MathNodeComponent({ data }: NodeProps) {
@@ -211,26 +211,26 @@ function MathNodeComponent({ data }: NodeProps) {
     : result != null ? [String(result)] : [];
 
   return (
-    <NodeWrapper borderColor="border-amber-300" width={isVariadic || isLerp ? 268 : 240}>
+    <NodeWrapper borderColor="border-warning" width={isVariadic || isLerp ? 268 : 240}>
       <NodeHeader
-        icon={<Calculator size={12} className="text-amber-500" />}
+        icon={<Calculator size={12} className="text-warning" />}
         title="Math"
         badge={isExpression ? 'expr' : cfg.operation}
-        headerClass="bg-amber-50 border-amber-200 text-amber-700"
+        headerClass="bg-warning/10 border-warning text-warning"
         onDelete={onDeleteNode ? () => onDeleteNode(nodeId) : undefined}
       />
       <div className="px-3 py-2 space-y-1.5 nodrag">
 
         {/* Mode toggle */}
-        <div className="flex rounded overflow-hidden border border-gray-200 text-[10px] font-medium">
+        <div className="flex rounded overflow-hidden border border-border text-[10px] font-medium">
           {(['operations', 'expression'] as MathMode[]).map(m => (
             <button
               key={m}
               onClick={() => update({ mathMode: m })}
               className={`flex-1 py-0.5 capitalize transition-colors ${
                 mode === m
-                  ? 'bg-amber-100 text-amber-700'
-                  : 'bg-white text-gray-400 hover:bg-gray-50'
+                  ? 'bg-warning/15 text-warning'
+                  : 'bg-card text-muted-foreground hover:bg-muted/50'
               }`}
             >
               {m === 'operations' ? 'Ops' : 'Expr · evaluate'}
@@ -259,7 +259,7 @@ function MathNodeComponent({ data }: NodeProps) {
               {...graphLock}
             />
           ) : (
-            <span className="text-[10px] text-gray-300 italic">
+            <span className="text-[10px] text-muted-foreground italic">
               {hasA ? '● wired' : '← wire input'}
             </span>
           )}
@@ -279,7 +279,7 @@ function MathNodeComponent({ data }: NodeProps) {
                 {...graphLock}
               />
             ) : (
-              <span className="text-[10px] text-gray-300 italic">● wired</span>
+              <span className="text-[10px] text-muted-foreground italic">● wired</span>
             )}
           </Row>
         )}
@@ -320,7 +320,7 @@ function MathNodeComponent({ data }: NodeProps) {
                   value={hasB ? Number(inputs['b']) : cfg.operand}
                   onChange={v => update({ operand: v })}
                   step={0.1}
-                  className={hasB ? 'border-blue-300 bg-blue-50' : ''}
+                  className={hasB ? 'border-primary bg-primary/10' : ''}
                   {...graphLock}
                 />
               </Row>
@@ -342,7 +342,7 @@ function MathNodeComponent({ data }: NodeProps) {
                     value={hasB ? Number(inputs['b']) : cfg.lerpEnd ?? 1}
                     onChange={v => update({ lerpEnd: v })}
                     step={0.1}
-                    className={hasB ? 'border-blue-300 bg-blue-50' : ''}
+                    className={hasB ? 'border-primary bg-primary/10' : ''}
                     {...graphLock}
                   />
                 </Row>
@@ -360,7 +360,7 @@ function MathNodeComponent({ data }: NodeProps) {
                     value={hasT ? Number(inputs['t']) : cfg.lerpT ?? 0.5}
                     onChange={v => update({ lerpT: v })}
                     step={0.05}
-                    className={hasT ? 'border-blue-300 bg-blue-50' : ''}
+                    className={hasT ? 'border-primary bg-primary/10' : ''}
                     {...graphLock}
                   />
                 </Row>
@@ -378,7 +378,7 @@ function MathNodeComponent({ data }: NodeProps) {
                     value={hasClampMin ? Number(inputs['clampMin']) : cfg.clampMin}
                     onChange={v => update({ clampMin: v })}
                     step={0.1}
-                    className={hasClampMin ? 'border-blue-300 bg-blue-50' : ''}
+                    className={hasClampMin ? 'border-primary bg-primary/10' : ''}
                     {...graphLock}
                   />
                 </Row>
@@ -390,7 +390,7 @@ function MathNodeComponent({ data }: NodeProps) {
                     value={hasClampMax ? Number(inputs['clampMax']) : cfg.clampMax}
                     onChange={v => update({ clampMax: v })}
                     step={0.1}
-                    className={hasClampMax ? 'border-blue-300 bg-blue-50' : ''}
+                    className={hasClampMax ? 'border-primary bg-primary/10' : ''}
                     {...graphLock}
                   />
                 </Row>
@@ -403,17 +403,17 @@ function MathNodeComponent({ data }: NodeProps) {
                   label={<span className="flex items-center">Array<Dot on={hasInputs} /></span>}
                   handle={<RowHandle id="inputs" className={HANDLE_ARRAY} title="Wire a number[] — uses array only" />}
                 >
-                  <span className="text-[10px] text-gray-400">Optional · overrides operand rows</span>
+                  <span className="text-[10px] text-muted-foreground">Optional · overrides operand rows</span>
                 </Row>
 
                 <div className="flex items-center justify-between gap-1 pt-0.5">
-                  <span className="text-[10px] text-gray-500 font-medium">Operands</span>
+                  <span className="text-[10px] text-muted-foreground font-medium">Operands</span>
                   <div className="flex items-center gap-0.5">
                     <button
                       type="button"
                       onClick={removeVariadicSlot}
                       disabled={variadicSlotCount <= VARIADIC_SLOT_MIN}
-                      className="p-0.5 rounded border border-gray-200 bg-white text-gray-600 disabled:opacity-40"
+                      className="p-0.5 rounded border border-border bg-card text-muted-foreground disabled:opacity-40"
                       title="Remove last operand row"
                     >
                       <Minus size={12} />
@@ -422,7 +422,7 @@ function MathNodeComponent({ data }: NodeProps) {
                       type="button"
                       onClick={addVariadicSlot}
                       disabled={variadicSlotCount >= VARIADIC_SLOT_MAX}
-                      className="p-0.5 rounded border border-gray-200 bg-white text-gray-600 disabled:opacity-40"
+                      className="p-0.5 rounded border border-border bg-card text-muted-foreground disabled:opacity-40"
                       title="Add operand row"
                     >
                       <Plus size={12} />
@@ -458,7 +458,7 @@ function MathNodeComponent({ data }: NodeProps) {
                           value={display}
                           onChange={v => setVariadicScalarAt(i, String(v))}
                           step={0.1}
-                          className={hasVi ? 'border-blue-300 bg-blue-50' : ''}
+                          className={hasVi ? 'border-primary bg-primary/10' : ''}
                           {...graphLock}
                         />
                       </Row>
@@ -500,7 +500,7 @@ function MathNodeComponent({ data }: NodeProps) {
                     value={hasB ? Number(inputs['b']) : cfg.closestTarget ?? 0}
                     onChange={v => update({ closestTarget: v })}
                     step={0.1}
-                    className={hasB ? 'border-blue-300 bg-blue-50' : ''}
+                    className={hasB ? 'border-primary bg-primary/10' : ''}
                     {...graphLock}
                   />
                 </Row>
@@ -557,7 +557,7 @@ function MathNodeComponent({ data }: NodeProps) {
         {/* ── Expression mode ── */}
         {isExpression && (
           <div className="flex flex-col gap-0.5">
-            <span className="text-[10px] text-gray-400">Formula</span>
+            <span className="text-[10px] text-muted-foreground">Formula</span>
             <textarea
               ref={exprRef}
               value={localExpr}
@@ -577,16 +577,16 @@ function MathNodeComponent({ data }: NodeProps) {
               onPointerDown={e => e.stopPropagation()}
               rows={2}
               placeholder="e.g. a * 2 + {spacing.base}"
-              className={`nodrag nopan w-full text-[11px] font-mono bg-white rounded px-1.5 py-1 text-gray-700 focus:outline-none resize-none border ${
+              className={`nodrag nopan w-full text-[11px] font-mono bg-card rounded px-1.5 py-1 text-foreground focus:outline-none resize-none border ${
                 exprError
-                  ? 'border-red-400 focus:ring-1 focus:ring-red-400'
-                  : 'border-gray-200 focus:ring-1 focus:ring-indigo-300'
+                  ? 'border-destructive focus:ring-1 focus:ring-destructive'
+                  : 'border-border focus:ring-1 focus:ring-primary/40'
               }`}
             />
             {exprError ? (
-              <span className="text-[9px] text-red-500">{exprError}</span>
+              <span className="text-[9px] text-destructive">{exprError}</span>
             ) : (
-              <span className="text-[9px] text-gray-300">
+              <span className="text-[9px] text-muted-foreground">
                 Variables a, b · {'{token.path}'} or {'{token-name}'}
               </span>
             )}
@@ -619,12 +619,12 @@ function MathNodeComponent({ data }: NodeProps) {
               <div className="flex flex-wrap gap-1">
                 {previewItems.length > 0 ? (
                   previewItems.map((v, i) => (
-                    <span key={i} className="text-[10px] font-mono bg-amber-50 text-amber-700 rounded px-1">
+                    <span key={i} className="text-[10px] font-mono bg-warning/10 text-warning rounded px-1">
                       {v}
                     </span>
                   ))
                 ) : (
-                  <span className="text-[10px] text-gray-400">—</span>
+                  <span className="text-[10px] text-muted-foreground">—</span>
                 )}
               </div>
             </Row>
@@ -634,7 +634,7 @@ function MathNodeComponent({ data }: NodeProps) {
                 <RowHandle id="closestIndex" type="source" side="right" className={HANDLE_OUT} title="index" />
               }
             >
-              <span className="text-[10px] font-mono text-gray-700">
+              <span className="text-[10px] font-mono text-foreground">
                 {closestIdxOut != null ? String(closestIdxOut) : '—'}
               </span>
             </Row>
@@ -644,7 +644,7 @@ function MathNodeComponent({ data }: NodeProps) {
                 <RowHandle id="closestDiff" type="source" side="right" className={HANDLE_OUT} title="difference" />
               }
             >
-              <span className="text-[10px] font-mono text-gray-700">
+              <span className="text-[10px] font-mono text-foreground">
                 {closestDiffOut != null ? String(closestDiffOut) : '—'}
               </span>
             </Row>
@@ -657,12 +657,12 @@ function MathNodeComponent({ data }: NodeProps) {
             >
               <div className="flex flex-wrap gap-1">
                 {previewItems.map((v, i) => (
-                  <span key={i} className="text-[10px] font-mono bg-amber-50 text-amber-700 rounded px-1">
+                  <span key={i} className="text-[10px] font-mono bg-warning/10 text-warning rounded px-1">
                     {v}
                   </span>
                 ))}
                 {Array.isArray(result) && result.length > 6 && (
-                  <span className="text-[10px] text-gray-400">+{result.length - 6} more</span>
+                  <span className="text-[10px] text-muted-foreground">+{result.length - 6} more</span>
                 )}
               </div>
             </Row>

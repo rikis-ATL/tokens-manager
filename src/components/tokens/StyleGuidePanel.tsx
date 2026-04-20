@@ -101,17 +101,17 @@ export function StyleGuidePanel({ tokens, allGroups, colorGroupsTree, groupName 
   return (
     <div className="p-6 flex flex-col gap-8 overflow-y-auto h-full">
       {groupName && (
-        <h2 className="text-sm font-semibold text-gray-700">{groupName}</h2>
+        <h2 className="text-sm font-semibold text-foreground">{groupName}</h2>
       )}
 
       {colorSections.length > 0 && (
         <section>
-          <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Colors</h3>
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Colors</h3>
           <div className="flex flex-col gap-5">
             {colorSections.map((row) => (
               <div key={row.id}>
                 {row.title ? (
-                  <h4 className="text-xs font-medium text-gray-600 mb-2">{row.title}</h4>
+                  <h4 className="text-xs font-medium text-muted-foreground mb-2">{row.title}</h4>
                 ) : null}
                 <ColorPaletteRow tokens={row.tokens} resolveRef={resolveRef} />
               </div>
@@ -122,7 +122,7 @@ export function StyleGuidePanel({ tokens, allGroups, colorGroupsTree, groupName 
 
       {spacingTokens.length > 0 && (
         <section>
-          <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Spacing</h3>
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Spacing</h3>
           <div className="flex flex-col gap-2">
             {spacingTokens.map((token) => (
               <SpacingPreview
@@ -137,7 +137,7 @@ export function StyleGuidePanel({ tokens, allGroups, colorGroupsTree, groupName 
 
       {typographyTokens.length > 0 && (
         <section>
-          <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Typography</h3>
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Typography</h3>
           <div className="flex flex-col gap-4">
             {typographyTokens.map((token) => (
               <TypographySpecimen
@@ -152,7 +152,7 @@ export function StyleGuidePanel({ tokens, allGroups, colorGroupsTree, groupName 
 
       {shadowTokens.length > 0 && (
         <section>
-          <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Shadows</h3>
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Shadows</h3>
           <div className="flex flex-wrap gap-4">
             {shadowTokens.map((token) => (
               <ShadowPreview
@@ -167,7 +167,7 @@ export function StyleGuidePanel({ tokens, allGroups, colorGroupsTree, groupName 
 
       {borderRadiusTokens.length > 0 && (
         <section>
-          <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Border Radius</h3>
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Border Radius</h3>
           <div className="flex flex-wrap gap-4">
             {borderRadiusTokens.map((token) => (
               <BorderRadiusPreview
@@ -182,7 +182,7 @@ export function StyleGuidePanel({ tokens, allGroups, colorGroupsTree, groupName 
 
       {otherTokens.length > 0 && (
         <section>
-          <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Other</h3>
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Other</h3>
           <div className="flex flex-col gap-1">
             {otherTokens.map((token) => (
               <TokenValueCard
@@ -196,7 +196,7 @@ export function StyleGuidePanel({ tokens, allGroups, colorGroupsTree, groupName 
       )}
 
       {tokens.length === 0 && (
-        <div className="text-sm text-gray-400 italic">No tokens in this group</div>
+        <div className="text-sm text-muted-foreground italic">No tokens in this group</div>
       )}
     </div>
   );

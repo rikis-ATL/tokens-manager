@@ -178,8 +178,8 @@ export function GitHubDirectoryPicker({
       <div key={item.path} style={{ marginLeft: `${level * 20}px` }}>
         {item.type === 'dir' ? (
           <div
-            className={`flex items-center py-1 px-2 rounded cursor-pointer hover:bg-gray-100 ${
-              selectedPath === item.path && selectionType === 'directory' ? 'bg-blue-100' : ''
+            className={`flex items-center py-1 px-2 rounded cursor-pointer hover:bg-muted ${
+              selectedPath === item.path && selectionType === 'directory' ? 'bg-primary/15' : ''
             }`}
             onClick={() => {
               if (mode === 'import') {
@@ -194,18 +194,18 @@ export function GitHubDirectoryPicker({
               toggleDirectory(item);
             }}
           >
-            <span className="mr-2 text-gray-500">
+            <span className="mr-2 text-muted-foreground">
               {expandedDirs.has(item.path) ? '📁' : '📁'}
             </span>
             <span className="text-sm">{item.name}</span>
             {mode === 'import' && selectedPath === item.path && selectionType === 'directory' && (
-              <span className="ml-auto text-xs text-blue-600">Selected</span>
+              <span className="ml-auto text-xs text-primary">Selected</span>
             )}
           </div>
         ) : (
           <div
-            className={`flex items-center py-1 px-2 rounded cursor-pointer hover:bg-gray-100 ${
-              selectedFile === item.path ? 'bg-green-100' : 'text-gray-600'
+            className={`flex items-center py-1 px-2 rounded cursor-pointer hover:bg-muted ${
+              selectedFile === item.path ? 'bg-success/15' : 'text-muted-foreground'
             }`}
             onClick={() => {
               if (mode === 'import') {
@@ -218,7 +218,7 @@ export function GitHubDirectoryPicker({
             <span className="mr-2">📄</span>
             <span className="text-sm">{item.name}</span>
             {mode === 'import' && selectedFile === item.path && (
-              <span className="ml-auto text-xs text-green-600">Selected</span>
+              <span className="ml-auto text-xs text-success">Selected</span>
             )}
           </div>
         )}
@@ -234,8 +234,8 @@ export function GitHubDirectoryPicker({
 
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-6 w-96">
+      <div className="fixed inset-0 bg-foreground/50 flex items-center justify-center z-50">
+        <div className="bg-card rounded-lg p-6 w-96">
           <div className="text-center">Loading directory tree...</div>
         </div>
       </div>
@@ -243,8 +243,8 @@ export function GitHubDirectoryPicker({
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+    <div className="fixed inset-0 bg-foreground/50 flex items-center justify-center z-50">
+      <div className="bg-card rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
         <div className="flex items-center justify-between p-4 border-b">
           <h3 className="text-lg font-medium">
             {mode === 'import' ? 'Select File to Import' : 'Choose Export Destination'}
@@ -253,7 +253,7 @@ export function GitHubDirectoryPicker({
             variant="ghost"
             size="sm"
             onClick={onCancel}
-            className="text-gray-500 hover:text-gray-700"
+            className="text-muted-foreground hover:text-foreground"
           >
             ×
           </Button>
@@ -262,10 +262,10 @@ export function GitHubDirectoryPicker({
         <div className="flex-1 overflow-auto p-4">
           <div className="mb-4">
             <div className="flex items-center justify-between mb-2">
-              <div className="text-sm font-medium text-gray-700">Repository Directory Structure:</div>
+              <div className="text-sm font-medium text-foreground">Repository Directory Structure:</div>
               {availableBranches.length > 0 && (
                 <div className="flex items-center gap-2">
-                  <label className="text-xs font-medium text-gray-700">Branch:</label>
+                  <label className="text-xs font-medium text-foreground">Branch:</label>
                   <Select
                     value={selectedBranch}
                     onValueChange={(v) => setSelectedBranch(v)}
@@ -282,10 +282,10 @@ export function GitHubDirectoryPicker({
                 </div>
               )}
             </div>
-            <div className="border rounded-md p-3 bg-gray-50 max-h-64 overflow-auto">
+            <div className="border rounded-md p-3 bg-muted/50 max-h-64 overflow-auto">
               <div
-                className={`flex items-center py-1 px-2 rounded cursor-pointer hover:bg-gray-100 ${
-                  selectedPath === '' && selectionType === 'directory' ? 'bg-blue-100' : ''
+                className={`flex items-center py-1 px-2 rounded cursor-pointer hover:bg-muted ${
+                  selectedPath === '' && selectionType === 'directory' ? 'bg-primary/15' : ''
                 }`}
                 onClick={() => {
                   if (mode === 'import') {
@@ -300,7 +300,7 @@ export function GitHubDirectoryPicker({
                 <span className="mr-2">📁</span>
                 <span className="text-sm font-medium">/ (root)</span>
                 {mode === 'import' && selectedPath === '' && selectionType === 'directory' && (
-                  <span className="ml-auto text-xs text-blue-600">Selected</span>
+                  <span className="ml-auto text-xs text-primary">Selected</span>
                 )}
               </div>
               {renderTree(directoryTree)}
@@ -311,28 +311,28 @@ export function GitHubDirectoryPicker({
             <div className="space-y-3">
               {selectionType === 'file' && selectedFile && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">
                     Selected File:
                   </label>
-                  <div className="px-3 py-2 bg-green-50 border border-green-200 rounded text-sm font-mono text-green-800">
+                  <div className="px-3 py-2 bg-success/10 border border-success rounded text-sm font-mono text-success">
                     {selectedFile}
                   </div>
                 </div>
               )}
               {selectionType === 'directory' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">
                     Selected Directory:
                   </label>
-                  <div className="px-3 py-2 bg-blue-50 border border-blue-200 rounded text-sm font-mono text-blue-800">
+                  <div className="px-3 py-2 bg-primary/10 border border-primary rounded text-sm font-mono text-primary">
                     /{selectedPath || '(root)'}
                   </div>
-                  <p className="text-xs text-blue-600 mt-1">
+                  <p className="text-xs text-primary mt-1">
                     Will import all JSON files from this directory and all subdirectories
                   </p>
                 </div>
               )}
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-muted-foreground">
                 {selectionType ? (
                   <span>✅ Selection ready for import</span>
                 ) : (
@@ -343,16 +343,16 @@ export function GitHubDirectoryPicker({
           ) : (
             <div className="space-y-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Selected Directory:
                 </label>
-                <div className="px-3 py-2 bg-gray-50 border rounded text-sm font-mono">
+                <div className="px-3 py-2 bg-muted/50 border rounded text-sm font-mono">
                   /{selectedPath || '(root)'}
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Filename:
                 </label>
                 <Input
@@ -364,10 +364,10 @@ export function GitHubDirectoryPicker({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Full Path:
                 </label>
-                <div className="px-3 py-2 bg-blue-50 border border-blue-200 rounded text-sm font-mono text-blue-800">
+                <div className="px-3 py-2 bg-primary/10 border border-primary rounded text-sm font-mono text-primary">
                   {selectedPath ? `${selectedPath}/${filename}` : filename}
                 </div>
               </div>
@@ -379,7 +379,7 @@ export function GitHubDirectoryPicker({
           <Button
             variant="ghost"
             onClick={onCancel}
-            className="text-gray-600 hover:text-gray-700"
+            className="text-muted-foreground hover:text-foreground"
           >
             Cancel
           </Button>

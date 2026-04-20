@@ -20,7 +20,7 @@ export function Row({
   return (
     <div className="relative flex items-center gap-2 min-h-[26px]">
       {handle}
-      <span className="text-[10px] text-gray-400 w-20 flex-shrink-0 leading-tight">{label}</span>
+      <span className="text-[10px] text-muted-foreground w-20 flex-shrink-0 leading-tight">{label}</span>
       <div className="flex-1 min-w-0">{children}</div>
     </div>
   );
@@ -73,7 +73,7 @@ export function NativeSelect({
     <select
       value={value}
       onChange={e => onChange(e.target.value)}
-      className="nodrag w-full text-[11px] bg-white border border-gray-200 rounded px-1.5 py-0.5 text-gray-700 focus:outline-none focus:ring-1 focus:ring-indigo-300"
+      className="nodrag w-full text-[11px] bg-card border border-border rounded px-1.5 py-0.5 text-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
     >
       {options.map(o => (
         <option key={String(o.value)} value={o.value}>{o.label}</option>
@@ -131,7 +131,7 @@ export function NumberInput({
       onFocus={() => { focused.current = true; onGraphInputFocus?.(); }}
       onBlur={e => { focused.current = false; commit(e.target.value); onGraphInputBlur?.(); }}
       onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-      className={`nodrag w-full text-[11px] bg-white border border-gray-200 rounded px-1.5 py-0.5 text-gray-700 focus:outline-none focus:ring-1 focus:ring-indigo-300 ${disabled ? 'opacity-40 cursor-not-allowed' : ''} ${className}`}
+      className={`nodrag w-full text-[11px] bg-card border border-border rounded px-1.5 py-0.5 text-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 ${disabled ? 'opacity-40 cursor-not-allowed' : ''} ${className}`}
     />
   );
 }
@@ -170,18 +170,18 @@ export function TextInput({
       onFocus={() => { focused.current = true; onGraphInputFocus?.(); }}
       onBlur={e => { focused.current = false; onChange(e.target.value); onGraphInputBlur?.(); }}
       onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-      className={`nodrag w-full text-[11px] bg-white border border-gray-200 rounded px-1.5 py-0.5 text-gray-700 focus:outline-none focus:ring-1 focus:ring-indigo-300 ${className}`}
+      className={`nodrag w-full text-[11px] bg-card border border-border rounded px-1.5 py-0.5 text-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 ${className}`}
     />
   );
 }
 
 // ── Handle style tokens ───────────────────────────────────────────────────────
 
-export const HANDLE_NUMBER = '!w-2.5 !h-2.5 !bg-blue-400 !border-2 !border-white';
-export const HANDLE_STRING = '!w-2.5 !h-2.5 !bg-green-400 !border-2 !border-white';
-export const HANDLE_ARRAY  = '!w-2.5 !h-2.5 !bg-violet-400 !border-2 !border-white';
-export const HANDLE_OUT    = '!w-2.5 !h-2.5 !bg-gray-400 !border-2 !border-white';
-export const HANDLE_IN     = '!w-2.5 !h-2.5 !bg-amber-400 !border-2 !border-white';
+export const HANDLE_NUMBER = '!w-2.5 !h-2.5 !bg-info !border-2 !border-border';
+export const HANDLE_STRING = '!w-2.5 !h-2.5 !bg-success !border-2 !border-border';
+export const HANDLE_ARRAY  = '!w-2.5 !h-2.5 !bg-primary !border-2 !border-border';
+export const HANDLE_OUT    = '!w-2.5 !h-2.5 !bg-muted !border-2 !border-border';
+export const HANDLE_IN     = '!w-2.5 !h-2.5 !bg-warning !border-2 !border-border';
 
 // ── Node wrapper ──────────────────────────────────────────────────────────────
 // 'group' class enables CSS group-hover on children (e.g. delete button in header).
@@ -197,7 +197,7 @@ export function NodeWrapper({
 }) {
   return (
     <div
-      className={`group bg-white rounded-lg border-2 shadow-sm ${borderColor}`}
+      className={`group bg-card rounded-lg border-2 shadow-sm ${borderColor}`}
       style={{ width }}
       onWheel={e => e.stopPropagation()}
     >
@@ -231,7 +231,7 @@ export function NodeHeader({
         <button
           onClick={onDelete}
           title="Delete node"
-          className="nodrag flex-shrink-0 p-0.5 rounded opacity-0 group-hover:opacity-60 hover:!opacity-100 text-current hover:text-red-500 hover:bg-red-100 transition-all"
+          className="nodrag flex-shrink-0 p-0.5 rounded opacity-0 group-hover:opacity-60 hover:!opacity-100 text-current hover:text-destructive hover:bg-destructive/15 transition-all"
         >
           <X size={10} />
         </button>
@@ -244,8 +244,8 @@ export function NodeHeader({
 
 export function PreviewSection({ children }: { children: ReactNode }) {
   return (
-    <div className="mt-2 border-t border-gray-100 pt-2">
-      <div className="text-[10px] font-medium text-gray-400 uppercase tracking-wide mb-1.5">
+    <div className="mt-2 border-t border-border pt-2">
+      <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mb-1.5">
         Preview
       </div>
       {children}

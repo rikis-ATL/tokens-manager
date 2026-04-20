@@ -101,7 +101,7 @@ export function TokenReferencePicker({ allGroups, namespace, onSelect }: TokenRe
         <Button
           variant="ghost"
           size="sm"
-          className="h-6 w-6 p-0 text-gray-400 hover:text-indigo-600 flex-shrink-0"
+          className="h-6 w-6 p-0 text-muted-foreground hover:text-info flex-shrink-0"
           title="Select source token"
           type="button"
         >
@@ -114,18 +114,18 @@ export function TokenReferencePicker({ allGroups, namespace, onSelect }: TokenRe
         className="w-72 p-0"
         onOpenAutoFocus={e => e.preventDefault()}
       >
-        <div className="border-b border-gray-100 px-3 py-2">
+        <div className="border-b border-border px-3 py-2">
           <input
             ref={searchRef}
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Search tokens…"
-            className="w-full text-sm outline-none bg-transparent placeholder:text-gray-400"
+            className="w-full text-sm outline-none bg-transparent placeholder:text-muted-foreground"
           />
         </div>
         <div className="max-h-56 overflow-y-auto py-1">
           {filtered.length === 0 && (
-            <p className="px-3 py-4 text-xs text-center text-gray-400">
+            <p className="px-3 py-4 text-xs text-center text-muted-foreground">
               {query ? 'No matching tokens' : 'No tokens available'}
             </p>
           )}
@@ -138,18 +138,18 @@ export function TokenReferencePicker({ allGroups, namespace, onSelect }: TokenRe
               <button
                 key={flat.token.id}
                 type="button"
-                className="w-full text-left px-3 py-1.5 hover:bg-gray-50 flex items-center gap-2"
+                className="w-full text-left px-3 py-1.5 hover:bg-muted/50 flex items-center gap-2"
                 onClick={() => handleSelect(flat)}
               >
                 {isColor && (
                   <span
-                    className="w-4 h-4 rounded-sm flex-shrink-0 border border-black/10"
+                    className="w-4 h-4 rounded-sm flex-shrink-0 border border-foreground/10"
                     style={{ background: resolvedColor ?? '#e5e7eb' }}
                   />
                 )}
                 <span className="flex flex-col gap-0.5 min-w-0">
-                  <span className="text-xs font-mono text-gray-800">{flat.token.path}</span>
-                  <span className="text-[10px] text-gray-400 truncate">{flat.aliasPath}</span>
+                  <span className="text-xs font-mono text-foreground">{flat.token.path}</span>
+                  <span className="text-[10px] text-muted-foreground truncate">{flat.aliasPath}</span>
                 </span>
               </button>
             );

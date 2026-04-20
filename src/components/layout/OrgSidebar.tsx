@@ -41,10 +41,10 @@ export function OrgSidebar() {
             title={isLoading ? 'Connecting...' : db.label}
             className={`w-2 h-2 rounded-full flex-shrink-0 ${
               isLoading
-                ? 'bg-gray-300 animate-pulse'
+                ? 'bg-muted animate-pulse'
                 : isConnected
-                  ? 'bg-green-500'
-                  : 'bg-amber-400'
+                  ? 'bg-success'
+                  : 'bg-warning'
             }`}
           />
         ),
@@ -55,15 +55,15 @@ export function OrgSidebar() {
 
   return (
     <aside
-      className={`h-full bg-white border-r border-gray-200 flex flex-col transition-all duration-200 flex-shrink-0 ${
+      className={`h-full bg-card border-r border-border flex flex-col transition-all duration-200 flex-shrink-0 ${
         collapsed ? 'w-12' : 'w-[180px]'
       }`}
     >
       {/* Collapse toggle */}
-      <div className={`flex items-center border-b border-gray-100 flex-shrink-0 py-2 ${collapsed ? 'justify-center' : 'px-3 justify-end'}`}>
+      <div className={`flex items-center border-b border-border flex-shrink-0 py-2 ${collapsed ? 'justify-center' : 'px-3 justify-end'}`}>
         <button
           onClick={() => setCollapsed((c) => !c)}
-          className="text-gray-400 hover:text-gray-700 p-1 rounded transition-colors"
+          className="text-muted-foreground hover:text-foreground p-1 rounded transition-colors"
           title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
@@ -83,8 +83,8 @@ export function OrgSidebar() {
                 collapsed ? 'justify-center p-2' : 'gap-3 px-3 py-2'
               } ${
                 isActive
-                  ? 'bg-gray-900 text-white'
-                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
               }`}
             >
               <Icon size={16} className="flex-shrink-0" />

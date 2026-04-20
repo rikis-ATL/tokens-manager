@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { showSuccessToast, showErrorToast } from '@/utils/toast.utils';
 import { Eye, EyeOff, Key, Check } from 'lucide-react';
+import { AppThemeAdminSection } from '@/components/settings/AppThemeAdminSection';
 
 export default function SettingsPage() {
   const { data: session, status } = useSession();
@@ -25,13 +26,18 @@ export default function SettingsPage() {
 
   return (
     <div className="p-6 max-w-3xl">
-      <h1 className="text-2xl font-semibold text-gray-900 mb-8">Settings</h1>
+      <h1 className="text-2xl font-semibold text-foreground mb-8">Settings</h1>
       
       <div className="space-y-8">
         <AIConfiguration />
+
+        <div className="border-t border-border pt-8">
+          <h2 className="text-xl font-semibold text-foreground mb-4">App theme (shell)</h2>
+          <AppThemeAdminSection />
+        </div>
         
-        <div className="border-t border-gray-200 pt-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Database Settings</h2>
+        <div className="border-t border-border pt-8">
+          <h2 className="text-xl font-semibold text-foreground mb-4">Database Settings</h2>
           <DatabaseConfig />
         </div>
       </div>
@@ -156,9 +162,9 @@ function AIConfiguration() {
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <Key size={20} className="text-primary" />
-          <h2 className="text-xl font-semibold text-gray-900">AI Configuration</h2>
+          <h2 className="text-xl font-semibold text-foreground">AI Configuration</h2>
         </div>
-        <p className="text-sm text-gray-500">Loading...</p>
+        <p className="text-sm text-muted-foreground">Loading...</p>
       </div>
     );
   }
@@ -167,34 +173,34 @@ function AIConfiguration() {
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <Key size={20} className="text-primary" />
-        <h2 className="text-xl font-semibold text-gray-900">AI Configuration</h2>
+        <h2 className="text-xl font-semibold text-foreground">AI Configuration</h2>
       </div>
 
-      <p className="text-sm text-gray-600">
+      <p className="text-sm text-muted-foreground">
         Configure your Anthropic API key to use AI features in the token manager.
       </p>
 
       {process.env.NEXT_PUBLIC_SELF_HOSTED === 'true' ? (
-        <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+        <div className="bg-primary/10 border border-primary rounded-md p-4">
           <div className="flex items-center gap-2">
-            <Check size={16} className="text-blue-600" />
-            <p className="text-sm font-medium text-blue-900">
+            <Check size={16} className="text-primary" />
+            <p className="text-sm font-medium text-primary">
               Server API Key Configured
             </p>
           </div>
-          <p className="text-xs text-blue-700 mt-1">
+          <p className="text-xs text-primary mt-1">
             This instance is using a server-side API key. No personal configuration needed.
           </p>
         </div>
       ) : (
         <>
           {hasExistingKey && (
-            <div className="bg-green-50 border border-green-200 rounded-md p-3 mb-4">
+            <div className="bg-success/10 border border-success rounded-md p-3 mb-4">
               <div className="flex items-center gap-2">
-                <Check size={16} className="text-green-600" />
-                <p className="text-sm font-medium text-green-900">API Key Configured</p>
+                <Check size={16} className="text-success" />
+                <p className="text-sm font-medium text-success">API Key Configured</p>
               </div>
-              <p className="text-xs text-green-700 mt-1">
+              <p className="text-xs text-success mt-1">
                 Your API key is securely stored and ready to use.
               </p>
             </div>
@@ -202,7 +208,7 @@ function AIConfiguration() {
 
           <div className="space-y-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-foreground mb-1">
                 Anthropic API Key
               </label>
               <div className="flex gap-2">
@@ -217,13 +223,13 @@ function AIConfiguration() {
                   <button
                     type="button"
                     onClick={() => setShowKey(!showKey)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-muted-foreground"
                   >
                     {showKey ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
               </div>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 Get your API key from{' '}
                 <a
                   href="https://console.anthropic.com/"
@@ -258,7 +264,7 @@ function AIConfiguration() {
                     variant="outline"
                     onClick={handleClear}
                     disabled={isSaving}
-                    className="text-red-600 border-red-300 hover:bg-red-50"
+                    className="text-destructive border-destructive hover:bg-destructive/10"
                   >
                     Clear Key
                   </Button>

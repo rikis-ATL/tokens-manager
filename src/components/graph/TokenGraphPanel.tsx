@@ -57,13 +57,13 @@ export function TokenGraphPanel({
   if (selectedToken) {
     return (
       <div className="flex flex-col h-full">
-        <div className="flex items-center gap-2 px-3 py-2 border-b border-gray-200 bg-white flex-shrink-0">
-          <GitBranch size={14} className="text-amber-500" />
-          <span className="text-xs font-medium text-gray-600">Token</span>
-          <span className="font-mono text-xs text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
+        <div className="flex items-center gap-2 px-3 py-2 border-b border-border bg-card flex-shrink-0">
+          <GitBranch size={14} className="text-warning" />
+          <span className="text-xs font-medium text-muted-foreground">Token</span>
+          <span className="font-mono text-xs text-warning bg-warning/10 border border-warning px-1.5 py-0.5 rounded">
             {selectedToken.token.path}
           </span>
-          <span className="text-xs text-gray-400 ml-auto">reference chain</span>
+          <span className="text-xs text-muted-foreground ml-auto">reference chain</span>
         </div>
         <div className="flex-1 min-h-0" style={{ position: 'relative' }}>
           <TokenDetailGraph
@@ -81,10 +81,10 @@ export function TokenGraphPanel({
   if (isAllGroupsView) {
     return (
       <div className="flex flex-col h-full">
-        <div className="flex items-center gap-2 px-3 py-2 border-b border-gray-200 bg-white flex-shrink-0">
-          <Network size={14} className="text-blue-500" />
-          <span className="text-xs font-medium text-gray-600">All Groups</span>
-          <span className="text-xs text-gray-400 ml-auto">unified view</span>
+        <div className="flex items-center gap-2 px-3 py-2 border-b border-border bg-card flex-shrink-0">
+          <Network size={14} className="text-primary" />
+          <span className="text-xs font-medium text-muted-foreground">All Groups</span>
+          <span className="text-xs text-muted-foreground ml-auto">unified view</span>
         </div>
         <GroupStructureGraph
           key={`__all_groups__-${activeThemeId ?? 'default'}`}
@@ -133,9 +133,9 @@ export function TokenGraphPanel({
 
   return (
     <div className="flex flex-col h-full items-center justify-center text-center p-8">
-      <Network size={32} className="text-gray-300 mb-3" />
-      <p className="text-sm text-gray-400">Select a group from the sidebar</p>
-      <p className="text-xs text-gray-300 mt-1">or click a token row to inspect its reference chain</p>
+      <Network size={32} className="text-muted-foreground mb-3" />
+      <p className="text-sm text-muted-foreground">Select a group from the sidebar</p>
+      <p className="text-xs text-muted-foreground mt-1">or click a token row to inspect its reference chain</p>
     </div>
   );
 }

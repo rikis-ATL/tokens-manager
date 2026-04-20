@@ -192,13 +192,13 @@ export function NewCollectionDialog({
         <div className="space-y-6 py-2 overflow-y-auto px-1 flex-1">
           {/* Section 1: Collection Details */}
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-gray-900 border-b pb-2">
+            <h3 className="text-sm font-semibold text-foreground border-b pb-2">
               Collection Details
             </h3>
 
             {/* Name */}
             <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700">Name</label>
+              <label className="text-sm font-medium text-foreground">Name</label>
               <Input
                 value={name}
                 onChange={(e) => { setName(e.target.value); setError(''); }}
@@ -206,16 +206,16 @@ export function NewCollectionDialog({
                 placeholder="My collection"
                 autoFocus
               />
-              {error && <p className="text-xs text-red-600">{error}</p>}
+              {error && <p className="text-xs text-destructive">{error}</p>}
             </div>
 
             {/* Prefix */}
             <div className="space-y-1">
               <div>
-                <label className="text-sm font-medium text-gray-700">
-                  Token prefix <span className="font-normal text-gray-500">(optional)</span>
+                <label className="text-sm font-medium text-foreground">
+                  Token prefix <span className="font-normal text-muted-foreground">(optional)</span>
                 </label>
-                <p className="text-xs text-gray-500 mt-0.5">
+                <p className="text-xs text-muted-foreground mt-0.5">
                   Prepended to CSS output (e.g. <code className="font-mono">--token-color-slate-50</code>)
                 </p>
               </div>
@@ -230,13 +230,13 @@ export function NewCollectionDialog({
           {/* Description */}
           <div className="space-y-1">
             <div>
-              <label className="text-sm font-medium text-gray-700">
-                Description <span className="font-normal text-gray-500">(optional)</span>
+              <label className="text-sm font-medium text-foreground">
+                Description <span className="font-normal text-muted-foreground">(optional)</span>
               </label>
-              <p className="text-xs text-gray-500 mt-0.5">What are these tokens for?</p>
+              <p className="text-xs text-muted-foreground mt-0.5">What are these tokens for?</p>
             </div>
             <textarea
-              className="w-full text-sm border border-gray-300 rounded-md px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400"
+              className="w-full text-sm border border-border rounded-md px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent placeholder:text-muted-foreground"
               rows={2}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -247,26 +247,26 @@ export function NewCollectionDialog({
           {/* Tags */}
           <div className="space-y-1">
             <div>
-              <label className="text-sm font-medium text-gray-700">
-                Tags <span className="font-normal text-gray-500">(optional)</span>
+              <label className="text-sm font-medium text-foreground">
+                Tags <span className="font-normal text-muted-foreground">(optional)</span>
               </label>
-              <p className="text-xs text-gray-500 mt-0.5">Press Enter or comma to add a tag</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Press Enter or comma to add a tag</p>
             </div>
             <div
-              className="flex flex-wrap gap-1.5 min-h-[38px] w-full border border-gray-300 rounded-md px-2 py-1.5 cursor-text focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent"
+              className="flex flex-wrap gap-1.5 min-h-[38px] w-full border border-border rounded-md px-2 py-1.5 cursor-text focus-within:ring-2 focus-within:ring-primary focus-within:border-transparent"
               onClick={() => tagInputRef.current?.focus()}
             >
               {tags.map((tag) => (
-                <span key={tag} className="flex items-center gap-1 bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded-full">
+                <span key={tag} className="flex items-center gap-1 bg-muted text-foreground text-xs px-2 py-0.5 rounded-full">
                   {tag}
-                  <button type="button" className="text-gray-400 hover:text-gray-600" onClick={(e) => { e.stopPropagation(); setTags((p) => p.filter((t) => t !== tag)); }}>
+                  <button type="button" className="text-muted-foreground hover:text-muted-foreground" onClick={(e) => { e.stopPropagation(); setTags((p) => p.filter((t) => t !== tag)); }}>
                     <X size={10} />
                   </button>
                 </span>
               ))}
               <input
                 ref={tagInputRef}
-                className="flex-1 min-w-[80px] text-sm outline-none bg-transparent placeholder:text-gray-400"
+                className="flex-1 min-w-[80px] text-sm outline-none bg-transparent placeholder:text-muted-foreground"
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyDown={handleTagKeyDown}
@@ -279,17 +279,17 @@ export function NewCollectionDialog({
           {/* Accent Color */}
           <div className="space-y-1">
             <div>
-              <label className="text-sm font-medium text-gray-700">
-                Accent color <span className="font-normal text-gray-500">(optional)</span>
+              <label className="text-sm font-medium text-foreground">
+                Accent color <span className="font-normal text-muted-foreground">(optional)</span>
               </label>
-              <p className="text-xs text-gray-500 mt-0.5">Display color for this collection (used in UI views)</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Display color for this collection (used in UI views)</p>
             </div>
             <div className="flex items-center gap-3">
               <input
                 type="color"
                 value={accentColor ?? '#3b82f6'}
                 onChange={(e) => setAccentColor(e.target.value)}
-                className="w-12 h-9 rounded border border-gray-300 cursor-pointer"
+                className="w-12 h-9 rounded border border-border cursor-pointer"
               />
               <Input
                 type="text"
@@ -302,7 +302,7 @@ export function NewCollectionDialog({
                 <button
                   type="button"
                   onClick={() => setAccentColor(null)}
-                  className="text-xs text-gray-500 hover:text-gray-700"
+                  className="text-xs text-muted-foreground hover:text-foreground"
                 >
                   Clear
                 </button>
@@ -313,10 +313,10 @@ export function NewCollectionDialog({
             {!isDuplicating && (
               <div className="space-y-1">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    Color format <span className="font-normal text-gray-500">(default for new color tokens)</span>
+                  <label className="text-sm font-medium text-foreground">
+                    Color format <span className="font-normal text-muted-foreground">(default for new color tokens)</span>
                   </label>
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <p className="text-xs text-muted-foreground mt-0.5">
                     {colorFormat === 'hex' && 'Hex is the most universal format, supported everywhere.'}
                     {colorFormat === 'hsl' && 'HSL is intuitive for designers - adjust hue, saturation, and lightness independently.'}
                     {colorFormat === 'oklch' && 'OKLCH maintains perceptual uniformity - equal lightness values look equally bright across all hues.'}
@@ -338,19 +338,19 @@ export function NewCollectionDialog({
 
           {/* Section 2: Creation Method */}
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-gray-900 border-b pb-2">
+            <h3 className="text-sm font-semibold text-foreground border-b pb-2">
               Creation Method
             </h3>
 
             {/* Button Group Toggle */}
             {existingCollections.length > 0 && (
-              <div className="flex gap-2 p-1 bg-gray-100 rounded-lg">
+              <div className="flex gap-2 p-1 bg-muted rounded-lg">
                 <button
                   type="button"
                   className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                     !isDuplicating
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
+                      ? 'bg-card text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
                   }`}
                   onClick={() => setDuplicateSourceId('')}
                 >
@@ -360,8 +360,8 @@ export function NewCollectionDialog({
                   type="button"
                   className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                     isDuplicating
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
+                      ? 'bg-card text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
                   }`}
                   onClick={() => {
                     if (existingCollections.length > 0) {
@@ -377,7 +377,7 @@ export function NewCollectionDialog({
             {/* Duplicate Mode */}
             {isDuplicating && (
               <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-700">
+                <label className="text-sm font-medium text-foreground">
                   Duplicate from
                 </label>
                 <Select
@@ -395,7 +395,7 @@ export function NewCollectionDialog({
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   Will duplicate the selected collection and rename it.
                 </p>
               </div>
@@ -406,9 +406,9 @@ export function NewCollectionDialog({
               <div className="space-y-4">
                 {/* awesome-design-md Quick Pick */}
                 <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">
+                  <label className="text-sm font-medium text-foreground">
                     awesome-design-md (JSON tokens)
-                    <span className="font-normal text-gray-500 ml-1">(quick pick)</span>
+                    <span className="font-normal text-muted-foreground ml-1">(quick pick)</span>
                   </label>
                   <Select
                     value={designMdBundleId || '__none__'}
@@ -432,12 +432,12 @@ export function NewCollectionDialog({
                       ))}
                     </SelectContent>
                   </Select>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-muted-foreground">
                     Loads committed W3C tokens from{' '}
                     <code className="font-mono text-[11px]">data/design-md/</code>
                     {' '}derived from{' '}
                     <a
-                      className="text-blue-600 hover:underline"
+                      className="text-primary hover:underline"
                       href="https://github.com/VoltAgent/awesome-design-md/tree/main/design-md"
                       target="_blank"
                       rel="noopener noreferrer"
@@ -450,7 +450,7 @@ export function NewCollectionDialog({
 
                 {/* Individual Presets in a Row */}
                 <div>
-                  <p className="text-sm font-medium text-gray-700 mb-2">
+                  <p className="text-sm font-medium text-foreground mb-2">
                     Or select individual presets
                   </p>
                   <div className="grid grid-cols-3 gap-4">
@@ -485,7 +485,7 @@ export function NewCollectionDialog({
                 </div>
 
                 {hasPresets && (
-                  <p className="text-xs text-gray-500 italic">
+                  <p className="text-xs text-muted-foreground italic">
                     Selected presets will populate the collection with W3C design tokens.
                   </p>
                 )}

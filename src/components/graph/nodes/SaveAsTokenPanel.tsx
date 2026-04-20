@@ -11,7 +11,7 @@ interface SaveAsTokenPanelProps {
   allGroups?: FlatGroup[];
   currentGroupId: string;
   canSave: boolean;
-  accentColor?: string; // tailwind border-color token, e.g. 'border-sky-200'
+  accentColor?: string; // tailwind border-color token, e.g. 'border-info/30'
   onTokenNameChange: (name: string) => void;
   onDestGroupChange: (groupId: string) => void;
   onSave: () => void;
@@ -52,29 +52,29 @@ export function GroupPicker({
       <button
         type="button"
         onClick={() => { setOpen(v => !v); setQuery(''); }}
-        className="nodrag w-full flex items-center gap-1 px-2 py-1 text-[10px] bg-white border border-gray-200 rounded hover:border-gray-300 transition-colors text-left"
+        className="nodrag w-full flex items-center gap-1 px-2 py-1 text-[10px] bg-card border border-border rounded hover:border-border transition-colors text-left"
       >
-        <span className="flex-1 truncate text-gray-600 min-w-0">
+        <span className="flex-1 truncate text-muted-foreground min-w-0">
           {selectedGroup?.path ?? 'Select group…'}
         </span>
-        <ChevronDown size={9} className="text-gray-400 flex-shrink-0" />
+        <ChevronDown size={9} className="text-muted-foreground flex-shrink-0" />
       </button>
 
       {open && (
         <div
-          className="nodrag nopan absolute left-0 right-0 top-full mt-0.5 bg-white border border-gray-200 rounded shadow-lg z-50 overflow-hidden"
+          className="nodrag nopan absolute left-0 right-0 top-full mt-0.5 bg-card border border-border rounded shadow-lg z-50 overflow-hidden"
           style={{ minWidth: '180px' }}
           onWheel={e => e.stopPropagation()}
         >
           {/* Search */}
-          <div className="p-1 border-b border-gray-100">
+          <div className="p-1 border-b border-border">
             <input
               type="text"
               value={query}
               onChange={e => setQuery(e.target.value)}
               autoFocus
               placeholder="Search groups…"
-              className="w-full text-[10px] px-1.5 py-1 outline-none bg-gray-50 rounded"
+              className="w-full text-[10px] px-1.5 py-1 outline-none bg-muted/50 rounded"
             />
           </div>
 
@@ -85,16 +85,16 @@ export function GroupPicker({
                 key={g.id}
                 type="button"
                 onClick={() => { onChange(g.id); setOpen(false); }}
-                className={`w-full text-left px-2 py-1.5 text-[10px] hover:bg-blue-50 flex flex-col transition-colors ${g.id === (value || currentGroupId) ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}`}
+                className={`w-full text-left px-2 py-1.5 text-[10px] hover:bg-primary/10 flex flex-col transition-colors ${g.id === (value || currentGroupId) ? 'bg-primary/10 text-primary' : 'text-foreground'}`}
               >
                 <span className="font-medium truncate">{g.name}</span>
                 {g.path !== g.name && (
-                  <span className="text-[9px] text-gray-400 truncate">{g.path}</span>
+                  <span className="text-[9px] text-muted-foreground truncate">{g.path}</span>
                 )}
               </button>
             ))}
             {filtered.length === 0 && (
-              <div className="px-2 py-2 text-[10px] text-gray-400 italic">No groups match</div>
+              <div className="px-2 py-2 text-[10px] text-muted-foreground italic">No groups match</div>
             )}
           </div>
         </div>
@@ -111,7 +111,7 @@ export function SaveAsTokenPanel({
   allGroups,
   currentGroupId,
   canSave,
-  accentColor = 'border-gray-200',
+  accentColor = 'border-border',
   onTokenNameChange,
   onDestGroupChange,
   onSave,
@@ -129,13 +129,13 @@ export function SaveAsTokenPanel({
 
   return (
     <div className={`border-t ${accentColor} pt-2 mt-1 space-y-1.5`}>
-      <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">
+      <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
         Save as token
       </div>
 
       {/* Token name */}
       <div className="flex items-center gap-1">
-        <span className="text-[10px] text-gray-400 w-12 flex-shrink-0">Name</span>
+        <span className="text-[10px] text-muted-foreground w-12 flex-shrink-0">Name</span>
         <div className="flex-1 min-w-0">
           <TextInput
             value={tokenName}
@@ -148,7 +148,7 @@ export function SaveAsTokenPanel({
       {/* Destination group */}
       {groups.length > 0 && (
         <div className="flex items-center gap-1">
-          <span className="text-[10px] text-gray-400 w-12 flex-shrink-0">Group</span>
+          <span className="text-[10px] text-muted-foreground w-12 flex-shrink-0">Group</span>
           <div className="flex-1 min-w-0">
             <GroupPicker
               value={destGroupId}
@@ -166,10 +166,10 @@ export function SaveAsTokenPanel({
         onClick={handleSave}
         className={`nodrag w-full flex items-center justify-center gap-1.5 text-xs font-medium rounded px-3 py-1.5 transition-colors ${
           saved
-            ? 'bg-green-100 text-green-700 border border-green-300'
+            ? 'bg-success/15 text-success border border-success'
             : !canSave
-            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-            : 'bg-blue-600 hover:bg-blue-700 text-white'
+            ? 'bg-muted text-muted-foreground cursor-not-allowed'
+            : 'bg-primary hover:bg-primary text-primary-foreground'
         }`}
       >
         {saved

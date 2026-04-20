@@ -246,7 +246,7 @@ export default function CollectionVersionsPage({ params }: VersionsPageProps) {
   if (loading) {
     return (
       <div className="p-6 max-w-6xl mx-auto space-y-8">
-        <p className="text-sm text-gray-500">Loading…</p>
+        <p className="text-sm text-muted-foreground">Loading…</p>
       </div>
     );
   }
@@ -256,22 +256,22 @@ export default function CollectionVersionsPage({ params }: VersionsPageProps) {
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-8">
       <div>
-        <h1 className="text-xl font-semibold text-gray-900">Versions</h1>
-        <p className="text-sm text-gray-500 mt-1">{collectionName}</p>
+        <h1 className="text-xl font-semibold text-foreground">Versions</h1>
+        <p className="text-sm text-muted-foreground mt-1">{collectionName}</p>
       </div>
 
       {isPlayground && (
-        <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+        <div className="rounded-md border border-warning bg-warning/10 px-3 py-2 text-sm text-warning">
           Playground collections cannot save, restore, or delete versions.
         </div>
       )}
 
       {canPublishNpm && !isPlayground && !npmPublishReady && (
-        <div className="rounded-md border border-dashed border-gray-200 bg-gray-50 px-3 py-3 text-sm text-gray-700">
-          <p className="font-medium text-gray-800">NPM publishing not configured</p>
-          <p className="text-xs text-gray-600 mt-1">
+        <div className="rounded-md border border-dashed border-border bg-muted/50 px-3 py-3 text-sm text-foreground">
+          <p className="font-medium text-foreground">NPM publishing not configured</p>
+          <p className="text-xs text-muted-foreground mt-1">
             Add a package name and automation token in{' '}
-            <Link href={`/collections/${id}/settings`} className="text-blue-600 hover:underline">
+            <Link href={`/collections/${id}/settings`} className="text-primary hover:underline">
               Settings
             </Link>{' '}
             to publish from the live collection or from a saved snapshot.
@@ -280,15 +280,15 @@ export default function CollectionVersionsPage({ params }: VersionsPageProps) {
       )}
 
       {canManageVersions && !isPlayground && (
-        <section className="space-y-3 rounded-lg border border-gray-200 p-4">
-          <h2 className="text-sm font-semibold text-gray-700">Save current state</h2>
-          <p className="text-xs text-gray-500">
+        <section className="space-y-3 rounded-lg border border-border p-4">
+          <h2 className="text-sm font-semibold text-foreground">Save current state</h2>
+          <p className="text-xs text-muted-foreground">
             Captures default tokens, graph state, and all themes as an immutable snapshot. Deleting a
             snapshot does not change the live collection.
           </p>
           <div className="flex flex-wrap gap-3 items-end">
             <div>
-              <label className="block text-xs text-gray-600 mb-1">Semver</label>
+              <label className="block text-xs text-muted-foreground mb-1">Semver</label>
               <Input
                 value={saveSemver}
                 onChange={(e) => setSaveSemver(e.target.value)}
@@ -297,7 +297,7 @@ export default function CollectionVersionsPage({ params }: VersionsPageProps) {
               />
             </div>
             <div className="flex-1 min-w-[200px]">
-              <label className="block text-xs text-gray-600 mb-1">Note (optional)</label>
+              <label className="block text-xs text-muted-foreground mb-1">Note (optional)</label>
               <Input
                 value={saveNote}
                 onChange={(e) => setSaveNote(e.target.value)}
@@ -313,7 +313,7 @@ export default function CollectionVersionsPage({ params }: VersionsPageProps) {
 
       <section>
         <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-          <h2 className="text-sm font-semibold text-gray-700">Saved versions</h2>
+          <h2 className="text-sm font-semibold text-foreground">Saved versions</h2>
           <div className="flex flex-wrap items-center gap-2">
             {showDeleteControls && selectedVersionIds.length > 0 && (
               <Button
@@ -345,13 +345,13 @@ export default function CollectionVersionsPage({ params }: VersionsPageProps) {
         </div>
 
         {listLoading ? (
-          <p className="text-sm text-gray-500">Loading versions…</p>
+          <p className="text-sm text-muted-foreground">Loading versions…</p>
         ) : versions.length === 0 ? (
-          <p className="text-sm text-gray-500">No versions yet.</p>
+          <p className="text-sm text-muted-foreground">No versions yet.</p>
         ) : (
-          <div className="overflow-x-auto border border-gray-200 rounded-lg">
+          <div className="overflow-x-auto border border-border rounded-lg">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 text-left text-xs uppercase text-gray-500">
+              <thead className="bg-muted/50 text-left text-xs uppercase text-muted-foreground">
                 <tr>
                   {showDeleteControls && (
                     <th className="px-2 py-2 w-10">
@@ -376,7 +376,7 @@ export default function CollectionVersionsPage({ params }: VersionsPageProps) {
               </thead>
               <tbody>
                 {versions.map((v) => (
-                  <tr key={v._id} className="border-t border-gray-100">
+                  <tr key={v._id} className="border-t border-border">
                     {showDeleteControls && (
                       <td className="px-2 py-2 align-middle">
                         <Checkbox
@@ -387,8 +387,8 @@ export default function CollectionVersionsPage({ params }: VersionsPageProps) {
                       </td>
                     )}
                     <td className="px-3 py-2 font-mono">{v.semver}</td>
-                    <td className="px-3 py-2 text-gray-600">{v.note ?? '—'}</td>
-                    <td className="px-3 py-2 text-gray-500 whitespace-nowrap">
+                    <td className="px-3 py-2 text-muted-foreground">{v.note ?? '—'}</td>
+                    <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">
                       {new Date(v.createdAt).toLocaleString()}
                     </td>
                     <td className="px-3 py-2 text-right space-x-2 whitespace-nowrap">
@@ -425,7 +425,7 @@ export default function CollectionVersionsPage({ params }: VersionsPageProps) {
                           type="button"
                           variant="ghost"
                           size="sm"
-                          className="h-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          className="h-8 text-destructive hover:text-destructive hover:bg-destructive/10"
                           onClick={() => setPendingDeleteIds([v._id])}
                           aria-label={`Delete version ${v.semver}`}
                         >
@@ -496,7 +496,7 @@ export default function CollectionVersionsPage({ params }: VersionsPageProps) {
           </DialogHeader>
           <div className="space-y-3 py-2">
             {!npmPublishReady && (
-              <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+              <div className="rounded-md border border-warning bg-warning/10 px-3 py-2 text-xs text-warning">
                 Configure package name and token under{' '}
                 <Link href={`/collections/${id}/settings`} className="font-medium underline">
                   Settings
@@ -504,17 +504,17 @@ export default function CollectionVersionsPage({ params }: VersionsPageProps) {
                 before publishing.
               </div>
             )}
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               The published package version must match the semver below.
             </p>
-            <p className="text-xs text-gray-700">
+            <p className="text-xs text-foreground">
               <span className="font-medium">Source:</span>{' '}
               {publishVersionId
                 ? 'Saved snapshot (this row)'
                 : 'Live collection (current database state)'}
             </p>
             <div>
-              <label className="block text-xs text-gray-600 mb-1">Package version (semver)</label>
+              <label className="block text-xs text-muted-foreground mb-1">Package version (semver)</label>
               <Input
                 value={publishSemver}
                 onChange={(e) => setPublishSemver(e.target.value)}

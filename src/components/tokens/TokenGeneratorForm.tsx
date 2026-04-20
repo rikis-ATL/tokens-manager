@@ -215,7 +215,7 @@ function TokenTableRow({
     <>
       <tr
         ref={trRef}
-        className={`transition-colors group/row ${isMultiSelected ? "bg-blue-50 ring-1 ring-inset ring-blue-200" : isSelected ? "bg-blue-50 ring-1 ring-inset ring-blue-200" : "hover:bg-gray-50/60"}`}
+        className={`transition-colors group/row ${isMultiSelected ? "bg-primary/10 ring-1 ring-inset ring-primary/20" : isSelected ? "bg-primary/10 ring-1 ring-inset ring-primary/20" : "hover:bg-muted/60"}`}
         style={
           isPatternLikeRow && editingField === "value"
             ? { minHeight: 36 }
@@ -227,7 +227,7 @@ function TokenTableRow({
       >
         {/* Multi-select checkbox */}
         {!isReadOnly ? (
-          <td className="w-10 px-2 py-0 border-r border-gray-100" onClick={(e) => e.stopPropagation()}>
+          <td className="w-10 px-2 py-0 border-r border-border" onClick={(e) => e.stopPropagation()}>
             <input
               type="checkbox"
               checked={isMultiSelected ?? false}
@@ -241,10 +241,10 @@ function TokenTableRow({
             />
           </td>
         ) : (
-          <td className="w-10 border-r border-gray-100" />
+          <td className="w-10 border-r border-border" />
         )}
         {/* Name */}
-        <td className="px-0 py-0 border-r border-gray-100 w-[180px]">
+        <td className="px-0 py-0 border-r border-border w-[180px]">
           {!isPathLocked && editingField === "path" ? (
             <Input
               autoFocus
@@ -255,27 +255,27 @@ function TokenTableRow({
               onBlur={handleBlur}
               onClick={(e) => e.stopPropagation()}
               placeholder="token-name"
-              className="h-9 w-full border-0 rounded-none shadow-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-400 font-mono text-xs bg-white"
+              className="h-9 w-full border-0 rounded-none shadow-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-primary font-mono text-xs bg-card"
             />
           ) : (
             <div
-              className={`h-9 flex items-center px-4 font-mono text-sm text-gray-700 ${isReadOnly || isPathLocked ? "cursor-default" : "cursor-text"}`}
+              className={`h-9 flex items-center px-4 font-mono text-sm text-foreground ${isReadOnly || isPathLocked ? "cursor-default" : "cursor-text"}`}
               onClick={
                 isReadOnly || isPathLocked ? undefined : enterEdit("path")
               }
             >
               {isSourceGroup && (
-                <Lock size={12} className="mr-1.5 text-gray-400 flex-shrink-0" />
+                <Lock size={12} className="mr-1.5 text-muted-foreground flex-shrink-0" />
               )}
               <span className="truncate">
-                {token.path || <span className="text-gray-300">—</span>}
+                {token.path || <span className="text-muted-foreground">—</span>}
               </span>
             </div>
           )}
         </td>
 
         {/* Type */}
-        <td className="px-0 py-0 border-r border-gray-100 w-[180px]">
+        <td className="px-0 py-0 border-r border-border w-[180px]">
           {editingField === "type" ? (
             <Select
               value={token.type}
@@ -318,7 +318,7 @@ function TokenTableRow({
               className={`h-9 flex items-center gap-1.5 px-3 ${isReadOnly ? "cursor-default" : "cursor-pointer"}`}
               onClick={isReadOnly ? undefined : enterEdit("type")}
             >
-              <span className="text-[11px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 font-medium">
+              <span className="text-[11px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-medium">
                 {token.type}
               </span>
               {isPatternLikeRow && (
@@ -335,7 +335,7 @@ function TokenTableRow({
         </td>
 
         {/* Value */}
-        <td className="px-0 py-0 border-r border-gray-100 w-[180px]">
+        <td className="px-0 py-0 border-r border-border w-[180px]">
           <div
             className={`flex gap-1.5 px-2 ${
               editingField === "value" &&
@@ -350,7 +350,7 @@ function TokenTableRow({
                 <PopoverTrigger asChild>
                   <button
                     type="button"
-                    className="w-5 h-5 rounded border border-gray-300 flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-offset-1 hover:ring-blue-400 transition-shadow"
+                    className="w-5 h-5 rounded border border-border flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-offset-1 hover:ring-primary transition-shadow"
                     style={{ backgroundColor: swatchBg }}
                     onClick={(e) => e.stopPropagation()}
                     title="Pick color"
@@ -406,7 +406,7 @@ function TokenTableRow({
                         }
                         onBlur={handleBlur}
                         placeholder="Name / label"
-                        className="h-7 border border-gray-300 rounded px-2 text-[11px] font-mono shadow-none focus-visible:ring-1 focus-visible:ring-blue-400"
+                        className="h-7 border border-border rounded px-2 text-[11px] font-mono shadow-none focus-visible:ring-1 focus-visible:ring-primary"
                       />
                       <textarea
                         value={pv.body}
@@ -421,7 +421,7 @@ function TokenTableRow({
                         }
                         rows={3}
                         spellCheck={false}
-                        className="min-h-[52px] border border-gray-300 rounded px-2 py-1 text-[11px] font-mono shadow-none focus-visible:ring-1 focus-visible:ring-blue-400 resize-y w-full"
+                        className="min-h-[52px] border border-border rounded px-2 py-1 text-[11px] font-mono shadow-none focus-visible:ring-1 focus-visible:ring-primary resize-y w-full"
                       />
                       {showCss && (
                         <textarea
@@ -433,7 +433,7 @@ function TokenTableRow({
                           placeholder="Optional CSS"
                           rows={2}
                           spellCheck={false}
-                          className="min-h-[40px] border border-gray-300 rounded px-2 py-1 text-[11px] font-mono shadow-none focus-visible:ring-1 focus-visible:ring-blue-400 resize-y w-full"
+                          className="min-h-[40px] border border-border rounded px-2 py-1 text-[11px] font-mono shadow-none focus-visible:ring-1 focus-visible:ring-primary resize-y w-full"
                         />
                       )}
                     </div>
@@ -456,7 +456,7 @@ function TokenTableRow({
                   placeholder={getValuePlaceholder(token.type)}
                   rows={3}
                   spellCheck={false}
-                  className="flex-1 min-h-[60px] border border-gray-300 rounded px-2 py-1.5 text-sm font-mono shadow-none focus-visible:ring-1 focus-visible:ring-blue-400 resize-y"
+                  className="flex-1 min-h-[60px] border border-border rounded px-2 py-1.5 text-sm font-mono shadow-none focus-visible:ring-1 focus-visible:ring-primary resize-y"
                 />
               ) : (
                 <Input
@@ -473,14 +473,14 @@ function TokenTableRow({
                   onBlur={handleBlur}
                   onClick={(e) => e.stopPropagation()}
                   placeholder={getValuePlaceholder(token.type)}
-                  className="flex-1 h-7 border border-gray-300 rounded px-2 text-sm font-mono shadow-none focus-visible:ring-1 focus-visible:ring-blue-400"
+                  className="flex-1 h-7 border border-border rounded px-2 text-sm font-mono shadow-none focus-visible:ring-1 focus-visible:ring-primary"
                 />
               )
             ) : (
               <div className="flex-1 flex items-center gap-1 min-w-0">
                 {isPatternLikeRow ? (
                   <div
-                    className={`flex-1 text-[11px] text-gray-400 italic truncate ${isReadOnly ? "cursor-default" : "cursor-text"}`}
+                    className={`flex-1 text-[11px] text-muted-foreground italic truncate ${isReadOnly ? "cursor-default" : "cursor-text"}`}
                     title="Pattern — click to edit body"
                     onClick={isReadOnly ? undefined : enterEdit("value")}
                   >
@@ -491,11 +491,11 @@ function TokenTableRow({
                 ) : (
                   <>
                     <div
-                      className={`flex-1 text-sm font-mono text-gray-700 truncate ${isReadOnly ? "cursor-default" : "cursor-text"}`}
+                      className={`flex-1 text-sm font-mono text-foreground truncate ${isReadOnly ? "cursor-default" : "cursor-text"}`}
                       onClick={isReadOnly ? undefined : enterEdit("value")}
                     >
                       {token.value?.toString() || (
-                        <span className="text-gray-300">
+                        <span className="text-muted-foreground">
                           {getValuePlaceholder(token.type)}
                         </span>
                       )}
@@ -503,7 +503,7 @@ function TokenTableRow({
                     {/* Unresolved reference warning indicator */}
                     {isUnresolvedReference && (
                       <span
-                        className="flex-shrink-0 px-1 py-0.5 text-[9px] bg-amber-50 text-amber-600 border border-amber-200 rounded font-medium"
+                        className="flex-shrink-0 px-1 py-0.5 text-[9px] bg-warning/10 text-warning border border-warning rounded font-medium"
                         title="Token reference cannot be resolved. The source token may not exist yet."
                       >
                         ?
@@ -529,7 +529,7 @@ function TokenTableRow({
                     e.stopPropagation();
                     onResetToDefault(group.id, token.id, masterValue);
                   }}
-                  className="text-gray-400 hover:text-indigo-600 flex-shrink-0 focus:outline-none"
+                  className="text-muted-foreground hover:text-info flex-shrink-0 focus:outline-none"
                 >
                   <RotateCcw size={12} />
                 </button>
@@ -551,7 +551,7 @@ function TokenTableRow({
         </td>
 
         {/* Description */}
-        <td className="px-0 py-0 border-r border-gray-100 w-[180px]">
+        <td className="px-0 py-0 border-r border-border w-[180px]">
           {editingField === "description" ? (
             <Input
               autoFocus
@@ -562,14 +562,14 @@ function TokenTableRow({
               onBlur={handleBlur}
               onClick={(e) => e.stopPropagation()}
               placeholder="Optional description"
-              className="h-9 w-full border-0 rounded-none shadow-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-blue-400 text-sm bg-white"
+              className="h-9 w-full border-0 rounded-none shadow-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-primary text-sm bg-card"
             />
           ) : (
             <div
-              className={`h-9 flex items-center px-4 text-sm text-gray-500 truncate ${isReadOnly ? "cursor-default" : "cursor-text"}`}
+              className={`h-9 flex items-center px-4 text-sm text-muted-foreground truncate ${isReadOnly ? "cursor-default" : "cursor-text"}`}
               onClick={isReadOnly ? undefined : enterEdit("description")}
             >
-              {token.description || <span className="text-gray-300">—</span>}
+              {token.description || <span className="text-muted-foreground">—</span>}
             </div>
           )}
         </td>
@@ -581,7 +581,7 @@ function TokenTableRow({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-6 w-6 p-0 text-gray-400 hover:text-blue-600"
+                className="h-6 w-6 p-0 text-muted-foreground hover:text-primary"
                 onClick={(e) => {
                   e.stopPropagation();
                   setPatternPreviewOpen(true);
@@ -595,7 +595,7 @@ function TokenTableRow({
             <Button
               variant="ghost"
               size="sm"
-              className="h-6 w-6 p-0 text-gray-400 hover:text-blue-600"
+              className="h-6 w-6 p-0 text-muted-foreground hover:text-primary"
               onClick={(e) => {
                 e.stopPropagation();
                 onToggleExpansion(token.id);
@@ -607,7 +607,7 @@ function TokenTableRow({
             {isReadOnly ? (
               <span
                 title="Source group — read only"
-                className="h-6 w-6 flex items-center justify-center text-gray-300"
+                className="h-6 w-6 flex items-center justify-center text-muted-foreground"
               >
                 <Lock size={12} />
               </span>
@@ -615,7 +615,7 @@ function TokenTableRow({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-6 w-6 p-0 text-gray-400 hover:text-red-600 disabled:opacity-50 disabled:pointer-events-none"
+                className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive disabled:opacity-50 disabled:pointer-events-none"
                 onClick={(e) => {
                   e.stopPropagation();
                   onDeleteToken(group.id, token.id);
@@ -649,10 +649,10 @@ function TokenTableRow({
 
       {/* Expanded: custom attributes */}
       {isExpanded && (
-        <tr className="bg-gray-50">
+        <tr className="bg-muted/50">
           <td colSpan={6} className="px-4 py-3">
             <div className="space-y-2">
-              <h5 className="mb-2 text-sm font-medium text-gray-700">
+              <h5 className="mb-2 text-sm font-medium text-foreground">
                 Custom Attributes
               </h5>
               {Object.entries(token.attributes || {}).map(([key, value]) => (
@@ -667,9 +667,9 @@ function TokenTableRow({
                       onUpdateAttribute(group.id, token.id, newKey, value as string);
                     }}
                     placeholder="Attribute name"
-                    className="flex-1 px-2 py-1 text-xs rounded border border-gray-300 h-auto"
+                    className="flex-1 px-2 py-1 text-xs rounded border border-border h-auto"
                   />
-                  <span className="text-gray-500">:</span>
+                  <span className="text-muted-foreground">:</span>
                   <Input
                     type="text"
                     value={value as string}
@@ -678,14 +678,14 @@ function TokenTableRow({
                       onUpdateAttribute(group.id, token.id, key, e.target.value)
                     }
                     placeholder="Attribute value"
-                    className="flex-1 px-2 py-1 text-xs rounded border border-gray-300 h-auto"
+                    className="flex-1 px-2 py-1 text-xs rounded border border-border h-auto"
                   />
                   {!isReadOnly && (
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => onRemoveAttribute(group.id, token.id, key)}
-                      className="text-sm text-red-600 hover:text-red-800 h-auto p-0"
+                      className="text-sm text-destructive hover:text-destructive h-auto p-0"
                     >
                       ✕
                     </Button>
@@ -699,7 +699,7 @@ function TokenTableRow({
                   onClick={() =>
                     onUpdateAttribute(group.id, token.id, "newAttribute", "")
                   }
-                  className="text-sm font-medium text-blue-600 hover:text-blue-800 h-auto p-0"
+                  className="text-sm font-medium text-primary hover:text-primary h-auto p-0"
                 >
                   + Add Attribute
                 </Button>
@@ -1746,25 +1746,25 @@ export function TokenGeneratorForm({
 
     return (
       <div key={group.id} className="mb-4">
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+        <div className="bg-card rounded-lg border border-border shadow-sm">
           {/* Card header */}
-          <div className="px-4 py-3 border-b border-gray-200">
+          <div className="px-4 py-3 border-b border-border">
             <div className="flex items-center gap-2">
               <Input
                 type="text"
                 value={group.name}
                 readOnly={isReadOnly}
                 onChange={isReadOnly ? undefined : (e) => updateGroupName(group.id, e.target.value)}
-                className="px-2 py-1 text-base font-semibold bg-transparent rounded border-none outline-none focus:bg-gray-50 h-auto flex-1"
+                className="px-2 py-1 text-base font-semibold bg-transparent rounded border-none outline-none focus:bg-muted/50 h-auto flex-1"
                 placeholder="Group name"
               />
               {hasChildren && (
-                <span className="px-2 py-0.5 text-xs text-blue-600 bg-blue-50 border border-blue-100 rounded-full">
+                <span className="px-2 py-0.5 text-xs text-primary bg-primary/10 border border-primary rounded-full">
                   {group.children!.length} sub
                 </span>
               )}
               {hasTokens && (
-                <span className="px-2 py-0.5 text-xs text-green-600 bg-green-50 border border-green-100 rounded-full">
+                <span className="px-2 py-0.5 text-xs text-success bg-success/10 border border-success/25 rounded-full">
                   {group.tokens.length} tokens
                 </span>
               )}
@@ -1774,7 +1774,7 @@ export function TokenGeneratorForm({
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-7 w-7 p-0 text-gray-400 hover:text-gray-700"
+                      className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
                     >
                       ···
                     </Button>
@@ -1784,7 +1784,7 @@ export function TokenGeneratorForm({
                       <>
                         <DropdownMenuItem
                           onClick={() => onResetGroupToSource(group.id)}
-                          className="text-amber-700 focus:text-amber-800"
+                          className="text-warning focus:text-warning"
                         >
                           <RotateCcw size={14} className="mr-2" />
                           Reset to source
@@ -1799,7 +1799,7 @@ export function TokenGeneratorForm({
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
-                          className="text-red-600 focus:text-red-700"
+                          className="text-destructive focus:text-destructive"
                           onClick={() => deleteTokenGroup(group.id)}
                         >
                           Delete Group
@@ -1811,7 +1811,7 @@ export function TokenGeneratorForm({
               )}
             </div>
             {!isReadOnly && (
-              <div className="flex items-center gap-5 mt-2 pt-2 border-t border-gray-100">
+              <div className="flex items-center gap-5 mt-2 pt-2 border-t border-border">
                 <label className="flex items-center gap-1.5 cursor-pointer select-none">
                   <input
                     type="checkbox"
@@ -1819,7 +1819,7 @@ export function TokenGeneratorForm({
                     onChange={() => updateGroupBooleanFlag(group.id, 'omitFromPath')}
                     className="accent-amber-500 w-3.5 h-3.5 cursor-pointer"
                   />
-                  <span className={`text-xs ${group.omitFromPath ? 'text-amber-600 font-medium' : 'text-gray-400'}`}>
+                  <span className={`text-xs ${group.omitFromPath ? 'text-warning font-medium' : 'text-muted-foreground'}`}>
                     Organisational
                   </span>
                 </label>
@@ -1830,7 +1830,7 @@ export function TokenGeneratorForm({
                     onChange={() => updateGroupBooleanFlag(group.id, 'draft')}
                     className="accent-gray-500 w-3.5 h-3.5 cursor-pointer"
                   />
-                  <span className={`text-xs ${group.draft ? 'text-gray-600 font-medium' : 'text-gray-400'}`}>
+                  <span className={`text-xs ${group.draft ? 'text-muted-foreground font-medium' : 'text-muted-foreground'}`}>
                     Draft
                   </span>
                 </label>
@@ -1841,11 +1841,11 @@ export function TokenGeneratorForm({
           {hasTokens && (
             <div className="overflow-x-auto">
               <table className="min-w-full border-collapse table-auto">
-                <thead className="border-b border-gray-200">
+                <thead className="border-b border-border">
                   <tr>
                     {/* Checkbox column header */}
                     {!isReadOnly ? (
-                      <th className="w-10 px-2 py-2 border-r border-gray-100">
+                      <th className="w-10 px-2 py-2 border-r border-border">
                         <input
                           type="checkbox"
                           checked={activeGroupTokens.length > 0 && activeGroupTokens.every(t => selectedTokenIds.has(t.id))}
@@ -1858,24 +1858,24 @@ export function TokenGeneratorForm({
                         />
                       </th>
                     ) : (
-                      <th className="w-10 border-r border-gray-100" />
+                      <th className="w-10 border-r border-border" />
                     )}
-                    <th className="px-4 py-2 text-[10px] font-semibold text-left text-gray-400 uppercase tracking-wide">
+                    <th className="px-4 py-2 text-[10px] font-semibold text-left text-muted-foreground uppercase tracking-wide">
                       Name
                     </th>
-                    <th className="px-4 py-2 text-[10px] font-semibold text-left text-gray-400 uppercase tracking-wide">
+                    <th className="px-4 py-2 text-[10px] font-semibold text-left text-muted-foreground uppercase tracking-wide">
                       Type
                     </th>
-                    <th className="px-4 py-2 text-[10px] font-semibold text-left text-gray-400 uppercase tracking-wide">
+                    <th className="px-4 py-2 text-[10px] font-semibold text-left text-muted-foreground uppercase tracking-wide">
                       Value
                     </th>
-                    <th className="px-4 py-2 text-[10px] font-semibold text-left text-gray-400 uppercase tracking-wide">
+                    <th className="px-4 py-2 text-[10px] font-semibold text-left text-muted-foreground uppercase tracking-wide">
                       Description
                     </th>
-                    <th className="px-4 py-2 text-[10px] font-semibold text-left text-gray-400 uppercase tracking-wide"></th>
+                    <th className="px-4 py-2 text-[10px] font-semibold text-left text-muted-foreground uppercase tracking-wide"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-border">
                   {activeGroupTokens.map((token, tokenIndex) => (
                     <TokenTableRow
                       key={token.id}
@@ -1910,13 +1910,13 @@ export function TokenGeneratorForm({
           )}
 
           {/* Add Token */}
-          <div className="border-t border-gray-100 px-4 py-2 text-center">
+          <div className="border-t border-border px-4 py-2 text-center">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => addToken(group.id)}
               disabled={isReadOnly}
-              className="text-xs font-medium text-blue-600 hover:text-blue-800 h-auto p-0 disabled:opacity-50 disabled:pointer-events-none"
+              className="text-xs font-medium text-primary hover:text-primary h-auto p-0 disabled:opacity-50 disabled:pointer-events-none"
               title={isReadOnly ? "Source group — read only" : undefined}
             >
               + Add Token
@@ -1957,17 +1957,17 @@ export function TokenGeneratorForm({
 
         {!hideNamespaceAndActions && (
           <div className="flex items-center space-x-4 mb-4">
-            <h3 className="text-lg font-medium text-gray-900">
+            <h3 className="text-lg font-medium text-foreground">
               Export Actions
             </h3>
             {loadedCollection && (
-              <p className="text-xs text-emerald-700 font-medium">
+              <p className="text-xs text-success font-medium">
                 Editing: {loadedCollection.name}
               </p>
             )}
 
             <div className="flex items-center space-x-2">
-              <label className="text-sm font-medium text-gray-700">
+              <label className="text-sm font-medium text-foreground">
                 Global Namespace:
               </label>
               <Input
@@ -1988,7 +1988,7 @@ export function TokenGeneratorForm({
 
 
         {!hideNamespaceAndActions && globalNamespace && (
-          <div className="text-sm text-gray-600 mt-4">
+          <div className="text-sm text-muted-foreground mt-4">
             <strong>Preview:</strong> Tokens will be prefixed with "
             {globalNamespace}."
           </div>
@@ -1998,57 +1998,57 @@ export function TokenGeneratorForm({
       {/* Token Groups */}
       {!selectedGroupId || selectedGroupId === '__all_groups__' ? (
         /* Default view: overview table of all top-level groups */
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+        <div className="bg-card rounded-lg border border-border shadow-sm overflow-hidden">
           <div className="px-4 py-3">
-            <h3 className="text-sm font-semibold text-gray-700">All Groups</h3>
+            <h3 className="text-sm font-semibold text-foreground">All Groups</h3>
           </div>
           {(() => {
             const overviewGroups =
               themeTokens && themeTokens.length > 0 ? themeTokens : tokenGroups;
             return overviewGroups.length === 0 ? (
-              <p className="px-4 py-8 text-sm text-gray-400 text-center">
+              <p className="px-4 py-8 text-sm text-muted-foreground text-center">
                 No groups yet. Add a group below.
               </p>
             ) : (
               <table className="min-w-full table-auto">
-                <thead className="bg-gray-50 border-b border-gray-100">
+                <thead className="bg-muted/50 border-b border-border">
                   <tr>
-                    <th className="px-4 py-2 text-[10px] font-semibold text-left text-gray-400 uppercase tracking-wide">
+                    <th className="px-4 py-2 text-[10px] font-semibold text-left text-muted-foreground uppercase tracking-wide">
                       Group
                     </th>
-                    <th className="px-4 py-2 text-[10px] font-semibold text-left text-gray-400 uppercase tracking-wide">
+                    <th className="px-4 py-2 text-[10px] font-semibold text-left text-muted-foreground uppercase tracking-wide">
                       Tokens
                     </th>
-                    <th className="px-4 py-2 text-[10px] font-semibold text-left text-gray-400 uppercase tracking-wide">
+                    <th className="px-4 py-2 text-[10px] font-semibold text-left text-muted-foreground uppercase tracking-wide">
                       Sub-groups
                     </th>
                     <th className="px-4 py-2 w-[40px]"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-border">
                   {overviewGroups.map((group) => (
                     <tr
                       key={group.id}
-                      className="hover:bg-gray-50 cursor-pointer transition-colors"
+                      className="hover:bg-muted/50 cursor-pointer transition-colors"
                       onClick={() => onGroupSelect?.(group.id)}
                     >
                       <td className="px-4 py-2.5">
-                        <span className="text-sm font-medium text-gray-800">
+                        <span className="text-sm font-medium text-foreground">
                           {group.name}
                         </span>
                       </td>
                       <td className="px-4 py-2.5">
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-muted-foreground">
                           {group.tokens.length}
                         </span>
                       </td>
                       <td className="px-4 py-2.5">
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-muted-foreground">
                           {group.children?.length ?? 0}
                         </span>
                       </td>
                       <td className="px-4 py-2.5 text-right">
-                        <span className="text-gray-300 text-sm">→</span>
+                        <span className="text-muted-foreground text-sm">→</span>
                       </td>
                     </tr>
                   ))}
@@ -2063,7 +2063,7 @@ export function TokenGeneratorForm({
           {tokenNameMismatch &&
             (tokenNameMismatch.inThemeNotDefault.length > 0 ||
               tokenNameMismatch.inDefaultNotTheme.length > 0) && (
-              <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              <div className="rounded-lg border border-warning bg-warning/10 px-4 py-3 text-sm text-warning">
                 <span className="font-medium">
                   Token names differ from default.
                 </span>
@@ -2113,7 +2113,7 @@ export function TokenGeneratorForm({
               tokenGroups.find((g) => g.id === selectedGroupId);
             if (found && found.tokens.length === 0) {
               return (
-                <p className="p-6 text-sm text-gray-400 text-center">
+                <p className="p-6 text-sm text-muted-foreground text-center">
                   No tokens in this group
                 </p>
               );
@@ -2124,12 +2124,12 @@ export function TokenGeneratorForm({
       )}
       {/* Add Group */}
       {!hideAddGroupButton && !isReadOnly && (
-        <div className="p-6 text-center bg-gray-50 rounded-lg border-2 border-gray-300 border-dashed">
+        <div className="p-6 text-center bg-muted/50 rounded-lg border-2 border-border border-dashed">
           {!isAddingGroup ? (
             <Button
               variant="ghost"
               onClick={() => setIsAddingGroup(true)}
-              className="font-medium text-gray-600 hover:text-gray-800"
+              className="font-medium text-muted-foreground hover:text-foreground"
             >
               + Add Token Group
             </Button>
@@ -2151,7 +2151,7 @@ export function TokenGeneratorForm({
               />
               <Button
                 onClick={() => addTokenGroup()}
-                className="bg-green-600 hover:bg-green-700 text-white"
+                className="bg-success hover:bg-success/90 text-success-foreground"
               >
                 ✓
               </Button>

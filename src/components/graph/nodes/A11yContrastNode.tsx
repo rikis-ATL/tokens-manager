@@ -14,10 +14,10 @@ import { graphInputLockProps } from '@/types/graph-nodes.types';
 function LevelBadge({ level, ratio }: { level: string; ratio: number | null }) {
   if (ratio === null) return null;
   const cls =
-    level === 'AAA'      ? 'bg-green-100 text-green-700 border-green-300' :
-    level === 'AA'       ? 'bg-blue-100 text-blue-700 border-blue-300' :
-    level === 'AA Large' ? 'bg-yellow-100 text-yellow-700 border-yellow-300' :
-                           'bg-red-100 text-red-700 border-red-300';
+    level === 'AAA'      ? 'bg-success/15 text-success border-success' :
+    level === 'AA'       ? 'bg-primary/15 text-primary border-primary' :
+    level === 'AA Large' ? 'bg-warning/15 text-warning border-warning' :
+                           'bg-destructive/15 text-destructive border-destructive';
   return (
     <span className={`inline-flex items-center gap-1 text-[10px] font-bold border rounded px-1.5 py-0.5 ${cls}`}>
       {level}
@@ -54,7 +54,7 @@ function ColorInput({
         {/* Color swatch + native picker */}
         <label className="flex-shrink-0 cursor-pointer relative w-5 h-5" title="Pick color">
           <div
-            className="w-5 h-5 rounded border border-gray-200"
+            className="w-5 h-5 rounded border border-border"
             style={{ backgroundColor: displayColor || '#ffffff' }}
           />
           {!isWired && (
@@ -69,7 +69,7 @@ function ColorInput({
           )}
         </label>
         {isWired ? (
-          <span className="text-[10px] text-green-700 bg-green-50 border border-green-200 rounded px-1.5 py-0.5 font-mono truncate flex-1">
+          <span className="text-[10px] text-success bg-success/10 border border-success rounded px-1.5 py-0.5 font-mono truncate flex-1">
             {wiredValue ?? '—'}
           </span>
         ) : (
@@ -115,12 +115,12 @@ function A11yContrastNodeComponent({ data }: NodeProps) {
   const bgColor = hasBgInput ? String(inputs['background']) : localBg;
 
   return (
-    <NodeWrapper borderColor="border-teal-300" width={252}>
+    <NodeWrapper borderColor="border-info/40" width={252}>
       <NodeHeader
-        icon={<Eye size={12} className="text-teal-500" />}
+        icon={<Eye size={12} className="text-info" />}
         title="A11y Contrast"
         badge={ratio != null ? `${ratio}:1` : undefined}
-        headerClass="bg-teal-50 border-teal-200 text-teal-700"
+        headerClass="bg-info/10 border-info/30 text-info"
         onDelete={onDeleteNode ? () => onDeleteNode(nodeId) : undefined}
       />
 
@@ -147,7 +147,7 @@ function A11yContrastNodeComponent({ data }: NodeProps) {
         {/* Live preview swatch */}
         {(fgColor || bgColor) && (
           <div
-            className="rounded border border-gray-100 flex items-center justify-center text-[11px] font-semibold px-2 py-2 gap-2"
+            className="rounded border border-border flex items-center justify-center text-[11px] font-semibold px-2 py-2 gap-2"
             style={{ backgroundColor: bgColor, color: fgColor }}
           >
             <span>Aa</span>
@@ -157,7 +157,7 @@ function A11yContrastNodeComponent({ data }: NodeProps) {
 
         {/* Result section */}
         {ratio !== null && (
-          <div className="border-t border-gray-100 pt-2 mt-1 space-y-1.5">
+          <div className="border-t border-border pt-2 mt-1 space-y-1.5">
             {/* Ratio + level */}
             <div className="relative flex items-center gap-2 min-h-[26px]">
               <RowHandle
@@ -167,8 +167,8 @@ function A11yContrastNodeComponent({ data }: NodeProps) {
                 className={HANDLE_NUMBER}
                 title="ratio (number) — WCAG contrast ratio"
               />
-              <span className="text-[10px] text-gray-400 w-20 flex-shrink-0">Ratio</span>
-              <span className="text-[11px] font-mono font-bold text-gray-700">{ratio}:1</span>
+              <span className="text-[10px] text-muted-foreground w-20 flex-shrink-0">Ratio</span>
+              <span className="text-[11px] font-mono font-bold text-foreground">{ratio}:1</span>
               {level && <LevelBadge level={level} ratio={ratio} />}
             </div>
 
@@ -181,19 +181,19 @@ function A11yContrastNodeComponent({ data }: NodeProps) {
                 className={HANDLE_STRING}
                 title="level (string) — 'AAA' | 'AA' | 'AA Large' | 'Fail'"
               />
-              <span className="text-[10px] text-gray-400 w-20 flex-shrink-0">Level</span>
-              <span className="text-[10px] font-mono text-gray-600">{level}</span>
+              <span className="text-[10px] text-muted-foreground w-20 flex-shrink-0">Level</span>
+              <span className="text-[10px] font-mono text-muted-foreground">{level}</span>
             </div>
 
             {/* WCAG pass indicators */}
             <div className="flex gap-2 pt-0.5">
-              <span className={`text-[10px] px-1.5 py-0.5 rounded border font-medium ${passAAA ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-50 text-gray-400 border-gray-200 line-through'}`}>
+              <span className={`text-[10px] px-1.5 py-0.5 rounded border font-medium ${passAAA ? 'bg-success/10 text-success border-success' : 'bg-muted/50 text-muted-foreground border-border line-through'}`}>
                 AAA ≥7:1
               </span>
-              <span className={`text-[10px] px-1.5 py-0.5 rounded border font-medium ${passAA ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-gray-50 text-gray-400 border-gray-200 line-through'}`}>
+              <span className={`text-[10px] px-1.5 py-0.5 rounded border font-medium ${passAA ? 'bg-primary/10 text-primary border-primary' : 'bg-muted/50 text-muted-foreground border-border line-through'}`}>
                 AA ≥4.5:1
               </span>
-              <span className={`text-[10px] px-1.5 py-0.5 rounded border font-medium ${(ratio ?? 0) >= 3 ? 'bg-yellow-50 text-yellow-700 border-yellow-200' : 'bg-gray-50 text-gray-400 border-gray-200 line-through'}`}>
+              <span className={`text-[10px] px-1.5 py-0.5 rounded border font-medium ${(ratio ?? 0) >= 3 ? 'bg-warning/10 text-warning border-warning' : 'bg-muted/50 text-muted-foreground border-border line-through'}`}>
                 AA+ ≥3:1
               </span>
             </div>

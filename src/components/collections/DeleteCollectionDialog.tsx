@@ -30,7 +30,7 @@ export function DeleteCollectionDialog({
         <DialogHeader>
           <DialogTitle>Delete collection</DialogTitle>
         </DialogHeader>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-muted-foreground">
           Delete <span className="font-semibold">{collectionName}</span>? This
           will permanently remove all tokens and config.
         </p>
@@ -43,7 +43,7 @@ export function DeleteCollectionDialog({
             Cancel
           </Button>
           <Button
-            className="bg-red-600 hover:bg-red-700 text-white"
+            className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
             onClick={onConfirm}
             disabled={loading}
           >

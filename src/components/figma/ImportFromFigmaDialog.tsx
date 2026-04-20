@@ -152,10 +152,10 @@ export function ImportFromFigmaDialog({
           {/* No credentials state */}
           {noCredentials ? (
             <div className="space-y-3">
-              <p className="text-sm text-gray-700">
+              <p className="text-sm text-foreground">
                 Add your Figma personal access token and file key first.
               </p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted-foreground">
                 Use this collection&apos;s <span className="font-medium">Settings</span> (Integrations), or the Figma
                 button in the app header to store them in this browser.
               </p>
@@ -165,11 +165,11 @@ export function ImportFromFigmaDialog({
             <div className="space-y-4">
               {loading ? (
                 <div className="flex justify-center py-6">
-                  <span className="inline-block w-5 h-5 border-2 border-gray-300 border-t-purple-600 rounded-full animate-spin" />
+                  <span className="inline-block w-5 h-5 border-2 border-border border-t-purple-600 rounded-full animate-spin" />
                 </div>
               ) : error ? (
                 <div className="space-y-3">
-                  <p className="text-sm text-red-600">{error}</p>
+                  <p className="text-sm text-destructive">{error}</p>
                   <Button
                     onClick={handleRetry}
                     size="sm"
@@ -178,10 +178,10 @@ export function ImportFromFigmaDialog({
                   </Button>
                 </div>
               ) : collections.length === 0 ? (
-                <p className="text-sm text-gray-500">No variable collections found in this Figma file.</p>
+                <p className="text-sm text-muted-foreground">No variable collections found in this Figma file.</p>
               ) : (
                 <div className="space-y-3">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-foreground">
                     Variable collection
                   </label>
                   <Select value={selectedCollectionId} onValueChange={(id) => {
@@ -204,7 +204,7 @@ export function ImportFromFigmaDialog({
                     </SelectContent>
                   </Select>
                   {selectedCollectionId && (
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground">
                       {modeCount} {modeCount === 1 ? 'mode' : 'modes'} will be imported as brands
                     </p>
                   )}
@@ -214,7 +214,7 @@ export function ImportFromFigmaDialog({
           ) : (
             /* Step 2: Confirm name */
             <div className="space-y-3">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-foreground">
                 Collection name
               </label>
               <Input
@@ -230,13 +230,13 @@ export function ImportFromFigmaDialog({
                 autoFocus
                 disabled={saving}
               />
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 This name will be used in the Design Token Manager
               </p>
               {error && (
-                <p className="text-sm text-red-600">{error}</p>
+                <p className="text-sm text-destructive">{error}</p>
               )}
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-muted-foreground">
                 Saving will create a new collection. The modes in this Figma collection will appear as brands.
               </p>
             </div>
@@ -256,7 +256,7 @@ export function ImportFromFigmaDialog({
             <Button
               onClick={handleNext}
               disabled={!selectedCollectionId}
-              className="bg-purple-600 hover:bg-purple-700"
+              className="bg-primary hover:bg-primary/90"
             >
               Next
             </Button>
@@ -266,7 +266,7 @@ export function ImportFromFigmaDialog({
             <Button
               onClick={handleSave}
               disabled={saving || !collectionNameInput.trim()}
-              className="bg-purple-600 hover:bg-purple-700"
+              className="bg-primary hover:bg-primary/90"
             >
               {saving ? 'Importing...' : 'Import & Save'}
             </Button>

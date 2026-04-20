@@ -63,14 +63,14 @@ interface TokensPageProps {
 function ColorModeBadge({ colorMode }: { colorMode: ColorMode }) {
   if (colorMode === 'dark') {
     return (
-      <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[10px] bg-slate-100 text-slate-600 flex-shrink-0">
+      <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[10px] bg-muted text-muted-foreground flex-shrink-0">
         <Moon size={9} />
         Dark
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[10px] bg-amber-50 text-amber-700 flex-shrink-0">
+    <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[10px] bg-warning/10 text-warning flex-shrink-0">
       <Sun size={9} />
       Light
     </span>
@@ -1060,7 +1060,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full py-24">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
       </div>
     );
   }
@@ -1070,7 +1070,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
 
 <Tabs defaultValue="tokens" className="flex flex-col flex-1 overflow-hidden">
 
-      <header className="px-4 py-3 flex justify-between items-center border border-b border-gray-200">
+      <header className="px-4 py-3 flex justify-between items-center border border-b border-border">
        <div className="flex items-center gap-2">  
  
         {/* <h1 className="text-lg line-height-0">
@@ -1080,7 +1080,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
 
         {themes.length > 0 && (
 <div className="flex items-center gap-2">
-<label className="text-xs text-gray-800">Theme:</label>
+<label className="text-xs text-foreground">Theme:</label>
             <Select
               key={activeThemeId ?? '__default__'}
               value={activeThemeId ?? '__default__'}
@@ -1104,7 +1104,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
             </Select>
 </div>
           )}
-        <span className="text-xs text-gray-800">Prefix:{globalNamespace}</span>
+        <span className="text-xs text-foreground">Prefix:{globalNamespace}</span>
 
         </div> 
 
@@ -1144,7 +1144,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
             <Button
               onClick={handleSave}
               disabled={isSaving}
-              className="bg-blue-600 hover:bg-blue-700 text-white gap-1"
+              className="bg-primary hover:bg-primary text-primary-foreground gap-1"
               size="sm"
             >
               <Save size={14} />
@@ -1209,12 +1209,12 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
                     Edit
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => setShowClearDialog(true)} className="text-amber-600 focus:text-amber-600 focus:bg-amber-50">
+                  <DropdownMenuItem onClick={() => setShowClearDialog(true)} className="text-warning focus:text-warning focus:bg-warning/10">
                     Clear Form
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => setDeleteOpen(true)}
-                    className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                    className="text-destructive focus:text-destructive focus:bg-destructive/10"
                   >
                     Delete
                   </DropdownMenuItem>
@@ -1370,7 +1370,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
 
       {/* AI Chat slide-over */}
       <div className={`fixed top-0 right-0 h-full w-96 z-50 shadow-2xl transition-transform duration-300 ${isChatOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-        <div className="flex items-center justify-between px-4 py-3 border-b bg-white">
+        <div className="flex items-center justify-between px-4 py-3 border-b bg-card">
           <span className="text-sm font-medium">AI Assistant — {collectionName}</span>
           <Button variant="ghost" size="sm" className="px-1" onClick={() => setIsChatOpen(false)}>
             <X size={16} />

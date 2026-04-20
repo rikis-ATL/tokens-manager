@@ -36,7 +36,7 @@ const FORMAT_OPTIONS: { value: CssColorFormat; label: string }[] = [
 /** Blue dot — shown in a row label when that handle has a live connection */
 function Dot({ on }: { on: boolean }) {
   return on
-    ? <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-400 ml-1 flex-shrink-0" />
+    ? <span className="inline-block w-1.5 h-1.5 rounded-full bg-info ml-1 flex-shrink-0" />
     : null;
 }
 
@@ -57,7 +57,7 @@ function SecondaryRow({
       {/* Native colour picker trigger */}
       <label className="flex-shrink-0 cursor-pointer relative w-6 h-5">
         <div
-          className="w-6 h-5 rounded border border-gray-200"
+          className="w-6 h-5 rounded border border-border"
           style={{ backgroundColor: entry.color || '#6366f1' }}
         />
         <input
@@ -79,7 +79,7 @@ function SecondaryRow({
       </div>
       <button
         onClick={onRemove}
-        className="flex-shrink-0 p-0.5 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+        className="flex-shrink-0 p-0.5 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
       >
         <X size={10} />
       </button>
@@ -163,12 +163,12 @@ function PaletteNodeComponent({ data }: NodeProps) {
     update({ secondaryColors: cfg.secondaryColors.filter(s => s.id !== id) });
 
   return (
-    <NodeWrapper borderColor="border-rose-300" width={290}>
+    <NodeWrapper borderColor="border-destructive" width={290}>
       <NodeHeader
-        icon={<Palette size={12} className="text-rose-500" />}
+        icon={<Palette size={12} className="text-destructive" />}
         title="Color Palette"
         badge={totalColors > 0 ? `${totalColors} colors` : undefined}
-        headerClass="bg-rose-50 border-rose-200 text-rose-700"
+        headerClass="bg-destructive/10 border-destructive text-destructive"
         onDelete={onDeleteNode ? () => onDeleteNode(nodeId) : undefined}
       />
 
@@ -197,7 +197,7 @@ function PaletteNodeComponent({ data }: NodeProps) {
         )}
 
         {usePreset && (
-          <p className="text-[9px] text-rose-600 italic px-0.5">
+          <p className="text-[9px] text-destructive italic px-0.5">
             Using preset colors — generation settings ignored
           </p>
         )}
@@ -234,7 +234,7 @@ function PaletteNodeComponent({ data }: NodeProps) {
               <div className={`flex items-center gap-1.5 ${hasBaseColor ? 'opacity-50' : ''}`}>
                 <label className="flex-shrink-0 cursor-pointer relative w-6 h-5">
                   <div
-                    className="w-6 h-5 rounded border border-gray-200"
+                    className="w-6 h-5 rounded border border-border"
                     style={{ backgroundColor: effectiveBaseColor }}
                   />
                   <input
@@ -251,7 +251,7 @@ function PaletteNodeComponent({ data }: NodeProps) {
                   value={hasBaseColor ? (inputs['baseColor'] as string) : liveBaseColor}
                   onChange={v => handleBaseColorChange(v)}
                   placeholder="#hex or hsl(…)"
-                  className={hasBaseColor ? 'border-green-300 bg-green-50' : ''}
+                  className={hasBaseColor ? 'border-success bg-success/10' : ''}
                   {...graphLock}
                 />
               </div>
@@ -260,7 +260,7 @@ function PaletteNodeComponent({ data }: NodeProps) {
             {/* ── Min / Max lightness — hidden when lightness array is wired ── */}
             <Row
               label={<span className="flex items-center">Min L %<Dot on={hasLightness} /></span>}
-              handle={<RowHandle id="lightness" className={`${HANDLE_ARRAY} ${hasLightness ? '!bg-violet-500' : ''}`} title="lightness (number[]) — L% values; overrides min/max when wired" />}
+              handle={<RowHandle id="lightness" className={`${HANDLE_ARRAY} ${hasLightness ? '!bg-primary' : ''}`} title="lightness (number[]) — L% values; overrides min/max when wired" />}
             >
               <NumberInput
                 value={cfg.minLightness}
@@ -282,7 +282,7 @@ function PaletteNodeComponent({ data }: NodeProps) {
             </Row>
 
             {hasLightness && (
-              <div className="text-[9px] text-blue-500 italic px-0.5">
+              <div className="text-[9px] text-primary italic px-0.5">
                 ↳ Lightness overridden ({(inputs['lightness'] as unknown[]).length} values)
               </div>
             )}
@@ -290,7 +290,7 @@ function PaletteNodeComponent({ data }: NodeProps) {
             {/* Step naming */}
             <Row
               label={<span className="flex items-center">Steps<Dot on={hasNamesInput} /></span>}
-              handle={<RowHandle id="names" className={`${HANDLE_ARRAY} ${hasNamesInput ? '!bg-violet-500' : ''}`} title="names (string[]) — custom step names array" />}
+              handle={<RowHandle id="names" className={`${HANDLE_ARRAY} ${hasNamesInput ? '!bg-primary' : ''}`} title="names (string[]) — custom step names array" />}
             >
               <NativeSelect
                 value={cfg.naming}
@@ -303,13 +303,13 @@ function PaletteNodeComponent({ data }: NodeProps) {
             {cfg.naming === 'custom' && !hasNamesInput && (
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Custom steps</span>
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Custom steps</span>
                   <button
                     onClick={() => {
                       const steps = cfg.customNames ? cfg.customNames.split(',').map(s => s.trim()).filter(Boolean) : [];
                       update({ customNames: [...steps, ''].join(', ') });
                     }}
-                    className="flex items-center gap-0.5 text-[10px] text-gray-400 hover:text-violet-500 transition-colors"
+                    className="flex items-center gap-0.5 text-[10px] text-muted-foreground hover:text-info transition-colors"
                   >
                     <Plus size={9} /> Add
                   </button>
@@ -318,7 +318,7 @@ function PaletteNodeComponent({ data }: NodeProps) {
                   const steps = cfg.customNames ? cfg.customNames.split(',').map(s => s.trim()) : [];
                   if (steps.length === 0) {
                     return (
-                      <p className="text-[10px] text-gray-300 italic">No steps — click Add or type below</p>
+                      <p className="text-[10px] text-muted-foreground italic">No steps — click Add or type below</p>
                     );
                   }
                   return steps.map((step, i) => (
@@ -340,7 +340,7 @@ function PaletteNodeComponent({ data }: NodeProps) {
                           const next = steps.filter((_, j) => j !== i);
                           update({ customNames: next.join(', ') });
                         }}
-                        className="flex-shrink-0 p-0.5 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                        className="flex-shrink-0 p-0.5 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                       >
                         <X size={10} />
                       </button>
@@ -351,7 +351,7 @@ function PaletteNodeComponent({ data }: NodeProps) {
             )}
 
             {hasNamesInput && (
-              <div className="text-[9px] text-blue-500 italic px-0.5">
+              <div className="text-[9px] text-primary italic px-0.5">
                 ↳ Step names overridden by connected array
               </div>
             )}
@@ -360,15 +360,15 @@ function PaletteNodeComponent({ data }: NodeProps) {
 
         {/* ── Preview ─────────────────────────────────────────────────── */}
         {colors.length > 0 ? (
-          <div className="border-t border-gray-100 pt-2 mt-1 space-y-1.5">
+          <div className="border-t border-border pt-2 mt-1 space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wide">
+              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
                 Preview · {colors.length} steps
               </span>
             </div>
 
             {/* Swatch strip */}
-            <div className="flex rounded overflow-hidden border border-gray-100" style={{ height: 16 }}>
+            <div className="flex rounded overflow-hidden border border-border" style={{ height: 16 }}>
               {colors.map((c, i) => (
                 <div key={i} title={`${names[i] ?? i}: ${c}`} style={{ backgroundColor: c, flex: 1 }} />
               ))}
@@ -382,30 +382,30 @@ function PaletteNodeComponent({ data }: NodeProps) {
                 return (
                   <div key={i} className="flex items-center gap-1.5">
                     <div
-                      className="w-3 h-3 rounded-sm border border-gray-200 flex-shrink-0"
+                      className="w-3 h-3 rounded-sm border border-border flex-shrink-0"
                       style={{ backgroundColor: c }}
                     />
-                    <span className="font-mono text-[10px] text-gray-500 flex-1 truncate">{tokenName}</span>
-                    <span className="font-mono text-[10px] text-gray-700 truncate">{c}</span>
+                    <span className="font-mono text-[10px] text-muted-foreground flex-1 truncate">{tokenName}</span>
+                    <span className="font-mono text-[10px] text-foreground truncate">{c}</span>
                   </div>
                 );
               })}
             </div>
           </div>
         ) : (
-          <div className="rounded border border-dashed border-rose-200 bg-rose-50/50 py-2 text-center text-[10px] text-rose-300">
+          <div className="rounded border border-dashed border-destructive bg-destructive/10/50 py-2 text-center text-[10px] text-destructive/80">
             Set a base color to preview
           </div>
         )}
 
         {/* Output ports — always visible, outside any overflow container */}
-        <div className="mt-1 border-t border-gray-100 pt-1.5 space-y-0.5">
-          <div className="text-[10px] font-medium text-gray-400 uppercase tracking-wide mb-1">Outputs</div>
+        <div className="mt-1 border-t border-border pt-1.5 space-y-0.5">
+          <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mb-1">Outputs</div>
           <Row
             label="values"
             handle={<RowHandle id="values" type="source" side="right" className={HANDLE_ARRAY} title="values (string[]) → TokenOutput.values" />}
           >
-            <span className="text-[10px] text-violet-600 bg-violet-50 rounded px-1.5 py-0.5">
+            <span className="text-[10px] text-info bg-info/10 rounded px-1.5 py-0.5">
               {colors.length > 0 ? `${colors.length} colors` : 'array'}
             </span>
           </Row>
@@ -413,7 +413,7 @@ function PaletteNodeComponent({ data }: NodeProps) {
             label="names"
             handle={<RowHandle id="names" type="source" side="right" className={HANDLE_ARRAY} title="names (string[]) → TokenOutput.names" />}
           >
-            <span className="text-[10px] text-violet-600 bg-violet-50 rounded px-1.5 py-0.5 truncate max-w-[120px]">
+            <span className="text-[10px] text-info bg-info/10 rounded px-1.5 py-0.5 truncate max-w-[120px]">
               {names.length > 0 ? `${names.slice(0, 3).join(', ')}${names.length > 3 ? '…' : ''}` : 'array'}
             </span>
           </Row>
@@ -421,21 +421,21 @@ function PaletteNodeComponent({ data }: NodeProps) {
 
         {/* ── Accent / secondary colors (only when generating, not using preset) ───────────────────────────────── */}
         {!usePreset && (
-          <div className="pt-1.5 border-t border-gray-100 space-y-1">
+          <div className="pt-1.5 border-t border-border space-y-1">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">
+              <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
                 Accent colors
               </span>
               <button
                 onClick={addSecondary}
-                className="flex items-center gap-0.5 text-[10px] text-gray-400 hover:text-rose-500 transition-colors"
+                className="flex items-center gap-0.5 text-[10px] text-muted-foreground hover:text-destructive transition-colors"
               >
                 <Plus size={9} /> Add
               </button>
             </div>
 
             {cfg.secondaryColors.length === 0 && (
-              <p className="text-[10px] text-gray-300 italic">None — add accent shades (e.g. 50, 950)</p>
+              <p className="text-[10px] text-muted-foreground italic">None — add accent shades (e.g. 50, 950)</p>
             )}
 
             {cfg.secondaryColors.map(s => (

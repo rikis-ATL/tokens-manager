@@ -68,15 +68,15 @@ export function GroupBreadcrumb({
         return (
           <span key={group.id} className="flex items-center gap-1">
             {index > 0 && (
-              <span className="text-gray-400 text-sm">/</span>
+              <span className="text-muted-foreground text-sm">/</span>
             )}
             {isLast ? (
-              <span className="text-gray-800 text-sm font-medium">{label}</span>
+              <span className="text-foreground text-sm font-medium">{label}</span>
             ) : (
               <button
                 type="button"
                 onClick={() => onSelect(group.id)}
-                className="text-gray-500 hover:text-blue-600 hover:underline cursor-pointer text-sm"
+                className="text-muted-foreground hover:text-primary hover:underline cursor-pointer text-sm"
               >
                 {label}
               </button>

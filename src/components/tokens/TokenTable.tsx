@@ -41,7 +41,7 @@ function ColorSwatch({ value, resolvedValue, onColorChange }: ColorSwatchProps) 
   return (
     <div className="flex items-center gap-2">
       <div
-        className="w-10 h-10 border border-gray-300 rounded cursor-pointer shadow-sm"
+        className="w-10 h-10 border border-border rounded cursor-pointer shadow-sm"
         style={{ backgroundColor: actualColor }}
         onClick={() => setIsEditing(!isEditing)}
       />
@@ -56,9 +56,9 @@ function ColorSwatch({ value, resolvedValue, onColorChange }: ColorSwatchProps) 
         />
       )}
       <div className="flex flex-col">
-        <span className="text-sm text-gray-600 font-mono">{value}</span>
+        <span className="text-sm text-muted-foreground font-mono">{value}</span>
         {resolvedValue && resolvedValue !== value && (
-          <span className="text-xs text-blue-600 font-mono">→ {resolvedValue}</span>
+          <span className="text-xs text-primary font-mono">→ {resolvedValue}</span>
         )}
       </div>
     </div>
@@ -97,7 +97,7 @@ function TextInput({ value, onChange, type }: TextInputProps) {
         onChange={(e) => setLocalValue(e.target.value)}
         onBlur={handleSave}
         onKeyDown={handleKeyDown}
-        className="px-3 py-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+        className="px-3 py-2 border border-primary rounded-md focus:outline-none focus:ring-2 focus:ring-primary font-mono text-sm"
         autoFocus
       />
     );
@@ -105,11 +105,11 @@ function TextInput({ value, onChange, type }: TextInputProps) {
 
   return (
     <div
-      className="px-3 py-2 bg-gray-50 border border-transparent rounded-md hover:bg-gray-100 cursor-pointer font-mono text-sm"
+      className="px-3 py-2 bg-muted/50 border border-transparent rounded-md hover:bg-muted cursor-pointer font-mono text-sm"
       onClick={() => setIsEditing(true)}
     >
-      <span className="text-gray-900">{value}</span>
-      <span className="text-xs text-gray-500 ml-2">({type})</span>
+      <span className="text-foreground">{value}</span>
+      <span className="text-xs text-muted-foreground ml-2">({type})</span>
     </div>
   );
 }
@@ -170,51 +170,51 @@ export function TokenTable({ section, tokens, onSave }: TokenTableProps) {
   }, {} as Record<string, TokenGroup[]>);
 
   return (
-    <div className="bg-white shadow-sm rounded-lg border border-gray-200">
-      <div className="px-6 py-4 border-b border-gray-200">
-        <h2 className="text-xl font-semibold text-gray-900 capitalize">
+    <div className="bg-card shadow-sm rounded-lg border border-border">
+      <div className="px-6 py-4 border-b border-border">
+        <h2 className="text-xl font-semibold text-foreground capitalize">
           {section.replace(/-/g, ' ')} Tokens
         </h2>
-        <p className="mt-1 text-sm text-gray-600">
+        <p className="mt-1 text-sm text-muted-foreground">
           {tokens.length} token{tokens.length !== 1 ? 's' : ''} across {Object.keys(groupedTokens).length} file{Object.keys(groupedTokens).length !== 1 ? 's' : ''}
         </p>
       </div>
 
       <div className="overflow-x-auto">
         {Object.entries(groupedTokens).map(([filePath, fileTokens]) => (
-          <div key={filePath} className="border-b border-gray-100 last:border-b-0">
-            <div className="px-6 py-3 bg-gray-50">
-              <h3 className="text-sm font-medium text-gray-700">{filePath}</h3>
+          <div key={filePath} className="border-b border-border last:border-b-0">
+            <div className="px-6 py-3 bg-muted/50">
+              <h3 className="text-sm font-medium text-foreground">{filePath}</h3>
             </div>
             <table className="min-w-full table-auto">
               <thead>
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Token Name
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Value
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Type
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-card divide-y divide-border">
                 {fileTokens.map((tokenGroup) => {
                   const tokenKey = `${tokenGroup.filePath}:${tokenGroup.path}`;
                   const currentValue = editedTokens[tokenKey] || tokenGroup.token.value;
                   const isColor = tokenGroup.token.type === 'color';
 
                   return (
-                    <tr key={tokenGroup.path} className={`hover:bg-gray-50 ${saving[tokenKey] ? 'bg-blue-50' : ''}`}>
+                    <tr key={tokenGroup.path} className={`hover:bg-muted/50 ${saving[tokenKey] ? 'bg-primary/10' : ''}`}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-2">
-                          <div className="text-sm font-medium text-gray-900 font-mono">
+                          <div className="text-sm font-medium text-foreground font-mono">
                             {tokenGroup.path.replace(/\./g, '-').replace(/[/\\]/g, '-').replace(/-{2,}/g, '-')}
                           </div>
                           {saving[tokenKey] && (
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
                           )}
                         </div>
                       </td>
@@ -235,13 +235,13 @@ export function TokenTable({ section, tokens, onSave }: TokenTableProps) {
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/15 text-primary">
                           {tokenGroup.token.type}
                         </span>
                         {tokenGroup.token.attributes && (
                           <div className="mt-1">
                             {Object.entries(tokenGroup.token.attributes).map(([key, value]) => (
-                              <span key={key} className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-gray-100 text-gray-800 mr-1">
+                              <span key={key} className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-muted text-foreground mr-1">
                                 {key}: {String(value)}
                               </span>
                             ))}

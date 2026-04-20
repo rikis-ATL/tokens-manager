@@ -50,7 +50,7 @@ export function CollectionLayoutClient({ id, children }: CollectionLayoutClientP
     : (listMatch?.isPlayground ?? false);
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-gray-50">
+    <div className="flex flex-col h-screen overflow-hidden bg-muted/50">
       <OrgHeader pageTitle={collectionName} showPlaygroundBadge={isPlayground} />
       <div className="flex flex-1 overflow-hidden">
         <CollectionSidebar collectionId={id} collectionName={collectionName} />

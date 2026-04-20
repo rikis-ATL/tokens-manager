@@ -55,7 +55,7 @@ export function DeletableEdge({
         >
           {/* Port label — visible on edge hover */}
           {portLabel && (
-            <span className="opacity-0 group-hover/edge:opacity-100 transition-opacity bg-white border border-gray-200 text-[9px] font-mono text-gray-500 rounded px-1.5 py-0.5 shadow-sm whitespace-nowrap pointer-events-none select-none">
+            <span className="opacity-0 group-hover/edge:opacity-100 transition-opacity bg-card border border-border text-[9px] font-mono text-muted-foreground rounded px-1.5 py-0.5 shadow-sm whitespace-nowrap pointer-events-none select-none">
               {portLabel}
             </span>
           )}
@@ -64,7 +64,7 @@ export function DeletableEdge({
           <button
             title="Remove connection"
             onClick={() => edgeData?.onDelete?.(id)}
-            className="opacity-0 group-hover/edge:opacity-100 transition-opacity w-4 h-4 rounded-full bg-white border border-gray-300 text-gray-400 hover:border-red-400 hover:text-red-500 flex items-center justify-center shadow-sm leading-none text-[11px]"
+            className="opacity-0 group-hover/edge:opacity-100 transition-opacity w-4 h-4 rounded-full bg-card border border-border text-muted-foreground hover:border-destructive hover:text-destructive flex items-center justify-center shadow-sm leading-none text-[11px]"
           >
             ×
           </button>

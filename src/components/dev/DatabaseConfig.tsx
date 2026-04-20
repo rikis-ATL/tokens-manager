@@ -214,7 +214,7 @@ export function DatabaseConfig() {
   }
 
   if (!loaded) {
-    return <div className="text-sm text-gray-400">Loading database configuration...</div>;
+    return <div className="text-sm text-muted-foreground">Loading database configuration...</div>;
   }
 
   const isEnvDetected = configSource === 'env';
@@ -274,17 +274,17 @@ export function DatabaseConfig() {
             <Button
               variant="outline"
               onClick={handleReset}
-              className="text-gray-600 hover:text-gray-800"
+              className="text-muted-foreground hover:text-foreground"
             >
               Reset to Default
             </Button>
 
             <div className="flex items-center gap-3">
               {saveState.status === 'saved' && (
-                <span className="text-sm text-green-600">{saveState.message}</span>
+                <span className="text-sm text-success">{saveState.message}</span>
               )}
               {saveState.status === 'error' && (
-                <span className="text-sm text-red-600">{saveState.message}</span>
+                <span className="text-sm text-destructive">{saveState.message}</span>
               )}
               <Button
                 onClick={handleSave}
@@ -318,10 +318,10 @@ function ProviderSelector({
           className={`
             relative text-left rounded-lg border p-3 transition-all
             ${selected === p.id
-              ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500'
+              ? 'border-primary bg-primary/10 ring-1 ring-primary'
               : p.available
-                ? 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 cursor-pointer'
-                : 'border-gray-100 bg-gray-50 opacity-60 cursor-not-allowed'
+                ? 'border-border hover:border-border hover:bg-muted/50 cursor-pointer'
+                : 'border-border bg-muted/50 opacity-60 cursor-not-allowed'
             }
           `}
         >
@@ -329,14 +329,14 @@ function ProviderSelector({
             <span className="text-lg leading-none mt-0.5">{p.icon}</span>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-900">{p.name}</span>
+                <span className="text-sm font-medium text-foreground">{p.name}</span>
                 {!p.available && (
-                  <span className="text-[10px] uppercase font-semibold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">
+                  <span className="text-[10px] uppercase font-semibold text-warning bg-warning/10 px-1.5 py-0.5 rounded">
                     Coming soon
                   </span>
                 )}
               </div>
-              <p className="text-xs text-gray-500 mt-0.5 leading-snug">{p.description}</p>
+              <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{p.description}</p>
             </div>
           </div>
         </button>
@@ -358,9 +358,9 @@ function ProviderForm({
     <div className="space-y-4">
       {provider.fields.map((field) => (
         <div key={field.key}>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-foreground mb-1">
             {field.label}
-            {field.required && <span className="text-red-400 ml-0.5">*</span>}
+            {field.required && <span className="text-destructive ml-0.5">*</span>}
           </label>
           <Input
             type={field.type === 'number' ? 'text' : field.type}
@@ -370,7 +370,7 @@ function ProviderForm({
             placeholder={field.placeholder}
           />
           {field.helpText && (
-            <p className="text-xs text-gray-500 mt-1">{field.helpText}</p>
+            <p className="text-xs text-muted-foreground mt-1">{field.helpText}</p>
           )}
         </div>
       ))}
@@ -394,38 +394,38 @@ function ConnectionTestSection({
           variant="outline"
           onClick={onTest}
           disabled={testState === 'testing'}
-          className="text-blue-600 border-blue-300 hover:bg-blue-50"
+          className="text-primary border-primary hover:bg-primary/10"
         >
           {testState === 'testing' ? 'Testing...' : 'Test Connection'}
         </Button>
 
         {testState === 'success' && (
-          <span className="text-sm text-green-600 flex items-center gap-1">
-            <span className="w-2 h-2 bg-green-500 rounded-full inline-block" />
+          <span className="text-sm text-success flex items-center gap-1">
+            <span className="w-2 h-2 bg-success rounded-full inline-block" />
             Connected
           </span>
         )}
         {testState === 'error' && (
-          <span className="text-sm text-red-600">Connection failed</span>
+          <span className="text-sm text-destructive">Connection failed</span>
         )}
       </div>
 
       {testResult && testResult.connected && (
-        <div className="bg-green-50 border border-green-200 rounded-md p-3 text-sm space-y-1">
+        <div className="bg-success/10 border border-success rounded-md p-3 text-sm space-y-1">
           <div className="flex justify-between">
-            <span className="text-green-800 font-medium">Connected successfully</span>
-            <span className="text-green-600">{testResult.latencyMs}ms</span>
+            <span className="text-success font-medium">Connected successfully</span>
+            <span className="text-success">{testResult.latencyMs}ms</span>
           </div>
-          <p className="text-green-700 text-xs">
+          <p className="text-success text-xs">
             Host: {testResult.host} &middot; Database: {testResult.database}
           </p>
         </div>
       )}
 
       {testResult && !testResult.connected && (
-        <div className="bg-red-50 border border-red-200 rounded-md p-3 text-sm">
-          <p className="text-red-800 font-medium">Connection failed</p>
-          <p className="text-red-600 text-xs mt-1">{testResult.error}</p>
+        <div className="bg-destructive/10 border border-destructive rounded-md p-3 text-sm">
+          <p className="text-destructive font-medium">Connection failed</p>
+          <p className="text-destructive text-xs mt-1">{testResult.error}</p>
         </div>
       )}
     </div>
@@ -484,10 +484,10 @@ function SupabaseSchemaSection({
   }
 
   return (
-    <div className="bg-blue-50 border border-blue-200 rounded-md p-4 space-y-3">
+    <div className="bg-primary/10 border border-primary rounded-md p-4 space-y-3">
       <div>
-        <p className="text-sm font-medium text-blue-900">Table setup required</p>
-        <p className="text-xs text-blue-700 mt-1">
+        <p className="text-sm font-medium text-primary">Table setup required</p>
+        <p className="text-xs text-primary mt-1">
           Before saving, run the SQL below in your Supabase project&apos;s
           <strong> SQL Editor</strong> to create the required table.
         </p>
@@ -497,21 +497,21 @@ function SupabaseSchemaSection({
         variant="outline"
         size="sm"
         onClick={onToggle}
-        className="text-blue-700 border-blue-300 hover:bg-blue-100 text-xs"
+        className="text-primary border-primary hover:bg-primary/15 text-xs"
       >
         {showSchema ? 'Hide SQL' : 'Show Setup SQL'}
       </Button>
 
       {showSchema && (
         <div className="relative">
-          <pre className="bg-gray-900 text-green-300 text-xs rounded-md p-4 overflow-x-auto max-h-72 overflow-y-auto leading-relaxed">
+          <pre className="bg-foreground text-success text-xs rounded-md p-4 overflow-x-auto max-h-72 overflow-y-auto leading-relaxed">
             {SUPABASE_SQL}
           </pre>
           <Button
             variant="outline"
             size="sm"
             onClick={handleCopy}
-            className="absolute top-2 right-2 text-xs bg-gray-800 text-gray-300 border-gray-600 hover:bg-gray-700 hover:text-white"
+            className="absolute top-2 right-2 text-xs bg-card text-muted-foreground border-border hover:bg-muted hover:text-foreground"
           >
             {copied ? 'Copied!' : 'Copy'}
           </Button>
@@ -536,20 +536,20 @@ function EnvDetectedBanner({
   const label = providerInfo?.name ?? provider;
 
   return (
-    <div className="bg-green-50 border border-green-200 rounded-md p-4 space-y-3">
+    <div className="bg-success/10 border border-success rounded-md p-4 space-y-3">
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 bg-green-500 rounded-full" />
-            <p className="text-sm font-medium text-green-900">
+            <span className="w-2 h-2 bg-success rounded-full" />
+            <p className="text-sm font-medium text-success">
               Active: {label}
             </p>
           </div>
-          <p className="text-xs text-green-700 mt-1">
-            Detected from <code className="bg-green-100 px-1 rounded text-[11px]">MONGODB_URI</code> environment variable
+          <p className="text-xs text-success mt-1">
+            Detected from <code className="bg-success/15 px-1 rounded text-[11px]">MONGODB_URI</code> environment variable
           </p>
           {maskedUri && (
-            <p className="text-xs text-green-600 mt-1 font-mono break-all">
+            <p className="text-xs text-success mt-1 font-mono break-all">
               {maskedUri}
             </p>
           )}
@@ -559,12 +559,12 @@ function EnvDetectedBanner({
           size="sm"
           onClick={onPersist}
           disabled={saving}
-          className="text-green-700 border-green-300 hover:bg-green-100 text-xs flex-shrink-0"
+          className="text-success border-success hover:bg-success/15 text-xs flex-shrink-0"
         >
           {saving ? 'Saving...' : 'Save to Config'}
         </Button>
       </div>
-      <p className="text-xs text-green-600">
+      <p className="text-xs text-success">
         Click &quot;Save to Config&quot; to persist this connection, or select a different provider below.
       </p>
     </div>
@@ -579,15 +579,15 @@ function ActiveConnectionBanner({
   maskedUri: string;
 }) {
   return (
-    <div className="bg-green-50 border border-green-200 rounded-md p-3">
+    <div className="bg-success/10 border border-success rounded-md p-3">
       <div className="flex items-center gap-2">
-        <span className="w-2 h-2 bg-green-500 rounded-full" />
-        <p className="text-sm font-medium text-green-900">
+        <span className="w-2 h-2 bg-success rounded-full" />
+        <p className="text-sm font-medium text-success">
           Active: {provider.name}
         </p>
       </div>
       {maskedUri && (
-        <p className="text-xs text-green-600 mt-1 font-mono break-all">
+        <p className="text-xs text-success mt-1 font-mono break-all">
           {maskedUri}
         </p>
       )}
@@ -597,11 +597,11 @@ function ActiveConnectionBanner({
 
 function UnavailableNotice({ provider }: { provider: DatabaseProviderInfo }) {
   return (
-    <div className="bg-amber-50 border border-amber-200 rounded-md p-4">
-      <p className="text-sm font-medium text-amber-900">
+    <div className="bg-warning/10 border border-warning rounded-md p-4">
+      <p className="text-sm font-medium text-warning">
         {provider.name} support is coming soon
       </p>
-      <p className="text-xs text-amber-700 mt-1">
+      <p className="text-xs text-warning mt-1">
         Adding support for {provider.name} requires a database adapter.
         MongoDB-compatible providers (Atlas, DigitalOcean, AWS DocumentDB) and
         Supabase work today.

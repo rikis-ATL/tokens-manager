@@ -2,6 +2,7 @@
 
 import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
+import { Moon, Sun } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,13 +10,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useAppTheme } from '@/components/providers/AppThemeProvider';
 
 export function UserMenu() {
   const { data: session, status } = useSession();
+  const appTheme = useAppTheme();
 
   // Loading skeleton — prevents layout shift while session hydrates
   if (status === 'loading') {
-    return <div className="w-28 h-8 rounded-md bg-gray-100 animate-pulse dark:bg-gray-800" />;
+    return <div className="w-28 h-8 rounded-md bg-muted animate-pulse" />;
   }
 
   // No session — render nothing (Phase 18 will redirect unauthenticated users before they see this)
@@ -36,14 +39,19 @@ export function UserMenu() {
     window.location.href = '/collections';
   };
 
+  const showAppearanceToggle =
+    appTheme?.configured &&
+    appTheme.hasDarkPair &&
+    appTheme.themeColorMode === null;
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-gray-100 transition-colors">
+        <button className="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-accent transition-colors">
           <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary text-primary-foreground text-xs font-semibold flex-shrink-0">
             {initials}
           </span>
-          {/* <span className="text-sm text-gray-700 max-w-[120px] truncate">
+          {/* <span className="text-sm text-foreground max-w-[120px] truncate">
             {session.user.name}
           </span> */}
         </button>
@@ -55,6 +63,27 @@ export function UserMenu() {
           </DropdownMenuItem>
         ) : (
           <>
+            {showAppearanceToggle && appTheme && (
+              <>
+                <DropdownMenuItem
+                  onClick={() => appTheme.setPrefersDark(!appTheme.prefersDark)}
+                  className="flex items-center gap-2"
+                >
+                  {appTheme.prefersDark ? (
+                    <>
+                      <Sun size={14} />
+                      Switch to light mode
+                    </>
+                  ) : (
+                    <>
+                      <Moon size={14} />
+                      Switch to dark mode
+                    </>
+                  )}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+              </>
+            )}
             <Link href="/settings" passHref legacyBehavior>
               <DropdownMenuItem asChild>
                 <a>Settings</a>

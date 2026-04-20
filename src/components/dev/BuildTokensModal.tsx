@@ -146,7 +146,7 @@ export function BuildTokensModal({
                 variant="default"
                 size="sm"
                 disabled={loading}
-                className="bg-green-600 hover:bg-green-700 mr-8"
+                className="bg-success hover:bg-success/90 mr-8"
               >
                 Download All
               </Button>
@@ -159,15 +159,15 @@ export function BuildTokensModal({
           {/* Loading state */}
           {loading && (
             <div className="flex flex-col items-center justify-center py-16">
-              <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4" />
-              <span className="text-gray-600 text-sm">Building...</span>
+              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
+              <span className="text-muted-foreground text-sm">Building...</span>
             </div>
           )}
 
           {/* Error state */}
           {!loading && error && (
             <div className="flex flex-col items-center justify-center py-12">
-              <p className="text-red-600 text-sm mb-4">{error}</p>
+              <p className="text-destructive text-sm mb-4">{error}</p>
               <Button
                 onClick={runBuild}
                 variant="destructive"
@@ -183,14 +183,14 @@ export function BuildTokensModal({
             <div className="flex flex-col gap-4">
               {/* Reference warnings table */}
               {result.warnings && result.warnings.length > 0 && (
-                <div className="rounded border border-amber-300 bg-amber-50 p-3">
-                  <p className="text-xs font-semibold text-amber-800 mb-2">
+                <div className="rounded border border-warning bg-warning/10 p-3">
+                  <p className="text-xs font-semibold text-warning mb-2">
                     ⚠ {result.warnings.length} broken reference{result.warnings.length !== 1 ? 's' : ''} — these var() calls will resolve to empty values at runtime
                   </p>
                   <div className="overflow-x-auto">
                     <table className="w-full text-xs font-mono">
                       <thead>
-                        <tr className="text-left text-amber-700 border-b border-amber-200">
+                        <tr className="text-left text-warning border-b border-warning">
                           <th className="pb-1 pr-4 font-medium">Token</th>
                           <th className="pb-1 pr-4 font-medium">Reference</th>
                           <th className="pb-1 font-medium">Missing var()</th>
@@ -198,10 +198,10 @@ export function BuildTokensModal({
                       </thead>
                       <tbody>
                         {result.warnings.map((w: ReferenceWarning, i: number) => (
-                          <tr key={i} className="border-b border-amber-100 last:border-0">
-                            <td className="py-0.5 pr-4 text-amber-900">{w.tokenVar}</td>
-                            <td className="py-0.5 pr-4 text-amber-700">{w.reference}</td>
-                            <td className="py-0.5 text-red-600">{w.referencedVar}</td>
+                          <tr key={i} className="border-b border-warning/25 last:border-0">
+                            <td className="py-0.5 pr-4 text-warning">{w.tokenVar}</td>
+                            <td className="py-0.5 pr-4 text-warning">{w.reference}</td>
+                            <td className="py-0.5 text-destructive">{w.referencedVar}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -211,7 +211,7 @@ export function BuildTokensModal({
               )}
 
               {/* Format tabs */}
-              <div className="flex border-b border-gray-200">
+              <div className="flex border-b border-border">
                 {FORMATS.map(fmt => (
                   <Button
                     key={fmt}
@@ -219,8 +219,8 @@ export function BuildTokensModal({
                     variant="ghost"
                     className={`px-4 py-2 text-sm font-medium rounded-t -mb-px border-b-2 transition-colors ${
                       activeFormat === fmt
-                        ? 'bg-blue-100 text-blue-900 border-blue-600'
-                        : 'text-gray-600 border-transparent hover:bg-gray-100'
+                        ? 'bg-primary/15 text-primary border-primary'
+                        : 'text-muted-foreground border-transparent hover:bg-muted'
                     }`}
                   >
                     {FORMAT_LABELS[fmt]}
@@ -238,8 +238,8 @@ export function BuildTokensModal({
                       variant="ghost"
                       className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
                         activeBrand === brand
-                          ? 'bg-gray-800 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ? 'bg-card text-card-foreground'
+                          : 'bg-muted text-foreground hover:bg-muted'
                       }`}
                     >
                       {brand}
@@ -259,7 +259,7 @@ export function BuildTokensModal({
                   >
                     {copiedKey === copyKey ? 'Copied!' : 'Copy'}
                   </Button>
-                  <pre className="bg-gray-50 rounded p-4 text-sm font-mono overflow-x-auto whitespace-pre-wrap break-all max-h-[400px] overflow-y-auto">
+                  <pre className="bg-muted/50 rounded p-4 text-sm font-mono overflow-x-auto whitespace-pre-wrap break-all max-h-[400px] overflow-y-auto">
                     <code>{currentBrandOutput.content || '/* (empty output) */'}</code>
                   </pre>
                 </div>

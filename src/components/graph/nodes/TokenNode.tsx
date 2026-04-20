@@ -13,19 +13,19 @@ export interface TokenNodeData {
 }
 
 const TYPE_COLOURS: Record<string, string> = {
-  color:        'bg-pink-50 border-pink-200 text-pink-700',
-  dimension:    'bg-sky-50 border-sky-200 text-sky-700',
-  fontSize:     'bg-sky-50 border-sky-200 text-sky-700',
-  fontFamily:   'bg-violet-50 border-violet-200 text-violet-700',
-  fontWeight:   'bg-violet-50 border-violet-200 text-violet-700',
-  lineHeight:   'bg-teal-50 border-teal-200 text-teal-700',
-  duration:     'bg-orange-50 border-orange-200 text-orange-700',
-  number:       'bg-amber-50 border-amber-200 text-amber-700',
-  string:       'bg-gray-50 border-gray-200 text-gray-600',
+  color:        'bg-primary/10 border-primary text-primary',
+  dimension:    'bg-info/10 border-info/30 text-info',
+  fontSize:     'bg-info/10 border-info/30 text-info',
+  fontFamily:   'bg-info/10 border-info/30 text-info',
+  fontWeight:   'bg-info/10 border-info/30 text-info',
+  lineHeight:   'bg-info/10 border-info/30 text-info',
+  duration:     'bg-warning/10 border-warning text-warning',
+  number:       'bg-warning/10 border-warning text-warning',
+  string:       'bg-muted/50 border-border text-muted-foreground',
 };
 
 function getTypeBadge(type: string) {
-  return TYPE_COLOURS[type] ?? 'bg-gray-50 border-gray-200 text-gray-600';
+  return TYPE_COLOURS[type] ?? 'bg-muted/50 border-border text-muted-foreground';
 }
 
 function TokenNodeComponent({ data, selected }: NodeProps) {
@@ -38,14 +38,14 @@ function TokenNodeComponent({ data, selected }: NodeProps) {
   return (
     <div
       className={`
-        bg-white rounded-lg border-2 shadow-sm min-w-[200px] max-w-[260px]
-        ${selected ? 'border-blue-500 shadow-blue-100 shadow-md' : 'border-gray-200'}
+        bg-card rounded-lg border-2 shadow-sm min-w-[200px] max-w-[260px]
+        ${selected ? 'border-primary shadow-sm shadow-md' : 'border-border'}
       `}
     >
       {/* Header */}
-      <div className="px-3 py-2 border-b border-gray-100 flex items-center gap-2">
-        <div className="w-1.5 h-1.5 rounded-full bg-green-400 flex-shrink-0" />
-        <span className="font-semibold text-sm text-gray-800 truncate flex-1">{label}</span>
+      <div className="px-3 py-2 border-b border-border flex items-center gap-2">
+        <div className="w-1.5 h-1.5 rounded-full bg-success flex-shrink-0" />
+        <span className="font-semibold text-sm text-foreground truncate flex-1">{label}</span>
         <span className={`px-1.5 py-0.5 text-[10px] font-medium border rounded ${getTypeBadge(type)}`}>
           {type}
         </span>
@@ -55,20 +55,20 @@ function TokenNodeComponent({ data, selected }: NodeProps) {
       <div className="px-3 py-2 flex items-center gap-2">
         {isColor && (
           <div
-            className="w-5 h-5 rounded border border-gray-200 flex-shrink-0"
+            className="w-5 h-5 rounded border border-border flex-shrink-0"
             style={{ backgroundColor: resolvedColor ?? String(value) }}
           />
         )}
-        <span className="font-mono text-xs text-gray-600 truncate">{displayValue}</span>
+        <span className="font-mono text-xs text-muted-foreground truncate">{displayValue}</span>
       </div>
 
       {/* Group path */}
       <div className="px-3 pb-2">
-        <span className="font-mono text-[10px] text-gray-400 truncate block">{groupPath}</span>
+        <span className="font-mono text-[10px] text-muted-foreground truncate block">{groupPath}</span>
       </div>
 
-      <Handle type="target" position={Position.Left} className="!w-2 !h-2 !bg-green-400" />
-      <Handle type="source" position={Position.Right} className="!w-2 !h-2 !bg-green-400" />
+      <Handle type="target" position={Position.Left} className="!w-2 !h-2 !bg-success" />
+      <Handle type="source" position={Position.Right} className="!w-2 !h-2 !bg-success" />
     </div>
   );
 }

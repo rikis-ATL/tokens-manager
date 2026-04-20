@@ -102,24 +102,24 @@ export function EditCollectionDialog({ isOpen, collection, onClose, onSaved }: E
         <div className="space-y-4 py-2">
           {/* Name */}
           <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700">Name</label>
+            <label className="text-sm font-medium text-foreground">Name</label>
             <Input
               value={name}
               onChange={(e) => { setName(e.target.value); setError(''); }}
               onKeyDown={(e) => { if (e.key === 'Enter') handleSave(); }}
               autoFocus
             />
-            {error && <p className="text-xs text-red-600">{error}</p>}
+            {error && <p className="text-xs text-destructive">{error}</p>}
           </div>
 
           {/* Description */}
           <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700">
+            <label className="text-sm font-medium text-foreground">
               Description
-              <span className="font-normal text-gray-500 ml-1">(optional)</span>
+              <span className="font-normal text-muted-foreground ml-1">(optional)</span>
             </label>
             <textarea
-              className="w-full text-sm border border-gray-300 rounded-md px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400"
+              className="w-full text-sm border border-border rounded-md px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent placeholder:text-muted-foreground"
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -129,23 +129,23 @@ export function EditCollectionDialog({ isOpen, collection, onClose, onSaved }: E
 
           {/* Tags */}
           <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700">
+            <label className="text-sm font-medium text-foreground">
               Tags
-              <span className="font-normal text-gray-500 ml-1">(optional)</span>
+              <span className="font-normal text-muted-foreground ml-1">(optional)</span>
             </label>
             <div
-              className="flex flex-wrap gap-1.5 min-h-[40px] w-full border border-gray-300 rounded-md px-2 py-1.5 cursor-text focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent"
+              className="flex flex-wrap gap-1.5 min-h-[40px] w-full border border-border rounded-md px-2 py-1.5 cursor-text focus-within:ring-2 focus-within:ring-primary focus-within:border-transparent"
               onClick={() => tagInputRef.current?.focus()}
             >
               {tags.map((tag) => (
                 <span
                   key={tag}
-                  className="flex items-center gap-1 bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded-full"
+                  className="flex items-center gap-1 bg-muted text-foreground text-xs px-2 py-0.5 rounded-full"
                 >
                   {tag}
                   <button
                     type="button"
-                    className="text-gray-400 hover:text-gray-600"
+                    className="text-muted-foreground hover:text-muted-foreground"
                     onClick={(e) => { e.stopPropagation(); removeTag(tag); }}
                     aria-label={`Remove ${tag}`}
                   >
@@ -155,7 +155,7 @@ export function EditCollectionDialog({ isOpen, collection, onClose, onSaved }: E
               ))}
               <input
                 ref={tagInputRef}
-                className="flex-1 min-w-[80px] text-sm outline-none bg-transparent placeholder:text-gray-400"
+                className="flex-1 min-w-[80px] text-sm outline-none bg-transparent placeholder:text-muted-foreground"
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyDown={handleTagKeyDown}
@@ -163,21 +163,21 @@ export function EditCollectionDialog({ isOpen, collection, onClose, onSaved }: E
                 placeholder={tags.length === 0 ? 'Add tags — press Enter or comma' : ''}
               />
             </div>
-            <p className="text-xs text-gray-500">Press Enter or comma to add a tag.</p>
+            <p className="text-xs text-muted-foreground">Press Enter or comma to add a tag.</p>
           </div>
 
           {/* Accent Color */}
           <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700">
+            <label className="text-sm font-medium text-foreground">
               Accent color
-              <span className="font-normal text-gray-500 ml-1">(optional)</span>
+              <span className="font-normal text-muted-foreground ml-1">(optional)</span>
             </label>
             <div className="flex items-center gap-3">
               <input
                 type="color"
                 value={accentColor ?? '#3b82f6'}
                 onChange={(e) => setAccentColor(e.target.value)}
-                className="w-12 h-9 rounded border border-gray-300 cursor-pointer"
+                className="w-12 h-9 rounded border border-border cursor-pointer"
               />
               <Input
                 type="text"
@@ -190,13 +190,13 @@ export function EditCollectionDialog({ isOpen, collection, onClose, onSaved }: E
                 <button
                   type="button"
                   onClick={() => setAccentColor(null)}
-                  className="text-xs text-gray-500 hover:text-gray-700"
+                  className="text-xs text-muted-foreground hover:text-foreground"
                 >
                   Clear
                 </button>
               )}
             </div>
-            <p className="text-xs text-gray-500">Display color for this collection (used in UI views).</p>
+            <p className="text-xs text-muted-foreground">Display color for this collection (used in UI views).</p>
           </div>
         </div>
 

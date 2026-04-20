@@ -72,7 +72,7 @@ function CssStringNodeComponent({ data }: NodeProps) {
   const outVal = (outputs['value'] as string | undefined) ?? resolvedPreview;
 
   return (
-    <NodeWrapper borderColor="border-cyan-300" width={268}>
+    <NodeWrapper borderColor="border-info/40" width={268}>
       <Handle
         type="target"
         id="template"
@@ -83,23 +83,23 @@ function CssStringNodeComponent({ data }: NodeProps) {
       />
 
       <NodeHeader
-        icon={<Braces size={12} className="text-cyan-600" />}
+        icon={<Braces size={12} className="text-info" />}
         title="CSS string"
         badge={isWired ? '⇐ wired' : 'text'}
-        headerClass="bg-cyan-50 border-cyan-200 text-cyan-800"
+        headerClass="bg-info/10 border-info/30 text-info"
         onDelete={onDeleteNode ? () => onDeleteNode(nodeId) : undefined}
       />
 
       <div className="px-3 py-2 space-y-1.5 nodrag">
         {isWired ? (
           <Row label="Template">
-            <span className="text-[10px] font-mono text-gray-700 truncate block" title={String(wiredIn)}>
+            <span className="text-[10px] font-mono text-foreground truncate block" title={String(wiredIn)}>
               {String(wiredIn)}
             </span>
           </Row>
         ) : (
           <div className="flex flex-col gap-0.5">
-            <span className="text-[10px] text-gray-400">CSS value</span>
+            <span className="text-[10px] text-muted-foreground">CSS value</span>
             <textarea
               ref={exprRef}
               value={localExpr}
@@ -120,9 +120,9 @@ function CssStringNodeComponent({ data }: NodeProps) {
               onPointerDown={e => e.stopPropagation()}
               rows={3}
               placeholder="e.g. calc(var(--offset) + {spacing.sm})"
-              className="nodrag nopan w-full text-[11px] font-mono bg-white rounded px-1.5 py-1 text-gray-700 focus:outline-none resize-y min-h-[52px] border border-gray-200 focus:ring-1 focus:ring-cyan-400"
+              className="nodrag nopan w-full text-[11px] font-mono bg-card rounded px-1.5 py-1 text-foreground focus:outline-none resize-y min-h-[52px] border border-border focus:ring-1 focus:ring-info"
             />
-            <span className="text-[9px] text-gray-400">
+            <span className="text-[9px] text-muted-foreground">
               Literal <code className="text-[9px]">var(--…)</code> unchanged · {'{token.path}'} resolved
             </span>
           </div>
@@ -141,7 +141,7 @@ function CssStringNodeComponent({ data }: NodeProps) {
               />
             }
           >
-            <span className="text-[10px] font-mono text-cyan-900 break-all line-clamp-4" title={outVal}>
+            <span className="text-[10px] font-mono text-info break-all line-clamp-4" title={outVal}>
               {outVal || '—'}
             </span>
           </Row>

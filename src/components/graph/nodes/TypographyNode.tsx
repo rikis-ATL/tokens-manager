@@ -27,7 +27,7 @@ function useField(
 
 function WiredIndicator() {
   return (
-    <span className="text-[9px] bg-blue-100 text-blue-600 border border-blue-200 rounded px-1 py-0.5 flex-shrink-0">
+    <span className="text-[9px] bg-primary/15 text-primary border border-primary rounded px-1 py-0.5 flex-shrink-0">
       wired
     </span>
   );
@@ -57,12 +57,12 @@ function TypographyNodeComponent({ data }: NodeProps) {
     : {};
 
   return (
-    <NodeWrapper borderColor="border-purple-300" width={268}>
+    <NodeWrapper borderColor="border-info/40" width={268}>
       <NodeHeader
-        icon={<Type size={12} className="text-purple-500" />}
+        icon={<Type size={12} className="text-info" />}
         title="Typography"
         badge="composite"
-        headerClass="bg-purple-50 border-purple-200 text-purple-700"
+        headerClass="bg-info/10 border-info/30 text-info"
         onDelete={onDeleteNode ? () => onDeleteNode(nodeId) : undefined}
       />
 
@@ -74,7 +74,7 @@ function TypographyNodeComponent({ data }: NodeProps) {
         >
           {weight.wired ? (
             <div className="flex items-center gap-1.5">
-              <span className="font-mono text-[10px] text-gray-700 truncate">{weight.value}</span>
+              <span className="font-mono text-[10px] text-foreground truncate">{weight.value}</span>
               <WiredIndicator />
             </div>
           ) : (
@@ -89,7 +89,7 @@ function TypographyNodeComponent({ data }: NodeProps) {
         >
           {size.wired ? (
             <div className="flex items-center gap-1.5">
-              <span className="font-mono text-[10px] text-gray-700 truncate">{size.value}</span>
+              <span className="font-mono text-[10px] text-foreground truncate">{size.value}</span>
               <WiredIndicator />
             </div>
           ) : (
@@ -104,7 +104,7 @@ function TypographyNodeComponent({ data }: NodeProps) {
         >
           {lh.wired ? (
             <div className="flex items-center gap-1.5">
-              <span className="font-mono text-[10px] text-gray-700 truncate">{lh.value}</span>
+              <span className="font-mono text-[10px] text-foreground truncate">{lh.value}</span>
               <WiredIndicator />
             </div>
           ) : (
@@ -119,7 +119,7 @@ function TypographyNodeComponent({ data }: NodeProps) {
         >
           {family.wired ? (
             <div className="flex items-center gap-1.5">
-              <span className="font-mono text-[10px] text-gray-700 truncate">{family.value}</span>
+              <span className="font-mono text-[10px] text-foreground truncate">{family.value}</span>
               <WiredIndicator />
             </div>
           ) : (
@@ -134,7 +134,7 @@ function TypographyNodeComponent({ data }: NodeProps) {
         >
           {ls.wired ? (
             <div className="flex items-center gap-1.5">
-              <span className="font-mono text-[10px] text-gray-700 truncate">{ls.value}</span>
+              <span className="font-mono text-[10px] text-foreground truncate">{ls.value}</span>
               <WiredIndicator />
             </div>
           ) : (
@@ -156,11 +156,11 @@ function TypographyNodeComponent({ data }: NodeProps) {
           <PreviewSection>
             {/* Live preview text */}
             <div
-              className="rounded bg-gray-50 border border-gray-100 px-2 py-1.5 mb-1.5 overflow-hidden"
+              className="rounded bg-muted/50 border border-border px-2 py-1.5 mb-1.5 overflow-hidden"
               style={{ maxHeight: 48 }}
             >
               <p
-                className="text-gray-800 truncate"
+                className="text-foreground truncate"
                 style={previewStyle}
                 title={shorthand}
               >
@@ -181,7 +181,7 @@ function TypographyNodeComponent({ data }: NodeProps) {
                 />
               }
             >
-              <span className="font-mono text-[9px] text-purple-700 truncate block" title={shorthand}>
+              <span className="font-mono text-[9px] text-info truncate block" title={shorthand}>
                 {shorthand}
               </span>
             </Row>
@@ -200,14 +200,14 @@ function TypographyNodeComponent({ data }: NodeProps) {
                   />
                 }
               >
-                <span className="font-mono text-[9px] text-gray-400 truncate block" title={json}>
+                <span className="font-mono text-[9px] text-muted-foreground truncate block" title={json}>
                   {'{…}'}
                 </span>
               </Row>
             )}
 
             {/* Individual passthrough outputs */}
-            <div className="mt-1.5 pt-1.5 border-t border-gray-100 space-y-1">
+            <div className="mt-1.5 pt-1.5 border-t border-border space-y-1">
               {([
                 ['fontFamily',    'Family'],
                 ['fontSize',      'Size'],
@@ -217,7 +217,7 @@ function TypographyNodeComponent({ data }: NodeProps) {
               ] as const).map(([id, label]) => (
                 <Row
                   key={id}
-                  label={<span className="text-gray-300">{label}</span>}
+                  label={<span className="text-muted-foreground">{label}</span>}
                   handle={
                     <RowHandle
                       id={id}
@@ -228,7 +228,7 @@ function TypographyNodeComponent({ data }: NodeProps) {
                     />
                   }
                 >
-                  <span className="font-mono text-[9px] text-gray-400 truncate block">
+                  <span className="font-mono text-[9px] text-muted-foreground truncate block">
                     {String(outputs[id] ?? '—')}
                   </span>
                 </Row>

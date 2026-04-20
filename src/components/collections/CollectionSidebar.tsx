@@ -31,7 +31,7 @@ export function CollectionSidebar({ collectionId, collectionName }: CollectionSi
   ];
 
   return (
-    <aside className={`h-full bg-white border-r border-gray-200 flex flex-col transition-all duration-200 flex-shrink-0 ${collapsed ? 'w-12' : 'w-[200px]'}`}>
+    <aside className={`h-full bg-card border-r border-border flex flex-col transition-all duration-200 flex-shrink-0 ${collapsed ? 'w-12' : 'w-[200px]'}`}>
 
 
       {/* Nav items */}
@@ -47,8 +47,8 @@ export function CollectionSidebar({ collectionId, collectionName }: CollectionSi
                 collapsed ? 'justify-center p-2' : 'gap-3 px-3 py-2'
               } ${
                 isActive
-                  ? 'bg-gray-900 text-white'
-                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               }`}
             >
               <Icon size={16} className="flex-shrink-0" />
@@ -59,36 +59,36 @@ export function CollectionSidebar({ collectionId, collectionName }: CollectionSi
       </nav>
 
 
-      <div className={`flex items-start border-t border-gray-100 flex-shrink-0 ${collapsed ? 'flex-col items-center py-2 gap-2' : 'px-4 py-2 justify-between'}`}>
+      <div className={`flex items-start border-t border-border flex-shrink-0 ${collapsed ? 'flex-col items-center py-2 gap-2' : 'px-4 py-2 justify-between'}`}>
 {/*        {!collapsed && (
           <div className="flex-1 min-w-0">
             <Link href="/collections" className="block mb-2">
-              <span className="text-gray-900 font-semibold text-sm tracking-wide">Token Manager</span>
+              <span className="text-foreground font-semibold text-sm tracking-wide">Token Manager</span>
             </Link>
 
             <Link
               href="/collections"
-              className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 mb-3"
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mb-3"
             >
               <ChevronLeft size={14} />
               Collections
             </Link>
 
-            <span className="text-gray-900 font-semibold text-sm truncate block">
+            <span className="text-foreground font-semibold text-sm truncate block">
               {collectionName}
             </span>
           </div>
         )}*/}
 
 {/*        {collapsed && (
-          <Link href="/collections" title="Collections" className="text-gray-400 hover:text-gray-700 transition-colors">
+          <Link href="/collections" title="Collections" className="text-muted-foreground hover:text-foreground transition-colors">
             <ChevronLeft size={16} />
           </Link>
         )}*/}
 
         <button
           onClick={() => setCollapsed(c => !c)}
-          className="text-gray-400 hover:text-gray-700 p-1 rounded transition-colors flex-shrink-0"
+          className="text-muted-foreground hover:text-foreground p-1 rounded transition-colors flex-shrink-0"
           title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}

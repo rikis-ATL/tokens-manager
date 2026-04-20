@@ -62,11 +62,11 @@ function GroupCreatorNodeComponent({ data }: NodeProps) {
   }, [cfg.groupName, hasTokens, onGenerate, nodeId]);
 
   return (
-    <NodeWrapper borderColor="border-cyan-300">
+    <NodeWrapper borderColor="border-info/40">
       <NodeHeader
         icon={<FolderPlus size={12} />}
         title="Group Creator"
-        headerClass="bg-cyan-50 border-cyan-200 text-cyan-700"
+        headerClass="bg-info/10 border-info/30 text-info"
         onDelete={() => onDeleteNode?.(nodeId)}
       />
 
@@ -98,10 +98,10 @@ function GroupCreatorNodeComponent({ data }: NodeProps) {
       {/* Tokens */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-gray-600">Tokens ({tokens.length})</span>
+          <span className="text-xs font-medium text-muted-foreground">Tokens ({tokens.length})</span>
           <button
             onClick={addToken}
-            className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded hover:bg-blue-100 flex items-center gap-1"
+            className="text-xs bg-primary/10 text-primary px-2 py-1 rounded hover:bg-primary/15 flex items-center gap-1"
           >
             <Plus size={10} /> Add Token
           </button>
@@ -129,7 +129,7 @@ function GroupCreatorNodeComponent({ data }: NodeProps) {
             </div>
             <button
               onClick={() => removeToken(index)}
-              className="text-red-500 hover:text-red-700 p-1"
+              className="text-destructive hover:text-destructive p-1"
             >
               <Trash2 size={10} />
             </button>
@@ -145,9 +145,9 @@ function GroupCreatorNodeComponent({ data }: NodeProps) {
           className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded text-sm font-medium transition-colors ${
             cfg.groupName?.trim() && hasTokens
               ? generated
-                ? 'bg-green-100 text-green-700 border border-green-300'
-                : 'bg-blue-500 text-white hover:bg-blue-600'
-              : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                ? 'bg-success/15 text-success border border-success'
+                : 'bg-primary text-primary-foreground hover:bg-primary'
+              : 'bg-muted text-muted-foreground cursor-not-allowed'
           }`}
         >
           {generated ? (

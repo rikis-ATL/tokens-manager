@@ -32,14 +32,14 @@ interface ThemeListProps {
 function ColorModeBadge({ colorMode }: { colorMode: ColorMode }) {
   if (colorMode === 'dark') {
     return (
-      <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[10px] bg-slate-100 text-slate-600 flex-shrink-0">
+      <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[10px] bg-muted text-muted-foreground flex-shrink-0">
         <Moon size={9} />
         Dark
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[10px] bg-amber-50 text-amber-700 flex-shrink-0">
+    <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[10px] bg-warning/10 text-warning flex-shrink-0">
       <Sun size={9} />
       Light
     </span>
@@ -78,13 +78,13 @@ export function ThemeList({
   return (
     <div className="flex flex-col h-full">
       {/* Section header */}
-      <div className="px-3 py-2 border-b border-gray-200 flex items-center justify-between flex-shrink-0">
-        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Themes</span>
+      <div className="px-3 py-2 border-b border-border flex items-center justify-between flex-shrink-0">
+        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Themes</span>
         <button
           onClick={handleOpenDialog}
           disabled={atLimit}
           title={atLimit ? 'Maximum 10 themes per collection' : 'Add theme'}
-          className="text-gray-400 hover:text-gray-700 text-base leading-none px-1 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="text-muted-foreground hover:text-foreground text-base leading-none px-1 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <Plus size={14} />
         </button>
@@ -93,7 +93,7 @@ export function ThemeList({
       {/* Scrollable list */}
       <div className="flex-1 overflow-y-auto py-1">
         {themes.length === 0 && (
-          <p className="px-3 py-3 text-xs text-gray-400">No themes yet</p>
+          <p className="px-3 py-3 text-xs text-muted-foreground">No themes yet</p>
         )}
         {themes.map((theme) => {
           const isSelected = theme.id === selectedThemeId;
@@ -103,8 +103,8 @@ export function ThemeList({
               key={theme.id}
               className={`group/item flex items-center pr-1 text-sm cursor-pointer transition-colors ${
                 isSelected
-                  ? 'bg-indigo-50 text-indigo-900 font-medium'
-                  : 'hover:bg-gray-100 text-gray-700'
+                  ? 'bg-info/10 text-foreground font-medium'
+                  : 'hover:bg-muted text-foreground'
               }`}
               onClick={() => onSelect(theme.id)}
             >
@@ -116,7 +116,7 @@ export function ThemeList({
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
-                    className="opacity-0 group-hover/item:opacity-100 p-1 rounded hover:bg-gray-200 text-gray-400 hover:text-gray-700 transition-all flex-shrink-0"
+                    className="opacity-0 group-hover/item:opacity-100 p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-all flex-shrink-0"
                     onClick={(e) => e.stopPropagation()}
                     title="Theme actions"
                   >
@@ -136,7 +136,7 @@ export function ThemeList({
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    className="gap-2 text-xs text-red-600 focus:text-red-700"
+                    className="gap-2 text-xs text-destructive focus:text-destructive"
                     onClick={() => onDelete(theme.id)}
                   >
                     <Trash2 size={12} /> Delete
@@ -170,8 +170,8 @@ export function ThemeList({
                 onClick={() => setAddColorMode('light')}
                 className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded border text-sm transition-colors ${
                   addColorMode === 'light'
-                    ? 'border-amber-400 bg-amber-50 text-amber-700'
-                    : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
+                    ? 'border-warning bg-warning/10 text-warning'
+                    : 'border-border bg-card text-muted-foreground hover:bg-muted/50'
                 }`}
               >
                 <Sun size={14} />
@@ -182,8 +182,8 @@ export function ThemeList({
                 onClick={() => setAddColorMode('dark')}
                 className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded border text-sm transition-colors ${
                   addColorMode === 'dark'
-                    ? 'border-slate-400 bg-slate-100 text-slate-700'
-                    : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
+                    ? 'border-border bg-muted text-foreground'
+                    : 'border-border bg-card text-muted-foreground hover:bg-muted/50'
                 }`}
               >
                 <Moon size={14} />

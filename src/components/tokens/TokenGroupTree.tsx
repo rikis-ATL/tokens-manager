@@ -176,12 +176,12 @@ export function TokenGroupTree({
   return (
     <div className="flex flex-col h-full">
       {/* Section heading */}
-      <div className="px-3 py-2 border-b border-gray-200 flex items-center justify-between flex-shrink-0">
-        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Groups</span>
+      <div className="px-3 py-2 border-b border-border flex items-center justify-between flex-shrink-0">
+        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Groups</span>
         {onAddGroup && (
           <button
             onClick={onAddGroup}
-            className="text-gray-400 hover:text-gray-700 text-base leading-none px-1"
+            className="text-muted-foreground hover:text-foreground text-base leading-none px-1"
             title="Add group"
           >
             <Plus size={14} />
@@ -192,7 +192,7 @@ export function TokenGroupTree({
       {/* Scrollable list */}
       <div className="flex-1 overflow-y-auto py-1">
         {flatNodes.length === 0 && (
-          <p className="px-3 py-3 text-xs text-gray-400">No groups yet</p>
+          <p className="px-3 py-3 text-xs text-muted-foreground">No groups yet</p>
         )}
         
         {/* All Groups item - only show if there are groups */}
@@ -200,14 +200,14 @@ export function TokenGroupTree({
           <div
             className={`px-3 py-2 mx-2 mb-1 rounded cursor-pointer transition-colors ${
               selectedGroupId === '__all_groups__'
-                ? 'bg-blue-50 border border-blue-200 text-blue-700'
-                : 'hover:bg-gray-50 text-gray-700'
+                ? 'bg-primary/10 border border-primary text-primary'
+                : 'hover:bg-muted/50 text-foreground'
             }`}
             onClick={() => onGroupSelect?.('__all_groups__')}
           >
             <div className="flex items-center">
               <span className="text-sm font-medium">All Groups</span>
-              <span className="ml-2 text-xs text-gray-400">({flatNodes.length})</span>
+              <span className="ml-2 text-xs text-muted-foreground">({flatNodes.length})</span>
             </div>
           </div>
         )}

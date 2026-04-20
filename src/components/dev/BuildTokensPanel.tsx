@@ -140,7 +140,7 @@ export function BuildTokensPanel({
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between px-4 py-3 border-b">
-        <h2 className="text-sm font-semibold text-gray-700">Build Output</h2>
+        <h2 className="text-sm font-semibold text-foreground">Build Output</h2>
         <div className="flex gap-2">
           <Button
             onClick={runBuild}
@@ -165,7 +165,7 @@ export function BuildTokensPanel({
         {/* Empty state — no tokens */}
         {!tokens && (
           <div className="flex flex-col items-center justify-center py-16 text-center p-4">
-            <p className="text-gray-400 text-sm">
+            <p className="text-muted-foreground text-sm">
               No token collection selected. Select or generate a token collection to build.
             </p>
           </div>
@@ -174,15 +174,15 @@ export function BuildTokensPanel({
         {/* Loading state */}
         {tokens && loading && (
           <div className="flex flex-col items-center justify-center py-16">
-            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4" />
-            <span className="text-gray-600 text-sm">Building...</span>
+            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
+            <span className="text-muted-foreground text-sm">Building...</span>
           </div>
         )}
 
         {/* Error state */}
         {tokens && !loading && error && (
           <div className="flex flex-col items-center justify-center py-12">
-            <p className="text-red-600 text-sm mb-4">{error}</p>
+            <p className="text-destructive text-sm mb-4">{error}</p>
             <Button
               onClick={runBuild}
               variant="destructive"
@@ -197,7 +197,7 @@ export function BuildTokensPanel({
         {tokens && !loading && result && (
           <div className="flex flex-col gap-4 h-full">
             {/* Format tabs */}
-            <div className="flex border-b border-gray-200">
+            <div className="flex border-b border-border">
               {FORMATS.map(fmt => (
                 <Button
                   key={fmt}
@@ -205,8 +205,8 @@ export function BuildTokensPanel({
                   variant="ghost"
                   className={`px-4 py-2 text-sm font-medium rounded-t -mb-px border-b-2 transition-colors ${
                     activeFormat === fmt
-                      ? 'bg-blue-100 text-blue-900 border-blue-600'
-                      : 'text-gray-600 border-transparent hover:bg-gray-100'
+                      ? 'bg-primary/15 text-primary border-primary'
+                      : 'text-muted-foreground border-transparent hover:bg-muted'
                   }`}
                 >
                   {FORMAT_LABELS[fmt]}
@@ -224,8 +224,8 @@ export function BuildTokensPanel({
                     variant="ghost"
                     className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
                       activeBrand === brand
-                        ? 'bg-gray-800 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        ? 'bg-card text-card-foreground'
+                        : 'bg-muted text-foreground hover:bg-muted'
                     }`}
                   >
                     {brand}
@@ -245,7 +245,7 @@ export function BuildTokensPanel({
                 >
                   {copiedKey === copyKey ? 'Copied!' : 'Copy'}
                 </Button>
-                <pre className="bg-gray-50 rounded p-4 text-sm font-mono overflow-x-auto whitespace-pre-wrap break-all flex flex-1 overflow-y-auto">
+                <pre className="bg-muted/50 rounded p-4 text-sm font-mono overflow-x-auto whitespace-pre-wrap break-all flex flex-1 overflow-y-auto">
                   <code>{currentBrandOutput.content || '/* (empty output) */'}</code>
                 </pre>
               </div>

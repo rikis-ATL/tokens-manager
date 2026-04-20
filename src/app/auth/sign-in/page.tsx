@@ -39,9 +39,9 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
-      <div className="w-full max-w-sm bg-white dark:bg-gray-900 rounded-xl shadow-md p-8">
-        <h1 className="text-xl font-semibold text-center text-gray-900 dark:text-gray-100 mb-6">
+    <div className="min-h-screen flex items-center justify-center bg-muted/50 dark:bg-background">
+      <div className="w-full max-w-sm bg-card dark:bg-card rounded-xl shadow-md p-8">
+        <h1 className="text-xl font-semibold text-center text-foreground dark:text-foreground mb-6">
           Token Manager
         </h1>
 
@@ -49,7 +49,7 @@ export default function SignInPage() {
           <div className="flex flex-col gap-1.5">
             <label
               htmlFor="email"
-              className="text-sm font-medium text-gray-700 dark:text-gray-300"
+              className="text-sm font-medium text-foreground dark:text-muted-foreground"
             >
               Email
             </label>
@@ -67,7 +67,7 @@ export default function SignInPage() {
           <div className="flex flex-col gap-1.5">
             <label
               htmlFor="password"
-              className="text-sm font-medium text-gray-700 dark:text-gray-300"
+              className="text-sm font-medium text-foreground dark:text-muted-foreground"
             >
               Password
             </label>
@@ -83,7 +83,7 @@ export default function SignInPage() {
           </div>
 
           {error && (
-            <p className="text-sm text-red-600 dark:text-red-400 mt-1">{error}</p>
+            <p className="text-sm text-destructive dark:text-destructive mt-1">{error}</p>
           )}
 
           <Button type="submit" disabled={loading} className="w-full mt-2">

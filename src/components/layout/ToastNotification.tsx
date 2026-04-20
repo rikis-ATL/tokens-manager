@@ -13,30 +13,30 @@ export function ToastNotification({ toast, onClose }: ToastNotificationProps) {
 
   return (
     <div className="fixed bottom-8 right-8 z-50">
-      <div className={`min-w-[320px] max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 ${
-        toast.type === 'success' ? 'border-l-4 border-green-400' :
-        toast.type === 'error' ? 'border-l-4 border-red-400' :
-        'border-l-4 border-blue-400'
+      <div className={`min-w-[320px] max-w-md w-full bg-card shadow-lg rounded-lg pointer-events-auto ring-1 ring-1 ring-border ${
+        toast.type === 'success' ? 'border-l-4 border-success' :
+        toast.type === 'error' ? 'border-l-4 border-destructive' :
+        'border-l-4 border-primary'
       }`}>
         <div className="p-4">
           <div className="flex items-start">
             <div className="flex-shrink-0">
               {toast.type === 'success' ? (
-                <div className="w-5 h-5 text-green-400">✓</div>
+                <div className="w-5 h-5 text-success">✓</div>
               ) : toast.type === 'error' ? (
-                <div className="w-5 h-5 text-red-400">✕</div>
+                <div className="w-5 h-5 text-destructive">✕</div>
               ) : (
-                <div className="w-5 h-5 text-blue-400">ℹ</div>
+                <div className="w-5 h-5 text-info">ℹ</div>
               )}
             </div>
             <div className="ml-3 flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 break-words">
+              <p className="text-sm font-medium text-foreground break-words">
                 {toast.message}
               </p>
             </div>
             <div className="ml-4 flex-shrink-0 flex">
               <button
-                className="bg-white rounded-md inline-flex text-gray-400 hover:text-gray-600 focus:outline-none"
+                className="bg-card rounded-md inline-flex text-muted-foreground hover:text-muted-foreground focus:outline-none"
                 onClick={onClose}
               >
                 <span className="text-sm">✕</span>

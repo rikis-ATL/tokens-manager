@@ -67,13 +67,13 @@ export function CollectionTokensWorkspace({
 
   return (
     <div className="flex flex-1 min-h-0 w-full overflow-hidden">
-      <aside className="border-r border-gray-200 bg-gray-50 flex-shrink-0 flex flex-col transition-all duration-200 w-56">
+      <aside className="border-r border-border bg-muted/50 flex-shrink-0 flex flex-col transition-all duration-200 w-56">
         <div className="flex flex-col h-full" onClick={(e) => e.stopPropagation()}>
           <TokenGroupTree {...groupTree} />
-          <div className="mt-auto p-2 border-t border-gray-200">
+          <div className="mt-auto p-2 border-t border-border">
             <button
               type="button"
-              className="w-full flex items-center justify-center text-gray-400 hover:text-gray-700 py-1 text-xs gap-1"
+              className="w-full flex items-center justify-center text-muted-foreground hover:text-foreground py-1 text-xs gap-1"
               onClick={onCollapseSidebar}
               title="Collapse sidebar"
             >
@@ -96,7 +96,7 @@ export function CollectionTokensWorkspace({
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 shrink-0 text-gray-600"
+                    className="h-8 w-8 shrink-0 text-muted-foreground"
                     onClick={() => persistLayout('tabs')}
                     title="Tab between table and graph"
                     aria-label="Switch to tabbed layout: Table and Graph tabs"
@@ -111,7 +111,7 @@ export function CollectionTokensWorkspace({
             <ResizableHandle withHandle />
 
             <ResizablePanel defaultSize={30} minSize={20}>
-              <div className="h-full border-l border-gray-200 bg-gray-50">{graphPanel}</div>
+              <div className="h-full border-l border-border bg-muted/50">{graphPanel}</div>
             </ResizablePanel>
           </ResizablePanelGroup>
         ) : (
@@ -119,7 +119,7 @@ export function CollectionTokensWorkspace({
             defaultValue="table"
             className="flex flex-col flex-1 min-h-0 overflow-hidden gap-0"
           >
-            <div className="flex-shrink-0 px-6 pt-6 pb-3 border-b border-gray-100 bg-white">
+            <div className="flex-shrink-0 px-6 pt-6 pb-3 border-b border-border bg-card">
               {breadcrumbActionsRow(
                 <>
                   <TabsList className="h-8 p-0.5">
@@ -134,7 +134,7 @@ export function CollectionTokensWorkspace({
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 shrink-0 text-gray-600"
+                    className="h-8 w-8 shrink-0 text-muted-foreground"
                     onClick={() => persistLayout('split')}
                     title="Split view — table and graph side by side"
                     aria-label="Switch to split view"
@@ -156,7 +156,7 @@ export function CollectionTokensWorkspace({
               forceMount
               className="flex-1 min-h-0 m-0 p-0 overflow-hidden focus-visible:outline-none"
             >
-              <div className="h-full min-h-0 bg-gray-50">{graphPanel}</div>
+              <div className="h-full min-h-0 bg-muted/50">{graphPanel}</div>
             </TabsContent>
           </Tabs>
         )}

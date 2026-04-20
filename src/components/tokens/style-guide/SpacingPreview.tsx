@@ -13,9 +13,9 @@ export function SpacingPreview({ token, resolvedValue }: StyleGuideTokenProps) {
 
   if (isNaN(parsedValue)) {
     return (
-      <div className="flex items-center gap-3 px-3 py-2 rounded border border-gray-100 bg-gray-50">
-        <span className="text-xs font-mono text-gray-700">{token.path}</span>
-        <span className="text-xs font-mono text-gray-500">{resolvedValue}</span>
+      <div className="flex items-center gap-3 px-3 py-2 rounded border border-border bg-muted/50">
+        <span className="text-xs font-mono text-foreground">{token.path}</span>
+        <span className="text-xs font-mono text-muted-foreground">{resolvedValue}</span>
       </div>
     );
   }
@@ -23,10 +23,10 @@ export function SpacingPreview({ token, resolvedValue }: StyleGuideTokenProps) {
   return (
     <div className="flex flex-col gap-1">
       <div
-        className="bg-gray-300 rounded-sm"
+        className="bg-muted rounded-sm"
         style={{ width: Math.min(parsedValue, 300) + 'px', height: '10px' }}
       />
-      <span className="text-xs text-gray-500 font-mono">
+      <span className="text-xs text-muted-foreground font-mono">
         {token.path}: {resolvedValue}
       </span>
     </div>

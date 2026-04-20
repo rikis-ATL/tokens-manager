@@ -193,9 +193,9 @@ export function GitHubConfig({ onConfigChange, className = '', alwaysOpen = fals
   const formContent = (
     <>
       {isConnected && (
-        <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-4">
-          <h4 className="text-sm font-medium text-blue-900 mb-1">Need to update your token?</h4>
-          <p className="text-xs text-blue-700">
+        <div className="bg-primary/10 border border-primary rounded-md p-3 mb-4">
+          <h4 className="text-sm font-medium text-primary mb-1">Need to update your token?</h4>
+          <p className="text-xs text-primary">
             If you&apos;ve regenerated your Personal Access Token, update it below and click &quot;Save &amp; Connect&quot; again.
           </p>
         </div>
@@ -203,7 +203,7 @@ export function GitHubConfig({ onConfigChange, className = '', alwaysOpen = fals
 
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-foreground mb-1">
             Repository Name
           </label>
           <Input
@@ -212,15 +212,15 @@ export function GitHubConfig({ onConfigChange, className = '', alwaysOpen = fals
             onChange={(e) => setConfig(prev => ({ ...prev, repository: e.target.value }))}
             placeholder="rikisommers/design-tokens"
           />
-          <p className="text-gray-500 text-xs mt-1">
-            Enter just the repository name in format: <code className="bg-gray-100 px-1 rounded">username/repository</code><br/>
+          <p className="text-muted-foreground text-xs mt-1">
+            Enter just the repository name in format: <code className="bg-muted px-1 rounded">username/repository</code><br/>
             Correct: &quot;rikisommers/design-tokens&quot;<br/>
             Do not include: &quot;https://github.com/...&quot;
           </p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-foreground mb-1">
             Personal Access Token
           </label>
           <Input
@@ -229,7 +229,7 @@ export function GitHubConfig({ onConfigChange, className = '', alwaysOpen = fals
             onChange={(e) => setConfig(prev => ({ ...prev, token: e.target.value }))}
             placeholder="ghp_xxxxxxxxxxxx"
           />
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             Token needs &apos;repo&apos; scope permissions
           </p>
         </div>
@@ -237,7 +237,7 @@ export function GitHubConfig({ onConfigChange, className = '', alwaysOpen = fals
         {branches.length > 0 && (
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-foreground">
                 Branch
               </label>
               <Button
@@ -247,7 +247,7 @@ export function GitHubConfig({ onConfigChange, className = '', alwaysOpen = fals
                   setShowCreateBranch(true);
                   setSourceBranch(config.branch);
                 }}
-                className="text-xs text-blue-600 hover:text-blue-700 h-auto p-0"
+                className="text-xs text-primary hover:text-primary h-auto p-0"
               >
                 + Create Branch
               </Button>
@@ -269,10 +269,10 @@ export function GitHubConfig({ onConfigChange, className = '', alwaysOpen = fals
         )}
 
         {showCreateBranch && (
-          <div className="bg-blue-50 rounded-md p-3 space-y-3">
-            <h4 className="text-sm font-medium text-blue-900">Create New Branch</h4>
+          <div className="bg-primary/10 rounded-md p-3 space-y-3">
+            <h4 className="text-sm font-medium text-primary">Create New Branch</h4>
             <div>
-              <label className="block text-xs font-medium text-blue-700 mb-1">
+              <label className="block text-xs font-medium text-primary mb-1">
                 Branch Name
               </label>
               <Input
@@ -284,7 +284,7 @@ export function GitHubConfig({ onConfigChange, className = '', alwaysOpen = fals
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-blue-700 mb-1">
+              <label className="block text-xs font-medium text-primary mb-1">
                 Create From
               </label>
               <Select
@@ -310,7 +310,7 @@ export function GitHubConfig({ onConfigChange, className = '', alwaysOpen = fals
                   setNewBranchName('');
                   setSourceBranch('');
                 }}
-                className="text-xs text-blue-600 hover:text-blue-700"
+                className="text-xs text-primary hover:text-primary"
               >
                 Cancel
               </Button>
@@ -318,7 +318,7 @@ export function GitHubConfig({ onConfigChange, className = '', alwaysOpen = fals
                 size="sm"
                 onClick={handleCreateBranch}
                 disabled={loading}
-                className="text-xs bg-blue-600 text-white hover:bg-blue-700"
+                className="text-xs bg-primary text-primary-foreground hover:bg-primary"
               >
                 {loading ? 'Creating...' : 'Create'}
               </Button>
@@ -333,7 +333,7 @@ export function GitHubConfig({ onConfigChange, className = '', alwaysOpen = fals
             <Button
               variant="outline"
               onClick={handleDisconnect}
-              className="bg-red-100 text-red-700 hover:bg-red-200 border-red-200"
+              className="bg-destructive/15 text-destructive hover:bg-destructive/25 border-destructive"
               title="Completely disconnect and clear all GitHub settings"
             >
               Reset Connection
@@ -345,7 +345,7 @@ export function GitHubConfig({ onConfigChange, className = '', alwaysOpen = fals
             <Button
               variant="ghost"
               onClick={() => setIsOpen(false)}
-              className="text-gray-600 hover:text-gray-700"
+              className="text-muted-foreground hover:text-foreground"
             >
               Cancel
             </Button>
@@ -370,13 +370,13 @@ export function GitHubConfig({ onConfigChange, className = '', alwaysOpen = fals
             onClick={() => setIsOpen(true)}
             className={
               isConnected
-                ? 'bg-green-100 text-green-800 hover:bg-green-200 border-green-200'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200'
+                ? 'bg-success/15 text-success hover:bg-success/25 border-success'
+                : 'bg-muted text-foreground hover:bg-muted border-border'
             }
           >
             {isConnected ? (
               <span className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                <span className="w-2 h-2 bg-success rounded-full"></span>
                 {config.repository} ({config.branch})
               </span>
             ) : (
@@ -389,7 +389,7 @@ export function GitHubConfig({ onConfigChange, className = '', alwaysOpen = fals
               variant="outline"
               size="sm"
               onClick={() => setIsOpen(true)}
-              className="text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 border-blue-200"
+              className="text-xs bg-primary/15 text-primary hover:bg-primary/25 border-primary"
               title="Reconfigure GitHub connection (e.g., update token)"
             >
               Reconfigure
@@ -402,7 +402,7 @@ export function GitHubConfig({ onConfigChange, className = '', alwaysOpen = fals
         /* Inline form — no modal overlay */
         <div>
           {isConnected && (
-            <p className="text-sm text-green-600 mb-4">
+            <p className="text-sm text-success mb-4">
               Connected to {config.repository} ({config.branch})
             </p>
           )}
@@ -410,13 +410,13 @@ export function GitHubConfig({ onConfigChange, className = '', alwaysOpen = fals
         </div>
       ) : (
         isOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+          <div className="fixed inset-0 bg-foreground/50 flex items-center justify-center z-50">
+            <div className="bg-card rounded-lg p-6 w-full max-w-md">
               <div className="flex justify-between items-center mb-4">
                 <div>
                   <h3 className="text-lg font-semibold">GitHub Repository Configuration</h3>
                   {isConnected && (
-                    <p className="text-sm text-green-600 mt-1">
+                    <p className="text-sm text-success mt-1">
                       Connected to {config.repository}
                     </p>
                   )}
@@ -425,7 +425,7 @@ export function GitHubConfig({ onConfigChange, className = '', alwaysOpen = fals
                   variant="ghost"
                   size="sm"
                   onClick={() => setIsOpen(false)}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-muted-foreground hover:text-foreground"
                 >
                   x
                 </Button>

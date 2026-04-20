@@ -64,14 +64,14 @@ export function SaveAsTokenDialog({
   return (
     <Dialog open={open} onOpenChange={v => { if (!v) onClose(); }}>
       <DialogContent className="max-w-sm p-0 gap-0 overflow-hidden">
-        <DialogHeader className="px-4 pt-4 pb-3 border-b border-gray-100">
+        <DialogHeader className="px-4 pt-4 pb-3 border-b border-border">
           <DialogTitle className="text-sm font-semibold">Save as token</DialogTitle>
         </DialogHeader>
 
         <div className="px-4 py-4 space-y-3">
           {/* Token name */}
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">
+            <label className="block text-xs font-medium text-muted-foreground mb-1">
               Token name
             </label>
             <input
@@ -81,14 +81,14 @@ export function SaveAsTokenDialog({
               onChange={e => onTokenNameChange(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && canSave) handleSave(); }}
               placeholder="e.g. card.styles"
-              className="w-full text-sm border border-gray-200 rounded px-2.5 py-1.5 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100"
+              className="w-full text-sm border border-border rounded px-2.5 py-1.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
             />
           </div>
 
           {/* Destination group */}
           {groups.length > 0 && (
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">
+              <label className="block text-xs font-medium text-muted-foreground mb-1">
                 Destination group
               </label>
               <GroupPicker
@@ -102,18 +102,18 @@ export function SaveAsTokenDialog({
 
           {/* Preview */}
           {preview && preview.length > 0 && tokenName.trim() && (
-            <div className="bg-gray-50 rounded p-2 border border-gray-100">
-              <div className="text-[10px] text-gray-400 font-medium uppercase tracking-wide mb-1">
+            <div className="bg-muted/50 rounded p-2 border border-border">
+              <div className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide mb-1">
                 Preview
               </div>
-              <code className="text-[10px] text-gray-600 font-mono block">
-                <span className="text-blue-600">"{tokenName.trim()}"</span>
+              <code className="text-[10px] text-muted-foreground font-mono block">
+                <span className="text-primary">"{tokenName.trim()}"</span>
                 {selectedGroup && (
-                  <span className="text-gray-400"> → {selectedGroup.path}</span>
+                  <span className="text-muted-foreground"> → {selectedGroup.path}</span>
                 )}
               </code>
               {preview.map((line, i) => (
-                <code key={i} className="text-[10px] text-gray-500 font-mono block truncate">
+                <code key={i} className="text-[10px] text-muted-foreground font-mono block truncate">
                   {line}
                 </code>
               ))}
@@ -128,10 +128,10 @@ export function SaveAsTokenDialog({
             onClick={handleSave}
             className={`w-full flex items-center justify-center gap-2 text-sm font-medium rounded px-4 py-2 transition-colors ${
               saved
-                ? 'bg-green-100 text-green-700 border border-green-300'
+                ? 'bg-success/15 text-success border border-success'
                 : !canSave
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                : 'bg-blue-600 hover:bg-blue-700 text-white'
+                ? 'bg-muted text-muted-foreground cursor-not-allowed'
+                : 'bg-primary hover:bg-primary text-primary-foreground'
             }`}
           >
             {saved ? <><Check size={14} /> Saved</> : <><Save size={14} /> Save to group</>}

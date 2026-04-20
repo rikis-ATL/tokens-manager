@@ -87,12 +87,12 @@ function JsonNodeComponent({ data }: NodeProps) {
   }, [nodeId, onGenerate]);
 
   return (
-    <NodeWrapper borderColor="border-amber-300" width={268}>
+    <NodeWrapper borderColor="border-warning" width={268}>
       <NodeHeader
-        icon={isSubgroup ? <FolderPlus size={12} className="text-amber-500" /> : <FileJson size={12} className="text-amber-500" />}
+        icon={isSubgroup ? <FolderPlus size={12} className="text-warning" /> : <FileJson size={12} className="text-warning" />}
         title="Json"
         badge={count > 0 ? `${count} tokens` : undefined}
-        headerClass="bg-amber-50 border-amber-200 text-amber-700"
+        headerClass="bg-warning/10 border-warning text-warning"
         onDelete={onDeleteNode ? () => onDeleteNode(nodeId) : undefined}
       />
 
@@ -111,12 +111,12 @@ function JsonNodeComponent({ data }: NodeProps) {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="nodrag text-[10px] font-medium px-2 py-1 rounded bg-amber-100 hover:bg-amber-200 text-amber-800 border border-amber-200 transition-colors"
+                className="nodrag text-[10px] font-medium px-2 py-1 rounded bg-warning/15 hover:bg-warning/25 text-warning border border-warning transition-colors"
               >
                 Upload
               </button>
               {hasTokens && (
-                <span className="text-[10px] text-amber-600">{pairs.length} loaded</span>
+                <span className="text-[10px] text-warning">{pairs.length} loaded</span>
               )}
             </div>
             <textarea
@@ -126,13 +126,13 @@ function JsonNodeComponent({ data }: NodeProps) {
                 handlePasteBlur(e);
                 onGraphInputBlur?.();
               }}
-              className="nodrag w-full text-[10px] font-mono bg-gray-50 border border-gray-200 rounded px-1.5 py-1 text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-amber-300 resize-none"
+              className="nodrag w-full text-[10px] font-mono bg-muted/50 border border-border rounded px-1.5 py-1 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-warning/40 resize-none"
               rows={2}
             />
           </div>
         </Row>
         {parseError && (
-          <div className="text-[10px] text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1">
+          <div className="text-[10px] text-destructive bg-destructive/10 border border-destructive rounded px-2 py-1">
             {parseError}
           </div>
         )}
@@ -167,19 +167,19 @@ function JsonNodeComponent({ data }: NodeProps) {
 
         {/* Preview */}
         {preview.length > 0 && (
-          <div className="border-t border-gray-100 pt-2 mt-1">
-            <div className="text-[10px] font-medium text-gray-400 uppercase tracking-wide mb-0.5">
+          <div className="border-t border-border pt-2 mt-1">
+            <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mb-0.5">
               Preview
             </div>
             <div className="space-y-0.5">
               {preview.map((t, i) => (
                 <div key={`${t.name}-${i}`} className="flex items-center gap-1.5">
-                  <span className="font-mono text-[10px] text-gray-500 flex-1 truncate">{t.name}</span>
-                  <span className="font-mono text-[10px] text-gray-700 truncate">{t.value}</span>
+                  <span className="font-mono text-[10px] text-muted-foreground flex-1 truncate">{t.name}</span>
+                  <span className="font-mono text-[10px] text-foreground truncate">{t.value}</span>
                 </div>
               ))}
               {pairs.length > 5 && (
-                <div className="text-[10px] text-gray-400">+{pairs.length - 5} more</div>
+                <div className="text-[10px] text-muted-foreground">+{pairs.length - 5} more</div>
               )}
             </div>
           </div>
@@ -192,10 +192,10 @@ function JsonNodeComponent({ data }: NodeProps) {
           disabled={!hasTokens}
           className={`nodrag w-full flex items-center justify-center gap-1.5 text-xs font-medium rounded px-3 py-1.5 transition-colors ${
             generated
-              ? 'bg-green-100 text-green-700 border border-green-300'
+              ? 'bg-success/15 text-success border border-success'
               : !hasTokens
-              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              : 'bg-amber-600 hover:bg-amber-700 text-white'
+              ? 'bg-muted text-muted-foreground cursor-not-allowed'
+              : 'bg-warning hover:bg-warning/90 text-warning-foreground'
           }`}
           onClick={handleGenerate}
         >
