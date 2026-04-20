@@ -8,6 +8,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import dbConnect from '@/lib/mongodb';
 import User from '@/lib/db/models/User';
+import Organization from '@/lib/db/models/Organization';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -27,6 +28,10 @@ export const authOptions: NextAuthOptions = {
         // Only 'disabled' is explicitly blocked
         const valid = await bcrypt.compare(credentials.password, user.passwordHash);
         if (!valid) throw new Error('Incorrect password');
+        const org = user.organizationId
+          ? await Organization.findById(user.organizationId).select('name').lean() as { name?: string } | null
+          : null;
+
         return {
           id: user._id.toString(),
           email: user.email,
@@ -35,7 +40,8 @@ export const authOptions: NextAuthOptions = {
           // Phase 22 D-09 — organizationId flows into the JWT. Empty string fallback for any legacy doc
           // somehow lacking it (shouldn't happen after Plan 04 migration, but defence-in-depth).
           organizationId: user.organizationId ? user.organizationId.toString() : '',
-        } as unknown as { id: string; email: string; name: string; role: string; organizationId: string };
+          orgName: org?.name ?? '',
+        } as unknown as { id: string; email: string; name: string; role: string; organizationId: string; orgName: string };
       },
     }),
   ],
@@ -55,6 +61,7 @@ export const authOptions: NextAuthOptions = {
         // Phase 22 D-09 — copy org claim on initial sign-in. Not re-fetched on role-TTL refresh
         // because single-org-per-user means it does not change (see RESEARCH.md Open Question 2).
         token.organizationId = (user as unknown as { organizationId?: string }).organizationId ?? '';
+        token.orgName = (user as unknown as { orgName?: string }).orgName ?? '';
       }
 
       // SUPER_ADMIN_EMAIL short-circuit — apply first, return early to skip DB re-fetch
@@ -98,6 +105,7 @@ export const authOptions: NextAuthOptions = {
         // Phase 22 D-09 — expose org claim on the client-side session.user.
         session.user.organizationId = (token.organizationId as string | undefined) ?? '';
         session.user.isSuperAdmin = (token.isSuperAdmin as boolean | undefined) ?? false;
+        session.user.orgName = (token.orgName as string | undefined) ?? '';
       }
       return session;
     },

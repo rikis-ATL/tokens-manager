@@ -81,6 +81,12 @@ export function OrgHeader({ pageTitle, showPlaygroundBadge }: OrgHeaderProps) {
           <Link href="/collections" className="text-sm font-semibold text-foreground tracking-wide hover:text-muted-foreground transition-colors">
             {mainTitle}
           </Link>
+          {session?.user?.orgName && (
+            <>
+              <span className="text-muted-foreground text-sm">/</span>
+              <span className="text-sm text-muted-foreground">{session.user.orgName}</span>
+            </>
+          )}
           {showPlaygroundBadge && (
             <Badge className="bg-warning/10 text-warning border-warning shrink-0">
               Playground

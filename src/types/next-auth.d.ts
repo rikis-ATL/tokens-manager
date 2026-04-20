@@ -12,6 +12,8 @@ declare module 'next-auth' {
       organizationId: string;
       /** True when this user's email matches SUPER_ADMIN_EMAIL. */
       isSuperAdmin: boolean;
+      /** Display name of the user's organisation. Empty string for legacy/pre-22 sessions. */
+      orgName: string;
     } & DefaultSession['user'];
   }
 }
@@ -24,5 +26,6 @@ declare module 'next-auth/jwt' {
     /** Phase 22 — Organization._id (stringified). Undefined on tokens minted before Phase 22 deploy. */
     organizationId?: string;
     isSuperAdmin?: boolean;
+    orgName?: string;
   }
 }
