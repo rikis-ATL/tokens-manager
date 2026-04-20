@@ -5,6 +5,8 @@ import { PlusCircle, RefreshCw } from 'lucide-react';
 import { useCollection } from '@/context/CollectionContext';
 import { CollectionSelector } from '@/components/collections/CollectionSelector';
 import { Button } from '@/components/ui/button';
+import { UsageBadge } from '@/components/billing/UsageBadge';
+import { apiFetch } from '@/lib/api-client';
 
 export function AppHeader() {
   const { collections, selectedId, setSelectedId, loading, loadError, refreshCollections } = useCollection();
@@ -13,7 +15,7 @@ export function AppHeader() {
   const handleNewCollection = async () => {
     setCreating(true);
     try {
-      const res = await fetch('/api/collections', {
+      const res = await apiFetch('/api/collections', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: 'New Collection', tokens: {}, namespace: 'token' }),
@@ -30,9 +32,9 @@ export function AppHeader() {
   };
 
   return (
-    <header className="flex items-center gap-4 px-6 py-3 border-b border-gray-200 bg-white flex-shrink-0">
+    <header className="flex items-center gap-4 px-6 py-3 border-b border-border bg-card flex-shrink-0">
       {loadError ? (
-        <div className="flex items-center gap-2 text-sm text-red-600">
+        <div className="flex items-center gap-2 text-sm text-destructive">
           <span>Failed to load collections</span>
           <Button variant="outline" size="sm" onClick={() => refreshCollections()}>
             <RefreshCw size={13} className="mr-1.5" />
@@ -47,15 +49,18 @@ export function AppHeader() {
           onChange={setSelectedId}
         />
       )}
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={handleNewCollection}
-        disabled={creating}
-      >
-        <PlusCircle size={14} className="mr-1.5" />
-        New Collection
-      </Button>
+      <div className="ml-auto flex items-center gap-3">
+        <UsageBadge />
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleNewCollection}
+          disabled={creating}
+        >
+          <PlusCircle size={14} className="mr-1.5" />
+          New Collection
+        </Button>
+      </div>
     </header>
   );
 }

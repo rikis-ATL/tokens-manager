@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { TokenGeneratorDocs } from '@/components/tokens/TokenGeneratorDocs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { UsageBadge } from '@/components/billing/UsageBadge';
 
 type ConnectionState = 'connected' | 'local' | 'loading';
 
@@ -67,27 +68,28 @@ export function OrgHeader({ pageTitle, showPlaygroundBadge }: OrgHeaderProps) {
 
   return (
     <>
-      <header className="flex items-center justify-between px-5 py-3 border-b border-gray-200 bg-white flex-shrink-0">
+      <header className="flex items-center justify-between px-5 py-3 border-b border-border bg-card flex-shrink-0">
         <div className="flex items-center gap-3">
           {isCollectionDetail && (
             <Link
               href="/collections"
-              className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-800 transition-colors"
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
               <ChevronLeft size={14} />
             </Link>
           )}
-          <Link href="/collections" className="text-sm font-semibold text-gray-900 tracking-wide hover:text-gray-700 transition-colors">
+          <Link href="/collections" className="text-sm font-semibold text-foreground tracking-wide hover:text-muted-foreground transition-colors">
             {mainTitle}
           </Link>
           {showPlaygroundBadge && (
-            <Badge className="bg-amber-50 text-amber-700 border-amber-200 shrink-0">
+            <Badge className="bg-warning/10 text-warning border-warning shrink-0">
               Playground
             </Badge>
           )}
         </div>
 
         <div className="flex items-center gap-3">
+          <UsageBadge />
           {isDemoUser ? <DemoModeBadge /> : <DbPill status={db} />}
           <Button
             variant="outline"
@@ -121,15 +123,15 @@ function DbPill({ status }: { status: DbStatus }) {
   return (
     <div className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition-colors ${
       isLoading
-        ? 'text-gray-400 border-gray-200 bg-gray-50'
+        ? 'text-muted-foreground border-border bg-muted/50'
         : isConnected
-          ? 'text-green-700 border-green-200 bg-green-50'
-          : 'text-amber-700 border-amber-200 bg-amber-50'
+          ? 'text-success border-success bg-success/10'
+          : 'text-warning border-warning bg-warning/10'
     }`}>
       {isLoading ? (
-        <span className="w-2 h-2 rounded-full border border-gray-300 border-t-transparent animate-spin" />
+        <span className="w-2 h-2 rounded-full border border-border border-t-transparent animate-spin" />
       ) : (
-        <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-amber-400'}`} />
+        <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-success' : 'bg-warning'}`} />
       )}
       <span>{status.label}</span>
     </div>
@@ -138,8 +140,8 @@ function DbPill({ status }: { status: DbStatus }) {
 
 function DemoModeBadge() {
   return (
-    <div className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition-colors text-orange-700 border-orange-200 bg-orange-50">
-      <span className="w-2 h-2 rounded-full bg-orange-500" />
+    <div className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition-colors text-warning border-warning bg-warning/10">
+      <span className="w-2 h-2 rounded-full bg-warning" />
       <span>Demo Mode</span>
     </div>
   );
