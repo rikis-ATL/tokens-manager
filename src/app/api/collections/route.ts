@@ -20,7 +20,8 @@ export async function GET() {
 
   try {
     const repo = await getRepository();
-    const docs = await repo.list();
+    const orgId = session.user.role === 'Demo' ? undefined : session.user.organizationId;
+    const docs = await repo.list(orgId ? { organizationId: orgId } : undefined);
 
     let visibleDocs = docs;
 
