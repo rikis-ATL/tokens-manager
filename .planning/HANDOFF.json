@@ -1,0 +1,51 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-04-20T11:43:27.670Z",
+  "phase": "23",
+  "phase_name": "billing-module-and-limit-enforcement",
+  "phase_dir": ".planning/phases/23-billing-module-and-limit-enforcement",
+  "plan": 3,
+  "task": 4,
+  "total_tasks": 4,
+  "status": "paused",
+  "completed_tasks": [
+    {"id": 1, "name": "Build GET /api/org/usage endpoint", "status": "done", "commit": "8ff5a5d"},
+    {"id": 2, "name": "Build UpgradeModalProvider + apiFetch + wire layout", "status": "done", "commit": "d33794d"},
+    {"id": 3, "name": "Build UsageBadge, mount in headers, migrate handleNewCollection", "status": "done", "commit": "5d4321d"}
+  ],
+  "remaining_tasks": [
+    {"id": 4, "name": "Human browser verification (Task 4 checkpoint)", "status": "not_started"}
+  ],
+  "blockers": [
+    {
+      "description": "yarn tsc --noEmit crashes with SIGABRT regardless of memory — likely TypeScript compiler bug triggered by project size or a specific type. Not caused by session changes.",
+      "type": "technical",
+      "workaround": "Skip tsc check for now; dev server (yarn dev) and Jest tests are the validation path."
+    }
+  ],
+  "human_actions_pending": [
+    {
+      "action": "Sign out and sign back in to pick up new JWT fields: isSuperAdmin, orgName",
+      "context": "These were added to the JWT this session; existing sessions lack them. isSuperAdmin gates Database Settings in /settings; orgName shows in header.",
+      "blocking": true
+    },
+    {
+      "action": "Browser verification for Phase 23 Plan 03 (Task 4 checkpoint)",
+      "context": "Test UsageBadge rendering, 402→modal flow, SELF_HOSTED bypass, 429 does not open modal. Full checklist in 23-03-PLAN.md Task 4.",
+      "blocking": false
+    }
+  ],
+  "decisions": [
+    {"decision": "organizationId empty-string fallback in JWT treated as missing (returns empty collections)", "rationale": "Prevents unscoped DB queries that leaked all collections when orgId was '' not null", "phase": "23"},
+    {"decision": "requireRole now checks org ownership for all collection-scoped routes", "rationale": "Centralises the check so themes/tokens/versions sub-routes get it automatically", "phase": "23"},
+    {"decision": "isSuperAdmin added as boolean JWT claim (not email)", "rationale": "Safe — no PII in claim; gates Database Settings and App Theme sections from regular Admins", "phase": "23"},
+    {"decision": "orgName added to JWT at sign-in via Organization.findById", "rationale": "Single extra DB call at sign-in avoids per-request fetch; header shows org context without API call", "phase": "23"}
+  ],
+  "uncommitted_files": [
+    ".planning/ROADMAP.md",
+    ".planning/STATE.md",
+    "tsconfig.tsbuildinfo (deleted)"
+  ],
+  "next_action": "User signs out/in to refresh JWT, then runs browser verification checklist from 23-03-PLAN.md Task 4. After 'approved', write 23-03-SUMMARY.md and update STATE.md to phase complete.",
+  "context_notes": "Session fixed multi-tenancy leaks: new collections missing organizationId, empty-string orgId bypassing list filter, cross-org collection access via known IDs, Database Settings visible to all Admins. Also committed large semantic color migration (106 files) and added access-and-permissions.md documentation. Phase 23 Plan 03 code is done; only the human verification checkpoint remains."
+}
