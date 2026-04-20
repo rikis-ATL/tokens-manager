@@ -10,6 +10,7 @@ import { authOptions } from '@/lib/auth/nextauth.config';
 import { bootstrapCollectionGrants } from '@/lib/auth/collection-bootstrap';
 import CollectionPermission from '@/lib/db/models/CollectionPermission';
 import type { CollectionCardData, ISourceMetadata } from '@/types/collection.types';
+import { checkCollectionLimit } from '@/lib/billing';
 
 export async function GET() {
   await bootstrapCollectionGrants();
@@ -105,6 +106,11 @@ export async function POST(request: Request) {
   if (authResult instanceof NextResponse) return authResult;
   const session = await getServerSession(authOptions);
   const organizationId = session?.user?.organizationId ?? '';
+
+  // LIMIT-01 — collection count guard (Phase 23 D-13, D-14).
+  const limitGuard = await checkCollectionLimit(organizationId);
+  if (limitGuard) return limitGuard;
+
   try {
     const body = await request.json() as {
       name?: string;
