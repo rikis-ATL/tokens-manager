@@ -4,6 +4,8 @@ import "./globals.css";
 import "@xyflow/react/dist/style.css";
 import { LayoutShell } from "@/components/layout/LayoutShell";
 import { AuthProviders } from "@/components/providers/AuthProviders";
+import { AppThemeProvider } from "@/components/providers/AppThemeProvider";
+import { UpgradeModalProvider } from "@/components/billing/UpgradeModalProvider";
 import { Toaster } from "sonner";
 
 const inter = Inter({
@@ -24,7 +26,11 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.className} antialiased`}>
         <AuthProviders>
-          <LayoutShell>{children}</LayoutShell>
+          <AppThemeProvider>
+            <UpgradeModalProvider>
+              <LayoutShell>{children}</LayoutShell>
+            </UpgradeModalProvider>
+          </AppThemeProvider>
         </AuthProviders>
         <Toaster position="bottom-right" richColors closeButton />
       </body>
