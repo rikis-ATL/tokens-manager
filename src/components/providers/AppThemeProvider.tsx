@@ -9,7 +9,6 @@ import {
   useRef,
   useState,
 } from 'react';
-import { io, type Socket } from 'socket.io-client';
 
 const STYLE_ID = 'app-theme-dynamic-css';
 const STORAGE_THEME_ID = 'app-theme-shell-theme-id';
@@ -94,7 +93,6 @@ export function AppThemeProvider({ children }: { children: React.ReactNode }) {
   const [themeColorMode, setThemeColorMode] = useState<'light' | 'dark' | null>(null);
   const [prefersDark, setPrefersDarkState] = useState(false);
 
-  const socketRef = useRef<Socket | null>(null);
   const themeIdRef = useRef(themeId);
 
   useEffect(() => {
@@ -115,7 +113,7 @@ export function AppThemeProvider({ children }: { children: React.ReactNode }) {
   const runFetch = useCallback(
     async (tid: string) => {
       const qs = tid && tid !== '__default__' ? `?themeId=${encodeURIComponent(tid)}` : '';
-      const res = await fetch(`/api/app-theme/css${qs}`);
+      const res = await fetch(`/api/app-theme/css${qs}`, { cache: 'no-store' });
       if (res.status === 503) {
         setConfigured(false);
         injectCss('');
@@ -158,7 +156,7 @@ export function AppThemeProvider({ children }: { children: React.ReactNode }) {
     let cancelled = false;
 
     (async () => {
-      const cfgRes = await fetch('/api/app-theme/config');
+      const cfgRes = await fetch('/api/app-theme/config', { cache: 'no-store' });
       if (!cfgRes.ok || cancelled) return;
       const cfg = (await cfgRes.json()) as { configured?: boolean };
       if (!cfg.configured) {
@@ -203,43 +201,6 @@ export function AppThemeProvider({ children }: { children: React.ReactNode }) {
       /* ignore */
     }
   }, []);
-
-  useEffect(() => {
-    if (!configured || !collectionId) {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-        socketRef.current = null;
-      }
-      return;
-    }
-
-    const socket = io(typeof window !== 'undefined' ? window.location.origin : '', {
-      path: '/api/socketio',
-      transports: ['websocket', 'polling'],
-    });
-    socketRef.current = socket;
-
-    socket.on('connect', () => {
-      socket.emit('subscribe', collectionId);
-    });
-
-    socket.on('token-update', (payload: { collectionId?: string; themeId?: string | null }) => {
-      if (payload.collectionId !== collectionId) return;
-      const active = themeIdRef.current;
-      if (payload.themeId && active !== '__default__' && payload.themeId !== active) {
-        return;
-      }
-      void runFetch(active);
-    });
-
-    return () => {
-      if (socket.connected) {
-        socket.emit('unsubscribe', collectionId);
-      }
-      socket.disconnect();
-      socketRef.current = null;
-    };
-  }, [configured, collectionId, runFetch]);
 
   const value = useMemo<AppThemeContextValue>(
     () => ({

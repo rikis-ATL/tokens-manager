@@ -39,8 +39,12 @@ import { ClearFormDialog } from '@/components/tokens/ClearFormDialog';
 import { JsonPreviewDialog } from '@/components/dev/JsonPreviewDialog';
 import type { GitHubConfig } from '@/types';
 import { usePermissions } from '@/context/PermissionsContext';
+import { useAppTheme } from '@/components/providers/AppThemeProvider';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { AIChatPanel } from '@/components/ai/AIChatPanel';
+
+/** When Figma/JSON dialogs are closed, avoid re-parsing token JSON on every parent render. */
+const CLOSED_DIALOG_TOKEN_PLACEHOLDER: Record<string, unknown> = {};
 
 /** Pure helper: update a single token value within a recursive group tree */
 function updateGroupToken(group: TokenGroup, targetGroupId: string, tokenId: string, value: string): TokenGroup {
@@ -86,6 +90,19 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const { canEdit, canGitHub, canFigma } = usePermissions();
+  const appTheme = useAppTheme();
+  const appThemeRef = useRef(appTheme);
+  useEffect(() => {
+    appThemeRef.current = appTheme;
+  }, [appTheme]);
+
+  /** After persisting this collection, refresh shell CSS if it is the designated app-theme collection. */
+  const tryRefreshAppShell = useCallback(() => {
+    const at = appThemeRef.current;
+    if (at?.configured && at.collectionId === id) {
+      void at.refresh();
+    }
+  }, [id]);
 
   const [saveAsDialogOpen, setSaveAsDialogOpen] = useState(false);
   const [isSavingAs, setIsSavingAs] = useState(false);
@@ -127,6 +144,8 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   // Theme-mode editable token copy and auto-save timer
   const [activeThemeTokens, setActiveThemeTokens] = useState<TokenGroup[]>([]);
   const themeTokenSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** Collection-default token edits: debounced PUT; app shell refresh runs after successful persist */
+  const defaultTokenSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Group reorder undo stack (max 20 steps) and debounced persist timer
   const undoStackRef = useRef<TokenGroup[][]>([]);
@@ -214,11 +233,11 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
         const apiThemes: ITheme[] = themesData.themes ?? [];
         setThemes(apiThemes);
       }
+      if (colRes.ok) tryRefreshAppShell();
     } catch {
       // silent — user can manually refresh if needed
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [id, tryRefreshAppShell, globalNamespace]);
 
   useEffect(() => {
     loadCollection();
@@ -226,6 +245,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       abortControllerRef.current?.abort();
       if (graphAutoSaveTimerRef.current) clearTimeout(graphAutoSaveTimerRef.current);
       if (themeTokenSaveTimerRef.current) clearTimeout(themeTokenSaveTimerRef.current);
+      if (defaultTokenSaveTimerRef.current) clearTimeout(defaultTokenSaveTimerRef.current);
       if (groupReorderSaveTimerRef.current) clearTimeout(groupReorderSaveTimerRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -337,11 +357,47 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   };
 
   // ── Keep refs in sync so keyboard shortcut reads fresh values ──────────
-  const handleTokensChange = useCallback((tokens: Record<string, unknown> | null, namespace: string, _collectionName: string) => {
-    setGenerateTabTokens(tokens ?? {});
-    generateTabTokensRef.current = tokens;
-    if (namespace) setGlobalNamespace(namespace);
-  }, []);
+  const handleTokensChange = useCallback(
+    (tokens: Record<string, unknown> | null, namespace: string, _collectionName: string) => {
+      setGenerateTabTokens(tokens ?? {});
+      generateTabTokensRef.current = tokens;
+      if (namespace) setGlobalNamespace(namespace);
+
+      // Theme mode persists via handleThemeTokenChange; default mode debounced PUT + tryRefreshAppShell.
+      if (activeThemeIdRef.current) return;
+      if (!canEdit) return;
+      const payload = tokens;
+      if (!payload || Object.keys(payload).length === 0) return;
+
+      if (defaultTokenSaveTimerRef.current) clearTimeout(defaultTokenSaveTimerRef.current);
+      defaultTokenSaveTimerRef.current = setTimeout(async () => {
+        const toSave = generateTabTokensRef.current;
+        if (!toSave || Object.keys(toSave).length === 0) return;
+        const prev = rawCollectionTokensRef.current;
+        if (prev && JSON.stringify(toSave) === JSON.stringify(prev)) return;
+        const ns = namespace?.trim() || globalNamespace;
+        try {
+          const res = await fetch(`/api/collections/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              tokens: toSave,
+              namespace: ns,
+              graphState: graphStateMapRef.current,
+            }),
+          });
+          if (res.ok) {
+            rawCollectionTokensRef.current = toSave;
+            setRawCollectionTokens(toSave);
+            tryRefreshAppShell();
+          }
+        } catch {
+          // Silent — same pattern as theme token auto-save
+        }
+      }, 400);
+    },
+    [canEdit, id, globalNamespace, tryRefreshAppShell]
+  );
 
   // ── Group drag-and-drop reorder handler ────────────────────────────────
   const handleGroupsReordered = useCallback(async (
@@ -384,18 +440,21 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     groupReorderSaveTimerRef.current = setTimeout(async () => {
       try {
         const rawTokens = tokenService.generateStyleDictionaryOutput(newGroups, globalNamespace);
-        await fetch(`/api/collections/${id}`, {
+        const res = await fetch(`/api/collections/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ tokens: rawTokens, namespace: globalNamespace, themes: updatedThemes }),
         });
-        rawCollectionTokensRef.current = rawTokens as Record<string, unknown>;
-        setRawCollectionTokens(rawTokens as Record<string, unknown>);
+        if (res.ok) {
+          rawCollectionTokensRef.current = rawTokens as Record<string, unknown>;
+          setRawCollectionTokens(rawTokens as Record<string, unknown>);
+          tryRefreshAppShell();
+        }
       } catch {
         // Silent — mirrors existing auto-save error handling pattern
       }
     }, 300);
-  }, [masterGroups, themes, id, globalNamespace, selectedGroupId]);
+  }, [masterGroups, themes, id, globalNamespace, selectedGroupId, tryRefreshAppShell]);
 
   // ── Group rename handler ────────────────────────────────────────────────
   const handleRenameGroup = useCallback(async (groupId: string, newLabel: string) => {
@@ -411,17 +470,20 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
 
     try {
       const rawTokens = tokenService.generateStyleDictionaryOutput(newGroups, globalNamespace);
-      await fetch(`/api/collections/${id}`, {
+      const res = await fetch(`/api/collections/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tokens: rawTokens, namespace: globalNamespace, themes: updatedThemes }),
       });
-      rawCollectionTokensRef.current = rawTokens as Record<string, unknown>;
-      setRawCollectionTokens(rawTokens as Record<string, unknown>);
+      if (res.ok) {
+        rawCollectionTokensRef.current = rawTokens as Record<string, unknown>;
+        setRawCollectionTokens(rawTokens as Record<string, unknown>);
+        tryRefreshAppShell();
+      }
     } catch {
       showErrorToast('Failed to save rename');
     }
-  }, [masterGroups, themes, id, globalNamespace]);
+  }, [masterGroups, themes, id, globalNamespace, tryRefreshAppShell]);
 
   // ── Toggle omitFromPath on a group ─────────────────────────────────────────
   const handleToggleOmitFromPath = useCallback(async (groupId: string) => {
@@ -429,17 +491,20 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     setMasterGroups(newGroups);
     try {
       const rawTokens = tokenService.generateStyleDictionaryOutput(newGroups, globalNamespace);
-      await fetch(`/api/collections/${id}`, {
+      const res = await fetch(`/api/collections/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tokens: rawTokens, namespace: globalNamespace, themes }),
       });
-      rawCollectionTokensRef.current = rawTokens as Record<string, unknown>;
-      setRawCollectionTokens(rawTokens as Record<string, unknown>);
+      if (res.ok) {
+        rawCollectionTokensRef.current = rawTokens as Record<string, unknown>;
+        setRawCollectionTokens(rawTokens as Record<string, unknown>);
+        tryRefreshAppShell();
+      }
     } catch {
       showErrorToast('Failed to save group setting');
     }
-  }, [masterGroups, themes, id, globalNamespace]);
+  }, [masterGroups, themes, id, globalNamespace, tryRefreshAppShell]);
 
   // Persist graph state to the correct theme (per theme > group)
   const persistGraphState = useCallback((gs: CollectionGraphState) => {
@@ -471,12 +536,13 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     }).then((res) => {
       if (res.ok) {
         setCollectionGraphState(gs);
+        tryRefreshAppShell();
       }
     }).catch((error) => {
       console.error('Failed to persist collection graph state:', error);
       showErrorToast('Failed to save collection graph state');
     });
-  }, [id]);
+  }, [id, tryRefreshAppShell]);
 
   const handleGraphStateChange = useCallback((groupId: string, state: GraphGroupState, flushImmediate?: boolean) => {
     const next = { ...graphStateMapRef.current, [groupId]: state };
@@ -527,6 +593,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
         });
         if (res.ok) {
           setCollectionGraphState(gs);
+          tryRefreshAppShell();
           showSuccessToast('Saved');
         } else {
           showErrorToast('Save failed');
@@ -537,7 +604,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     } finally {
       setIsSaving(false);
     }
-  }, [id, rawCollectionTokens, activeThemeId, globalNamespace]);
+  }, [id, rawCollectionTokens, activeThemeId, globalNamespace, tryRefreshAppShell]);
 
   // ── Ctrl / Cmd + S and Ctrl / Cmd + Z keyboard shortcuts ──────────────
   useEffect(() => {
@@ -562,13 +629,16 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
           groupReorderSaveTimerRef.current = setTimeout(async () => {
             try {
               const rawTokens = tokenService.generateStyleDictionaryOutput(previous, globalNamespace);
-              await fetch(`/api/collections/${id}`, {
+              const res = await fetch(`/api/collections/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ tokens: rawTokens }),
               });
-              rawCollectionTokensRef.current = rawTokens as Record<string, unknown>;
-              setRawCollectionTokens(rawTokens as Record<string, unknown>);
+              if (res.ok) {
+                rawCollectionTokensRef.current = rawTokens as Record<string, unknown>;
+                setRawCollectionTokens(rawTokens as Record<string, unknown>);
+                tryRefreshAppShell();
+              }
             } catch {
               // Silent
             }
@@ -591,13 +661,16 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
           groupReorderSaveTimerRef.current = setTimeout(async () => {
             try {
               const rawTokens = tokenService.generateStyleDictionaryOutput(next, globalNamespace);
-              await fetch(`/api/collections/${id}`, {
+              const res = await fetch(`/api/collections/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ tokens: rawTokens }),
               });
-              rawCollectionTokensRef.current = rawTokens as Record<string, unknown>;
-              setRawCollectionTokens(rawTokens as Record<string, unknown>);
+              if (res.ok) {
+                rawCollectionTokensRef.current = rawTokens as Record<string, unknown>;
+                setRawCollectionTokens(rawTokens as Record<string, unknown>);
+                tryRefreshAppShell();
+              }
             } catch {
               // Silent
             }
@@ -607,7 +680,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [handleSave, id, globalNamespace, masterGroups, canEdit]);
+  }, [handleSave, id, globalNamespace, masterGroups, canEdit, tryRefreshAppShell]);
 
   const handleGroupsChange = useCallback(
     (groups: TokenGroup[]) => {
@@ -768,16 +841,17 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     if (themeTokenSaveTimerRef.current) clearTimeout(themeTokenSaveTimerRef.current);
     themeTokenSaveTimerRef.current = setTimeout(async () => {
       try {
-        await fetch(`/api/collections/${id}/themes/${activeThemeId}/tokens`, {
+        const res = await fetch(`/api/collections/${id}/themes/${activeThemeId}/tokens`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ tokens: updatedTokens }),
         });
+        if (res.ok) tryRefreshAppShell();
       } catch {
         // Silent — existing toast pattern; no disruptive error for auto-save
       }
     }, 400);
-  }, [id, activeThemeId]);
+  }, [id, activeThemeId, tryRefreshAppShell]);
 
   // ── Derive active group state (enabled / source / disabled) ────────────
   // Token name mismatch when theme graph differs from default (for selected group)
@@ -877,11 +951,19 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
 
   // ── GitHub and Export/Import Functions ─────────────────────────────────────
 
-  const generateTokenSet = () => {
+  const generateTokenSet = useCallback((): Record<string, unknown> => {
     const tokensPayload = generateTabTokens ?? rawCollectionTokens ?? {};
     const { groups } = tokenService.processImportedTokens(tokensPayload, globalNamespace);
     return tokenService.generateStyleDictionaryOutput(groups, globalNamespace, true);
-  };
+  }, [generateTabTokens, rawCollectionTokens, globalNamespace]);
+
+  /** Do not call `generateTokenSet()` in JSX — that re-ran structure detection on every render. */
+  const dialogTokenSetSnapshot = useMemo(() => {
+    if (!showExportFigmaDialog && !showJsonDialog) {
+      return CLOSED_DIALOG_TOKEN_PLACEHOLDER;
+    }
+    return generateTokenSet();
+  }, [showExportFigmaDialog, showJsonDialog, generateTokenSet]);
 
   const loadBranches = async () => {
     if (!githubConfig) {
@@ -1420,7 +1502,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       <ExportToFigmaDialog
         isOpen={showExportFigmaDialog}
         onClose={() => setShowExportFigmaDialog(false)}
-        tokenSet={generateTokenSet()}
+        tokenSet={dialogTokenSetSnapshot}
         loadedCollectionId={id}
         collectionFigmaToken={savedFigmaToken}
         collectionFigmaFileId={savedFigmaFileId}
@@ -1457,7 +1539,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       <JsonPreviewDialog
         isOpen={showJsonDialog}
         onClose={() => setShowJsonDialog(false)}
-        jsonData={generateTokenSet()}
+        jsonData={dialogTokenSetSnapshot}
       />
 
       <Dialog open={isAddingGroup} onOpenChange={(open) => { if (!open) { setIsAddingGroup(false); setNewGroupName(''); setAddSubGroupParentId(null); } }}>

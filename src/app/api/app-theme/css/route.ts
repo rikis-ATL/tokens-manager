@@ -5,6 +5,12 @@ import { buildAppThemeCss } from '@/lib/appTheme/buildAppThemeCss';
 import { getAppThemeCollectionId } from '@/lib/appTheme/app-theme-config';
 import type { ITheme } from '@/types/theme.types';
 
+export const dynamic = 'force-dynamic';
+
+const NO_STORE_HEADERS = {
+  'Cache-Control': 'private, no-store, max-age=0, must-revalidate',
+};
+
 /**
  * GET /api/app-theme/css?themeId= — CSS for the designated app-theme collection (shadcn bridge included).
  */
@@ -16,7 +22,14 @@ export async function GET(request: Request) {
   if (!collectionId) {
     return NextResponse.json(
       { error: 'App theme collection is not configured (APP_THEME_COLLECTION_ID).' },
-      { status: 503 }
+      { status: 503, headers: NO_STORE_HEADERS }
+    );
+  }
+
+  if (!/^[a-f\d]{24}$/i.test(collectionId)) {
+    return NextResponse.json(
+      { error: 'APP_THEME_COLLECTION_ID is not a valid MongoDB ObjectId.' },
+      { status: 503, headers: NO_STORE_HEADERS }
     );
   }
 
@@ -30,7 +43,7 @@ export async function GET(request: Request) {
     if (!collection) {
       return NextResponse.json(
         { error: 'Configured app theme collection was not found.' },
-        { status: 404 }
+        { status: 404, headers: NO_STORE_HEADERS }
       );
     }
 
@@ -39,7 +52,10 @@ export async function GET(request: Request) {
 
     const resolvedThemeId = themeId && themeId !== '__default__' ? themeId : null;
     if (resolvedThemeId && !themes.some((t) => t.id === resolvedThemeId)) {
-      return NextResponse.json({ error: 'Theme not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Theme not found' },
+        { status: 404, headers: NO_STORE_HEADERS }
+      );
     }
 
     const selectedTheme = resolvedThemeId ? themes.find((t) => t.id === resolvedThemeId) : null;
@@ -53,19 +69,25 @@ export async function GET(request: Request) {
       themeId: resolvedThemeId,
     });
 
-    return NextResponse.json({
-      css,
-      themeId: resolvedThemeId ?? '__default__',
-      themeLabel,
-      themeColorMode,
-      hasDarkPair,
-      collectionId,
-      namespace,
-      updatedAt: collection.updatedAt ?? new Date(),
-    });
+    return NextResponse.json(
+      {
+        css,
+        themeId: resolvedThemeId ?? '__default__',
+        themeLabel,
+        themeColorMode,
+        hasDarkPair,
+        collectionId,
+        namespace,
+        updatedAt: collection.updatedAt ?? new Date(),
+      },
+      { headers: NO_STORE_HEADERS }
+    );
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to build app theme CSS';
     console.error('[GET /api/app-theme/css]', err);
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json(
+      { error: message },
+      { status: 500, headers: NO_STORE_HEADERS }
+    );
   }
 }

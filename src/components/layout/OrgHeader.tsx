@@ -20,10 +20,11 @@ interface DbStatus {
   label: string;
 }
 
-function useDbStatus(): DbStatus {
+function useDbStatus(enabled: boolean): DbStatus {
   const [status, setStatus] = useState<DbStatus>({ state: 'loading', label: 'Connecting...' });
 
   useEffect(() => {
+    if (!enabled) return;
     fetch('/api/database/config')
       .then((r) => r.json())
       .then((data) => {
@@ -45,7 +46,7 @@ function useDbStatus(): DbStatus {
       .catch(() => {
         setStatus({ state: 'local', label: 'Unknown' });
       });
-  }, []);
+  }, [enabled]);
 
   return status;
 }
@@ -58,11 +59,12 @@ type OrgHeaderProps = {
 };
 
 export function OrgHeader({ pageTitle, showPlaygroundBadge }: OrgHeaderProps) {
-  const db = useDbStatus();
   const pathname = usePathname();
-  const isCollectionDetail = pathname.startsWith('/collections/');
   const { data: session } = useSession();
   const isDemoUser = session?.user?.role === 'Demo';
+  const isSuperAdmin = session?.user?.isSuperAdmin ?? false;
+  const db = useDbStatus(isSuperAdmin);
+  const isCollectionDetail = pathname.startsWith('/collections/');
   const [guideOpen, setGuideOpen] = useState(false);
   const mainTitle = pageTitle?.trim() || 'Token Manager';
 

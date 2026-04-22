@@ -1525,6 +1525,17 @@ export function TokenGeneratorForm({
     );
   };
 
+  const jsonPreviewData = useMemo(() => {
+    if (!showJsonDialog) {
+      return {};
+    }
+    return tokenService.generateStyleDictionaryOutput(
+      tokenGroups,
+      globalNamespace,
+      true,
+    );
+  }, [showJsonDialog, tokenGroups, globalNamespace]);
+
   const exportToJSON = () => {
     const content = fileService.exportTokens(tokenGroups, globalNamespace, {
       format: "json",
@@ -2175,7 +2186,7 @@ export function TokenGeneratorForm({
       <JsonPreviewDialog
         isOpen={showJsonDialog}
         onClose={() => setShowJsonDialog(false)}
-        jsonData={generateTokenSet()}
+        jsonData={jsonPreviewData}
       />
 
 

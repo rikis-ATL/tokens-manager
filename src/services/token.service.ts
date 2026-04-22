@@ -25,7 +25,6 @@ export class TokenService {
     }
 
     const topLevelKeys = Object.keys(tokenSet);
-    console.log('🔍 Detecting structure type from top-level keys:', topLevelKeys);
 
     // Detect Structure B: Single top-level key that looks like a namespace
     if (topLevelKeys.length === 1) {
@@ -44,7 +43,6 @@ export class TokenService {
         Object.keys(content).some(key => typeof content[key] === 'object');
 
       if (looksLikeNamespace && hasComplexNesting) {
-        console.log(`📦 Structure B detected - Namespace wrapper: "${singleKey}"`);
         return {
           type: 'B',
           extractedNamespace: singleKey,
@@ -54,7 +52,6 @@ export class TokenService {
     }
 
     // Default to Structure A
-    console.log('🏗️ Structure A detected - Flat structure (no namespace wrapper)');
     return {
       type: 'A',
       description: 'Structure A - Style Dictionary flat format'
@@ -76,19 +73,16 @@ export class TokenService {
     if (structureResult.type === 'B' && structureResult.extractedNamespace) {
       actualTokenSet = tokenSet[structureResult.extractedNamespace];
       detectedGlobalNamespace = structureResult.extractedNamespace;
-      console.log(`🎯 Structure B - Using extracted namespace: "${detectedGlobalNamespace}"`);
     } else if (structureResult.type === 'A') {
       // For Structure A, use provided global namespace or detect from common path prefix
       if (!globalNamespace.trim()) {
         const detectedFromPaths = this.detectGlobalNamespaceFromPaths(actualTokenSet);
         if (detectedFromPaths) {
           detectedGlobalNamespace = detectedFromPaths;
-          console.log(`✂️ Structure A - Detected global namespace from paths: "${detectedGlobalNamespace}"`);
           // Strip the detected namespace from token paths
           actualTokenSet = this.stripGlobalNamespaceFromPaths(actualTokenSet, detectedGlobalNamespace);
         } else {
           detectedGlobalNamespace = 'token'; // Default Style Dictionary convention
-          console.log(`🎯 Structure A - Using default global namespace: "${detectedGlobalNamespace}"`);
         }
       }
     }

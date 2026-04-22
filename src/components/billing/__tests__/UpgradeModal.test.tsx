@@ -3,8 +3,20 @@ import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { UpgradeModal } from '../UpgradeModal';
 
+// Mock next/navigation
+const mockPush = jest.fn();
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: mockPush
+  })
+}));
+
 describe('UpgradeModal', () => {
   const payload = { resource: 'collections', current: 1, max: 1, tier: 'free' };
+
+  beforeEach(() => {
+    mockPush.mockClear();
+  });
 
   it('renders all three tier columns', () => {
     render(<UpgradeModal payload={payload} onClose={() => {}} />);
@@ -22,10 +34,10 @@ describe('UpgradeModal', () => {
     expect(freeCell).toHaveAttribute('data-current', 'true');
   });
 
-  it('"Upgrade to Pro" CTA is disabled with Phase 24 tooltip (D-04)', () => {
+  it('CTA is enabled and shows "View Plans" (Phase 24 complete)', () => {
     render(<UpgradeModal payload={payload} onClose={() => {}} />);
     const cta = screen.getByTestId('upgrade-cta');
-    expect(cta).toBeDisabled();
-    expect(cta).toHaveAttribute('title', expect.stringMatching(/Phase 24|Available soon/i));
+    expect(cta).not.toBeDisabled();
+    expect(cta).toHaveTextContent('View Plans');
   });
 });

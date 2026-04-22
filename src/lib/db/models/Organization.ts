@@ -11,6 +11,8 @@ export interface IOrganization {
   name: string;
   planTier?: PlanTier;
   usage?: IOrganizationUsage;
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -29,6 +31,8 @@ const orgSchema = new Schema<OrgDoc>(
       exportsThisMonth: { type: Number, default: 0 },
       exportResetAt: { type: Date, default: () => new Date(0) },
     },
+    stripeCustomerId: { type: String, sparse: true, index: true },
+    stripeSubscriptionId: { type: String },
   },
   { timestamps: true }
 );

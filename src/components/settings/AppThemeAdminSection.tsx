@@ -11,7 +11,7 @@ export function AppThemeAdminSection() {
   const [state, setState] = useState<ConfigState>(null);
 
   useEffect(() => {
-    fetch('/api/app-theme/config')
+    fetch('/api/app-theme/config', { cache: 'no-store' })
       .then((r) => (r.ok ? r.json() : null))
       .then((data: ConfigState) => setState(data))
       .catch(() => setState({ configured: false, collectionId: null }));

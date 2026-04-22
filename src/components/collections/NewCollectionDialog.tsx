@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { Loader2, X } from 'lucide-react';
+import { apiFetch } from '@/lib/api-client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -152,7 +153,7 @@ export function NewCollectionDialog({
         onCreated(newId);
       } else {
         const tokens = buildPresetTokens();
-        const res = await fetch('/api/collections', {
+        const res = await apiFetch('/api/collections', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -165,6 +166,10 @@ export function NewCollectionDialog({
             accentColor,
           }),
         });
+        if (res.status === 402) {
+          handleClose();
+          return;
+        }
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
           setError(data.error ?? 'Failed to create collection.');

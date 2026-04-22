@@ -5,7 +5,7 @@ import { SHADCN_BRIDGE_LEAVES } from '@/lib/appTheme/shadcn-bridge';
  * the UI uses the Tailwind utilities listed here so borders, surfaces, and text stay themeable.
  *
  * - Align collection **group** name with `shadcn` and **leaf** names with {@link SHADCN_BRIDGE_LEAVES}.
- * - HSL values: no `hsl()` wrapper (same as shadcn).
+ * - HSL values: bare components or full `hsl()` / `hsla()` in tokens; the app-theme bridge normalizes to components for Tailwind.
  * - Reference these class names in docs, embeds, and internal UI (avoid raw `gray-*` for chrome).
  *
  * @see shadcn-bridge.ts for `--*` → `--token-shadcn-*` mapping

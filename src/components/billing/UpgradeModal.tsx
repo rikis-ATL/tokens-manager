@@ -3,6 +3,7 @@
 // src/components/billing/UpgradeModal.tsx
 // Phase 23 D-04 — Full tier comparison UI. "Upgrade to Pro" CTA present but disabled until Phase 24.
 
+import { useRouter } from 'next/navigation';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,6 +17,7 @@ function fmtLimit(n: number): string {
 }
 
 export function UpgradeModal({ payload, onClose }: { payload: LimitPayload; onClose: () => void }) {
+  const router = useRouter();
   const currentTier = (payload.tier as PlanTier) ?? 'free';
 
   return (
@@ -58,11 +60,10 @@ export function UpgradeModal({ payload, onClose }: { payload: LimitPayload; onCl
         <div className="flex justify-end gap-2 mt-5">
           <Button variant="outline" onClick={onClose}>Close</Button>
           <Button
-            disabled
-            title="Available soon — Phase 24 will wire Stripe Checkout"
+            onClick={() => { onClose(); router.push('/upgrade'); }}
             data-testid="upgrade-cta"
           >
-            Upgrade to Pro
+            View Plans
           </Button>
         </div>
       </DialogContent>

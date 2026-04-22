@@ -3,6 +3,13 @@ import { render, screen, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { UpgradeModalProvider, useUpgradeModal } from '../UpgradeModalProvider';
 
+// Mock next/navigation
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: jest.fn()
+  })
+}));
+
 function Trigger() {
   const { openUpgradeModal } = useUpgradeModal();
   return (

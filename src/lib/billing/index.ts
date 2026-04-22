@@ -6,3 +6,5 @@ export { checkRateLimit } from './check-rate-limit';
 export { checkTokenLimit } from './check-token-limit';
 export { checkAndIncrementExport } from './check-and-increment-export';
 export { checkThemeLimit } from './check-theme-limit';
+export { getStripe } from './stripe-client';
+export { priceIdToTier } from './price-id-to-tier';
