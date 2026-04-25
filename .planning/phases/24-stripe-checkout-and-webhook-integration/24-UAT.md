@@ -79,7 +79,7 @@ note: Cancelled subscription in Stripe Dashboard. Logs showed "Reset organizatio
 
 total: 13
 passed: 12
-issues: 1
+issues: 4
 skipped: 0
 blocked: 1
 pending: 0
@@ -97,9 +97,39 @@ pending: 0
 
 - truth: "/account page is accessible to admin users from the main navigation"
   status: failed
-  reason: "User noted /account has no link in the user/header menu — only reachable via direct URL"
+  reason: "User noted /account has no link in the user/header menu (settings/sign out) or org menu (settings/users) — only reachable via direct URL"
   severity: minor
   test: 8
   artifacts: []
   missing:
-    - "Add /account link to user menu for admin role"
+    - "Add /account link to user dropdown menu (alongside Settings and Sign Out)"
+    - "Add /account link to org menu (alongside Settings and Users)"
+
+- truth: "Creating a collection when at the limit goes straight to upgrade — no intermediate modal"
+  status: failed
+  reason: "User noted the create collection modal still appears when the collection limit is hit — user has to dismiss it before seeing upgrade prompt. Should skip modal and navigate directly to /upgrade."
+  severity: major
+  test: 3
+  artifacts: []
+  missing:
+    - "On 'create collection' action: check collection limit first, if exceeded navigate directly to /upgrade instead of opening create modal"
+
+- truth: "UpgradeModal shows accurate current usage counts for the user's org"
+  status: failed
+  reason: "User has multiple collections with many tokens but modal subtitle shows 'Your free plan allows 500 tokens. You're currently using 0.' — counts are hardcoded or not fetching actual usage."
+  severity: major
+  test: 3
+  artifacts: []
+  missing:
+    - "Fetch real token count and collection count from org usage data before rendering UpgradeModal"
+    - "Display actual usage: 'You have X collections and Y tokens. Your free plan allows Z collections and W tokens.'"
+
+- truth: "UpgradeModal behaviour differs correctly by role — admin sees account link, non-admin sees contact message"
+  status: failed
+  reason: "User requested: admin users should not see upgrade modal — instead navigate directly to /account showing real usage counts. Non-admin users should see modal with correct limit context (collection or token limit hit) and 'contact admin to upgrade' message."
+  severity: major
+  test: 3
+  artifacts: []
+  missing:
+    - "Admin: skip UpgradeModal, navigate to /account with real collection/token usage displayed"
+    - "Non-admin: show UpgradeModal with correct limit context (which limit was hit) and 'contact your admin to upgrade' CTA instead of checkout buttons"
