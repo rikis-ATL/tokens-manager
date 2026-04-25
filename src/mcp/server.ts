@@ -27,6 +27,7 @@ import { registerTokenTools } from "./tools/tokens";
 import { registerGroupTools } from "./tools/groups";
 import { registerGeneratorTools } from "./tools/generators";
 import { registerThemeTools } from "./tools/themes";
+import { registerThemeMutationTools } from "./tools/theme-mutations";
 
 // Create the MCP server instance.
 // The name and version are advertised to MCP clients during handshake.
@@ -41,6 +42,7 @@ registerTokenTools(server);
 registerGroupTools(server);
 registerGeneratorTools(server);
 registerThemeTools(server);
+registerThemeMutationTools(server);
 
 async function main() {
   // Connect to MongoDB before accepting any tool calls.

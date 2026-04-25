@@ -1,7 +1,7 @@
 /**
  * ATUI Tokens Manager — MCP Group Tools
  *
- * This module registers 2 MCP tools for reading and managing token groups.
+ * This module registers 4 MCP tools for reading and managing token groups.
  *
  * In the W3C Design Token specification, a "group" is a named namespace
  * used to organize related tokens. Groups are represented as nested objects
@@ -21,6 +21,10 @@
  *
  * Group paths use dot notation: "colors", "colors.brand", "spacing.lg", etc.
  *
+ * Mutation tools (create, rename, delete) delegate to the shared service layer
+ * (src/services/shared/groups.ts) so business logic is not duplicated between
+ * MCP and HTTP handlers.
+ *
  * stdout is the JSON-RPC channel — NEVER use console.log here.
  * Use console.error for any debug output (goes to stderr / MCP client logs).
  */
@@ -28,6 +32,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import TokenCollection from "@/lib/db/models/TokenCollection";
+import { createGroup, renameGroup, deleteGroup } from "@/services/shared/groups";
 
 // ---------------------------------------------------------------------------
 // Helper: determine if a value is a token leaf node (has $value property)
@@ -70,16 +75,31 @@ function collectGroupPaths(
 }
 
 // ---------------------------------------------------------------------------
-// Helper: safely navigate a nested object via dot-path
-// e.g. getNestedValue({ colors: { brand: { $value: "#fff" } } }, "colors.brand")
+// Helper: format a ToolResult into MCP response content
 // ---------------------------------------------------------------------------
-function getNestedValue(obj: Record<string, unknown>, path: string): unknown {
-  return path.split(".").reduce((current: unknown, key: string) => {
-    if (current && typeof current === "object") {
-      return (current as Record<string, unknown>)[key];
-    }
-    return undefined;
-  }, obj);
+function toMcpContent(
+  result: { success: boolean; message: string; data?: unknown }
+): { content: Array<{ type: "text"; text: string }>; isError?: true } {
+  if (!result.success) {
+    return {
+      content: [{ type: "text" as const, text: result.message }],
+      isError: true,
+    };
+  }
+  return {
+    content: [
+      {
+        type: "text" as const,
+        text: JSON.stringify(
+          result.data !== undefined
+            ? { success: true, message: result.message, ...((result.data as object) ?? {}) }
+            : { success: true, message: result.message },
+          null,
+          2
+        ),
+      },
+    ],
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -162,18 +182,8 @@ export function registerGroupTools(server: McpServer): void {
   /**
    * TOOL: create_group
    *
-   * Parameters:
-   *   - collectionId: MongoDB ObjectId string for the collection.
-   *   - groupPath: dot-separated path for the new group,
-   *     e.g. "colors.brand.new". Parent groups are created automatically.
-   *   - description: optional W3C spec $description metadata for the group.
-   *
-   * Creates an empty group at the specified path. In the W3C Design Token
-   * specification, a group is simply a nested object (without a $value property).
-   * This tool uses MongoDB $set with dot-notation to create the object at the path.
-   *
-   * This operation is idempotent — if the group already exists, it returns success
-   * without modifying the existing content.
+   * Delegates to shared GroupService.createGroup for business logic parity
+   * with the in-app HTTP handler.
    */
   server.registerTool(
     "create_group",
@@ -202,92 +212,8 @@ export function registerGroupTools(server: McpServer): void {
     },
     async ({ collectionId, groupPath, description }) => {
       try {
-        // Check if group already exists — idempotent behavior
-        const existing = await TokenCollection.findById(collectionId).lean();
-        if (!existing) {
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: `Collection not found: ${collectionId}`,
-              },
-            ],
-            isError: true,
-          };
-        }
-
-        // Navigate to check if group already exists
-        const tokens = existing.tokens as Record<string, unknown>;
-        let current: unknown = tokens;
-        const parts = groupPath.split(".");
-        let alreadyExists = true;
-        for (const part of parts) {
-          if (
-            typeof current === "object" &&
-            current !== null &&
-            part in (current as Record<string, unknown>)
-          ) {
-            current = (current as Record<string, unknown>)[part];
-          } else {
-            alreadyExists = false;
-            break;
-          }
-        }
-
-        if (alreadyExists) {
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: JSON.stringify(
-                  {
-                    success: true,
-                    message: `Group '${groupPath}' already exists.`,
-                    alreadyExisted: true,
-                  },
-                  null,
-                  2
-                ),
-              },
-            ],
-          };
-        }
-
-        // Build the initial group object — optionally include $description
-        const groupObject: Record<string, unknown> = {};
-        if (description) {
-          groupObject["$description"] = description;
-        }
-
-        // Use MongoDB dot-notation $set to create the group.
-        // If the path is "colors.brand.new", this sets tokens.colors.brand.new = {}
-        await TokenCollection.findByIdAndUpdate(
-          collectionId,
-          {
-            $set: {
-              [`tokens.${groupPath}`]: groupObject,
-            },
-          },
-          { new: true }
-        );
-
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: JSON.stringify(
-                {
-                  success: true,
-                  message: `Group created at '${groupPath}'`,
-                  groupPath,
-                  description: description ?? null,
-                },
-                null,
-                2
-              ),
-            },
-          ],
-        };
+        const result = await createGroup(collectionId, groupPath, description);
+        return toMcpContent(result);
       } catch (err) {
         console.error("[MCP] create_group error:", err);
         return {
@@ -306,14 +232,8 @@ export function registerGroupTools(server: McpServer): void {
   /**
    * TOOL: rename_group
    *
-   * Parameters:
-   *   - collectionId: MongoDB ObjectId string for the collection.
-   *   - oldPath: current dot-separated group path.
-   *   - newPath: new dot-separated group path.
-   *
-   * Moves a group and all its tokens to a new path using a combined MongoDB
-   * $set (new path = group value) and $unset (remove old path) in a single update.
-   * All tokens under the old path are preserved under the new path.
+   * Delegates to shared GroupService.renameGroup for business logic parity
+   * with the in-app HTTP handler.
    */
   server.registerTool(
     "rename_group",
@@ -336,60 +256,8 @@ export function registerGroupTools(server: McpServer): void {
     },
     async ({ collectionId, oldPath, newPath }) => {
       try {
-        const collection = await TokenCollection.findById(collectionId).lean();
-        if (!collection) {
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: `Collection not found: ${collectionId}`,
-              },
-            ],
-            isError: true,
-          };
-        }
-
-        const tokens = collection.tokens as Record<string, unknown>;
-        const groupValue = getNestedValue(tokens, oldPath);
-
-        if (groupValue === undefined) {
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: `Group path '${oldPath}' not found in collection.`,
-              },
-            ],
-            isError: true,
-          };
-        }
-
-        await TokenCollection.findByIdAndUpdate(
-          collectionId,
-          {
-            $set: { [`tokens.${newPath}`]: groupValue },
-            $unset: { [`tokens.${oldPath}`]: "" },
-          },
-          { new: true }
-        );
-
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: JSON.stringify(
-                {
-                  success: true,
-                  message: `Group renamed from '${oldPath}' to '${newPath}'`,
-                  oldPath,
-                  newPath,
-                },
-                null,
-                2
-              ),
-            },
-          ],
-        };
+        const result = await renameGroup(collectionId, oldPath, newPath);
+        return toMcpContent(result);
       } catch (err) {
         console.error("[MCP] rename_group error:", err);
         return {
@@ -408,12 +276,8 @@ export function registerGroupTools(server: McpServer): void {
   /**
    * TOOL: delete_group
    *
-   * Parameters:
-   *   - collectionId: MongoDB ObjectId string for the collection.
-   *   - groupPath: dot-separated group path to delete.
-   *
-   * Permanently removes the group and all nested tokens using MongoDB $unset.
-   * This operation cannot be undone — use list_tokens to review contents first.
+   * Delegates to shared GroupService.deleteGroup for business logic parity
+   * with the in-app HTTP handler.
    */
   server.registerTool(
     "delete_group",
@@ -433,40 +297,8 @@ export function registerGroupTools(server: McpServer): void {
     },
     async ({ collectionId, groupPath }) => {
       try {
-        const result = await TokenCollection.findByIdAndUpdate(
-          collectionId,
-          { $unset: { [`tokens.${groupPath}`]: "" } },
-          { new: true }
-        );
-
-        if (!result) {
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: `Collection not found: ${collectionId}`,
-              },
-            ],
-            isError: true,
-          };
-        }
-
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: JSON.stringify(
-                {
-                  success: true,
-                  message: `Group deleted at path '${groupPath}'`,
-                  groupPath,
-                },
-                null,
-                2
-              ),
-            },
-          ],
-        };
+        const result = await deleteGroup(collectionId, groupPath);
+        return toMcpContent(result);
       } catch (err) {
         console.error("[MCP] delete_group error:", err);
         return {

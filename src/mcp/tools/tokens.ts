@@ -11,6 +11,10 @@
  *   - inputSchema: Zod schema → JSON Schema, tells the AI what params to pass
  *   - handler: async function that does the actual work, returns { content }
  *
+ * Mutation tools (create, update, delete, bulk_create) delegate to the shared
+ * service layer (src/services/shared/tokens.ts) so business logic is co-located
+ * and not duplicated between MCP and HTTP handlers.
+ *
  * stdout is the JSON-RPC channel — NEVER use console.log here.
  * Use console.error for any debug output (goes to stderr / MCP client logs).
  */
@@ -18,6 +22,12 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import TokenCollection from "@/lib/db/models/TokenCollection";
+import {
+  createToken,
+  updateToken,
+  deleteToken,
+  bulkCreateTokens,
+} from "@/services/shared/tokens";
 
 // ---------------------------------------------------------------------------
 // Helper: safely navigate a nested object via dot-path
@@ -33,22 +43,32 @@ function getNestedValue(obj: Record<string, unknown>, path: string): unknown {
 }
 
 // ---------------------------------------------------------------------------
-// Helper: set a nested value via dot-path (mutates obj)
+// Helper: format a ToolResult into MCP response content
 // ---------------------------------------------------------------------------
-function setNestedValue(
-  obj: Record<string, unknown>,
-  path: string,
-  value: unknown
-): void {
-  const parts = path.split(".");
-  let current: Record<string, unknown> = obj;
-  for (let i = 0; i < parts.length - 1; i++) {
-    if (!current[parts[i]] || typeof current[parts[i]] !== "object") {
-      current[parts[i]] = {};
-    }
-    current = current[parts[i]] as Record<string, unknown>;
+function toMcpContent(
+  result: { success: boolean; message: string; data?: unknown },
+  toolName: string
+): { content: Array<{ type: "text"; text: string }>; isError?: true } {
+  if (!result.success) {
+    return {
+      content: [{ type: "text" as const, text: result.message }],
+      isError: true,
+    };
   }
-  current[parts[parts.length - 1]] = value;
+  return {
+    content: [
+      {
+        type: "text" as const,
+        text: JSON.stringify(
+          result.data !== undefined
+            ? { success: true, message: result.message, ...((result.data as object) ?? {}) }
+            : { success: true, message: result.message },
+          null,
+          2
+        ),
+      },
+    ],
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -303,16 +323,8 @@ export function registerTokenTools(server: McpServer): void {
   /**
    * TOOL: create_token
    *
-   * Parameters:
-   *   - collectionId: MongoDB ObjectId string for the collection.
-   *   - tokenPath: dot-separated path for the new token leaf node,
-   *     e.g. "colors.brand.newColor". Parent groups are created automatically.
-   *   - value: the token value (e.g. "#FF0000", "16px", "0.5rem").
-   *   - type: W3C design token type (defaults to "color").
-   *     Common types: "color", "dimension", "number", "string", "duration".
-   *
-   * Creates the token at the specified path using MongoDB $set with dot notation.
-   * If a token already exists at that path, it will be overwritten.
+   * Delegates to shared TokenService.createToken for business logic parity
+   * with the in-app HTTP handler.
    */
   server.registerTool(
     "create_token",
@@ -343,47 +355,8 @@ export function registerTokenTools(server: McpServer): void {
     },
     async ({ collectionId, tokenPath, value, type = "color" }) => {
       try {
-        // Use MongoDB dot-notation $set to update the nested token object.
-        // tokens.colors.brand.newColor.$value = value
-        const result = await TokenCollection.findByIdAndUpdate(
-          collectionId,
-          {
-            $set: {
-              [`tokens.${tokenPath}.$value`]: value,
-              [`tokens.${tokenPath}.$type`]: type,
-            },
-          },
-          { new: true }
-        );
-
-        if (!result) {
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: `Collection not found: ${collectionId}`,
-              },
-            ],
-            isError: true,
-          };
-        }
-
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: JSON.stringify(
-                {
-                  success: true,
-                  message: `Token created at '${tokenPath}'`,
-                  token: { path: tokenPath, $value: value, $type: type },
-                },
-                null,
-                2
-              ),
-            },
-          ],
-        };
+        const result = await createToken(collectionId, tokenPath, value, type);
+        return toMcpContent(result, "create_token");
       } catch (err) {
         console.error("[MCP] create_token error:", err);
         return {
@@ -402,15 +375,8 @@ export function registerTokenTools(server: McpServer): void {
   /**
    * TOOL: update_token
    *
-   * Parameters:
-   *   - collectionId: MongoDB ObjectId string for the collection.
-   *   - tokenPath: dot-separated path to the existing token leaf node.
-   *   - value: (optional) new value for the token.
-   *   - type: (optional) new type for the token.
-   *
-   * Updates value and/or type of an existing token. At least one of value or type
-   * must be provided. If the token doesn't exist, the update creates it (upsert-like).
-   * Returns the updated token data.
+   * Delegates to shared TokenService.updateToken for business logic parity
+   * with the in-app HTTP handler.
    */
   server.registerTool(
     "update_token",
@@ -439,64 +405,8 @@ export function registerTokenTools(server: McpServer): void {
     },
     async ({ collectionId, tokenPath, value, type }) => {
       try {
-        if (value === undefined && type === undefined) {
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: "At least one of 'value' or 'type' must be provided to update a token.",
-              },
-            ],
-            isError: true,
-          };
-        }
-
-        const setFields: Record<string, string> = {};
-        if (value !== undefined) {
-          setFields[`tokens.${tokenPath}.$value`] = value;
-        }
-        if (type !== undefined) {
-          setFields[`tokens.${tokenPath}.$type`] = type;
-        }
-
-        const result = await TokenCollection.findByIdAndUpdate(
-          collectionId,
-          { $set: setFields },
-          { new: true }
-        );
-
-        if (!result) {
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: `Collection not found: ${collectionId}`,
-              },
-            ],
-            isError: true,
-          };
-        }
-
-        // Retrieve the updated token for confirmation
-        const tokens = result.tokens as Record<string, unknown>;
-        const updatedToken = getNestedValue(tokens as Record<string, unknown>, tokenPath);
-
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: JSON.stringify(
-                {
-                  success: true,
-                  message: `Token updated at '${tokenPath}'`,
-                  token: { path: tokenPath, ...((updatedToken as object) ?? {}) },
-                },
-                null,
-                2
-              ),
-            },
-          ],
-        };
+        const result = await updateToken(collectionId, tokenPath, value, type);
+        return toMcpContent(result, "update_token");
       } catch (err) {
         console.error("[MCP] update_token error:", err);
         return {
@@ -515,13 +425,8 @@ export function registerTokenTools(server: McpServer): void {
   /**
    * TOOL: delete_token
    *
-   * Parameters:
-   *   - collectionId: MongoDB ObjectId string for the collection.
-   *   - tokenPath: dot-separated path to the token leaf node to delete.
-   *
-   * Removes the token at the specified path using MongoDB $unset with dot notation.
-   * The parent group objects are NOT removed — only the leaf token is deleted.
-   * Returns a confirmation message.
+   * Delegates to shared TokenService.deleteToken for business logic parity
+   * with the in-app HTTP handler.
    */
   server.registerTool(
     "delete_token",
@@ -542,43 +447,8 @@ export function registerTokenTools(server: McpServer): void {
     },
     async ({ collectionId, tokenPath }) => {
       try {
-        const result = await TokenCollection.findByIdAndUpdate(
-          collectionId,
-          {
-            $unset: {
-              [`tokens.${tokenPath}`]: "",
-            },
-          },
-          { new: true }
-        );
-
-        if (!result) {
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: `Collection not found: ${collectionId}`,
-              },
-            ],
-            isError: true,
-          };
-        }
-
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: JSON.stringify(
-                {
-                  success: true,
-                  message: `Token deleted at path '${tokenPath}'`,
-                },
-                null,
-                2
-              ),
-            },
-          ],
-        };
+        const result = await deleteToken(collectionId, tokenPath);
+        return toMcpContent(result, "delete_token");
       } catch (err) {
         console.error("[MCP] delete_token error:", err);
         return {
@@ -597,16 +467,8 @@ export function registerTokenTools(server: McpServer): void {
   /**
    * TOOL: bulk_create_tokens
    *
-   * Parameters:
-   *   - collectionId: MongoDB ObjectId string for the collection.
-   *   - tokens: array of { path, value, type } objects.
-   *
-   * Creates multiple tokens in a single atomic MongoDB $set operation.
-   * All tokens in the array are written together — useful for seeding an
-   * entire group at once (e.g., a generated color scale).
-   *
-   * If a token already exists at a given path, it will be overwritten.
-   * Parent group objects are created automatically by MongoDB dot notation.
+   * Delegates to shared TokenService.bulkCreateTokens for business logic parity
+   * with the in-app HTTP handler.
    */
   server.registerTool(
     "bulk_create_tokens",
@@ -632,47 +494,8 @@ export function registerTokenTools(server: McpServer): void {
     },
     async ({ collectionId, tokens }) => {
       try {
-        const setFields: Record<string, string> = {};
-        for (const t of tokens) {
-          setFields[`tokens.${t.path}.$value`] = t.value;
-          setFields[`tokens.${t.path}.$type`] = t.type || "color";
-        }
-
-        const result = await TokenCollection.findByIdAndUpdate(
-          collectionId,
-          { $set: setFields },
-          { new: true }
-        );
-
-        if (!result) {
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: `Collection not found: ${collectionId}`,
-              },
-            ],
-            isError: true,
-          };
-        }
-
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: JSON.stringify(
-                {
-                  success: true,
-                  message: `Created ${tokens.length} token(s) in collection`,
-                  count: tokens.length,
-                  paths: tokens.map((t) => t.path),
-                },
-                null,
-                2
-              ),
-            },
-          ],
-        };
+        const result = await bulkCreateTokens(collectionId, tokens);
+        return toMcpContent(result, "bulk_create_tokens");
       } catch (err) {
         console.error("[MCP] bulk_create_tokens error:", err);
         return {
