@@ -1,11 +1,12 @@
 /**
- * ATUI Tokens Manager — MCP Theme Tools
+ * ATUI Tokens Manager — MCP Theme Tools (Read-Only)
  *
  * This module registers 2 read-only MCP tools for exploring theme data in a
  * token collection. These tools allow AI assistants to list available themes
  * and read token values for a specific theme.
  *
- * All tools in this module are read-only — no mutations.
+ * Theme mutation tools (create_theme, update_theme_token, delete_theme_token,
+ * delete_theme) are registered separately in theme-mutations.ts.
  *
  * stdout is the JSON-RPC channel — NEVER use console.log here.
  * Use console.error for any debug output (goes to stderr / MCP client logs).
