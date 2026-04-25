@@ -16,6 +16,7 @@ function isOrgRoute(pathname: string): boolean {
   // Top-level org pages and /org/* pages (e.g. /org/users)
   return pathname === '/collections'
     || pathname === '/settings'
+    || pathname === '/account'
     || pathname.startsWith('/org');
 }
 
@@ -34,9 +35,9 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
       ) : isOrgRoute(pathname) ? (
         <div className="flex flex-col h-screen overflow-hidden bg-background">
           <OrgHeader />
-          <div className="flex flex-1 overflow-hidden">
+          <div className="flex flex-1 overflow-hidden ">
             <OrgSidebar />
-            <main className="flex-1 overflow-y-auto">
+            <main className="flex-1 overflow-y-auto bg-background text-foreground">
               {children}
             </main>
           </div>
@@ -46,7 +47,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
           <AppHeader />
           <div className="flex flex-1 overflow-hidden">
             <AppSidebar />
-            <main className="flex-1 overflow-y-auto">
+            <main className="flex-1 overflow-y-auto bg-background text-foreground">
               {children}
             </main>
           </div>
