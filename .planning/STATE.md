@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Multi-Tenant SaaS
-status: completed
-stopped_at: Phase 24 context gathered
+status: active
+stopped_at: Phase 24 complete
 last_updated: "2026-04-21T00:48:43.653Z"
 last_activity: 2026-04-21 -- Phase 23 verified and closed
 progress:
@@ -58,6 +58,10 @@ Key decisions captured from v1.6 research (pre-recorded in PROJECT.md):
 - Confirm deployment target (single-instance vs. Vercel serverless) before Phase 23 — determines whether in-process Map or `RateLimiterMongo` is appropriate for rate limiting
 - Create Stripe price IDs in Dashboard (ops step) before Phase 24 begins
 
+### Roadmap Evolution
+
+- Phase 33 added (2026-04-25): Theme configuration — color/density types, dual active selection, themes UI under Tokens page — see `.planning/phases/33-theme-configuration-color-density/33-SPEC.md`
+
 ### Deferred from v1.9
 
 Phases 30 (AI-Assisted Naming and Queries) and 32 (MCP Tool Service Layer) were not started and remain deferred. Requirements AI-11 to AI-14 and MCP-01 remain in PROJECT.md Active section.
@@ -65,5 +69,5 @@ Phases 30 (AI-Assisted Naming and Queries) and 32 (MCP Tool Service Layer) were 
 ## Session Continuity
 
 Last session: 2026-04-21T00:48:43.649Z
-Stopped at: Phase 24 context gathered
+Stopped at: Phase 24 complete
 Next action: `/gsd-plan-phase 24` — Stripe Checkout and Webhook Integration

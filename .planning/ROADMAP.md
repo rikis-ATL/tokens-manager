@@ -113,7 +113,7 @@ See: `.planning/milestones/v1.4-ROADMAP.md` for full phase details.
 
 - [x] **Phase 22: Org Model and Multi-Tenant Foundation** — Organization model, organizationId on User+TokenCollection, JWT extension, idempotent migration bootstrap, assertOrgOwnership() on all collection routes, compound indexes, self-serve org signup (completed 2026-04-19)
 - [ ] **Phase 23: Billing Module and Limit Enforcement** — src/lib/billing/ module skeleton, LIMITS config (tiers.ts), check functions, usage tracking with lazy UTC-month reset, rate limiter (per user ID, never IP), SELF_HOSTED bypass, 402 responses on all capped routes, UpgradeModal
-- [ ] **Phase 24: Stripe Checkout and Webhook Integration** — Stripe singleton, checkout session creation, billing portal session, webhook handler (req.text() — CRITICAL), ProcessedWebhookEvent idempotency guard, all three webhook event types, success page session refresh
+- [x] **Phase 24: Stripe Checkout and Webhook Integration** — Stripe singleton, checkout session creation, billing portal session, webhook handler (req.text() — CRITICAL), ProcessedWebhookEvent idempotency guard, all three webhook event types, success page session refresh
 
 ### Phase 22: Org Model and Multi-Tenant Foundation
 **Goal**: Add a first-class Organization model so every user and collection is scoped to an org, with a self-serve signup flow and full API-layer ownership enforcement.
@@ -164,6 +164,7 @@ See: `.planning/milestones/v1.4-ROADMAP.md` for full phase details.
 - [ ] **Phase 30: AI-Assisted Naming and Queries** — AI theme creation, natural language token queries and bulk edits, canonical naming suggestions
 - [x] **Phase 31: Style Guide Verification** — Browser verification of Phase 25 Style Guide tab; fix any regressions or nyquist coverage gaps (completed 2026-04-09)
 - [ ] **Phase 32: MCP Tool Service Layer** — Extract shared token/group/theme service functions; add theme mutation tools to MCP server
+- [ ] **Phase 33: Theme configuration — color/density** — Theme kinds (color vs density), dual active selection, merged effective token set, themes UI under Tokens page, config/export uses color + density instead of single theme
 
 ## Phase Details
 
@@ -208,16 +209,29 @@ Plans:
   4. MCP theme tools produce the same database outcomes as their in-app chat equivalents (MCP-02)
 **Plans**: TBD
 
+### Phase 33: Theme configuration — color/density types and tokens-page consolidation
+**Goal**: Split themes into **color** and **density** kinds; allow one active theme per kind; scope overrides to color tokens vs dimension tokens; keep light/dark on color themes only; consolidate theme management UI under the Tokens page; replace single-theme selectors on Tokens, Config, and token-output flows with color + density controls.
+**Depends on**: Phase 9–15 (existing themes foundation)
+**Requirements**: TBD — see `.planning/phases/33-theme-configuration-color-density/33-SPEC.md`
+**Success Criteria** (what must be TRUE):
+  1. Each theme has `kind: 'color' | 'density'`; creation UI requires the kind; migration assigns legacy themes to `color`.
+  2. Editor supports independent nullable selection of one color theme and one density theme; effective values merge per SPEC precedence.
+  3. Theme sidebar (or equivalent) groups lists by kind and surfaces base/shared tokens outside color+density override scopes as specified.
+  4. `/collections/[id]/themes` is no longer the primary surface (redirect or remove nav); themes CRUD lives on Tokens page.
+  5. Config/export uses the dual selection model instead of a single `selectedThemeId`.
+**Plans**: Not planned yet — run `/gsd-discuss-phase 33` then `/gsd-plan-phase 33`
+
 ## Progress Table
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 22. Org Model and Multi-Tenant Foundation | 5/5 | Complete    | 2026-04-19 |
-| 23. Billing Module and Limit Enforcement | 0/? | Not started | - |
+| 23. Billing Module and Limit Enforcement | 2/3 | In Progress|  |
 | 24. Stripe Checkout and Webhook Integration | 0/? | Not started | - |
 | 30. AI-Assisted Naming and Queries | 0/3 | Not started | - |
 | 31. Style Guide Verification | 3/3 | Complete   | 2026-04-09 |
 | 32. MCP Tool Service Layer | 0/? | Not started | - |
+| 33. Theme configuration — color/density | 0/? | Specified | - |
 | 999.3. Tokens Studio graph math node parity | 1 plan + UAT | Implemented — verification open | - |
 
 ### Phase 1: review math node features
@@ -225,7 +239,7 @@ Plans:
 **Goal:** Verify and complete the Math node Expression mode — unit tests, UI error feedback on invalid expressions, graphTokenPaths resolver wiring, and browser-verified end-to-end
 **Requirements**: PHASE1-TEST, PHASE1-UI-ERROR, PHASE1-GRAPHPATHS, PHASE1-VERIFY
 **Depends on:** Phase 0
-**Plans:** 5/5 plans complete
+**Plans:** 2/3 plans executed
 
 Plans:
 - [x] 01-01-PLAN.md — Jest unit tests for evaluateExpression (D-06, D-07)
