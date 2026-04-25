@@ -1,20 +1,16 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
-import TokenCollection from '@/lib/db/models/TokenCollection';
 import { requireRole } from '@/lib/auth/require-auth';
 import { Action } from '@/lib/auth/permissions';
 import { assertOrgOwnership } from '@/lib/auth/assert-org-ownership';
 import { broadcastTokenUpdate } from '@/services/websocket/socket.service';
+import { createToken, updateToken, deleteToken } from '@/services/shared/tokens';
 
 /**
  * POST /api/collections/[id]/tokens
  *
  * Create a single token at a dot-separated path in the collection's default tokens.
  * Body: { tokenPath: string, value: string, type?: string }
- *
- * Uses MongoDB dot-notation $set to write nested W3C token fields:
- *   tokens.{tokenPath}.$value and tokens.{tokenPath}.$type
- * Parent groups are auto-created by MongoDB when the path doesn't yet exist.
  */
 export async function POST(
   request: Request,
@@ -40,19 +36,9 @@ export async function POST(
 
     await dbConnect();
 
-    const result = await TokenCollection.findByIdAndUpdate(
-      params.id,
-      {
-        $set: {
-          [`tokens.${tokenPath}.$value`]: value,
-          [`tokens.${tokenPath}.$type`]: type,
-        },
-      },
-      { new: true }
-    );
-
-    if (!result) {
-      return NextResponse.json({ error: 'Collection not found' }, { status: 404 });
+    const serviceResult = await createToken(params.id, tokenPath, value, type);
+    if (!serviceResult.success) {
+      return NextResponse.json({ error: serviceResult.message }, { status: 404 });
     }
 
     broadcastTokenUpdate(params.id);
@@ -72,9 +58,6 @@ export async function POST(
  *
  * Update an existing token's value and/or type by path.
  * Body: { tokenPath: string, value?: string, type?: string }
- *
- * At least one of value or type must be provided. Uses the same dot-notation
- * $set pattern as POST, but only sets the provided fields.
  */
 export async function PATCH(
   request: Request,
@@ -100,32 +83,23 @@ export async function PATCH(
     }
 
     const { tokenPath } = body;
-    const setFields: Record<string, string> = {};
-
-    if (body.value !== undefined) {
-      setFields[`tokens.${tokenPath}.$value`] = body.value;
-    }
-    if (body.type !== undefined) {
-      setFields[`tokens.${tokenPath}.$type`] = body.type;
-    }
 
     await dbConnect();
 
-    const result = await TokenCollection.findByIdAndUpdate(
-      params.id,
-      { $set: setFields },
-      { new: true }
-    );
-
-    if (!result) {
-      return NextResponse.json({ error: 'Collection not found' }, { status: 404 });
+    const serviceResult = await updateToken(params.id, tokenPath, body.value, body.type);
+    if (!serviceResult.success) {
+      return NextResponse.json({ error: serviceResult.message }, { status: 404 });
     }
 
     broadcastTokenUpdate(params.id);
 
+    const responseToken: Record<string, string> = { path: tokenPath };
+    if (body.value !== undefined) responseToken['$value'] = body.value;
+    if (body.type !== undefined) responseToken['$type'] = body.type;
+
     return NextResponse.json({
       success: true,
-      token: { path: tokenPath, ...setFields },
+      token: responseToken,
     });
   } catch (error) {
     console.error('[PATCH /api/collections/[id]/tokens]', error);
@@ -138,9 +112,6 @@ export async function PATCH(
  *
  * Delete a token by its dot-separated path.
  * Body: { tokenPath: string }
- *
- * Uses MongoDB $unset with dot-notation to remove the token node.
- * Parent groups are preserved — only the leaf token is removed.
  */
 export async function DELETE(
   request: Request,
@@ -162,18 +133,9 @@ export async function DELETE(
 
     await dbConnect();
 
-    const result = await TokenCollection.findByIdAndUpdate(
-      params.id,
-      {
-        $unset: {
-          [`tokens.${tokenPath}`]: '',
-        },
-      },
-      { new: true }
-    );
-
-    if (!result) {
-      return NextResponse.json({ error: 'Collection not found' }, { status: 404 });
+    const serviceResult = await deleteToken(params.id, tokenPath);
+    if (!serviceResult.success) {
+      return NextResponse.json({ error: serviceResult.message }, { status: 404 });
     }
 
     broadcastTokenUpdate(params.id);
