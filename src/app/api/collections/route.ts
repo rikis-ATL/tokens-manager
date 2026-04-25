@@ -46,7 +46,7 @@ export async function GET() {
     }
 
     const collections: CollectionCardData[] = visibleDocs.map((doc) => {
-      const tokenCount = countTokensInCollection(doc.tokens ?? {});
+      const tokenCount = countTokensInCollection(doc.tokens ?? {}, doc.namespace ?? 'token');
       
       return {
         _id: doc._id,

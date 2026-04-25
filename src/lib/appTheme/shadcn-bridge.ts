@@ -3,46 +3,30 @@
  * `--{namespace}-shadcn-*`) onto shadcn/ui semantic variables consumed by Tailwind
  * (`tailwind.config.js` → `hsl(var(--background))`, etc.).
  *
- * Token authors should add a **shadcn** group with leaf names matching the second column.
+ * Token authors should add a **shadcn** group with leaf names matching the contract.
  * For which Tailwind classes consume each variable, see {@link semantic-tailwind.ts}.
  * Color values may be either **HSL components** (e.g. `222.2 84% 4.9%`) or a full **`hsl()` /
- * `hsla()`** function (e.g. `hsl(222.2 84% 4.9%)`) so previews in the token table match common CSS.
- * The bridge normalizes color leaves before aliasing, because Tailwind uses `hsl(var(--background))`
- * (space-separated HSL components only): it strips outer `hsl()` / `hsla()`, and converts `#rgb` /
- * `#rrggbb` from the token table into those components. **`radius`** is left unchanged (not a color).
+ * `hsla()`** function. The bridge normalizes color leaves before aliasing. Non-color leaves
+ * (`radius`, **typography**, **font stacks**) are not treated as HSL. **`font-google-***` are
+ * optional: set to a [Google Fonts v2 `family` value](https://developers.google.com/fonts/docs/css2)
+ * (e.g. `Inter:wght@400;500;600;700` or `JetBrains+Mono:ital,wght@0,400;0,500`) to prepend
+ * a single `@import` for those families.
  *
- * | shadcn CSS variable   | Token path (under namespace.shadcn) | SD variable example (`token` ns) |
- * |-----------------------|-------------------------------------|----------------------------------|
- * | --background          | background                          | --token-shadcn-background        |
- * | --foreground          | foreground                          | --token-shadcn-foreground        |
- * | --card                | card                                | --token-shadcn-card              |
- * | --card-foreground     | card-foreground                     | --token-shadcn-card-foreground   |
- * | --popover             | popover                             | --token-shadcn-popover           |
- * | --popover-foreground| popover-foreground                  | --token-shadcn-popover-foreground |
- * | --primary             | primary                             | --token-shadcn-primary           |
- * | --primary-foreground  | primary-foreground                  | --token-shadcn-primary-foreground |
- * | --secondary           | secondary                           | --token-shadcn-secondary         |
- * | --secondary-foreground| secondary-foreground                | --token-shadcn-secondary-foreground |
- * | --muted               | muted                               | --token-shadcn-muted             |
- * | --muted-foreground    | muted-foreground                    | --token-shadcn-muted-foreground  |
- * | --accent              | accent                              | --token-shadcn-accent            |
- * | --accent-foreground   | accent-foreground                   | --token-shadcn-accent-foreground |
- * | --destructive         | destructive                         | --token-shadcn-destructive       |
- * | --destructive-foreground | destructive-foreground           | --token-shadcn-destructive-foreground |
- * | --border              | border                              | --token-shadcn-border            |
- * | --input               | input                               | --token-shadcn-input             |
- * | --ring                | ring                                | --token-shadcn-ring              |
- * | --radius              | radius                              | --token-shadcn-radius            |
- * | --success             | success                             | --token-shadcn-success           |
- * | --success-foreground  | success-foreground                  | --token-shadcn-success-foreground |
- * | --warning             | warning                             | --token-shadcn-warning           |
- * | --warning-foreground  | warning-foreground                  | --token-shadcn-warning-foreground |
- * | --info                | info                                | --token-shadcn-info              |
- * | --info-foreground     | info-foreground                     | --token-shadcn-info-foreground   |
+ * | shadcn CSS variable   | Token path (under namespace.shadcn) | SD example (`token` ns)   |
+ * |-----------------------|-------------------------------------|---------------------------|
+ * | (semantic colors)     | (see list in SHADCN_COLOR_LEAVES)   | --token-shadcn-background |
+ * | --radius              | radius                              | --token-shadcn-radius     |
+ * | --font-sans           | font-sans (primary UI)              | --token-shadcn-font-sans  |
+ * | --font-mono           | font-mono                           | --token-shadcn-font-mono  |
+ * | --font-secondary      | font-secondary (accent / headings)  | --token-shadcn-font-secondary |
+ * | type scale            | `text-2xs`…`text-9xl`, matching `leading-*` | see typography-defaults |
+ * | (import only)         | `font-google-sans` / `font-google-mono` / `font-google-secondary` | no Tailwind var alias |
  */
+import { prependGoogleFontImportsToCss } from '@/lib/appTheme/google-fonts';
+import { TYPE_SCALE_DEFAULTS, TYPE_SCALE_STEPS, shadcnTypeScaleLeaves } from '@/lib/appTheme/typography-defaults';
 
-/** shadcn semantic name → leaf name under the `shadcn` group (kebab-case path segment). */
-export const SHADCN_BRIDGE_LEAVES: readonly string[] = [
+/** Color + status tokens; normal HSL/hex handling applies. */
+export const SHADCN_COLOR_LEAVES: readonly string[] = [
   'background',
   'foreground',
   'card',
@@ -62,7 +46,6 @@ export const SHADCN_BRIDGE_LEAVES: readonly string[] = [
   'border',
   'input',
   'ring',
-  'radius',
   'success',
   'success-foreground',
   'warning',
@@ -71,14 +54,56 @@ export const SHADCN_BRIDGE_LEAVES: readonly string[] = [
   'info-foreground',
 ];
 
-/** HSL components (no hsl() wrapper) used when the collection has no matching `shadcn.*` token. */
-const OPTIONAL_SEMANTIC_FALLBACKS: Partial<Record<string, string>> = {
+const SHADCN_FONT_LEAVES = ['font-sans', 'font-mono', 'font-secondary'] as const;
+export const SHADCN_GOOGLE_LEAVES: readonly string[] = [
+  'font-google-sans',
+  'font-google-mono',
+  'font-google-secondary',
+];
+
+/**
+ * Receives shadcn → short CSS aliases (e.g. `--background`, `--text-xs`); this is the set wired in Tailwind
+ * and {@link semantic-tailwind.ts}. Google-only leaves are excluded — they only drive {@link prependGoogleFontImportsToCss}.
+ */
+export const SHADCN_ALIASED_LEAVES: readonly string[] = [
+  ...SHADCN_COLOR_LEAVES,
+  'radius',
+  ...SHADCN_FONT_LEAVES,
+  ...shadcnTypeScaleLeaves(),
+];
+
+/** Full `shadcn` group contract including optional Google `family=` specs (no top-level -- alias). */
+export const SHADCN_BRIDGE_LEAVES: readonly string[] = [...SHADCN_ALIASED_LEAVES, ...SHADCN_GOOGLE_LEAVES];
+
+const OPTIONAL_STATUS_FALLBACKS: Record<string, string> = {
   success: '142.1 76.2% 36.3%',
   'success-foreground': '355.7 100% 97.3%',
   warning: '32.1 94.6% 43.7%',
   'warning-foreground': '26 83.3% 14.1%',
   info: '221.2 83.2% 53.3%',
   'info-foreground': '210 40% 98%',
+};
+
+const OPTIONAL_FONT_STACK_FALLBACKS: Record<string, string> = {
+  'font-sans': `ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"`,
+  'font-mono': `ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace`,
+  'font-secondary': `var(--font-sans)`,
+};
+
+function buildTypeScaleFallbacks(): Record<string, string> {
+  const o: Record<string, string> = {};
+  for (const step of TYPE_SCALE_STEPS) {
+    const d = TYPE_SCALE_DEFAULTS[step];
+    o[`text-${step}`] = d.size;
+    o[`leading-${step}`] = d.leading;
+  }
+  return o;
+}
+
+const MERGED_OPTIONAL_FALLBACKS: Record<string, string> = {
+  ...buildTypeScaleFallbacks(),
+  ...OPTIONAL_FONT_STACK_FALLBACKS,
+  ...OPTIONAL_STATUS_FALLBACKS,
 };
 
 /**
@@ -99,10 +124,7 @@ function escapeRegExpChars(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-/** Leaves that represent colors; `radius` keeps arbitrary CSS (e.g. `0.75rem`). */
-const SHADCN_COLOR_LEAVES_FOR_HSL_STRIP: readonly string[] = SHADCN_BRIDGE_LEAVES.filter(
-  (leaf) => leaf !== 'radius'
-);
+const SHADCN_COLOR_LEAVES_FOR_HSL_STRIP: readonly string[] = [...SHADCN_COLOR_LEAVES];
 
 /**
  * Rewrite `--{ns}-shadcn-*` color declarations so values are HSL components only.
@@ -177,11 +199,13 @@ export function normalizeShadcnHexColorsInCss(css: string, namespace: string): s
   });
 }
 
-/** Lines inside a selector block: `--background: var(--token-shadcn-background);` */
-export function buildShadcnAliasLines(namespace: string): string {
-  return SHADCN_BRIDGE_LEAVES.map((leaf) => {
+/**
+ * @internal Aliased leaves get `--<leaf>: var(--<ns>-shadcn-<leaf>[, fallback])` in :root.
+ */
+function buildShadcnAliasLines(namespace: string): string {
+  return SHADCN_ALIASED_LEAVES.map((leaf) => {
     const src = shadcnSourceVarName(namespace, leaf);
-    const fb = OPTIONAL_SEMANTIC_FALLBACKS[leaf];
+    const fb = MERGED_OPTIONAL_FALLBACKS[leaf];
     const rhs = fb !== undefined ? `var(${src}, ${fb})` : `var(${src})`;
     return `  --${leaf}: ${rhs};`;
   }).join('\n');
@@ -190,6 +214,7 @@ export function buildShadcnAliasLines(namespace: string): string {
 /**
  * Append alias blocks so `--background` etc. point at `--{ns}-shadcn-*` from the SD output.
  * When the build only contains a dark selector (no `:root`), aliases are applied there only.
+ * Prepends a Google Fonts `@import` when `font-google-*` tokens are present in the source CSS.
  */
 export function appendShadcnBridge(css: string, namespace: string): string {
   const hslStripped = normalizeShadcnHslWrappersInCss(css, namespace);
@@ -210,5 +235,6 @@ export function appendShadcnBridge(css: string, namespace: string): string {
   if (!hasLightRoot && !hasDark) {
     parts.push('', `:root {\n${aliases}\n}`);
   }
-  return `${parts.join('\n')}\n`;
+  const combined = `${parts.join('\n')}\n`;
+  return prependGoogleFontImportsToCss(combined, namespace);
 }

@@ -178,7 +178,7 @@ export default function CollectionsPage() {
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
             <input
               type="text"
-              className="w-72 pl-9 pr-8 py-2 text-sm border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent placeholder:text-muted-foreground"
+              className="w-72 pl-9 pr-8 py-2 text-sm bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent placeholder:text-muted-foreground"
               placeholder="Search by name or description…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}

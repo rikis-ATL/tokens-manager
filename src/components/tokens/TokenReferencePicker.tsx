@@ -120,7 +120,7 @@ export function TokenReferencePicker({ allGroups, namespace, onSelect }: TokenRe
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Search tokens…"
-            className="w-full text-sm outline-none bg-transparent placeholder:text-muted-foreground"
+            className="w-full text-sm bg-background text-foreground rounded border border-border px-2 py-1.5 outline-none placeholder:text-muted-foreground"
           />
         </div>
         <div className="max-h-56 overflow-y-auto py-1">
@@ -138,7 +138,7 @@ export function TokenReferencePicker({ allGroups, namespace, onSelect }: TokenRe
               <button
                 key={flat.token.id}
                 type="button"
-                className="w-full text-left px-3 py-1.5 hover:bg-muted/50 flex items-center gap-2"
+                className="w-full text-left px-3 py-1.5 hover:bg-background flex items-center gap-2"
                 onClick={() => handleSelect(flat)}
               >
                 {isColor && (

@@ -32,7 +32,7 @@ export function SharedCollectionHeader({
   onError,
 }: SharedCollectionHeaderProps) {
   return (
-    <div className="bg-card border-b border-border px-4 py-3 sm:px-6 lg:px-8">
+    <div className="bg-background text-foreground border-b border-muted px-4 py-3 sm:px-6 lg:px-8">
       <div className="flex items-center gap-3 flex-wrap">
         <CollectionSelector
           collections={collections}

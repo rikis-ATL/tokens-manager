@@ -102,7 +102,7 @@ export function SaveAsTokenDialog({
 
           {/* Preview */}
           {preview && preview.length > 0 && tokenName.trim() && (
-            <div className="bg-muted/50 rounded p-2 border border-border">
+            <div className="bg-background rounded p-2 border border-border">
               <div className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide mb-1">
                 Preview
               </div>

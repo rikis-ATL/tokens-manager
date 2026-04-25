@@ -33,10 +33,13 @@ export async function checkTokenLimit(
 
   // D-07: live aggregation. Pitfall 4 — acceptable perf for free tier (500 token cap).
   const docs = await TokenCollection.find({ organizationId })
-    .select('tokens')
-    .lean() as Array<{ tokens?: unknown }>;
+    .select('tokens namespace')
+    .lean() as Array<{ tokens?: unknown; namespace?: string }>;
 
-  const current = docs.reduce((sum, d) => sum + countTokensInCollection(d.tokens ?? {}), 0);
+  const current = docs.reduce(
+    (sum, d) => sum + countTokensInCollection(d.tokens ?? {}, d.namespace ?? 'token'),
+    0
+  );
 
   if (current >= max) {
     return NextResponse.json(

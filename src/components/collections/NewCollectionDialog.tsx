@@ -6,6 +6,7 @@ import { apiFetch } from '@/lib/api-client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PresetSelector } from './PresetSelector';
 import {
@@ -240,8 +241,8 @@ export function NewCollectionDialog({
               </label>
               <p className="text-xs text-muted-foreground mt-0.5">What are these tokens for?</p>
             </div>
-            <textarea
-              className="w-full text-sm border border-border rounded-md px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent placeholder:text-muted-foreground"
+            <Textarea
+              className="min-h-[72px] resize-none"
               rows={2}
               value={description}
               onChange={(e) => setDescription(e.target.value)}

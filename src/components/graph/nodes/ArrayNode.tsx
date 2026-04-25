@@ -114,7 +114,7 @@ function ArrayNodeComponent({ data }: NodeProps) {
                   className={`nodrag px-1.5 text-[10px] font-medium transition-colors ${
                     cfg.inputMode === m
                       ? 'bg-info text-info-foreground'
-                      : 'bg-card text-muted-foreground hover:bg-muted/50'
+                      : 'bg-card text-muted-foreground hover:bg-background'
                   }`}
                   onClick={() => switchMode(m)}
                   title={m === 'csv' ? 'Comma-separated' : m === 'list' ? 'Individual fields' : 'Paste array (comments stripped)'}
@@ -155,7 +155,7 @@ function ArrayNodeComponent({ data }: NodeProps) {
                     update({ rawArray: e.target.value });
                   }}
                   placeholder={'[\n  "#BBDEFB",\n  "#90CAF9",\n  ...\n]'}
-                  className="nodrag w-full text-[10px] font-mono bg-muted/50 border border-border rounded px-1.5 py-1 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-info resize-none"
+                  className="nodrag w-full text-[10px] font-mono bg-background border border-border rounded px-1.5 py-1 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-info resize-none"
                   rows={4}
                 />
                 <div className="text-[9px] text-muted-foreground">Comments stripped. Use for colors, strings, numbers.</div>

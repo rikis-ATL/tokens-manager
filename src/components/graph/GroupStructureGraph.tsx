@@ -84,7 +84,7 @@ import { generateId } from '@/utils';
 // ── Static lookup maps ────────────────────────────────────────────────────────
 
 const COMPOSABLE_BADGE: Record<string, string> = {
-  constant:     'bg-muted/50 text-foreground border border-border',
+  constant:     'bg-background text-foreground border border-border',
   harmonic:     'bg-info/10 text-info border border-info/30',
   array:        'bg-info/10 text-info border border-info/30',
   math:         'bg-warning/10 text-warning border border-warning',
@@ -98,7 +98,7 @@ const COMPOSABLE_BADGE: Record<string, string> = {
   palette:        'bg-destructive/10 text-destructive border border-destructive',
   group: 'bg-info/10 text-info border border-info/30',
   cssString: 'bg-info/10 text-info border border-info/30',
-  patternCss: 'bg-muted/50 text-foreground border border-border',
+  patternCss: 'bg-background text-foreground border border-border',
   patternHtml: 'bg-success/10 text-success border border-success',
 };
 
@@ -914,7 +914,7 @@ function GroupStructureGraphInner({
   return (
     <div className="flex flex-col w-full h-full">
       {/* Toolbar */}
-      <div className="flex items-center gap-2 px-3 py-2 border-b border-border bg-card flex-shrink-0">
+      <div className="flex items-center gap-2 px-3 py-2 border-b border-muted bg-background flex-shrink-0">
         <span className="text-xs font-medium text-muted-foreground flex-1 truncate">
           {allGroupsMode ? 'All Groups' : group?.name || 'Group'}
         </span>

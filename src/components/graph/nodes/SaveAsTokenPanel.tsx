@@ -74,7 +74,7 @@ export function GroupPicker({
               onChange={e => setQuery(e.target.value)}
               autoFocus
               placeholder="Search groups…"
-              className="w-full text-[10px] px-1.5 py-1 outline-none bg-muted/50 rounded"
+              className="w-full text-[10px] text-foreground px-1.5 py-1 outline-none bg-background border border-border rounded"
             />
           </div>
 

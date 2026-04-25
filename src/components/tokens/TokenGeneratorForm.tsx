@@ -215,7 +215,7 @@ function TokenTableRow({
     <>
       <tr
         ref={trRef}
-        className={`transition-colors group/row ${isMultiSelected ? "bg-primary/10 ring-1 ring-inset ring-primary/20" : isSelected ? "bg-primary/10 ring-1 ring-inset ring-primary/20" : "hover:bg-muted/60"}`}
+        className={`transition-colors group/row ${isMultiSelected ? "bg-primary/10 ring-1 ring-inset ring-primary/20" : isSelected ? "bg-primary/10 ring-1 ring-inset ring-primary/20" : "hover:bg-background"}`}
         style={
           isPatternLikeRow && editingField === "value"
             ? { minHeight: 36 }
@@ -406,7 +406,7 @@ function TokenTableRow({
                         }
                         onBlur={handleBlur}
                         placeholder="Name / label"
-                        className="h-7 border border-border rounded px-2 text-[11px] font-mono shadow-none focus-visible:ring-1 focus-visible:ring-primary"
+                        className="h-7 border border-border rounded px-2 text-[11px] font-mono text-foreground shadow-none focus-visible:ring-1 focus-visible:ring-primary"
                       />
                       <textarea
                         value={pv.body}
@@ -421,7 +421,7 @@ function TokenTableRow({
                         }
                         rows={3}
                         spellCheck={false}
-                        className="min-h-[52px] border border-border rounded px-2 py-1 text-[11px] font-mono shadow-none focus-visible:ring-1 focus-visible:ring-primary resize-y w-full"
+                        className="min-h-[52px] border border-border rounded px-2 py-1 text-[11px] font-mono text-foreground shadow-none focus-visible:ring-1 focus-visible:ring-primary resize-y w-full"
                       />
                       {showCss && (
                         <textarea
@@ -433,7 +433,7 @@ function TokenTableRow({
                           placeholder="Optional CSS"
                           rows={2}
                           spellCheck={false}
-                          className="min-h-[40px] border border-border rounded px-2 py-1 text-[11px] font-mono shadow-none focus-visible:ring-1 focus-visible:ring-primary resize-y w-full"
+                          className="min-h-[40px] border border-border rounded px-2 py-1 text-[11px] font-mono text-foreground shadow-none focus-visible:ring-1 focus-visible:ring-primary resize-y w-full"
                         />
                       )}
                     </div>
@@ -456,7 +456,7 @@ function TokenTableRow({
                   placeholder={getValuePlaceholder(token.type)}
                   rows={3}
                   spellCheck={false}
-                  className="flex-1 min-h-[60px] border border-border rounded px-2 py-1.5 text-sm font-mono shadow-none focus-visible:ring-1 focus-visible:ring-primary resize-y"
+                  className="flex-1 min-h-[60px] border border-border rounded px-2 py-1.5 text-sm font-mono text-foreground shadow-none focus-visible:ring-1 focus-visible:ring-primary resize-y"
                 />
               ) : (
                 <Input
@@ -473,7 +473,7 @@ function TokenTableRow({
                   onBlur={handleBlur}
                   onClick={(e) => e.stopPropagation()}
                   placeholder={getValuePlaceholder(token.type)}
-                  className="flex-1 h-7 border border-border rounded px-2 text-sm font-mono shadow-none focus-visible:ring-1 focus-visible:ring-primary"
+                  className="flex-1 h-7 border border-border rounded px-2 text-sm font-mono text-foreground shadow-none focus-visible:ring-1 focus-visible:ring-primary"
                 />
               )
             ) : (
@@ -649,7 +649,7 @@ function TokenTableRow({
 
       {/* Expanded: custom attributes */}
       {isExpanded && (
-        <tr className="bg-muted/50">
+        <tr className="bg-background">
           <td colSpan={6} className="px-4 py-3">
             <div className="space-y-2">
               <h5 className="mb-2 text-sm font-medium text-foreground">
@@ -1766,7 +1766,7 @@ export function TokenGeneratorForm({
                 value={group.name}
                 readOnly={isReadOnly}
                 onChange={isReadOnly ? undefined : (e) => updateGroupName(group.id, e.target.value)}
-                className="px-2 py-1 text-base font-semibold bg-transparent rounded border-none outline-none focus:bg-muted/50 h-auto flex-1"
+                className="px-2 py-1 text-base font-semibold bg-transparent rounded border-none outline-none focus:bg-background h-auto flex-1"
                 placeholder="Group name"
               />
               {hasChildren && (
@@ -2022,7 +2022,7 @@ export function TokenGeneratorForm({
               </p>
             ) : (
               <table className="min-w-full table-auto">
-                <thead className="bg-muted/50 border-b border-border">
+                <thead className="border-b border-border">
                   <tr>
                     <th className="px-4 py-2 text-[10px] font-semibold text-left text-muted-foreground uppercase tracking-wide">
                       Group
@@ -2040,7 +2040,7 @@ export function TokenGeneratorForm({
                   {overviewGroups.map((group) => (
                     <tr
                       key={group.id}
-                      className="hover:bg-muted/50 cursor-pointer transition-colors"
+                      className="hover:bg-background cursor-pointer transition-colors"
                       onClick={() => onGroupSelect?.(group.id)}
                     >
                       <td className="px-4 py-2.5">
@@ -2135,7 +2135,7 @@ export function TokenGeneratorForm({
       )}
       {/* Add Group */}
       {!hideAddGroupButton && !isReadOnly && (
-        <div className="p-6 text-center bg-muted/50 rounded-lg border-2 border-border border-dashed">
+        <div className="p-6 text-center bg-background rounded-lg border-2 border-border border-dashed">
           {!isAddingGroup ? (
             <Button
               variant="ghost"

@@ -57,7 +57,7 @@ export function TokenGraphPanel({
   if (selectedToken) {
     return (
       <div className="flex flex-col h-full">
-        <div className="flex items-center gap-2 px-3 py-2 border-b border-border bg-card flex-shrink-0">
+        <div className="flex items-center gap-2 px-3 py-2 border-b border-muted bg-background flex-shrink-0">
           <GitBranch size={14} className="text-warning" />
           <span className="text-xs font-medium text-muted-foreground">Token</span>
           <span className="font-mono text-xs text-warning bg-warning/10 border border-warning px-1.5 py-0.5 rounded">
@@ -81,7 +81,7 @@ export function TokenGraphPanel({
   if (isAllGroupsView) {
     return (
       <div className="flex flex-col h-full">
-        <div className="flex items-center gap-2 px-3 py-2 border-b border-border bg-card flex-shrink-0">
+        <div className="flex items-center gap-2 px-3 py-2 border-b border-muted bg-background flex-shrink-0">
           <Network size={14} className="text-primary" />
           <span className="text-xs font-medium text-muted-foreground">All Groups</span>
           <span className="text-xs text-muted-foreground ml-auto">unified view</span>

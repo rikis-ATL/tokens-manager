@@ -1,8 +1,32 @@
 /**
- * Single source for Tailwind `theme.extend` colors + radius — matches CSS variables in
+ * Single source for Tailwind `theme.extend` — matches CSS variables in
  * `src/app/globals.css`, the shadcn bridge, and `semantic-tailwind.ts`.
  * Keep in sync when adding a new semantic token.
  */
+const typeSteps = [
+  '2xs',
+  'xs',
+  'sm',
+  'base',
+  'lg',
+  'xl',
+  '2xl',
+  '3xl',
+  '4xl',
+  '5xl',
+  '6xl',
+  '7xl',
+  '8xl',
+  '9xl',
+];
+
+const fontSize = {};
+const lineHeight = {};
+for (const s of typeSteps) {
+  fontSize[s] = [`var(--text-${s})`, { lineHeight: `var(--leading-${s})` }];
+  lineHeight[s] = `var(--leading-${s})`;
+}
+
 module.exports = {
   colors: {
     border: 'hsl(var(--border))',
@@ -56,4 +80,34 @@ module.exports = {
     md: 'calc(var(--radius) - 2px)',
     sm: 'calc(var(--radius) - 4px)',
   },
+  fontFamily: {
+    sans: [
+      'var(--font-sans)',
+      'ui-sans-serif',
+      'system-ui',
+      'sans-serif',
+      'Apple Color Emoji',
+      'Segoe UI Emoji',
+      'Segoe UI Symbol',
+    ],
+    mono: [
+      'var(--font-mono)',
+      'ui-monospace',
+      'SFMono-Regular',
+      'SF Mono',
+      'Menlo',
+      'Consolas',
+      'Liberation Mono',
+      'monospace',
+    ],
+    secondary: [
+      'var(--font-secondary)',
+      'var(--font-sans)',
+      'ui-sans-serif',
+      'system-ui',
+      'sans-serif',
+    ],
+  },
+  lineHeight,
+  fontSize,
 };

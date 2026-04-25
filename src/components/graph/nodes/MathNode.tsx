@@ -230,7 +230,7 @@ function MathNodeComponent({ data }: NodeProps) {
               className={`flex-1 py-0.5 capitalize transition-colors ${
                 mode === m
                   ? 'bg-warning/15 text-warning'
-                  : 'bg-card text-muted-foreground hover:bg-muted/50'
+                  : 'bg-card text-muted-foreground hover:bg-background'
               }`}
             >
               {m === 'operations' ? 'Ops' : 'Expr · evaluate'}

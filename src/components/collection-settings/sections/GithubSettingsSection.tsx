@@ -113,7 +113,7 @@ export function GithubSettingsSection() {
                 <summary className="cursor-pointer hover:text-foreground font-medium">
                   How to create a token with correct permissions
                 </summary>
-                <div className="mt-2 pl-3 space-y-1 text-muted-foreground bg-muted/50 p-2 rounded">
+                <div className="mt-2 pl-3 space-y-1 text-muted-foreground bg-background p-2 rounded">
                   <p>
                     1. Go to{' '}
                     <a

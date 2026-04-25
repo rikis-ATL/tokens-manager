@@ -121,7 +121,7 @@ export function ColorFormatDialog({
               <label className="text-xs font-medium text-muted-foreground">
                 Preview (first {previews.length} tokens)
               </label>
-              <div className="border rounded-md p-2 space-y-1.5 bg-muted/50 max-h-40 overflow-y-auto">
+              <div className="border rounded-md p-2 space-y-1.5 bg-background max-h-40 overflow-y-auto">
                 {previews.map((preview, idx) => (
                   <div key={idx} className="text-xs">
                     <div className="font-medium text-foreground truncate">{preview.path}</div>

@@ -16,7 +16,7 @@ export function AppSidebar() {
   const [collapsed, setCollapsed] = useState(true);
 
   return (
-    <aside className={`h-full bg-card border-r border-border flex flex-col justify-between transition-all duration-200 ${collapsed ? 'w-12' : 'w-[200px]'}`}>
+    <aside className={`h-full bg-background border-r border-muted flex flex-col justify-between transition-all duration-200 ${collapsed ? 'w-12' : 'w-[200px]'}`}>
 
 
       {/* Nav items */}
@@ -43,7 +43,7 @@ export function AppSidebar() {
         })}
       </nav>
 
-      <div className={`flex items-center border-t border-border flex-shrink-0 ${collapsed ? 'justify-center py-3' : 'px-4 py-3 justify-between'}`}>
+      <div className={`flex items-center border-t border-muted flex-shrink-0 ${collapsed ? 'justify-center py-3' : 'px-4 py-3 justify-between'}`}>
         {!collapsed && (
           <span className="text-foreground font-semibold text-sm tracking-wide truncate">Token Manager</span>
         )}

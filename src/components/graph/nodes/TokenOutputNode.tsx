@@ -186,7 +186,7 @@ function TokenOutputNodeComponent({ data }: NodeProps) {
                 {values.length} values
               </span>
             ) : (
-              <span className="text-[10px] text-muted-foreground bg-muted/50 rounded px-2 py-0.5">
+              <span className="text-[10px] text-muted-foreground bg-background rounded px-2 py-0.5">
                 scalar or array
               </span>
             )}
@@ -210,7 +210,7 @@ function TokenOutputNodeComponent({ data }: NodeProps) {
                 {stepNames!.slice(0, 4).join(', ')}{stepNames!.length > 4 ? '…' : ''}
               </span>
             ) : (
-              <span className="text-[10px] text-muted-foreground bg-muted/50 rounded px-2 py-0.5">
+              <span className="text-[10px] text-muted-foreground bg-background rounded px-2 py-0.5">
                 from value or wire
               </span>
             )}

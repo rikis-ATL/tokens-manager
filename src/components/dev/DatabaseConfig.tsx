@@ -320,8 +320,8 @@ function ProviderSelector({
             ${selected === p.id
               ? 'border-primary bg-primary/10 ring-1 ring-primary'
               : p.available
-                ? 'border-border hover:border-border hover:bg-muted/50 cursor-pointer'
-                : 'border-border bg-muted/50 opacity-60 cursor-not-allowed'
+                ? 'border-border hover:border-border hover:bg-background cursor-pointer'
+                : 'border-border bg-background opacity-60 cursor-not-allowed'
             }
           `}
         >

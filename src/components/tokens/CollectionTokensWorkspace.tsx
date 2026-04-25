@@ -67,10 +67,10 @@ export function CollectionTokensWorkspace({
 
   return (
     <div className="flex flex-1 min-h-0 w-full overflow-hidden">
-      <aside className="border-r border-border bg-muted/50 flex-shrink-0 flex flex-col transition-all duration-200 w-56">
+      <aside className="border-r border-muted bg-background flex-shrink-0 flex flex-col transition-all duration-200 w-56">
         <div className="flex flex-col h-full" onClick={(e) => e.stopPropagation()}>
           <TokenGroupTree {...groupTree} />
-          <div className="mt-auto p-2 border-t border-border">
+          <div className="mt-auto p-2 border-t border-muted">
             <button
               type="button"
               className="w-full flex items-center justify-center text-muted-foreground hover:text-foreground py-1 text-xs gap-1"
@@ -90,7 +90,7 @@ export function CollectionTokensWorkspace({
         {layoutMode === 'split' ? (
           <ResizablePanelGroup orientation="horizontal" className="flex-1 min-h-0 h-full">
             <ResizablePanel defaultSize={40} minSize={25}>
-              <main className="h-full overflow-y-auto p-6 flex flex-col gap-4">
+              <main className="h-full overflow-y-auto p-6 flex flex-col gap-4 bg-background text-foreground">
                 {breadcrumbActionsRow(
                   <Button
                     type="button"
@@ -111,7 +111,7 @@ export function CollectionTokensWorkspace({
             <ResizableHandle withHandle />
 
             <ResizablePanel defaultSize={30} minSize={20}>
-              <div className="h-full border-l border-border bg-muted/50">{graphPanel}</div>
+              <div className="h-full border-l border-muted bg-background">{graphPanel}</div>
             </ResizablePanel>
           </ResizablePanelGroup>
         ) : (
@@ -119,7 +119,7 @@ export function CollectionTokensWorkspace({
             defaultValue="table"
             className="flex flex-col flex-1 min-h-0 overflow-hidden gap-0"
           >
-            <div className="flex-shrink-0 px-6 pt-6 pb-3 border-b border-border bg-card">
+            <div className="flex-shrink-0 px-6 pt-6 pb-3 border-b border-muted bg-background">
               {breadcrumbActionsRow(
                 <>
                   <TabsList className="h-8 p-0.5">
@@ -149,14 +149,14 @@ export function CollectionTokensWorkspace({
               forceMount
               className="flex-1 min-h-0 m-0 p-0 overflow-hidden flex flex-col focus-visible:outline-none"
             >
-              <div className="flex-1 min-h-0 overflow-y-auto px-6 pb-6 pt-4">{mainContent}</div>
+              <div className="flex-1 min-h-0 overflow-y-auto px-6 pb-6 pt-4 bg-background text-foreground">{mainContent}</div>
             </TabsContent>
             <TabsContent
               value="graph"
               forceMount
               className="flex-1 min-h-0 m-0 p-0 overflow-hidden focus-visible:outline-none"
             >
-              <div className="h-full min-h-0 bg-muted/50">{graphPanel}</div>
+              <div className="h-full min-h-0 bg-background">{graphPanel}</div>
             </TabsContent>
           </Tabs>
         )}

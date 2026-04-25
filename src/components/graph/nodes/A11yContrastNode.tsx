@@ -187,13 +187,13 @@ function A11yContrastNodeComponent({ data }: NodeProps) {
 
             {/* WCAG pass indicators */}
             <div className="flex gap-2 pt-0.5">
-              <span className={`text-[10px] px-1.5 py-0.5 rounded border font-medium ${passAAA ? 'bg-success/10 text-success border-success' : 'bg-muted/50 text-muted-foreground border-border line-through'}`}>
+              <span className={`text-[10px] px-1.5 py-0.5 rounded border font-medium ${passAAA ? 'bg-success/10 text-success border-success' : 'bg-background text-muted-foreground border-border line-through'}`}>
                 AAA ≥7:1
               </span>
-              <span className={`text-[10px] px-1.5 py-0.5 rounded border font-medium ${passAA ? 'bg-primary/10 text-primary border-primary' : 'bg-muted/50 text-muted-foreground border-border line-through'}`}>
+              <span className={`text-[10px] px-1.5 py-0.5 rounded border font-medium ${passAA ? 'bg-primary/10 text-primary border-primary' : 'bg-background text-muted-foreground border-border line-through'}`}>
                 AA ≥4.5:1
               </span>
-              <span className={`text-[10px] px-1.5 py-0.5 rounded border font-medium ${(ratio ?? 0) >= 3 ? 'bg-warning/10 text-warning border-warning' : 'bg-muted/50 text-muted-foreground border-border line-through'}`}>
+              <span className={`text-[10px] px-1.5 py-0.5 rounded border font-medium ${(ratio ?? 0) >= 3 ? 'bg-warning/10 text-warning border-warning' : 'bg-background text-muted-foreground border-border line-through'}`}>
                 AA+ ≥3:1
               </span>
             </div>

@@ -104,6 +104,23 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     }
   }, [id]);
 
+  /** Coalesce shell CSS reload while editing (esp. shadcn colors) so the editor does not re-apply the live theme on every 400ms save tick. */
+  const appShellRefreshDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scheduleDebouncedAppShellRefresh = useCallback(() => {
+    if (appShellRefreshDebounceRef.current) clearTimeout(appShellRefreshDebounceRef.current);
+    appShellRefreshDebounceRef.current = setTimeout(() => {
+      appShellRefreshDebounceRef.current = null;
+      tryRefreshAppShell();
+    }, 1200);
+  }, [tryRefreshAppShell]);
+
+  useEffect(
+    () => () => {
+      if (appShellRefreshDebounceRef.current) clearTimeout(appShellRefreshDebounceRef.current);
+    },
+    []
+  );
+
   const [saveAsDialogOpen, setSaveAsDialogOpen] = useState(false);
   const [isSavingAs, setIsSavingAs] = useState(false);
   const [importFigmaOpen, setImportFigmaOpen] = useState(false);
@@ -389,14 +406,14 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
           if (res.ok) {
             rawCollectionTokensRef.current = toSave;
             setRawCollectionTokens(toSave);
-            tryRefreshAppShell();
+            scheduleDebouncedAppShellRefresh();
           }
         } catch {
           // Silent — same pattern as theme token auto-save
         }
       }, 400);
     },
-    [canEdit, id, globalNamespace, tryRefreshAppShell]
+    [canEdit, id, globalNamespace, scheduleDebouncedAppShellRefresh]
   );
 
   // ── Group drag-and-drop reorder handler ────────────────────────────────
@@ -536,13 +553,13 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     }).then((res) => {
       if (res.ok) {
         setCollectionGraphState(gs);
-        tryRefreshAppShell();
+        scheduleDebouncedAppShellRefresh();
       }
     }).catch((error) => {
       console.error('Failed to persist collection graph state:', error);
       showErrorToast('Failed to save collection graph state');
     });
-  }, [id, tryRefreshAppShell]);
+  }, [id, scheduleDebouncedAppShellRefresh]);
 
   const handleGraphStateChange = useCallback((groupId: string, state: GraphGroupState, flushImmediate?: boolean) => {
     const next = { ...graphStateMapRef.current, [groupId]: state };
@@ -846,12 +863,12 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ tokens: updatedTokens }),
         });
-        if (res.ok) tryRefreshAppShell();
+        if (res.ok) scheduleDebouncedAppShellRefresh();
       } catch {
         // Silent — existing toast pattern; no disruptive error for auto-save
       }
     }, 400);
-  }, [id, activeThemeId, tryRefreshAppShell]);
+  }, [id, activeThemeId, scheduleDebouncedAppShellRefresh]);
 
   // ── Derive active group state (enabled / source / disabled) ────────────
   // Token name mismatch when theme graph differs from default (for selected group)
@@ -1148,11 +1165,11 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   }
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
+    <div className="flex flex-col h-full overflow-hidden bg-background text-foreground">
 
 <Tabs defaultValue="tokens" className="flex flex-col flex-1 overflow-hidden">
 
-      <header className="px-4 py-3 flex justify-between items-center border border-b border-border">
+      <header className="px-4 py-3 flex justify-between items-center border-b border-muted bg-background text-foreground shrink-0">
        <div className="flex items-center gap-2">  
  
         {/* <h1 className="text-lg line-height-0">
@@ -1162,7 +1179,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
 
         {themes.length > 0 && (
 <div className="flex items-center gap-2">
-<label className="text-xs text-foreground">Theme:</label>
+<label className="text-xs text-muted-foreground">Theme:</label>
             <Select
               key={activeThemeId ?? '__default__'}
               value={activeThemeId ?? '__default__'}
@@ -1186,7 +1203,9 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
             </Select>
 </div>
           )}
-        <span className="text-xs text-foreground">Prefix:{globalNamespace}</span>
+        <span className="text-xs text-muted-foreground">
+          Prefix: <span className="text-foreground font-mono">{globalNamespace}</span>
+        </span>
 
         </div> 
 
@@ -1452,8 +1471,8 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
 
       {/* AI Chat slide-over */}
       <div className={`fixed top-0 right-0 h-full w-96 z-50 shadow-2xl transition-transform duration-300 ${isChatOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-        <div className="flex items-center justify-between px-4 py-3 border-b bg-card">
-          <span className="text-sm font-medium">AI Assistant — {collectionName}</span>
+        <div className="flex items-center justify-between px-4 py-3 border-b border-muted bg-background text-foreground">
+          <span className="text-sm font-medium text-foreground">AI Assistant — {collectionName}</span>
           <Button variant="ghost" size="sm" className="px-1" onClick={() => setIsChatOpen(false)}>
             <X size={16} />
           </Button>

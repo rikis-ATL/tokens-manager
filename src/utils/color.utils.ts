@@ -84,6 +84,23 @@ export function parseOklch(str: string): RGB | null {
 }
 
 /**
+ * shadcn / Tailwind-style HSL **components** (no `hsl()`), as used in token tables, e.g.
+ * `222.2 84% 4.9%` or `224.3 76.3% 48% / 0.5` (alpha is ignored for RGB preview).
+ */
+export function parseBareHslComponents(str: string): RGB | null {
+  const t = str.trim();
+  const m = t.match(
+    /^(-?[\d.]+)\s+([\d.]+)%\s+([\d.]+)%(?:\s*\/\s*[\d.]+%?)?\s*$/i
+  );
+  if (!m) return null;
+  const h = parseFloat(m[1]);
+  const s = parseFloat(m[2]);
+  const l = parseFloat(m[3]);
+  if (!Number.isFinite(h) || !Number.isFinite(s) || !Number.isFinite(l)) return null;
+  return hslToRgb(h, s, l);
+}
+
+/**
  * Try to parse any CSS color format to RGB
  */
 export function parseColor(value: string): RGB | null {
@@ -93,6 +110,7 @@ export function parseColor(value: string): RGB | null {
   return parseHex(trimmed) ??
          parseRgb(trimmed) ??
          parseHsl(trimmed) ??
+         parseBareHslComponents(trimmed) ??
          parseOklch(trimmed) ??
          null;
 }

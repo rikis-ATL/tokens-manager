@@ -282,7 +282,7 @@ export function GitHubDirectoryPicker({
                 </div>
               )}
             </div>
-            <div className="border rounded-md p-3 bg-muted/50 max-h-64 overflow-auto">
+            <div className="border rounded-md p-3 bg-background max-h-64 overflow-auto">
               <div
                 className={`flex items-center py-1 px-2 rounded cursor-pointer hover:bg-muted ${
                   selectedPath === '' && selectionType === 'directory' ? 'bg-primary/15' : ''
@@ -346,7 +346,7 @@ export function GitHubDirectoryPicker({
                 <label className="block text-sm font-medium text-foreground mb-1">
                   Selected Directory:
                 </label>
-                <div className="px-3 py-2 bg-muted/50 border rounded text-sm font-mono">
+                <div className="px-3 py-2 bg-background border rounded text-sm font-mono">
                   /{selectedPath || '(root)'}
                 </div>
               </div>

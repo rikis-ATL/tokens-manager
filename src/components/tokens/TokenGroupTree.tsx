@@ -176,8 +176,8 @@ export function TokenGroupTree({
   return (
     <div className="flex flex-col h-full">
       {/* Section heading */}
-      <div className="px-3 py-2 border-b border-border flex items-center justify-between flex-shrink-0">
-        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Groups</span>
+      <div className="px-3 py-2 border-b border-muted flex items-center justify-between flex-shrink-0">
+        <span className="text-xs font-semibold text-foreground uppercase tracking-wider">Groups</span>
         {onAddGroup && (
           <button
             onClick={onAddGroup}
@@ -201,7 +201,7 @@ export function TokenGroupTree({
             className={`px-3 py-2 mx-2 mb-1 rounded cursor-pointer transition-colors ${
               selectedGroupId === '__all_groups__'
                 ? 'bg-primary/10 border border-primary text-primary'
-                : 'hover:bg-muted/50 text-foreground'
+                : 'hover:bg-background text-foreground'
             }`}
             onClick={() => onGroupSelect?.('__all_groups__')}
           >

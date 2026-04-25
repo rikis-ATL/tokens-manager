@@ -78,7 +78,7 @@ export function ThemeList({
   return (
     <div className="flex flex-col h-full">
       {/* Section header */}
-      <div className="px-3 py-2 border-b border-border flex items-center justify-between flex-shrink-0">
+      <div className="px-3 py-2 border-b border-muted bg-background flex items-center justify-between flex-shrink-0">
         <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Themes</span>
         <button
           onClick={handleOpenDialog}
@@ -171,7 +171,7 @@ export function ThemeList({
                 className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded border text-sm transition-colors ${
                   addColorMode === 'light'
                     ? 'border-warning bg-warning/10 text-warning'
-                    : 'border-border bg-card text-muted-foreground hover:bg-muted/50'
+                    : 'border-border bg-card text-muted-foreground hover:bg-background'
                 }`}
               >
                 <Sun size={14} />
@@ -183,7 +183,7 @@ export function ThemeList({
                 className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded border text-sm transition-colors ${
                   addColorMode === 'dark'
                     ? 'border-border bg-muted text-foreground'
-                    : 'border-border bg-card text-muted-foreground hover:bg-muted/50'
+                    : 'border-border bg-card text-muted-foreground hover:bg-background'
                 }`}
               >
                 <Moon size={14} />

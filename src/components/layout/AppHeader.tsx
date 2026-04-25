@@ -32,7 +32,7 @@ export function AppHeader() {
   };
 
   return (
-    <header className="flex items-center gap-4 px-6 py-3 border-b border-border bg-card flex-shrink-0">
+    <header className="flex items-center gap-4 px-6 py-3 border-b border-muted bg-background text-foreground flex-shrink-0">
       {loadError ? (
         <div className="flex items-center gap-2 text-sm text-destructive">
           <span>Failed to load collections</span>

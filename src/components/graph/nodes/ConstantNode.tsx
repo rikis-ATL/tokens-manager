@@ -104,7 +104,7 @@ function ConstantNodeComponent({ data }: NodeProps) {
           icon={<Hash size={12} className="text-muted-foreground" />}
           title="Constant"
           badge={isWired ? '⇐ wired' : cfg.valueType}
-          headerClass="bg-muted/50 border-border text-foreground"
+          headerClass="bg-background border-border text-foreground"
           onDelete={onDeleteNode ? () => onDeleteNode(nodeId) : undefined}
         />
 
@@ -247,7 +247,7 @@ function ConstantNodeComponent({ data }: NodeProps) {
           {/* Output preview + save button */}
           <div className="pt-1 border-t border-border flex items-center gap-1">
             <div className="flex-1 min-w-0">
-              <div className="text-[10px] font-mono text-muted-foreground bg-muted/50 rounded px-2 py-1 truncate" title={preview}>
+              <div className="text-[10px] font-mono text-muted-foreground bg-background rounded px-2 py-1 truncate" title={preview}>
                 → {preview}
               </div>
             </div>

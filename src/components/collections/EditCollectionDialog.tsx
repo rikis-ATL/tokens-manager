@@ -5,6 +5,7 @@ import { X, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 
 interface EditCollectionDialogProps {
   isOpen: boolean;
@@ -118,8 +119,8 @@ export function EditCollectionDialog({ isOpen, collection, onClose, onSaved }: E
               Description
               <span className="font-normal text-muted-foreground ml-1">(optional)</span>
             </label>
-            <textarea
-              className="w-full text-sm border border-border rounded-md px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent placeholder:text-muted-foreground"
+            <Textarea
+              className="min-h-[88px] resize-none"
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}

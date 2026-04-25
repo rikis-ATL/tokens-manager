@@ -6,10 +6,10 @@ import { usePathname } from 'next/navigation';
 import {
   ChevronLeft,
   ChevronRight,
+  FileOutput,
   GitBranch,
   Layers,
   Palette,
-  Settings2,
   SlidersHorizontal,
 } from 'lucide-react';
 
@@ -25,13 +25,13 @@ export function CollectionSidebar({ collectionId, collectionName }: CollectionSi
   const navItems = [
     { href: `/collections/${collectionId}/tokens`, label: 'Tokens', icon: Palette },
     { href: `/collections/${collectionId}/themes`, label: 'Themes', icon: Layers },
-    { href: `/collections/${collectionId}/config`, label: 'Config', icon: Settings2 },
+    { href: `/collections/${collectionId}/output`, label: 'Output', icon: FileOutput },
     { href: `/collections/${collectionId}/versions`, label: 'Versions', icon: GitBranch },
     { href: `/collections/${collectionId}/settings`, label: 'Settings', icon: SlidersHorizontal },
   ];
 
   return (
-    <aside className={`h-full bg-card border-r border-border flex flex-col transition-all duration-200 flex-shrink-0 ${collapsed ? 'w-12' : 'w-[200px]'}`}>
+    <aside className={`h-full bg-background border-r border-muted flex flex-col transition-all duration-200 flex-shrink-0 ${collapsed ? 'w-12' : 'w-[200px]'}`}>
 
 
       {/* Nav items */}
@@ -59,7 +59,7 @@ export function CollectionSidebar({ collectionId, collectionName }: CollectionSi
       </nav>
 
 
-      <div className={`flex items-start border-t border-border flex-shrink-0 ${collapsed ? 'flex-col items-center py-2 gap-2' : 'px-4 py-2 justify-between'}`}>
+      <div className={`flex items-start border-t border-muted flex-shrink-0 ${collapsed ? 'flex-col items-center py-2 gap-2' : 'px-4 py-2 justify-between'}`}>
 {/*        {!collapsed && (
           <div className="flex-1 min-w-0">
             <Link href="/collections" className="block mb-2">

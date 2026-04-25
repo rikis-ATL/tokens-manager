@@ -64,9 +64,12 @@ export async function GET() {
 
   // D-07: live aggregation (same logic as checkTokenLimit).
   const docs = await TokenCollection.find({ organizationId: orgId })
-    .select('tokens')
-    .lean() as Array<{ tokens?: unknown }>;
-  const tokenCount = docs.reduce((sum, d) => sum + countTokensInCollection(d.tokens ?? {}), 0);
+    .select('tokens namespace')
+    .lean() as Array<{ tokens?: unknown; namespace?: string }>;
+  const tokenCount = docs.reduce(
+    (sum, d) => sum + countTokensInCollection(d.tokens ?? {}, d.namespace ?? 'token'),
+    0
+  );
   const collectionCount = docs.length;
 
   const payload: UsagePayload = {

@@ -127,19 +127,19 @@ export function CollectionCard({
         {isMenuOpen && (
           <div className="absolute right-0 top-7 z-10 w-36 bg-card border border-border rounded-md shadow-lg py-1">
             <button
-              className="w-full text-left px-3 py-1.5 text-sm text-foreground hover:bg-muted/50"
+              className="w-full text-left px-3 py-1.5 text-sm text-foreground hover:bg-background"
               onClick={handleRenameSelect}
             >
               Rename
             </button>
             <button
-              className="w-full text-left px-3 py-1.5 text-sm text-foreground hover:bg-muted/50"
+              className="w-full text-left px-3 py-1.5 text-sm text-foreground hover:bg-background"
               onClick={handleEditSelect}
             >
               Edit details
             </button>
             <button
-              className="w-full text-left px-3 py-1.5 text-sm text-foreground hover:bg-muted/50"
+              className="w-full text-left px-3 py-1.5 text-sm text-foreground hover:bg-background"
               onClick={handleDuplicateSelect}
             >
               Duplicate

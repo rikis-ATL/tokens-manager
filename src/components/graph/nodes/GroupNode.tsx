@@ -26,7 +26,7 @@ function GroupNodeComponent({ data, selected }: NodeProps) {
         ${selected ? 'border-primary shadow-sm' : 'border-border'}
       `}
     >
-      <div className="px-3 py-2 bg-muted/50 rounded-t-lg border-b border-border">
+      <div className="px-3 py-2 bg-background rounded-t-lg border-b border-border">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-info flex-shrink-0" />
           <span className="font-semibold text-sm text-foreground truncate">{label}</span>

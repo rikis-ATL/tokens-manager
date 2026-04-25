@@ -167,9 +167,9 @@ export default function CollectionThemesPage({ params }: ThemesPageProps) {
   }
 
   return (
-    <div className="flex flex-col flex-1 overflow-hidden border">
+    <div className="flex flex-col flex-1 overflow-hidden border border-muted">
       {/* Heading bar */}
-      <div className="flex items-center justify-between gap-2 border-b border-border bg-card px-6 py-3 flex-shrink-0">
+      <div className="flex items-center justify-between gap-2 border-b border-muted bg-background px-6 py-3 flex-shrink-0">
         <h1 className="text-lg font-semibold text-foreground">Themes</h1>
         <Button size="sm" className="px-2 bg-primary hover:bg-primary text-primary-foreground gap-1" onClick={() => handleAddTheme('New Theme', 'light')}>
         <Plus size={14} />
@@ -179,7 +179,7 @@ export default function CollectionThemesPage({ params }: ThemesPageProps) {
       {/* Two-panel layout */}
       <div className="flex h-full overflow-hidden">
         {/* Left panel — 192px fixed (w-48) */}
-        <aside className="w-48 flex-shrink-0 border-r border-border bg-muted/50 flex flex-col h-full">
+        <aside className="w-48 flex-shrink-0 border-r border-muted bg-background flex flex-col h-full">
           <ThemeList
             themes={themes}
             selectedThemeId={selectedThemeId}

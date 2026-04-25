@@ -8,7 +8,7 @@ import { CollectionSettingsProvider, useCollectionSettings } from './CollectionS
 const navLinkClass =
   'block rounded-md px-3 py-2 text-sm font-medium transition-colors border border-transparent';
 const navActiveClass = 'bg-muted text-foreground border-border';
-const navInactiveClass = 'text-muted-foreground hover:bg-muted/60 hover:text-foreground';
+const navInactiveClass = 'text-muted-foreground hover:bg-background hover:text-foreground';
 
 function SettingsHeader() {
   const {

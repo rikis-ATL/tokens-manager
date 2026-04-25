@@ -93,14 +93,14 @@ export default function SetupPage() {
   // Show a centered spinner while the mount check is in progress
   if (checking) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-muted/50 dark:bg-background">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/50 dark:bg-background">
+    <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="w-full max-w-sm bg-card dark:bg-card rounded-xl shadow-md p-8">
         <h1 className="text-xl font-semibold text-center text-foreground dark:text-foreground mb-1">
           Create Admin Account

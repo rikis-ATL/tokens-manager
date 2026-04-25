@@ -82,4 +82,10 @@ describe('appendShadcnBridge', () => {
     expect(out).toContain('[data-color-mode="dark"]');
     expect(out.match(/\[data-color-mode="dark"\]/g)?.length).toBeGreaterThanOrEqual(2);
   });
+
+  it('does not treat font stack values as hex colors', () => {
+    const input = ':root {\n  --token-shadcn-font-sans: Inter, ui-sans-serif, system-ui;\n}\n';
+    const out = appendShadcnBridge(input, 'token');
+    expect(out).toContain('Inter, ui-sans-serif, system-ui');
+  });
 });

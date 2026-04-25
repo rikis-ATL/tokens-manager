@@ -156,7 +156,7 @@ function TypographyNodeComponent({ data }: NodeProps) {
           <PreviewSection>
             {/* Live preview text */}
             <div
-              className="rounded bg-muted/50 border border-border px-2 py-1.5 mb-1.5 overflow-hidden"
+              className="rounded bg-background border border-border px-2 py-1.5 mb-1.5 overflow-hidden"
               style={{ maxHeight: 48 }}
             >
               <p

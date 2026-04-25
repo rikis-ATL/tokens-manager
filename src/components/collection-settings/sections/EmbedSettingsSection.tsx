@@ -66,7 +66,7 @@ export function EmbedSettingsSection() {
           <summary className="cursor-pointer text-foreground font-medium hover:text-foreground">
             Using a specific theme?
           </summary>
-          <div className="mt-2 p-3 bg-muted/50 rounded space-y-2">
+          <div className="mt-2 p-3 bg-background rounded space-y-2">
             <p className="text-xs text-muted-foreground">
               Add <code className="bg-card px-1 py-0.5 rounded border">?theme=THEME_ID</code> to the
               script URL:

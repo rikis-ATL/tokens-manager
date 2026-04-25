@@ -42,7 +42,7 @@ function PatternCssNodeComponent({ data }: NodeProps) {
       <NodeHeader
         icon={<FileCode size={12} className="text-foreground" />}
         title="CSS pattern"
-        headerClass="bg-muted/50 border-border text-foreground"
+        headerClass="bg-background border-border text-foreground"
         onDelete={onDeleteNode ? () => onDeleteNode(nodeId) : undefined}
       />
 

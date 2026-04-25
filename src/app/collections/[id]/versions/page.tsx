@@ -267,7 +267,7 @@ export default function CollectionVersionsPage({ params }: VersionsPageProps) {
       )}
 
       {canPublishNpm && !isPlayground && !npmPublishReady && (
-        <div className="rounded-md border border-dashed border-border bg-muted/50 px-3 py-3 text-sm text-foreground">
+        <div className="rounded-md border border-dashed border-border bg-background px-3 py-3 text-sm text-foreground">
           <p className="font-medium text-foreground">NPM publishing not configured</p>
           <p className="text-xs text-muted-foreground mt-1">
             Add a package name and automation token in{' '}
@@ -351,7 +351,7 @@ export default function CollectionVersionsPage({ params }: VersionsPageProps) {
         ) : (
           <div className="overflow-x-auto border border-border rounded-lg">
             <table className="w-full text-sm">
-              <thead className="bg-muted/50 text-left text-xs uppercase text-muted-foreground">
+              <thead className="text-left text-xs uppercase text-muted-foreground">
                 <tr>
                   {showDeleteControls && (
                     <th className="px-2 py-2 w-10">

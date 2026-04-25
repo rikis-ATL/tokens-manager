@@ -21,11 +21,11 @@ const TYPE_COLOURS: Record<string, string> = {
   lineHeight:   'bg-info/10 border-info/30 text-info',
   duration:     'bg-warning/10 border-warning text-warning',
   number:       'bg-warning/10 border-warning text-warning',
-  string:       'bg-muted/50 border-border text-muted-foreground',
+  string:       'bg-background border-border text-muted-foreground',
 };
 
 function getTypeBadge(type: string) {
-  return TYPE_COLOURS[type] ?? 'bg-muted/50 border-border text-muted-foreground';
+  return TYPE_COLOURS[type] ?? 'bg-background border-border text-muted-foreground';
 }
 
 function TokenNodeComponent({ data, selected }: NodeProps) {

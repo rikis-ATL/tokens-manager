@@ -67,7 +67,7 @@ export function TagFilterCombobox({ allTags, selectedTags, onChange }: TagFilter
           <Search size={13} className="text-muted-foreground shrink-0" />
           <input
             ref={inputRef}
-            className="flex-1 text-sm bg-transparent outline-none placeholder:text-muted-foreground"
+            className="flex-1 min-w-0 text-sm bg-background text-foreground rounded border border-border px-2 py-1 outline-none placeholder:text-muted-foreground"
             placeholder="Search tags…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -89,7 +89,7 @@ export function TagFilterCombobox({ allTags, selectedTags, onChange }: TagFilter
               return (
                 <button
                   key={tag}
-                  className="flex items-center w-full gap-2 px-3 py-1.5 text-sm text-left hover:bg-muted/50 transition-colors"
+                  className="flex items-center w-full gap-2 px-3 py-1.5 text-sm text-left hover:bg-background transition-colors"
                   onClick={() => toggle(tag)}
                 >
                   <span

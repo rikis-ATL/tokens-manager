@@ -1,16 +1,29 @@
-import { SHADCN_BRIDGE_LEAVES } from '@/lib/appTheme/shadcn-bridge';
+import { SHADCN_ALIASED_LEAVES } from '@/lib/appTheme/shadcn-bridge';
+import { TYPE_SCALE_STEPS } from '@/lib/appTheme/typography-defaults';
 
 /**
  * App theme contract: collection tokens under `{namespace}.shadcn.<key>` drive CSS variables;
  * the UI uses the Tailwind utilities listed here so borders, surfaces, and text stay themeable.
  *
- * - Align collection **group** name with `shadcn` and **leaf** names with {@link SHADCN_BRIDGE_LEAVES}.
+ * - Align collection **group** name with `shadcn` and **leaf** names with {@link SHADCN_ALIASED_LEAVES}
+ *   (optional `font-google-*` in shadcn only loads Google Fonts, no class).
  * - HSL values: bare components or full `hsl()` / `hsla()` in tokens; the app-theme bridge normalizes to components for Tailwind.
- * - Reference these class names in docs, embeds, and internal UI (avoid raw `gray-*` for chrome).
+ * - Typography: set `text-*` / `leading-*` in tokens, then use the matching `text-*` / `leading-*` classes;
+ *   `font-sans` = primary, `font-secondary` = secondary, `font-mono` = monospace. Pair with
+ *   optional `font-google-*` leaves for the same families.
  *
  * @see shadcn-bridge.ts for `--*` → `--token-shadcn-*` mapping
  * @see tailwind.config.js — `theme.extend` is loaded from `tailwind-theme-extend.js` (same tokens).
  */
+
+function typeScaleSemanticMap(): Record<string, readonly string[]> {
+  const o: Record<string, readonly string[]> = {};
+  for (const s of TYPE_SCALE_STEPS) {
+    o[`text-${s}`] = [`text-${s}`];
+    o[`leading-${s}`] = [`leading-${s}`];
+  }
+  return o;
+}
 
 /** Maps each bridge token key to recommended Tailwind class strings (subset you may combine). */
 export const SEMANTIC_TAILWIND_BY_TOKEN = {
@@ -20,8 +33,8 @@ export const SEMANTIC_TAILWIND_BY_TOKEN = {
   card: ['bg-card', 'text-card-foreground'],
   'card-foreground': ['text-card-foreground'],
 
-  popover: ['bg-popover', 'text-popover-foreground'],
-  'popover-foreground': ['text-popover-foreground'],
+  popover: ['bg-background', 'text-foreground', 'text-popover-foreground'],
+  'popover-foreground': ['text-foreground', 'text-popover-foreground'],
 
   primary: ['bg-primary', 'text-primary', 'text-primary-foreground'],
   'primary-foreground': ['text-primary-foreground'],
@@ -55,6 +68,10 @@ export const SEMANTIC_TAILWIND_BY_TOKEN = {
   /** Uses `theme.extend.borderRadius` → `var(--radius)` */
   radius: ['rounded-sm', 'rounded-md', 'rounded-lg'],
 
+  'font-sans': ['font-sans'],
+  'font-mono': ['font-mono'],
+  'font-secondary': ['font-secondary'],
+
   success: ['bg-success', 'text-success', 'text-success-foreground'],
   'success-foreground': ['text-success-foreground'],
 
@@ -63,12 +80,14 @@ export const SEMANTIC_TAILWIND_BY_TOKEN = {
 
   info: ['bg-info', 'text-info', 'text-info-foreground'],
   'info-foreground': ['text-info-foreground'],
-} as const satisfies Record<(typeof SHADCN_BRIDGE_LEAVES)[number], readonly string[]>;
+
+  ...typeScaleSemanticMap(),
+} as const satisfies Record<(typeof SHADCN_ALIASED_LEAVES)[number], readonly string[]>;
 
 /** Flattened unique utilities for pickers, validation, or docs. */
 export function allSemanticTailwindClasses(): string[] {
   const set = new Set<string>();
-  for (const key of SHADCN_BRIDGE_LEAVES) {
+  for (const key of SHADCN_ALIASED_LEAVES) {
     const classes = SEMANTIC_TAILWIND_BY_TOKEN[key as keyof typeof SEMANTIC_TAILWIND_BY_TOKEN];
     for (const c of classes) {
       set.add(c);

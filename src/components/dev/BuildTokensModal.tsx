@@ -259,7 +259,7 @@ export function BuildTokensModal({
                   >
                     {copiedKey === copyKey ? 'Copied!' : 'Copy'}
                   </Button>
-                  <pre className="bg-muted/50 rounded p-4 text-sm font-mono overflow-x-auto whitespace-pre-wrap break-all max-h-[400px] overflow-y-auto">
+                  <pre className="bg-background rounded p-4 text-sm font-mono overflow-x-auto whitespace-pre-wrap break-all max-h-[400px] overflow-y-auto">
                     <code>{currentBrandOutput.content || '/* (empty output) */'}</code>
                   </pre>
                 </div>

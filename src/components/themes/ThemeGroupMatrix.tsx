@@ -34,14 +34,14 @@ export function ThemeGroupMatrix({ theme, groups, onStateChange, onColorModeChan
   return (
     <div className="flex flex-col gap-1">
       {/* Color mode selector row */}
-      <div className="flex items-center justify-between gap-4 px-4 py-2 rounded-md hover:bg-muted/50 mb-2 border-b border-border pb-3">
+      <div className="flex items-center justify-between gap-4 px-4 py-2 rounded-md hover:bg-background mb-2 border-b border-border pb-3">
         <span className="text-sm text-foreground flex-1">Color Mode</span>
         <div className="flex border border-border rounded-md overflow-hidden flex-shrink-0">
           <button
             className={`px-3 py-1 text-xs font-medium transition-colors border-r border-border flex items-center gap-1 ${
               colorMode === 'light'
                 ? 'bg-warning text-warning-foreground border-warning'
-                : 'bg-card text-muted-foreground hover:bg-muted/50'
+                : 'bg-card text-muted-foreground hover:bg-background'
             }`}
             onClick={() => onColorModeChange?.(theme.id, 'light')}
           >
@@ -52,7 +52,7 @@ export function ThemeGroupMatrix({ theme, groups, onStateChange, onColorModeChan
             className={`px-3 py-1 text-xs font-medium transition-colors flex items-center gap-1 ${
               colorMode === 'dark'
                 ? 'bg-foreground text-background border-border'
-                : 'bg-card text-muted-foreground hover:bg-muted/50'
+                : 'bg-card text-muted-foreground hover:bg-background'
             }`}
             onClick={() => onColorModeChange?.(theme.id, 'dark')}
           >
@@ -71,7 +71,7 @@ export function ThemeGroupMatrix({ theme, groups, onStateChange, onColorModeChan
         return (
           <div
             key={group.id}
-            className="flex items-center justify-between gap-4 px-4 py-2 rounded-md hover:bg-muted/50"
+            className="flex items-center justify-between gap-4 px-4 py-2 rounded-md hover:bg-background"
           >
             {/* Group label */}
             <span className="text-sm text-foreground flex-1 truncate">{label}</span>
@@ -88,7 +88,7 @@ export function ThemeGroupMatrix({ theme, groups, onStateChange, onColorModeChan
                     } ${
                       isActive
                         ? 'bg-primary text-primary-foreground border-primary'
-                        : 'bg-card text-muted-foreground hover:bg-muted/50'
+                        : 'bg-card text-muted-foreground hover:bg-background'
                     }`}
                     onClick={() => onStateChange(group.id, state)}
                     title={STATE_LABELS[state]}

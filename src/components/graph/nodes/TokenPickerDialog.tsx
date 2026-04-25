@@ -57,7 +57,7 @@ export function TokenPickerDialog({ open, tokens, onSelect, onClose }: TokenPick
         </DialogHeader>
 
         {/* Search */}
-        <div className="flex items-center gap-2 px-3 py-2 border-b border-border bg-muted/50">
+        <div className="flex items-center gap-2 px-3 py-2 border-b border-border bg-background">
           <Search size={14} className="text-muted-foreground flex-shrink-0" />
           <input
             ref={inputRef}
@@ -65,7 +65,7 @@ export function TokenPickerDialog({ open, tokens, onSelect, onClose }: TokenPick
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Search by name, value or type…"
-            className="flex-1 text-sm bg-transparent outline-none placeholder-muted-foreground"
+            className="flex-1 min-w-0 text-sm bg-background text-foreground rounded border border-border px-2 py-1.5 outline-none placeholder:text-muted-foreground"
           />
           {query && (
             <button
@@ -108,7 +108,7 @@ export function TokenPickerDialog({ open, tokens, onSelect, onClose }: TokenPick
         </div>
 
         {filtered.length > 0 && (
-          <div className="px-4 py-2 border-t border-border bg-muted/50 text-[11px] text-muted-foreground">
+          <div className="px-4 py-2 border-t border-border bg-background text-[11px] text-muted-foreground">
             {filtered.length}{tokens.length > 50 && query ? '+' : ''} of {tokens.length} tokens
           </div>
         )}

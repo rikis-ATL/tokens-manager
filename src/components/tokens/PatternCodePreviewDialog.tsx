@@ -126,7 +126,7 @@ export function PatternCodePreviewDialog({
   }, [sections, copyText]);
 
   const body = (section: PatternPreviewSection) => (
-    <div className="rounded-md border border-border overflow-hidden bg-muted/50">
+    <div className="rounded-md border border-border overflow-hidden bg-background">
       <SyntaxHighlighter
         language={section.language}
         style={a11yOneLight}

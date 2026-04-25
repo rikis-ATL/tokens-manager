@@ -39,7 +39,7 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/50 dark:bg-background">
+    <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="w-full max-w-sm bg-card dark:bg-card rounded-xl shadow-md p-8">
         <h1 className="text-xl font-semibold text-center text-foreground dark:text-foreground mb-6">
           Token Manager

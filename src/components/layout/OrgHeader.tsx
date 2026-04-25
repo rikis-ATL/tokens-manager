@@ -70,7 +70,7 @@ export function OrgHeader({ pageTitle, showPlaygroundBadge }: OrgHeaderProps) {
 
   return (
     <>
-      <header className="flex items-center justify-between px-5 py-3 border-b border-border bg-card flex-shrink-0">
+      <header className="flex items-center justify-between px-5 py-3 border-b border-muted bg-background text-foreground flex-shrink-0">
         <div className="flex items-center gap-3">
           {isCollectionDetail && (
             <Link
@@ -131,13 +131,13 @@ function DbPill({ status }: { status: DbStatus }) {
   return (
     <div className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition-colors ${
       isLoading
-        ? 'text-muted-foreground border-border bg-muted/50'
+        ? 'text-muted-foreground border-muted bg-background'
         : isConnected
           ? 'text-success border-success bg-success/10'
           : 'text-warning border-warning bg-warning/10'
     }`}>
       {isLoading ? (
-        <span className="w-2 h-2 rounded-full border border-border border-t-transparent animate-spin" />
+        <span className="w-2 h-2 rounded-full border border-muted border-t-transparent animate-spin" />
       ) : (
         <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-success' : 'bg-warning'}`} />
       )}

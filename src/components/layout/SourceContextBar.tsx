@@ -14,7 +14,7 @@ export function SourceContextBar({ sourceMetadata }: SourceContextBarProps) {
 
   if (sourceMetadata.type === 'github' && sourceMetadata.repo) {
     return (
-      <div className="bg-muted/50 border-b border-border px-4 py-1.5 sm:px-6 lg:px-8">
+      <div className="bg-background border-b border-muted px-4 py-1.5 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto flex items-center gap-2 text-sm text-muted-foreground">
           {/* GitHub icon */}
           <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">

@@ -161,7 +161,7 @@ export function ConstantNodeModal({
             )}
 
             {/* Search */}
-            <div className="flex items-center gap-2 px-3 py-2 border-b border-border bg-muted/50">
+            <div className="flex items-center gap-2 px-3 py-2 border-b border-border bg-background">
               <Search size={13} className="text-muted-foreground flex-shrink-0" />
               <input
                 ref={searchRef}
@@ -169,7 +169,7 @@ export function ConstantNodeModal({
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 placeholder="Search by name, value or type…"
-                className="flex-1 text-sm bg-transparent outline-none placeholder-muted-foreground"
+                className="flex-1 min-w-0 text-sm bg-background text-foreground rounded border border-border px-2 py-1.5 outline-none placeholder:text-muted-foreground"
               />
               {query && (
                 <button
@@ -219,7 +219,7 @@ export function ConstantNodeModal({
             </div>
 
             {filtered.length > 0 && (
-              <div className="px-4 py-2 border-t border-border bg-muted/50 text-[11px] text-muted-foreground">
+              <div className="px-4 py-2 border-t border-border bg-background text-[11px] text-muted-foreground">
                 {filtered.length}{eligibleTokens.length > 50 && query ? '+' : ''} of {eligibleTokens.length} token{eligibleTokens.length !== 1 ? 's' : ''}{isArrayType ? ' (array)' : ''}
               </div>
             )}
@@ -230,7 +230,7 @@ export function ConstantNodeModal({
         {tab === 'save' && (
           <div className="px-4 py-4 space-y-3">
             {/* Preview of current value */}
-            <div className="bg-muted/50 rounded p-2.5 border border-border">
+            <div className="bg-background rounded p-2.5 border border-border">
               <div className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide mb-1">Value</div>
               <code className="text-xs font-mono text-foreground break-all">
                 {cfg.valueType === 'array'

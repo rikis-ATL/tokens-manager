@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import JSZip from 'jszip';
 import type { BuildTokensResult, FormatOutput } from '@/types';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface BuildTokensPanelProps {
   tokens: Record<string, unknown> | null;
@@ -15,20 +16,31 @@ interface BuildTokensPanelProps {
 }
 
 const FORMAT_LABELS: Record<string, string> = {
-  css:           'CSS',
-  scss:          'SCSS',
-  less:          'LESS',
-  js:            'JS',
-  ts:            'TS',
-  json:          'JSON',
+  css: 'CSS',
+  scss: 'SCSS',
+  less: 'LESS',
+  js: 'JS',
+  ts: 'TS',
+  json: 'JSON',
   'tailwind-v3': 'Tailwind v3',
   'tailwind-v4': 'Tailwind v4',
-  ios:           'iOS (Swift)',
-  android:       'Android (XML)',
+  ios: 'iOS (Swift)',
+  android: 'Android (XML)',
 };
 
-const FORMATS = ['css', 'scss', 'less', 'js', 'ts', 'json', 'tailwind-v3', 'tailwind-v4', 'ios', 'android'] as const;
-type Format = typeof FORMATS[number];
+const FORMATS = [
+  'css',
+  'scss',
+  'less',
+  'js',
+  'ts',
+  'json',
+  'tailwind-v3',
+  'tailwind-v4',
+  'ios',
+  'android',
+] as const;
+type Format = (typeof FORMATS)[number];
 
 export function BuildTokensPanel({
   tokens,
@@ -56,19 +68,25 @@ export function BuildTokensPanel({
       const res = await fetch('/api/build-tokens', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tokens, namespace, collectionName, ...(themeLabel ? { themeLabel } : {}), ...(darkTokens ? { darkTokens } : {}), ...(colorMode ? { colorMode } : {}) }),
+        body: JSON.stringify({
+          tokens,
+          namespace,
+          collectionName,
+          ...(themeLabel ? { themeLabel } : {}),
+          ...(darkTokens ? { darkTokens } : {}),
+          ...(colorMode ? { colorMode } : {}),
+        }),
       });
 
       if (!res.ok) {
-        const body = await res.json().catch(() => ({})) as { error?: string };
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
         throw new Error(body.error ?? `Build failed (${res.status})`);
       }
 
       const data = (await res.json()) as BuildTokensResult;
       setResult(data);
 
-      // Set default brand to first brand of the CSS format (or first format)
-      const cssFormat = data.formats.find(f => f.format === 'css');
+      const cssFormat = data.formats.find((f) => f.format === 'css');
       const firstBrand = cssFormat?.outputs[0]?.brand ?? data.formats[0]?.outputs[0]?.brand ?? '';
       setActiveBrand(firstBrand);
       setActiveFormat('css');
@@ -79,7 +97,6 @@ export function BuildTokensPanel({
     }
   }, [tokens, namespace, collectionName, themeLabel, darkTokens, colorMode]);
 
-  // Auto-run build when tokens change
   useEffect(() => {
     if (tokens) {
       runBuild();
@@ -92,27 +109,25 @@ export function BuildTokensPanel({
     }
   }, [tokens, themeLabel, darkTokens]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Reset activeBrand when format tab changes (pick first brand in new format)
-  const handleFormatChange = (fmt: Format) => {
+  const handleFormatChange = (value: string) => {
+    const fmt = value as Format;
     setActiveFormat(fmt);
     if (result) {
-      const fmtData = result.formats.find(f => f.format === fmt);
+      const fmtData = result.formats.find((f) => f.format === fmt);
       setActiveBrand(fmtData?.outputs[0]?.brand ?? '');
     }
   };
 
-  // Copy content for active format+brand to clipboard
   const handleCopy = async (key: string, content: string) => {
     try {
       await navigator.clipboard.writeText(content);
       setCopiedKey(key);
       setTimeout(() => setCopiedKey(null), 2000);
     } catch {
-      // Clipboard write failed silently
+      /* ignore */
     }
   };
 
-  // Download all format x brand combinations as a ZIP
   const handleDownloadAll = async () => {
     if (!result) return;
     const zip = new JSZip();
@@ -130,39 +145,31 @@ export function BuildTokensPanel({
     URL.revokeObjectURL(url);
   };
 
-  // Derive current format outputs
-  const currentFormatData: FormatOutput | undefined = result?.formats.find(f => f.format === activeFormat);
+  const currentFormatData: FormatOutput | undefined = result?.formats.find(
+    (f) => f.format === activeFormat
+  );
   const currentBrands = currentFormatData?.outputs ?? [];
   const isMultiBrand = currentBrands.length > 1;
-  const currentBrandOutput = currentBrands.find(b => b.brand === activeBrand) ?? currentBrands[0];
+  const currentBrandOutput = currentBrands.find((b) => b.brand === activeBrand) ?? currentBrands[0];
   const copyKey = `${activeFormat}-${activeBrand}`;
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between px-4 py-3 border-b">
+    <div className="flex flex-col min-h-0">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-muted">
         <h2 className="text-sm font-semibold text-foreground">Build Output</h2>
         <div className="flex gap-2">
-          <Button
-            onClick={runBuild}
-            size="sm"
-            disabled={loading || !tokens}
-          >
+          <Button onClick={runBuild} size="sm" disabled={loading || !tokens}>
             Build Tokens
           </Button>
           {result && (
-            <Button
-              onClick={handleDownloadAll}
-              size="sm"
-              variant="outline"
-            >
+            <Button onClick={handleDownloadAll} size="sm" variant="outline">
               Download All
             </Button>
           )}
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
-        {/* Empty state — no tokens */}
+      <div className="px-0">
         {!tokens && (
           <div className="flex flex-col items-center justify-center py-16 text-center p-4">
             <p className="text-muted-foreground text-sm">
@@ -171,62 +178,51 @@ export function BuildTokensPanel({
           </div>
         )}
 
-        {/* Loading state */}
         {tokens && loading && (
           <div className="flex flex-col items-center justify-center py-16">
             <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
-            <span className="text-muted-foreground text-sm">Building...</span>
+            <span className="text-muted-foreground text-sm">Building…</span>
           </div>
         )}
 
-        {/* Error state */}
         {tokens && !loading && error && (
-          <div className="flex flex-col items-center justify-center py-12">
+          <div className="flex flex-col items-center justify-center py-12 px-4">
             <p className="text-destructive text-sm mb-4">{error}</p>
-            <Button
-              onClick={runBuild}
-              variant="destructive"
-              size="sm"
-            >
+            <Button onClick={runBuild} variant="destructive" size="sm">
               Retry
             </Button>
           </div>
         )}
 
-        {/* Success state */}
         {tokens && !loading && result && (
-          <div className="flex flex-col gap-4 h-full">
-            {/* Format tabs */}
-            <div className="flex border-b border-border">
-              {FORMATS.map(fmt => (
-                <Button
-                  key={fmt}
-                  onClick={() => handleFormatChange(fmt)}
-                  variant="ghost"
-                  className={`px-4 py-2 text-sm font-medium rounded-t -mb-px border-b-2 transition-colors ${
-                    activeFormat === fmt
-                      ? 'bg-primary/15 text-primary border-primary'
-                      : 'text-muted-foreground border-transparent hover:bg-muted'
-                  }`}
-                >
-                  {FORMAT_LABELS[fmt]}
-                </Button>
-              ))}
+          <Tabs value={activeFormat} onValueChange={handleFormatChange} className="w-full">
+            <div className="px-4 pt-4 w-full max-w-full overflow-x-auto">
+              <TabsList className="h-auto w-max max-w-full min-w-0 flex flex-wrap justify-start gap-0.5 p-1 sm:inline-flex sm:min-w-0 sm:flex-nowrap sm:overflow-x-auto sm:justify-start">
+                {FORMATS.map((fmt) => (
+                  <TabsTrigger
+                    key={fmt}
+                    value={fmt}
+                    className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 shrink-0"
+                  >
+                    {FORMAT_LABELS[fmt]}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
             </div>
 
-            {/* Brand sub-tabs (multi-brand only) */}
             {isMultiBrand && (
-              <div className="flex gap-1">
+              <div className="flex flex-wrap gap-1.5 px-4 pt-3">
                 {currentBrands.map(({ brand }) => (
                   <Button
                     key={brand}
                     onClick={() => setActiveBrand(brand)}
+                    size="sm"
                     variant="ghost"
-                    className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
+                    className={
                       activeBrand === brand
-                        ? 'bg-card text-card-foreground'
-                        : 'bg-muted text-foreground hover:bg-muted'
-                    }`}
+                        ? 'h-7 text-xs font-medium border border-border bg-background shadow-sm'
+                        : 'h-7 text-xs font-medium text-muted-foreground border border-border border-transparent bg-background hover:text-foreground hover:bg-accent'
+                    }
                   >
                     {brand}
                   </Button>
@@ -234,23 +230,22 @@ export function BuildTokensPanel({
               </div>
             )}
 
-            {/* Code block */}
             {currentBrandOutput && (
-              <div className="relative h-full">
+              <div className="relative px-4 py-4 pb-6">
                 <Button
                   onClick={() => handleCopy(copyKey, currentBrandOutput.content)}
                   variant="outline"
                   size="sm"
-                  className="absolute top-2 right-2 z-10"
+                  className="absolute top-4 right-6 z-10"
                 >
                   {copiedKey === copyKey ? 'Copied!' : 'Copy'}
                 </Button>
-                <pre className="bg-muted/50 rounded p-4 text-sm font-mono overflow-x-auto whitespace-pre-wrap break-all flex flex-1 overflow-y-auto">
+                <pre className="bg-background text-foreground border border-muted rounded-md p-4 pr-24 text-sm font-mono overflow-x-auto whitespace-pre-wrap break-all">
                   <code>{currentBrandOutput.content || '/* (empty output) */'}</code>
                 </pre>
               </div>
             )}
-          </div>
+          </Tabs>
         )}
       </div>
     </div>

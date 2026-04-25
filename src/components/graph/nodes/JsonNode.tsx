@@ -126,7 +126,7 @@ function JsonNodeComponent({ data }: NodeProps) {
                 handlePasteBlur(e);
                 onGraphInputBlur?.();
               }}
-              className="nodrag w-full text-[10px] font-mono bg-muted/50 border border-border rounded px-1.5 py-1 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-warning/40 resize-none"
+              className="nodrag w-full text-[10px] font-mono bg-background border border-border rounded px-1.5 py-1 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-warning/40 resize-none"
               rows={2}
             />
           </div>

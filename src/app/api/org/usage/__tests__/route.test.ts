@@ -56,6 +56,8 @@ describe('GET /api/org/usage', () => {
       tokenMax: null,
       exportsThisMonth: 0,
       exportsMax: null,
+      collectionCount: 0,
+      collectionMax: null,
     });
     expect(mockOrgFindById).not.toHaveBeenCalled();
   });
@@ -84,6 +86,8 @@ describe('GET /api/org/usage', () => {
       tokenMax: 500,
       exportsThisMonth: 3,
       exportsMax: 10,
+      collectionCount: 1,
+      collectionMax: 1,
     });
   });
 

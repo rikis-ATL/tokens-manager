@@ -105,7 +105,7 @@ export default function InviteSetupForm({ token }: { token: string }) {
   // Loading state while validating token
   if (validating) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-muted/50 dark:bg-background">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     );
@@ -114,7 +114,7 @@ export default function InviteSetupForm({ token }: { token: string }) {
   // Error state for invalid/expired/used tokens
   if (tokenError) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-muted/50 dark:bg-background">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="w-full max-w-sm bg-card dark:bg-card rounded-xl shadow-md p-8 text-center">
           <h1 className="text-xl font-semibold text-foreground dark:text-foreground mb-2">
             Invite Link Invalid
@@ -126,7 +126,7 @@ export default function InviteSetupForm({ token }: { token: string }) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/50 dark:bg-background">
+    <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="w-full max-w-sm bg-card dark:bg-card rounded-xl shadow-md p-8">
         <h1 className="text-xl font-semibold text-center text-foreground dark:text-foreground mb-1">
           Set up your account

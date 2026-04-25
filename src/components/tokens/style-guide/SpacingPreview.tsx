@@ -13,7 +13,7 @@ export function SpacingPreview({ token, resolvedValue }: StyleGuideTokenProps) {
 
   if (isNaN(parsedValue)) {
     return (
-      <div className="flex items-center gap-3 px-3 py-2 rounded border border-border bg-muted/50">
+      <div className="flex items-center gap-3 px-3 py-2 rounded border border-border bg-background">
         <span className="text-xs font-mono text-foreground">{token.path}</span>
         <span className="text-xs font-mono text-muted-foreground">{resolvedValue}</span>
       </div>

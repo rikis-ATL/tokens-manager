@@ -108,7 +108,7 @@ export function CollectionTableView({
   return (
     <div className="overflow-x-auto bg-card rounded-lg border border-border">
       <table className="min-w-full divide-y divide-border">
-        <thead className="bg-muted/50">
+        <thead>
           <tr>
             <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider w-8">
               {/* Color swatch column */}
@@ -148,7 +148,7 @@ export function CollectionTableView({
               <tr
                 key={collection._id}
                 onClick={() => onClick(collection._id)}
-                className="hover:bg-muted/50 cursor-pointer transition-colors group"
+                className="hover:bg-background cursor-pointer transition-colors group"
               >
                 {/* Color swatch */}
                 <td className="px-4 py-3">
@@ -269,19 +269,19 @@ export function CollectionTableView({
                       className="absolute right-8 top-8 z-10 w-36 bg-card border border-border rounded-md shadow-lg py-1"
                     >
                       <button
-                        className="w-full text-left px-3 py-1.5 text-sm text-foreground hover:bg-muted/50"
+                        className="w-full text-left px-3 py-1.5 text-sm text-foreground hover:bg-background"
                         onClick={(e) => handleRenameSelect(e, collection)}
                       >
                         Rename
                       </button>
                       <button
-                        className="w-full text-left px-3 py-1.5 text-sm text-foreground hover:bg-muted/50"
+                        className="w-full text-left px-3 py-1.5 text-sm text-foreground hover:bg-background"
                         onClick={(e) => handleEditSelect(e, collection._id)}
                       >
                         Edit details
                       </button>
                       <button
-                        className="w-full text-left px-3 py-1.5 text-sm text-foreground hover:bg-muted/50"
+                        className="w-full text-left px-3 py-1.5 text-sm text-foreground hover:bg-background"
                         onClick={(e) => handleDuplicateSelect(e, collection._id)}
                       >
                         Duplicate

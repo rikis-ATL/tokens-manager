@@ -105,7 +105,7 @@ function TextInput({ value, onChange, type }: TextInputProps) {
 
   return (
     <div
-      className="px-3 py-2 bg-muted/50 border border-transparent rounded-md hover:bg-muted cursor-pointer font-mono text-sm"
+      className="px-3 py-2 bg-background border border-transparent rounded-md hover:bg-muted cursor-pointer font-mono text-sm"
       onClick={() => setIsEditing(true)}
     >
       <span className="text-foreground">{value}</span>
@@ -183,7 +183,7 @@ export function TokenTable({ section, tokens, onSave }: TokenTableProps) {
       <div className="overflow-x-auto">
         {Object.entries(groupedTokens).map(([filePath, fileTokens]) => (
           <div key={filePath} className="border-b border-border last:border-b-0">
-            <div className="px-6 py-3 bg-muted/50">
+            <div className="px-6 py-3 bg-background">
               <h3 className="text-sm font-medium text-foreground">{filePath}</h3>
             </div>
             <table className="min-w-full table-auto">
@@ -207,7 +207,7 @@ export function TokenTable({ section, tokens, onSave }: TokenTableProps) {
                   const isColor = tokenGroup.token.type === 'color';
 
                   return (
-                    <tr key={tokenGroup.path} className={`hover:bg-muted/50 ${saving[tokenKey] ? 'bg-primary/10' : ''}`}>
+                    <tr key={tokenGroup.path} className={`hover:bg-background ${saving[tokenKey] ? 'bg-primary/10' : ''}`}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <div className="text-sm font-medium text-foreground font-mono">
