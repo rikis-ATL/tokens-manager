@@ -7,6 +7,7 @@
 
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { UpgradeModal } from './UpgradeModal';
 import { setUpgradeModalCallback } from '@/lib/api-client';
 import { usePermissions } from '@/context/PermissionsContext';
@@ -26,16 +27,20 @@ const UpgradeModalContext = createContext<UpgradeModalContextValue | null>(null)
 
 export function UpgradeModalProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const { status } = useSession();
   const { isAdmin } = usePermissions();
   const [payload, setPayload] = useState<LimitPayload | null>(null);
 
   const openUpgradeModal = useCallback((p: LimitPayload) => {
-    if (isAdmin) {
+    // Guard against session hydration race: if the session hasn't resolved yet,
+    // isAdmin is always false. Show the modal as a safe fallback rather than
+    // potentially redirecting a non-admin to /account.
+    if (status !== 'loading' && isAdmin) {
       router.push('/account');
       return;
     }
     setPayload(p);
-  }, [isAdmin, router]);
+  }, [isAdmin, router, status]);
 
   // Register the apiFetch callback on mount so 402 responses auto-open the modal.
   useEffect(() => {

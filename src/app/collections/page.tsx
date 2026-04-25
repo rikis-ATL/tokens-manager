@@ -29,7 +29,9 @@ export default function CollectionsPage() {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const { canCreate, isAdmin } = usePermissions();
   const { openUpgradeModal } = useUpgradeModal();
-  const [collectionMax, setCollectionMax] = useState<number | null>(null);
+  // undefined = not yet loaded; null = unlimited; number = the actual limit
+  const [collectionMax, setCollectionMax] = useState<number | null | undefined>(undefined);
+  const [orgPlan, setOrgPlan] = useState<string>('free');
 
   const fetchCollections = async () => {
     try {
@@ -50,14 +52,20 @@ export default function CollectionsPage() {
     fetch('/api/org/usage')
       .then((r) => r.ok ? r.json() : null)
       .then((data) => {
-        if (!cancelled && data) setCollectionMax(data.collectionMax);
+        if (!cancelled && data) {
+        setCollectionMax(data.collectionMax);
+        setOrgPlan(data.plan ?? 'free');
+      }
       })
       .catch(() => {});
     return () => { cancelled = true; };
   }, []);
 
   const handleNewCollection = () => {
+    // collectionMax === undefined means the usage fetch hasn't resolved yet — skip pre-check,
+    // let the server enforce via 402 if the limit is actually hit.
     const atLimit =
+      collectionMax !== undefined &&
       collectionMax !== null &&
       collectionMax !== Infinity &&
       collections.length >= collectionMax;
@@ -69,8 +77,8 @@ export default function CollectionsPage() {
         openUpgradeModal({
           resource: 'collections',
           current: collections.length,
-          max: collectionMax,
-          tier: 'free',
+          max: collectionMax as number,
+          tier: orgPlan,
         });
       }
       return;

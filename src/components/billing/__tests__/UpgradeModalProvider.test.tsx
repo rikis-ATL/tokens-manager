@@ -10,6 +10,11 @@ jest.mock('next/navigation', () => ({
   })
 }));
 
+// Mock next-auth/react — authenticated, non-admin session
+jest.mock('next-auth/react', () => ({
+  useSession: () => ({ status: 'authenticated', data: { user: { role: 'Member' } } }),
+}));
+
 // Mock usePermissions — non-admin so modal renders (admins are redirected to /account)
 jest.mock('@/context/PermissionsContext', () => ({
   usePermissions: () => ({ isAdmin: false, canCreate: true, canEdit: true }),
