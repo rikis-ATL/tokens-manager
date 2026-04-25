@@ -37,18 +37,41 @@ function buildCollectionContext(
   collection: Record<string, unknown>,
   themeId?: string | null
 ): string {
-  const tokens = (collection.tokens as Record<string, unknown>) ?? {};
   const themes = (collection.themes as Array<Record<string, unknown>>) ?? [];
+  let tokens: unknown = (collection.tokens as Record<string, unknown>) ?? {};
+  let tokenLabel = "Full token data (W3C Design Token format)";
+  let activeTheme: Record<string, unknown> | undefined;
 
-  const groupPaths = collectGroupPaths(tokens);
+  if (themeId && themeId !== "__default__") {
+    activeTheme = themes.find((t) => (t.id as string) === themeId);
+    if (activeTheme?.tokens) {
+      tokens = activeTheme.tokens;
+      tokenLabel = `Theme token data (TokenGroup[] format for theme "${activeTheme.name as string}")`;
+    }
+  }
 
-  let context = `You are an AI assistant for the Token Manager design system tool.
-You are working with the collection "${collection.name}".
+  let groupPaths: string[];
+  if (Array.isArray(tokens)) {
+    function flattenGroupIds(groups: Array<Record<string, unknown>>): string[] {
+      const ids: string[] = [];
+      for (const g of groups) {
+        if (g.id) ids.push(String(g.id));
+        if (Array.isArray(g.children)) ids.push(...flattenGroupIds(g.children as Array<Record<string, unknown>>));
+      }
+      return ids;
+    }
+    groupPaths = flattenGroupIds(tokens as Array<Record<string, unknown>>);
+  } else {
+    groupPaths = collectGroupPaths(tokens as Record<string, unknown>);
+  }
+
+  let context = `You are an AI assistant for the ATUI Tokens Manager design system tool.
+You are working with the collection "${collection.name as string}".
 
 ## Current Token Structure
 The collection contains the following token groups: ${groupPaths.join(", ") || "(empty collection)"}
 
-Full token data (W3C Design Token format):
+${tokenLabel}:
 \`\`\`json
 ${JSON.stringify(tokens, null, 2)}
 \`\`\`
@@ -64,7 +87,16 @@ You can create, update, and delete tokens and groups using the provided tools.
 - For DELETE operations, list what will be deleted and ask "Shall I proceed?" before calling the delete tool
 - Use the existing naming conventions visible in the token structure
 - When creating tokens, infer the $type from context (e.g., hex values are "color", px/rem values are "dimension")
-- If a tool call fails, explain the error in plain language and suggest alternatives`;
+- If a tool call fails, explain the error in plain language and suggest alternatives
+
+## Read-Only Queries
+You can answer read-only questions about the current token state by reading the token data above. No tool call is needed for read-only queries. Examples:
+- "Which tokens use #0056D2?" — search the token data for matching values
+- "What groups contain color tokens?" — inspect the token structure
+- "What is the value of colors.brand.primary?" — look up the specific token
+
+## Naming Suggestions
+When a user pastes a list of raw token values (hex colors, spacing values, font sizes, etc.) without explicitly asking to create tokens, respond with suggested canonical names and group structure as formatted text. Do NOT call bulk_create_tokens or create_token immediately. Wait for explicit user confirmation (e.g. "yes, apply it", "go ahead", "create them") before calling any creation tools to apply the suggestions.`;
 
   // Always list existing themes so the AI can use their IDs directly
   if (themes.length > 0) {
@@ -74,13 +106,10 @@ You can create, update, and delete tokens and groups using the provided tools.
     context += `\n\n## Existing Themes\n${themeList}`;
   }
 
-  // Add active theme context if applicable
-  if (themeId && themeId !== "__default__") {
-    const activeTheme = themes.find((t) => (t.id as string) === themeId);
-    if (activeTheme) {
-      context += `\n\n## Active Theme: ${activeTheme.name as string}
-Theme token overrides are present. Currently operating on the collection's default tokens.`;
-    }
+  if (activeTheme) {
+    context += `\n\n## Active Theme: ${activeTheme.name as string}
+Color mode: ${(activeTheme.colorMode as string) || "light"}
+You are viewing and editing this theme's token overrides. Tool calls will target this theme.`;
   }
 
   context += `\n\n## Theme Creation and Editing
