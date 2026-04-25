@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.6
-milestone_name: Multi-Tenant SaaS
+milestone: v1.9
+milestone_name: AI Completion + MCP Alignment
 status: active
-stopped_at: Phase 24 complete
-last_updated: "2026-04-21T00:48:43.653Z"
-last_activity: 2026-04-21 -- Phase 23 verified and closed
+stopped_at: Phase 30 complete
+last_updated: "2026-04-25T01:00:00.000Z"
+last_activity: 2026-04-25 -- Phase 30 verified and closed
 progress:
-  total_phases: 3
+  total_phases: 4
   completed_phases: 2
-  total_plans: 8
-  completed_plans: 8
-  percent: 100
+  total_plans: 11
+  completed_plans: 6
+  percent: 50
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-11)
 
 **Core value:** Token collections are always available and editable: stored in MongoDB, accessible via collection-scoped URLs, with per-collection Figma/GitHub config, full CRUD from the collections grid, Figma import/export fully integrated, and a Themes system where each theme is a complete token value set with per-group edit permissions, dark-mode awareness, and theme-targeted export.
-**Current focus:** Phase 24 — Stripe Checkout and Webhook Integration
+**Current focus:** Phase 32 — MCP Tool Service Layer (next in v1.9)
 
 ## Current Position
 
-Phase: 24 (stripe-checkout-and-webhook-integration) — READY TO PLAN
-Plan: 0 of TBD
-Status: Phase 23 complete, awaiting Phase 24 plan
-Last activity: 2026-04-21 -- Phase 23 verified and closed
+Phase: 30 (ai-assisted-naming-and-queries) — COMPLETE
+Plan: 3 of 3
+Status: Phase 30 verified — 4/4 automated checks passed, 4 human tests in 30-HUMAN-UAT.md
+Last activity: 2026-04-25 -- Phase 30 verified and closed
 
 ## Accumulated Context
 
@@ -62,9 +62,12 @@ Key decisions captured from v1.6 research (pre-recorded in PROJECT.md):
 
 - Phase 33 added (2026-04-25): Theme configuration — color/density types, dual active selection, themes UI under Tokens page — see `.planning/phases/33-theme-configuration-color-density/33-SPEC.md`
 
-### Deferred from v1.9
+### v1.9 Progress
 
-Phases 30 (AI-Assisted Naming and Queries) and 32 (MCP Tool Service Layer) were not started and remain deferred. Requirements AI-11 to AI-14 and MCP-01 remain in PROJECT.md Active section.
+- Phase 30 (AI-Assisted Naming and Queries): Complete — 4/4 requirements verified (AI-11, AI-12, AI-13, AI-14). Human UAT pending in 30-HUMAN-UAT.md.
+- Phase 31 (Style Guide Verification): Complete (completed 2026-04-09)
+- Phase 32 (MCP Tool Service Layer): Not started — next up
+- Phase 33 (Theme configuration — color/density): Not started
 
 ## Session Continuity
 

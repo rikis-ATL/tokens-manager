@@ -161,7 +161,7 @@ See: `.planning/milestones/v1.4-ROADMAP.md` for full phase details.
 
 **Milestone Goal:** Complete the AI feature set, verify the Style Guide, and unify MCP and in-app chat behind a shared tool service layer.
 
-- [ ] **Phase 30: AI-Assisted Naming and Queries** — AI theme creation, natural language token queries and bulk edits, canonical naming suggestions
+- [x] **Phase 30: AI-Assisted Naming and Queries** — AI theme creation, natural language token queries and bulk edits, canonical naming suggestions (completed 2026-04-25)
 - [x] **Phase 31: Style Guide Verification** — Browser verification of Phase 25 Style Guide tab; fix any regressions or nyquist coverage gaps (completed 2026-04-09)
 - [ ] **Phase 32: MCP Tool Service Layer** — Extract shared token/group/theme service functions; add theme mutation tools to MCP server
 - [ ] **Phase 33: Theme configuration — color/density** — Theme kinds (color vs density), dual active selection, merged effective token set, themes UI under Tokens page, config/export uses color + density instead of single theme
@@ -179,9 +179,9 @@ See: `.planning/milestones/v1.4-ROADMAP.md` for full phase details.
   4. User can paste raw token values into the chat and the AI responds with suggested canonical names and group structure (AI-14)
 **Plans**: 3 plans
 Plans:
-- [ ] 30-01-PLAN.md — System prompt fix (theme-aware tokens, query/naming guidance) + AIChatPanel text
-- [ ] 30-02-PLAN.md — rename_prefix tool (bulkReplacePrefix + API endpoints + tool wiring)
-- [ ] 30-03-PLAN.md — Theme creation tools (create_theme, update_theme_token, delete_theme_token + endpoint + human verify)
+- [x] 30-01-PLAN.md — System prompt fix (theme-aware tokens, query/naming guidance) + AIChatPanel text
+- [x] 30-02-PLAN.md — rename_prefix tool (bulkReplacePrefix + API endpoints + tool wiring)
+- [x] 30-03-PLAN.md — Theme creation tools (create_theme, update_theme_token, delete_theme_token + endpoint + human verify)
 **UI hint**: yes
 
 ### Phase 31: Style Guide Verification
@@ -228,7 +228,7 @@ Plans:
 | 22. Org Model and Multi-Tenant Foundation | 5/5 | Complete    | 2026-04-19 |
 | 23. Billing Module and Limit Enforcement | 2/3 | In Progress|  |
 | 24. Stripe Checkout and Webhook Integration | 0/? | Not started | - |
-| 30. AI-Assisted Naming and Queries | 0/3 | Not started | - |
+| 30. AI-Assisted Naming and Queries | 3/3 | Complete | 2026-04-25 |
 | 31. Style Guide Verification | 3/3 | Complete   | 2026-04-09 |
 | 32. MCP Tool Service Layer | 0/? | Not started | - |
 | 33. Theme configuration — color/density | 0/? | Specified | - |
