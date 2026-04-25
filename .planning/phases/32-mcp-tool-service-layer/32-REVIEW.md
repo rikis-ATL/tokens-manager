@@ -2,7 +2,7 @@
 phase: 32-mcp-tool-service-layer
 reviewed: 2026-04-26T00:00:00Z
 depth: standard
-files_reviewed: 8
+files_reviewed: 10
 files_reviewed_list:
   - src/services/shared/tokens.ts
   - src/services/shared/groups.ts
@@ -10,13 +10,15 @@ files_reviewed_list:
   - src/mcp/tools/theme-mutations.ts
   - src/mcp/tools/tokens.ts
   - src/mcp/tools/groups.ts
-  - src/mcp/tools/themes.ts
   - src/mcp/server.ts
+  - src/app/api/collections/[id]/tokens/route.ts
+  - src/app/api/collections/[id]/groups/route.ts
+  - src/app/api/collections/[id]/themes/[themeId]/tokens/single/route.ts
 findings:
-  critical: 1
+  critical: 0
   warning: 6
   info: 4
-  total: 11
+  total: 10
 status: issues_found
 ---
 
@@ -24,183 +26,174 @@ status: issues_found
 
 **Reviewed:** 2026-04-26
 **Depth:** standard
-**Files Reviewed:** 8
+**Files Reviewed:** 10
 **Status:** issues_found
 
 ## Summary
 
-The MCP tool / shared service layer is well-structured. The delegation pattern (MCP tools → shared services → MongoDB) is clean, tool descriptions are thorough, and error handling at the MCP boundary is consistent. The `toMcpContent` helper is a good idea but has been copied three times instead of being extracted to a shared module.
+The MCP tool / shared service layer is well-structured overall. The delegation pattern (MCP tools → shared services → MongoDB) is clean, tool descriptions are thorough, and error handling at the MCP boundary is consistent. Auth boundaries are correct — API routes enforce `requireRole` + `assertOrgOwnership`; MCP is documented as trusted admin-level. The `toMcpContent` helper pattern is good but has been copied three times instead of being extracted to a shared module.
 
-The main concerns are: (1) a path injection issue where unsanitized AI-supplied dot-paths are interpolated directly into MongoDB field keys; (2) several "silent success" bugs where mutation operations return `success: true` even when nothing was actually changed (non-existent token/group/theme); and (3) a dead function parameter in `tokens.ts`.
+The main concerns are:
 
----
+1. **Silent success on delete operations** — MongoDB `$unset` and `$pull` are no-ops when the target does not exist. Three delete functions (`deleteToken`, `deleteGroup`, `deleteTheme`) return `success: true` even when nothing was actually removed. Callers cannot distinguish a successful delete from a delete of a non-existent resource.
 
-## Critical Issues
+2. **Data-loss risk in renameGroup** — The destination path is not checked before overwriting, so renaming onto an occupied path silently destroys the existing content.
 
-### CR-01: Unsanitized dot-paths interpolated into MongoDB field keys
+3. **Type contract mismatch in updateThemeToken** — The API route passes `body.value ?? ''` to the service, converting an absent `value` into an empty string. The service guard `if (value === undefined)` is bypassed, causing tokens to be upserted with an empty string value when only `type` is provided.
 
-**Files:**
-- `src/services/shared/tokens.ts:63-70`, `src/services/shared/tokens.ts:108-109`, `src/services/shared/tokens.ts:143-146`, `src/services/shared/tokens.ts:177-180`
-- `src/services/shared/groups.ts:83-86`, `src/services/shared/groups.ts:124-129`, `src/services/shared/groups.ts:152-155`
-
-**Issue:** `tokenPath`, `groupPath`, `oldPath`, and `newPath` are AI-supplied string parameters that are interpolated verbatim into MongoDB update operation keys:
-
-```ts
-$set: { [`tokens.${tokenPath}.$value`]: value }
-$unset: { [`tokens.${groupPath}`]: "" }
-```
-
-There is no validation rejecting paths that contain `$`, `__proto__`, `constructor`, or multiple consecutive dots. Because the MCP server is AI-driven (Claude constructs these paths from natural language), a prompt-injection attack or a confused-deputy scenario could cause MongoDB to write to unintended paths (e.g. `tokens.__proto__.polluted` or `tokens.$where`). MongoDB dot-notation keys beginning with `$` in `$set` operations are rejected by MongoDB 5+ with a `BadValue` error, but paths containing `__proto__` or `constructor` are not rejected by MongoDB and can cause prototype pollution on deserialized objects.
-
-**Fix:** Add a validation helper before any path is used in a MongoDB key. Reject paths that:
-- Contain `$`
-- Contain `__proto__` or `constructor`
-- Contain `..` (double dot, empty segment)
-- Start or end with `.`
-
-```ts
-function validateTokenPath(path: string): string | null {
-  if (!path || typeof path !== "string") return "path must be a non-empty string";
-  if (path.startsWith(".") || path.endsWith(".")) return "path must not start or end with '.'";
-  if (path.includes("..")) return "path must not contain consecutive dots";
-  if (path.includes("$")) return "path must not contain '$'";
-  if (/__(proto|constructor|defineGetter|defineSetter)__/i.test(path))
-    return "path contains reserved key";
-  return null; // valid
-}
-```
-
-Call at the top of each service function and return `{ success: false, message }` on failure.
+4. **Dead code / duplication** — `getNestedValue` and `toMcpContent` are both duplicated across multiple files; `toMcpContent` in tokens.ts has an unused parameter.
 
 ---
 
 ## Warnings
 
-### WR-01: deleteToken returns success when path did not exist
+### WR-01: deleteToken returns success when the token path does not exist
 
 **File:** `src/services/shared/tokens.ts:139-158`
+**Issue:** `$unset` on a missing field is a MongoDB no-op. The function checks whether the *collection* was found but not whether the token path actually existed. It returns `{ success: true, message: "Token deleted at path '...'" }` even when the token was never there. The HTTP DELETE handler maps `!serviceResult.success` to 404, so the caller receives a 200 for a path that did not exist.
 
-**Issue:** `$unset` on a non-existent key is a MongoDB no-op. The function checks whether the *collection* was found but does not verify whether the token path actually existed before deletion. It returns `{ success: true, message: "Token deleted at path '...'" }` even when the token never existed.
+**Fix:** Read the document first and verify the path exists before issuing the update:
+```typescript
+export async function deleteToken(
+  collectionId: string,
+  tokenPath: string
+): Promise<ToolResult> {
+  const existing = await TokenCollection.findById(collectionId).lean();
+  if (!existing) {
+    return { success: false, message: `Collection not found: ${collectionId}` };
+  }
+  const tokens = existing.tokens as Record<string, unknown>;
+  if (getNestedValue(tokens, tokenPath) === undefined) {
+    return { success: false, message: `Token not found at path '${tokenPath}'` };
+  }
+  await TokenCollection.findByIdAndUpdate(
+    collectionId,
+    { $unset: { [`tokens.${tokenPath}`]: "" } }
+  );
+  return {
+    success: true,
+    message: `Token deleted at path '${tokenPath}'`,
+    data: { path: tokenPath },
+  };
+}
+```
 
-**Fix:** Fetch the document first (or use a projection), verify the token path exists, and return an appropriate error if not:
+---
 
-```ts
-const existing = await TokenCollection.findById(collectionId).lean();
-if (!existing) return { success: false, message: `Collection not found: ${collectionId}` };
-const tokens = existing.tokens as Record<string, unknown>;
-const node = getNestedValue(tokens, tokenPath);
-if (node === undefined) {
-  return { success: false, message: `Token not found at path '${tokenPath}'` };
+### WR-02: deleteGroup returns success when the group path does not exist
+
+**File:** `src/services/shared/groups.ts:148-167`
+**Issue:** Same pattern as WR-01. `$unset` on a missing path is a no-op; the service returns `success: true` and "Group deleted" regardless. The HTTP DELETE handler maps failure to 404 but will never see that failure for a non-existent path.
+
+**Fix:** Add an existence check before the update, mirroring the pattern already used in `renameGroup`:
+```typescript
+const collection = await TokenCollection.findById(collectionId).lean();
+if (!collection) {
+  return { success: false, message: `Collection not found: ${collectionId}` };
+}
+const tokens = collection.tokens as Record<string, unknown>;
+if (getNestedValue(tokens, groupPath) === undefined) {
+  return { success: false, message: `Group path '${groupPath}' not found in collection.` };
 }
 // proceed with $unset
 ```
 
 ---
 
-### WR-02: deleteGroup returns success when group did not exist
-
-**File:** `src/services/shared/groups.ts:148-167`
-
-**Issue:** Same pattern as WR-01. MongoDB `$unset` on a non-existent path is a no-op; the service returns `success: true` and "Group deleted" regardless.
-
-**Fix:** Follow the same pattern as `renameGroup` — call `findById().lean()` first, call `getNestedValue`, and return a failure if the path is not found before issuing the update.
-
----
-
-### WR-03: deleteTheme silently succeeds when themeId does not exist
+### WR-03: deleteTheme silently succeeds when the theme ID does not exist
 
 **File:** `src/services/shared/themes.ts:317-336`
+**Issue:** MongoDB `$pull` with `{ id: themeId }` is a no-op when no matching subdocument exists. The function checks whether the *collection* was found but not whether the theme was actually present. A caller passing a stale or invalid `themeId` receives `{ success: true, message: "Theme '...' deleted" }`.
 
-**Issue:** MongoDB `$pull` with `{ id: themeId }` is a no-op when no matching subdocument exists. The function checks whether the *collection* was found but not whether the theme actually existed. A caller passing a stale or invalid `themeId` receives `{ success: true, message: "Theme '...' deleted" }`.
-
-**Fix:** Check the returned document's themes array to confirm the theme was removed, or fetch upfront:
-
-```ts
-const before = await TokenCollection.findById(collectionId).lean();
-if (!before) return { success: false, message: `Collection not found: ${collectionId}` };
-const exists = (before.themes ?? []).some((t: Record<string, unknown>) => t.id === themeId);
-if (!exists) return { success: false, message: `Theme '${themeId}' not found` };
+**Fix:** Verify the theme exists before pulling:
+```typescript
+const before = await TokenCollection.findById(collectionId).lean() as Record<string, unknown> | null;
+if (!before) {
+  return { success: false, message: `Collection not found: ${collectionId}` };
+}
+const themes = (before.themes as Array<Record<string, unknown>>) ?? [];
+if (!themes.some((t) => (t.id as string) === themeId)) {
+  return { success: false, message: `Theme '${themeId}' not found` };
+}
 // proceed with $pull
 ```
 
 ---
 
-### WR-04: renameGroup update result is not checked
+### WR-04: renameGroup silently overwrites an existing destination path
 
-**File:** `src/services/shared/groups.ts:124-137`
+**File:** `src/services/shared/groups.ts:104-138`
+**Issue:** `renameGroup` checks that `oldPath` exists (line 117) but does not check whether `newPath` is already occupied. When `newPath` already contains tokens, the combined `$set` / `$unset` operation replaces that existing content permanently. This is a data-loss risk whenever an AI tool or API caller makes a mistake on the destination path.
 
-**Issue:** The `findByIdAndUpdate` call result is discarded (`await TokenCollection.findByIdAndUpdate(...)`). The collection existence was already checked with `findById().lean()` on line 109, but between that read and the update a race condition could cause the update to affect zero documents. The function has no awareness of this; it returns success unconditionally.
-
-**Fix:** Capture and check the result:
-
-```ts
-const updated = await TokenCollection.findByIdAndUpdate(
-  collectionId,
-  { $set: { [`tokens.${newPath}`]: groupValue }, $unset: { [`tokens.${oldPath}`]: "" } },
-  { new: true }
-);
-if (!updated) {
-  return { success: false, message: `Collection not found: ${collectionId}` };
+**Fix:** Add a guard immediately after the `oldPath` check:
+```typescript
+const existingAtNewPath = getNestedValue(tokens, newPath);
+if (existingAtNewPath !== undefined) {
+  return {
+    success: false,
+    message: `Group path '${newPath}' already exists. Delete it first or choose a different path.`,
+  };
 }
 ```
 
 ---
 
-### WR-05: Dead parameter in toMcpContent in tokens.ts
+### WR-05: updateThemeToken — HTTP route converts undefined value to empty string, bypassing service guard
 
-**File:** `src/mcp/tools/tokens.ts:48-72`
+**File:** `src/app/api/collections/[id]/themes/[themeId]/tokens/single/route.ts:44`
+**Issue:** The PATCH handler validates that at least one of `value` or `type` is present (lines 28-30), then calls the service with `body.value ?? ''`. When a caller sends `{ tokenPath: "colors/brand/primary", type: "dimension" }` (a type-only update), the service receives `value = ""`. The service guard at `themes.ts:162` checks `if (value === undefined)` — but `""` is not `undefined` — so the guard passes and the token is upserted with an empty string value, silently corrupting the token's stored value.
 
-**Issue:** `toMcpContent` has a `toolName: string` second parameter (line 50) that is never referenced inside the function body. Every call site passes a string literal (`"create_token"`, `"update_token"`, etc.) that is silently ignored. This is misleading — a reader would assume the parameter affects behavior.
-
-**Fix:** Remove the unused parameter from the signature and all call sites:
-
-```ts
-// Before
-function toMcpContent(result: ..., toolName: string): ...
-
-// After
-function toMcpContent(result: ...): ...
+**Fix:** Pass `body.value` directly and update the service signature to match:
+```typescript
+// route.ts — pass undefined rather than coercing to ''
+const serviceResult = await updateThemeToken(
+  params.id,
+  params.themeId,
+  body.tokenPath,
+  body.value,       // may be undefined; let the service decide
+  body.type
+);
 ```
-
----
-
-### WR-06: updateThemeToken — type guard `if (value === undefined)` on a required parameter
-
-**File:** `src/services/shared/themes.ts:162`
-
-**Issue:** `value` is typed as `string` (not `string | undefined`) on line 156. The runtime guard `if (value === undefined)` can never be true in TypeScript, so the validation is dead code in typed contexts. If called from untyped JS (e.g., the MCP handler passes the raw Zod-parsed object), the guard would be needed but the parameter type would need to be `string | undefined`.
-
-**Fix:** Either change the parameter type to reflect that the guard is meaningful:
-
-```ts
+```typescript
+// themes.ts — reflect that value is optional
 export async function updateThemeToken(
   collectionId: string,
   themeId: string,
   tokenPath: string,
-  value: string | undefined,  // make optional explicit
+  value?: string,   // now truly optional
   type?: string
-): Promise<ToolResult>
+): Promise<ToolResult> {
+  if (value === undefined && type === undefined) {
+    return { success: false, message: "At least one of 'value' or 'type' must be provided." };
+  }
+  // update only the fields that are present
+}
 ```
 
-Or remove the guard and rely on Zod validation at the tool layer. Pick one — do not have a dead guard and a non-optional type simultaneously.
+---
+
+### WR-06: updateThemeToken — dead type guard on a non-optional parameter
+
+**File:** `src/services/shared/themes.ts:156-163`
+**Issue:** `value` is typed as `string` (not `string | undefined`) on line 156. The runtime guard `if (value === undefined)` at line 162 can never be true under the current type signature, so it is dead code in typed contexts. This is related to WR-05 but is a distinct issue: the type says required, the guard says optional — they are in contradiction.
+
+**Fix:** Align the type with the guard as shown in the WR-05 fix above — change `value: string` to `value?: string` so the guard is meaningful, and update all call sites accordingly.
 
 ---
 
 ## Info
 
-### IN-01: getNestedValue helper duplicated three times
+### IN-01: getNestedValue helper is duplicated across three files
 
 **Files:**
 - `src/services/shared/tokens.ts:39-46`
 - `src/services/shared/groups.ts:24-31`
 - `src/mcp/tools/tokens.ts:36-43`
 
-**Issue:** The same `getNestedValue` function is copy-pasted verbatim across three files. Any future fix or change needs to be applied in all three places.
+**Issue:** The same `getNestedValue` function is copy-pasted verbatim in three files. Any future bug fix must be applied in all three locations.
 
-**Fix:** Extract to a shared utility, e.g. `src/services/shared/utils.ts`, and import from all three locations:
-
-```ts
-// src/services/shared/utils.ts
+**Fix:** Extract to a shared utility (e.g. `src/services/shared/utils.ts`) and import from all three files:
+```typescript
 export function getNestedValue(obj: Record<string, unknown>, path: string): unknown {
   return path.split(".").reduce((current: unknown, key: string) => {
     if (current && typeof current === "object") {
@@ -213,49 +206,50 @@ export function getNestedValue(obj: Record<string, unknown>, path: string): unkn
 
 ---
 
-### IN-02: toMcpContent helper duplicated three times
+### IN-02: toMcpContent helper is duplicated across three MCP tool files
 
 **Files:**
-- `src/mcp/tools/tokens.ts:48-72` (with spurious extra parameter — see WR-05)
+- `src/mcp/tools/tokens.ts:48-72`
 - `src/mcp/tools/groups.ts:80-103`
 - `src/mcp/tools/theme-mutations.ts:28-51`
 
-**Issue:** Same helper, three copies, same maintenance burden as IN-01.
+**Issue:** The same `toMcpContent` helper is copy-pasted in all three tool modules. Any change to the MCP response format must be applied in all three places.
 
-**Fix:** Extract to `src/mcp/tools/utils.ts` and import in all three tool modules.
+**Fix:** Extract to `src/mcp/tools/utils.ts` and import in all three modules.
 
 ---
 
-### IN-03: createGroup — return value of findByIdAndUpdate not captured
+### IN-03: toMcpContent in tokens.ts has an unused toolName parameter
 
-**File:** `src/services/shared/groups.ts:83-87`
+**File:** `src/mcp/tools/tokens.ts:51`
+**Issue:** The `toMcpContent` function accepts a `toolName: string` second parameter that is never referenced inside the function body. Every call site passes a string literal (`"create_token"`, `"update_token"`, etc.) that is silently ignored. The counterpart helpers in `groups.ts` and `theme-mutations.ts` do not have this parameter.
 
-**Issue:** Unlike other service functions, `createGroup` does not capture the return value of `findByIdAndUpdate` and therefore cannot detect if the collection disappeared between the initial `findById` check (line 47) and the update. The race window is narrow but the pattern is inconsistent.
+**Fix:** Remove the parameter from the signature and drop the second argument from all four call sites (lines 359, 409, 451, 499):
+```typescript
+// Before
+function toMcpContent(result: ..., toolName: string): ...
 
-**Fix:** Capture and check the result for consistency with the rest of the service:
-
-```ts
-const updated = await TokenCollection.findByIdAndUpdate(...);
-if (!updated) {
-  return { success: false, message: `Collection not found: ${collectionId}` };
-}
+// After
+function toMcpContent(result: ...): ...
 ```
 
 ---
 
-### IN-04: updateThemeToken — misleading comment about deep-clone scope
+### IN-04: createGroup — findByIdAndUpdate return value not captured
 
-**File:** `src/services/shared/themes.ts:187-189`
+**File:** `src/services/shared/groups.ts:83-87`
+**Issue:** Unlike all other service functions in this phase, `createGroup` does not capture the return value of `findByIdAndUpdate` and so cannot detect if the collection disappeared between the initial `findById` check (line 47) and the update. The race window is narrow, but the pattern is inconsistent with the rest of the file.
 
-**Issue:** The comment "Deep-clone to avoid mutating the lean result" refers to `JSON.parse(JSON.stringify(themes[themeIndex]))`. However, on line 189, `themeTokens` is cast from `theme.tokens` with no separate clone — mutations to `group.tokens` happen in place on `themeTokens`. This is not a bug (because `theme` itself is the clone), but the comment implies the clone boundary is at `theme`, not at `themeTokens`. A future reader may add code expecting `themeTokens` to be independently cloneable.
-
-**Fix:** Add a clarifying comment:
-
-```ts
-// Deep-clone the theme entry to avoid mutating the lean result.
-// themeTokens is aliased from the clone's .tokens — mutations are safe.
-const theme = JSON.parse(JSON.stringify(themes[themeIndex])) as Record<string, unknown>;
-const themeTokens = (theme.tokens as TokenGroup[]) ?? [];
+**Fix:** Capture and check the result:
+```typescript
+const updated = await TokenCollection.findByIdAndUpdate(
+  collectionId,
+  { $set: { [`tokens.${groupPath}`]: groupObject } },
+  { new: true }
+);
+if (!updated) {
+  return { success: false, message: `Collection not found: ${collectionId}` };
+}
 ```
 
 ---
