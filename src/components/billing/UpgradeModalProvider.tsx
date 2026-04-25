@@ -6,8 +6,10 @@
 // Pitfall 5 — provider must be in the outermost layout; see acceptance_criteria.
 
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { UpgradeModal } from './UpgradeModal';
 import { setUpgradeModalCallback } from '@/lib/api-client';
+import { usePermissions } from '@/context/PermissionsContext';
 
 export interface LimitPayload {
   resource: string;
@@ -23,11 +25,17 @@ interface UpgradeModalContextValue {
 const UpgradeModalContext = createContext<UpgradeModalContextValue | null>(null);
 
 export function UpgradeModalProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const { isAdmin } = usePermissions();
   const [payload, setPayload] = useState<LimitPayload | null>(null);
 
   const openUpgradeModal = useCallback((p: LimitPayload) => {
+    if (isAdmin) {
+      router.push('/account');
+      return;
+    }
     setPayload(p);
-  }, []);
+  }, [isAdmin, router]);
 
   // Register the apiFetch callback on mount so 402 responses auto-open the modal.
   useEffect(() => {

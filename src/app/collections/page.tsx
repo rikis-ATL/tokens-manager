@@ -12,6 +12,7 @@ import { NewCollectionDialog } from '@/components/collections/NewCollectionDialo
 import { EditCollectionDialog } from '@/components/collections/EditCollectionDialog';
 import { Button } from '@/components/ui/button';
 import { usePermissions } from '@/context/PermissionsContext';
+import { useUpgradeModal } from '@/components/billing/UpgradeModalProvider';
 
 type ViewMode = 'grid' | 'table';
 
@@ -26,7 +27,9 @@ export default function CollectionsPage() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<CollectionCardData | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
-  const { canCreate } = usePermissions();
+  const { canCreate, isAdmin } = usePermissions();
+  const { openUpgradeModal } = useUpgradeModal();
+  const [collectionMax, setCollectionMax] = useState<number | null>(null);
 
   const fetchCollections = async () => {
     try {
@@ -41,6 +44,40 @@ export default function CollectionsPage() {
   };
 
   useEffect(() => { fetchCollections(); }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/org/usage')
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (!cancelled && data) setCollectionMax(data.collectionMax);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  const handleNewCollection = () => {
+    const atLimit =
+      collectionMax !== null &&
+      collectionMax !== Infinity &&
+      collections.length >= collectionMax;
+
+    if (atLimit) {
+      if (isAdmin) {
+        router.push('/account');
+      } else {
+        openUpgradeModal({
+          resource: 'collections',
+          current: collections.length,
+          max: collectionMax,
+          tier: 'free',
+        });
+      }
+      return;
+    }
+
+    setCreateDialogOpen(true);
+  };
 
   const allTags = useMemo(() => {
     const set = new Set<string>();
@@ -119,7 +156,7 @@ export default function CollectionsPage() {
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold text-foreground">Collections</h1>
         {canCreate && (
-          <Button onClick={() => setCreateDialogOpen(true)}>
+          <Button onClick={handleNewCollection}>
             <PlusCircle size={14} className="mr-1.5" />
             New Collection
           </Button>
@@ -201,7 +238,7 @@ export default function CollectionsPage() {
             Create your first collection to start managing your design tokens.
           </p>
           {canCreate && (
-            <Button onClick={() => setCreateDialogOpen(true)}>
+            <Button onClick={handleNewCollection}>
               <PlusCircle size={14} className="mr-1.5" />
               Create Collection
             </Button>

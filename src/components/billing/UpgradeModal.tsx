@@ -3,12 +3,19 @@
 // src/components/billing/UpgradeModal.tsx
 // Phase 23 D-04 — Full tier comparison UI. "Upgrade to Pro" CTA present but disabled until Phase 24.
 
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { LIMITS, type PlanTier } from '@/lib/billing/tiers';
 import type { LimitPayload } from './UpgradeModalProvider';
+
+interface OrgUsage {
+  collectionCount: number;
+  collectionMax: number | null;
+  tokenCount: number;
+  tokenMax: number | null;
+}
 
 const TIER_ORDER: PlanTier[] = ['free', 'pro', 'team'];
 
@@ -17,8 +24,19 @@ function fmtLimit(n: number): string {
 }
 
 export function UpgradeModal({ payload, onClose }: { payload: LimitPayload; onClose: () => void }) {
-  const router = useRouter();
   const currentTier = (payload.tier as PlanTier) ?? 'free';
+  const [usage, setUsage] = useState<OrgUsage | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/org/usage')
+      .then((r) => r.ok ? r.json() : null)
+      .then((data: OrgUsage | null) => {
+        if (!cancelled && data) setUsage(data);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
   return (
     <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
@@ -27,7 +45,25 @@ export function UpgradeModal({ payload, onClose }: { payload: LimitPayload; onCl
           <DialogTitle>You've hit your {payload.resource} limit</DialogTitle>
         </DialogHeader>
         <div className="text-sm text-muted-foreground mb-4">
-          Your <strong>{currentTier}</strong> plan allows {payload.max} {payload.resource}. You're currently using {payload.current}. Upgrade to continue.
+          {usage ? (
+            <>
+              You have{' '}
+              <strong>{usage.collectionCount}</strong>{' '}
+              {usage.collectionCount === 1 ? 'collection' : 'collections'}
+              {usage.collectionMax !== null && ` (limit: ${usage.collectionMax})`}
+              {' '}and{' '}
+              <strong>{usage.tokenCount}</strong>{' '}
+              {usage.tokenCount === 1 ? 'token' : 'tokens'}
+              {usage.tokenMax !== null && ` (limit: ${usage.tokenMax})`}
+              {'. '}
+              Contact your admin to upgrade.
+            </>
+          ) : (
+            <>
+              Your <strong>{currentTier}</strong> plan allows {fmtLimit(payload.max)} {payload.resource}.{' '}
+              Contact your admin to upgrade.
+            </>
+          )}
         </div>
 
         <div className="grid grid-cols-3 gap-3" role="table">
@@ -58,13 +94,10 @@ export function UpgradeModal({ payload, onClose }: { payload: LimitPayload; onCl
         </div>
 
         <div className="flex justify-end gap-2 mt-5">
+          <p className="text-sm text-muted-foreground" data-testid="upgrade-cta">
+            Contact your admin to upgrade.
+          </p>
           <Button variant="outline" onClick={onClose}>Close</Button>
-          <Button
-            onClick={() => { onClose(); router.push('/upgrade'); }}
-            data-testid="upgrade-cta"
-          >
-            View Plans
-          </Button>
         </div>
       </DialogContent>
     </Dialog>

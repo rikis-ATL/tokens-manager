@@ -17,6 +17,8 @@ interface UsagePayload {
   tokenMax: number | null;      // null = unlimited (Infinity not JSON-serializable)
   exportsThisMonth: number;
   exportsMax: number | null;    // null = unlimited
+  collectionCount: number;
+  collectionMax: number | null; // null = unlimited
 }
 
 function toJsonLimit(n: number): number | null {
@@ -37,6 +39,8 @@ export async function GET() {
       tokenMax: null,
       exportsThisMonth: 0,
       exportsMax: null,
+      collectionCount: 0,
+      collectionMax: null,
     };
     return NextResponse.json(payload);
   }
@@ -63,6 +67,7 @@ export async function GET() {
     .select('tokens')
     .lean() as Array<{ tokens?: unknown }>;
   const tokenCount = docs.reduce((sum, d) => sum + countTokensInCollection(d.tokens ?? {}), 0);
+  const collectionCount = docs.length;
 
   const payload: UsagePayload = {
     orgName: org.name ?? 'Organization',
@@ -71,6 +76,8 @@ export async function GET() {
     tokenMax: toJsonLimit(limits.maxTokensTotal),
     exportsThisMonth: org.usage?.exportsThisMonth ?? 0,
     exportsMax: toJsonLimit(limits.maxExportsPerMonth),
+    collectionCount,
+    collectionMax: toJsonLimit(limits.maxCollections),
   };
 
   return NextResponse.json(payload);

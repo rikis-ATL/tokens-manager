@@ -89,6 +89,11 @@ export function UserMenu() {
                 <a>Settings</a>
               </DropdownMenuItem>
             </Link>
+            <Link href="/account" passHref legacyBehavior>
+              <DropdownMenuItem asChild>
+                <a>Account</a>
+              </DropdownMenuItem>
+            </Link>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => signOut({ callbackUrl: '/auth/sign-in' })}>
               Sign out

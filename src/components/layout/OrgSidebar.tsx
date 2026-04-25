@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { LayoutGrid, SlidersHorizontal, ChevronLeft, ChevronRight, Users } from 'lucide-react';
+import { LayoutGrid, SlidersHorizontal, ChevronLeft, ChevronRight, Users, UserCircle } from 'lucide-react';
 import { useDbStatus } from './OrgHeader';
 import { usePermissions } from '@/context/PermissionsContext';
 
@@ -31,6 +31,12 @@ export function OrgSidebar() {
       icon: LayoutGrid,
       badge: null,
     },
+    {
+      href: '/account',
+      label: 'Account',
+      icon: UserCircle,
+      badge: null,
+    },
     ...(isAdmin ? [
       {
         href: '/settings',
@@ -55,12 +61,12 @@ export function OrgSidebar() {
 
   return (
     <aside
-      className={`h-full bg-card border-r border-border flex flex-col transition-all duration-200 flex-shrink-0 ${
+      className={`h-full bg-background border-r border-muted flex flex-col transition-all duration-200 flex-shrink-0 ${
         collapsed ? 'w-12' : 'w-[180px]'
       }`}
     >
       {/* Collapse toggle */}
-      <div className={`flex items-center border-b border-border flex-shrink-0 py-2 ${collapsed ? 'justify-center' : 'px-3 justify-end'}`}>
+      <div className={`flex items-center border-b border-muted flex-shrink-0 py-2 ${collapsed ? 'justify-center' : 'px-3 justify-end'}`}>
         <button
           onClick={() => setCollapsed((c) => !c)}
           className="text-muted-foreground hover:text-foreground p-1 rounded transition-colors"

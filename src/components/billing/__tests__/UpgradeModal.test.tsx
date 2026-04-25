@@ -3,19 +3,15 @@ import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { UpgradeModal } from '../UpgradeModal';
 
-// Mock next/navigation
-const mockPush = jest.fn();
-jest.mock('next/navigation', () => ({
-  useRouter: () => ({
-    push: mockPush
-  })
-}));
-
 describe('UpgradeModal', () => {
   const payload = { resource: 'collections', current: 1, max: 1, tier: 'free' };
 
   beforeEach(() => {
-    mockPush.mockClear();
+    global.fetch = jest.fn().mockResolvedValue({ ok: false }) as jest.Mock;
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('renders all three tier columns', () => {
@@ -34,10 +30,9 @@ describe('UpgradeModal', () => {
     expect(freeCell).toHaveAttribute('data-current', 'true');
   });
 
-  it('CTA is enabled and shows "View Plans" (Phase 24 complete)', () => {
+  it('CTA shows "Contact your admin to upgrade" message', () => {
     render(<UpgradeModal payload={payload} onClose={() => {}} />);
     const cta = screen.getByTestId('upgrade-cta');
-    expect(cta).not.toBeDisabled();
-    expect(cta).toHaveTextContent('View Plans');
+    expect(cta).toHaveTextContent('Contact your admin to upgrade');
   });
 });

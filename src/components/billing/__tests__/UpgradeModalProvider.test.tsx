@@ -10,6 +10,11 @@ jest.mock('next/navigation', () => ({
   })
 }));
 
+// Mock usePermissions — non-admin so modal renders (admins are redirected to /account)
+jest.mock('@/context/PermissionsContext', () => ({
+  usePermissions: () => ({ isAdmin: false, canCreate: true, canEdit: true }),
+}));
+
 function Trigger() {
   const { openUpgradeModal } = useUpgradeModal();
   return (
@@ -20,6 +25,14 @@ function Trigger() {
 }
 
 describe('UpgradeModalProvider + useUpgradeModal', () => {
+  beforeEach(() => {
+    global.fetch = jest.fn().mockResolvedValue({ ok: false }) as jest.Mock;
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('throws when useUpgradeModal called outside provider', () => {
     function Broken() { useUpgradeModal(); return null; }
     const err = jest.spyOn(console, 'error').mockImplementation(() => {});
