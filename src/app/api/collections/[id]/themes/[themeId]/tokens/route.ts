@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import TokenCollection from '@/lib/db/models/TokenCollection';
-import type { TokenGroup } from '@/types';
+import type { TokenGroup, GeneratedToken } from '@/types';
 import { requireRole } from '@/lib/auth/require-auth';
 import { Action } from '@/lib/auth/permissions';
 import { assertOrgOwnership } from '@/lib/auth/assert-org-ownership';
 import { broadcastTokenUpdate } from '@/services/websocket/socket.service';
+import { COLOR_SCOPE_TYPES, DENSITY_SCOPE_TYPES } from '@/utils/tokenScope';
+import type { ThemeKind } from '@/types/theme.types';
 
 export async function PATCH(
   request: Request,
@@ -46,6 +48,26 @@ export async function PATCH(
     const hasSourceWrite = (body.tokens as TokenGroup[]).some(g => groups[g.id] === 'source');
     if (hasSourceWrite) {
       return NextResponse.json({ error: 'Cannot write to source groups' }, { status: 422 });
+    }
+
+    // Scope enforcement: a theme may only store tokens within its own kind's scope.
+    // Decision (CONTEXT.md discretion): reject out-of-scope token paths with 400.
+    const themeKind: ThemeKind = ((theme.kind ?? 'color') as ThemeKind);
+    const scopeTypes = themeKind === 'color' ? COLOR_SCOPE_TYPES : DENSITY_SCOPE_TYPES;
+
+    // Check for any out-of-scope tokens across all incoming groups
+    const outOfScopeGroup = (body.tokens as TokenGroup[]).find(g =>
+      g.tokens.some((t: GeneratedToken) => !(scopeTypes as readonly string[]).includes(t.type))
+    );
+    if (outOfScopeGroup) {
+      const offendingTypes = outOfScopeGroup.tokens
+        .filter((t: GeneratedToken) => !(scopeTypes as readonly string[]).includes(t.type))
+        .map((t: GeneratedToken) => t.type)
+        .filter((v, i, a) => a.indexOf(v) === i); // dedupe
+      return NextResponse.json(
+        { error: `Out-of-scope token types for ${themeKind} theme: ${offendingTypes.join(', ')}` },
+        { status: 400 }
+      );
     }
 
     const updatedTheme: Record<string, unknown> = {

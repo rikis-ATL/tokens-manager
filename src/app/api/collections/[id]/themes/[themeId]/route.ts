@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import TokenCollection from '@/lib/db/models/TokenCollection';
-import type { ITheme, ThemeGroupState, ColorMode } from '@/types/theme.types';
+import type { ITheme, ThemeGroupState, ColorMode, ThemeKind } from '@/types/theme.types';
 import type { CollectionGraphState } from '@/types/graph-state.types';
 import { requireRole } from '@/lib/auth/require-auth';
 import { Action } from '@/lib/auth/permissions';
@@ -18,12 +18,13 @@ export async function PUT(
   try {
     const body = await request.json() as {
       name?: string;
+      kind?: ThemeKind;
       groups?: Record<string, ThemeGroupState>;
       graphState?: CollectionGraphState | null;
       colorMode?: ColorMode;
     };
 
-    if (body.name === undefined && body.groups === undefined && body.graphState === undefined && body.colorMode === undefined) {
+    if (body.name === undefined && body.kind === undefined && body.groups === undefined && body.graphState === undefined && body.colorMode === undefined) {
       return NextResponse.json({ error: 'Nothing to update' }, { status: 400 });
     }
 
@@ -50,12 +51,17 @@ export async function PUT(
       }
     }
 
+    const existingKind = ((themes[themeIndex].kind ?? 'color') as ThemeKind);
+    const incomingKind: ThemeKind = body.kind ?? existingKind;
     const updatedTheme: Record<string, unknown> = {
       ...themes[themeIndex],
+      kind: incomingKind,
       ...(body.name !== undefined ? { name: body.name.trim() } : {}),
       ...(body.groups !== undefined ? { groups: body.groups } : {}),
       ...(body.graphState !== undefined ? { graphState: body.graphState } : {}),
-      ...(body.colorMode !== undefined ? { colorMode: body.colorMode } : {}),
+      // Only update colorMode for color themes; strip it for density themes
+      ...(incomingKind === 'color' && body.colorMode !== undefined ? { colorMode: body.colorMode } : {}),
+      ...(incomingKind === 'density' ? { colorMode: undefined } : {}),
     };
 
     const updatedThemes = [

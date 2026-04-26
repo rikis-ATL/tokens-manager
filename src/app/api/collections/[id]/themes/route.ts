@@ -7,7 +7,7 @@ import { checkThemeLimit } from '@/lib/billing';
 import TokenCollection from '@/lib/db/models/TokenCollection';
 import { tokenService } from '@/services/token.service';
 import type { TokenGroup } from '@/types';
-import type { ITheme, ColorMode } from '@/types/theme.types';
+import type { ITheme, ColorMode, ThemeKind } from '@/types/theme.types';
 import type { CollectionGraphState } from '@/types/graph-state.types';
 import { remapGraphStateForTheme } from '@/lib/graphStateRemap';
 
@@ -44,7 +44,7 @@ export async function POST(
   if (themeGuard) return themeGuard;
 
   try {
-    const body = await request.json() as { name?: string; colorMode?: string };
+    const body = await request.json() as { name?: string; kind?: string; colorMode?: string };
 
     if (!body.name || typeof body.name !== 'string' || body.name.trim() === '') {
       return NextResponse.json({ error: 'name is required' }, { status: 400 });
@@ -76,12 +76,18 @@ export async function POST(
 
     const defaultState = 'enabled';
 
+    // Resolve and validate kind (CONTEXT.md D-12: default 'color' for backward compat)
+    const validKinds = ['color', 'density'] as const;
+    const kind: ThemeKind = (body.kind && validKinds.includes(body.kind as ThemeKind))
+      ? body.kind as ThemeKind
+      : 'color';
+
     const validColorModes = ['light', 'dark'] as const;
-    const colorMode: ColorMode = (
-      body.colorMode && validColorModes.includes(body.colorMode as ColorMode)
-        ? body.colorMode as ColorMode
-        : 'light'
-    );
+    const colorMode: ColorMode | undefined = kind === 'color'
+      ? (body.colorMode && validColorModes.includes(body.colorMode as ColorMode)
+          ? body.colorMode as ColorMode
+          : 'light')
+      : undefined; // density themes have no colorMode
 
     // Inherit graph state from collection default (deep clone) and remap node IDs
     // so each theme has unique graph nodes (themes are separate entities; groups linked by source)
@@ -95,7 +101,8 @@ export async function POST(
     const theme: ITheme = {
       id: themeId,
       name: body.name.trim(),
-      colorMode,
+      kind,
+      ...(colorMode !== undefined ? { colorMode } : {}),
       groups: Object.fromEntries(groupIds.map((gid) => [gid, defaultState])),
       tokens: groupTree,  // full tree snapshot — not the flat list
       graphState,
