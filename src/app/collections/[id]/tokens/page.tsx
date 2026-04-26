@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { MoreHorizontal, RotateCcw, Save, Sun, Moon, Eye, Download, EllipsisVertical, MessageSquare, X } from 'lucide-react';
+import { MoreHorizontal, RotateCcw, Save, Sun, Moon, Eye, Download, EllipsisVertical, MessageSquare, X, Layers } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { showSuccessToast, showErrorToast } from '@/utils/toast.utils';
 import { SaveCollectionDialog } from '@/components/collections/SaveCollectionDialog';
@@ -22,7 +22,8 @@ import type { TokenGroup, GeneratedToken } from '@/types';
 import type { ISourceMetadata } from '@/types/collection.types';
 import type { CollectionGraphState, GraphGroupState } from '@/types/graph-state.types';
 import type { FlatToken, FlatGroup } from '@/types/graph-nodes.types';
-import type { ITheme, ColorMode } from '@/types/theme.types';
+import type { ITheme, ColorMode, ThemeKind } from '@/types/theme.types';
+import { ThemeList } from '@/components/themes/ThemeList';
 import { getAllGroups, findGroupById, generateId } from '@/utils';
 import { filterGroupsForDualThemes } from '@/utils/filterGroupsForActiveTheme';
 import { resolveActiveThemeIdForGroup } from '@/utils/resolveActiveThemeForGroup';
@@ -228,6 +229,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   const [addSubGroupParentId, setAddSubGroupParentId] = useState<string | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isThemePanelOpen, setIsThemePanelOpen] = useState(false);
   const [tokenFormReloadVersion, setTokenFormReloadVersion] = useState(0);
 
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -868,6 +870,68 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     }
   }, [themes, selectedGroupId, masterGroups, collectionGraphState]);
 
+  // ── Theme CRUD handlers (create, delete, color-mode change) ────────────
+  const handleAddTheme = useCallback(async (name: string, kind: ThemeKind, colorMode?: ColorMode) => {
+    try {
+      const res = await fetch(`/api/collections/${id}/themes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, kind, colorMode }),
+      });
+      if (!res.ok) throw new Error('Failed to create theme');
+      const data = await res.json();
+      const newTheme: ITheme = data.theme;
+      setThemes(prev => [...prev, newTheme]);
+      // Auto-select the new theme in the appropriate selector
+      if ((newTheme.kind ?? 'color') === 'color') {
+        handleColorThemeChange(newTheme.id);
+      } else {
+        handleDensityThemeChange(newTheme.id);
+      }
+    } catch {
+      showErrorToast('Failed to create theme. Please try again.');
+    }
+  }, [id, handleColorThemeChange, handleDensityThemeChange]);
+
+  const handleDeleteTheme = useCallback(async (themeId: string) => {
+    try {
+      const res = await fetch(`/api/collections/${id}/themes/${themeId}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) throw new Error('Failed to delete theme');
+      setThemes(prev => {
+        const updated = prev.filter(t => t.id !== themeId);
+        return updated;
+      });
+      // Clear selection if the deleted theme was active
+      if (activeColorThemeId === themeId) handleColorThemeChange(null);
+      if (activeDensityThemeId === themeId) handleDensityThemeChange(null);
+    } catch {
+      showErrorToast('Failed to delete theme. Please try again.');
+    }
+  }, [id, activeColorThemeId, activeDensityThemeId, handleColorThemeChange, handleDensityThemeChange]);
+
+  const handleColorModeChange = useCallback(async (themeId: string, colorMode: ColorMode) => {
+    // Optimistic update
+    setThemes(prev => prev.map(t => t.id === themeId ? { ...t, colorMode } : t));
+    try {
+      const res = await fetch(`/api/collections/${id}/themes/${themeId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ colorMode }),
+      });
+      if (!res.ok) throw new Error('Failed to update color mode');
+    } catch {
+      // Revert
+      setThemes(prev => prev.map(t =>
+        t.id === themeId
+          ? { ...t, colorMode: colorMode === 'dark' ? 'light' : 'dark' }
+          : t
+      ));
+      showErrorToast('Failed to update color mode');
+    }
+  }, [id]);
+
   // ── Theme token change with debounced PATCH auto-save ───────────────────
   const handleThemeTokenChange = useCallback((updatedTokens: TokenGroup[]) => {
     if (!activeColorThemeId && !activeDensityThemeId) return; // Default mode: mutations go through handleGroupsChange
@@ -1261,11 +1325,21 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
             </div>
           );
         })()}
+        <Button
+          variant={isThemePanelOpen ? 'default' : 'outline'}
+          size="sm"
+          className="px-2"
+          onClick={() => setIsThemePanelOpen(v => !v)}
+          title="Manage themes"
+        >
+          <Layers size={16} />
+        </Button>
+
         <span className="text-xs text-muted-foreground">
           Prefix: <span className="text-foreground font-mono">{globalNamespace}</span>
         </span>
 
-        </div> 
+        </div>
 
         <div className="flex items-center gap-2">
           <TabsList className="w-fit">
@@ -1406,6 +1480,24 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       />
 
       <SourceContextBar sourceMetadata={selectedSourceMetadata} />
+
+      {/* Collapsible theme management panel — per SPEC-GOAL-5 */}
+      {isThemePanelOpen && (
+        <div className="border-b border-muted bg-background shrink-0 max-h-80 overflow-y-auto">
+          <ThemeList
+            themes={themes}
+            selectedColorThemeId={activeColorThemeId}
+            selectedDensityThemeId={activeDensityThemeId}
+            onSelect={(themeId, kind) => {
+              if (kind === 'color') handleColorThemeChange(themeId);
+              else handleDensityThemeChange(themeId);
+            }}
+            onAdd={handleAddTheme}
+            onDelete={handleDeleteTheme}
+            onColorModeChange={handleColorModeChange}
+          />
+        </div>
+      )}
 
       <TabsContent
         value="tokens"

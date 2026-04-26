@@ -8,7 +8,6 @@ import {
   ChevronRight,
   FileOutput,
   GitBranch,
-  Layers,
   Palette,
   SlidersHorizontal,
 } from 'lucide-react';
@@ -25,8 +24,7 @@ export function CollectionSidebar({ collectionId, collectionName: _collectionNam
 
   const navItems = [
     { href: `/collections/${collectionId}/tokens`, label: 'Tokens', icon: Palette },
-    { href: `/collections/${collectionId}/themes`, label: 'Themes', icon: Layers },
-    { href: `/collections/${collectionId}/output`, label: 'Output', icon: FileOutput },
+{ href: `/collections/${collectionId}/output`, label: 'Output', icon: FileOutput },
     { href: `/collections/${collectionId}/versions`, label: 'Versions', icon: GitBranch },
     { href: `/collections/${collectionId}/settings`, label: 'Settings', icon: SlidersHorizontal },
   ];
