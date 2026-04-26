@@ -42,7 +42,7 @@ Declared values (multiples of 4 only):
 | 2xl | 48px | Major section breaks |
 | 3xl | 64px | Page-level spacing |
 
-Exceptions: Touch targets on icon-only buttons minimum 32px (`h-8 w-8`). Theme kind badges use 4px vertical + 4px horizontal padding to match the existing `ColorModeBadge` pattern in `ThemeList.tsx`.
+Exceptions: Touch targets on icon-only buttons minimum 32px (`h-8 w-8`). Theme kind badges use 4px vertical + 4px horizontal padding (`py-1 px-1`) to match the existing `ColorModeBadge` pattern in `ThemeList.tsx`.
 
 ---
 
@@ -54,6 +54,7 @@ All sizes map to existing CSS custom properties in `globals.css`. Use Tailwind u
 |------|------|--------|-------------|----------------|
 | Body | 14px (0.875rem) | 400 regular | 1.43 (20px) | `text-sm` |
 | Label / metadata | 12px (0.75rem) | 400 regular | 1.33 (16px) | `text-xs` |
+| Badge label | 10px | 400 regular | 1 | `text-[10px]` |
 | Section header | 12px (0.75rem) | 600 semibold | 1.33 (16px) | `text-xs font-semibold uppercase tracking-wider` |
 | Dialog title | 16px (1rem) | 600 semibold | 1.5 (24px) | `text-base font-semibold` |
 
@@ -80,6 +81,12 @@ Uses the existing shadcn CSS variable system. All values are declared in `global
 Accent reserved for: (1) active theme row highlight, (2) color-mode light/dark badges on color themes, (3) kind badges on all theme rows. Never used for generic hover states or body text.
 
 Source: `globals.css` CSS variables + `ThemeList.tsx` existing badge patterns.
+
+---
+
+## Focal Point
+
+The dual selector group (Color + Density selectors) in the Tokens page header is the primary focal point for theme context switching. All other theme UI — the sidebar list, dialogs, and graph panel routing — is subordinate to this pair.
 
 ---
 
@@ -117,7 +124,8 @@ shadcn components: `Select`, `SelectTrigger`, `SelectValue`, `SelectContent`, `S
 ```
 px-3 py-2 border-b border-muted bg-background flex items-center justify-between
   <span class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{section label}</span>
-  <Plus size={14} /> button (disabled at limit)
+  <Plus size={14} aria-label="Add color theme" /> button (disabled at limit)
+  // Density section uses aria-label="Add density theme"
 ```
 
 **Theme row pattern** (extend existing):
@@ -128,18 +136,18 @@ group/item flex items-center pr-1 text-sm cursor-pointer transition-colors
   <span flex-1 py-1.5 px-3 truncate text-xs>{name}</span>
   <KindBadge />         — color themes: "Color" badge; density themes: "Density" badge
   <ColorModeBadge />    — color themes only: Sun/Light or Moon/Dark badge; NOT shown on density rows
-  <DropdownMenu />      — MoreHorizontal trigger, opacity-0 group-hover:opacity-100
+  <DropdownMenu />      — MoreHorizontal trigger aria-label="Theme options", opacity-0 group-hover:opacity-100
 ```
 
 **Kind badge component (new):**
 ```tsx
 // Color kind
-<span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[10px] bg-primary/10 text-primary flex-shrink-0">
+<span className="inline-flex items-center gap-0.5 px-1 py-1 rounded text-[10px] bg-primary/10 text-primary flex-shrink-0">
   <Palette size={9} /> Color
 </span>
 
 // Density kind
-<span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[10px] bg-secondary text-secondary-foreground flex-shrink-0">
+<span className="inline-flex items-center gap-0.5 px-1 py-1 rounded text-[10px] bg-secondary text-secondary-foreground flex-shrink-0">
   <Layers size={9} /> Density
 </span>
 ```
@@ -258,7 +266,7 @@ After migration, existing themes become `kind: 'color'`. They appear in the Colo
 | At-limit tooltip | "Maximum 10 themes per collection" |
 | Delete confirmation heading | "Delete theme" |
 | Delete confirmation body | "This will permanently delete \"{theme name}\". This action cannot be undone." |
-| Delete confirmation CTA | "Delete" (variant="destructive") |
+| Delete confirmation CTA | "Delete Theme" (variant="destructive") |
 | Delete cancel | "Cancel" |
 | Error — theme create failed | "Failed to create theme. Please try again." (toast, variant destructive) |
 | Error — theme delete failed | "Failed to delete theme. Please try again." (toast, variant destructive) |
@@ -269,7 +277,7 @@ After migration, existing themes become `kind: 'color'`. They appear in the Colo
 
 | Action | Confirmation Approach |
 |--------|-----------------------|
-| Delete theme | `AlertDialog` (shadcn) with heading + body copy above; "Delete" button `variant="destructive"`; "Cancel" closes without action |
+| Delete theme | `AlertDialog` (shadcn) with heading + body copy above; "Delete Theme" button `variant="destructive"`; "Cancel" closes without action |
 
 No inline destructive confirmation. Always use `AlertDialog` component — already present in `src/components/ui/alert-dialog.tsx`.
 
