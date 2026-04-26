@@ -1254,7 +1254,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
           )}
 
           {/* AI Chat toggle */}
-          {/* <Button
+          <Button
             variant={isChatOpen ? 'default' : 'outline'}
             size="sm"
             className="px-2"
@@ -1262,7 +1262,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
             title="AI Assistant"
           >
             <MessageSquare size={16} />
-          </Button> */}
+          </Button>
 
           {/* More actions dropdown */}
           <DropdownMenu>

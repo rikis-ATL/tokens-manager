@@ -12,13 +12,14 @@ import {
   Palette,
   SlidersHorizontal,
 } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface CollectionSidebarProps {
   collectionId: string;
   collectionName: string;
 }
 
-export function CollectionSidebar({ collectionId, collectionName }: CollectionSidebarProps) {
+export function CollectionSidebar({ collectionId, collectionName: _collectionName }: CollectionSidebarProps) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(true);
 
@@ -31,69 +32,59 @@ export function CollectionSidebar({ collectionId, collectionName }: CollectionSi
   ];
 
   return (
-    <aside className={`h-full bg-background border-r border-muted flex flex-col transition-all duration-200 flex-shrink-0 ${collapsed ? 'w-12' : 'w-[200px]'}`}>
+    <TooltipProvider delayDuration={300}>
+      <aside className={`h-full bg-background border-r border-muted flex flex-col transition-all duration-200 flex-shrink-0 ${collapsed ? 'w-12' : 'w-[200px]'}`}>
 
+        {/* Nav items */}
+        <nav className="flex-1 px-1.5 py-2 space-y-1">
+          {navItems.map(({ href, label, icon: Icon }) => {
+            const isActive = pathname === href;
+            const linkEl = (
+              <Link
+                key={href}
+                href={href}
+                className={`flex items-center rounded-md text-sm font-medium w-full transition-colors ${
+                  collapsed ? 'justify-center p-2' : 'gap-3 px-3 py-2'
+                } ${
+                  isActive
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                }`}
+              >
+                <Icon size={16} className="flex-shrink-0" />
+                {!collapsed && label}
+              </Link>
+            );
 
-      {/* Nav items */}
-      <nav className="flex-1 px-1.5 py-2 space-y-1">
-        {navItems.map(({ href, label, icon: Icon }) => {
-          const isActive = pathname === href;
-          return (
-            <Link
-              key={href}
-              href={href}
-              title={collapsed ? label : undefined}
-              className={`flex items-center rounded-md text-sm font-medium w-full transition-colors ${
-                collapsed ? 'justify-center p-2' : 'gap-3 px-3 py-2'
-              } ${
-                isActive
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-              }`}
-            >
-              <Icon size={16} className="flex-shrink-0" />
-              {!collapsed && label}
-            </Link>
-          );
-        })}
-      </nav>
+            if (collapsed) {
+              return (
+                <Tooltip key={href}>
+                  <TooltipTrigger asChild>{linkEl}</TooltipTrigger>
+                  <TooltipContent side="right">{label}</TooltipContent>
+                </Tooltip>
+              );
+            }
+            return linkEl;
+          })}
+        </nav>
 
-
-      <div className={`flex items-start border-t border-muted flex-shrink-0 ${collapsed ? 'flex-col items-center py-2 gap-2' : 'px-4 py-2 justify-between'}`}>
-{/*        {!collapsed && (
-          <div className="flex-1 min-w-0">
-            <Link href="/collections" className="block mb-2">
-              <span className="text-foreground font-semibold text-sm tracking-wide">Token Manager</span>
-            </Link>
-
-            <Link
-              href="/collections"
-              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mb-3"
-            >
-              <ChevronLeft size={14} />
-              Collections
-            </Link>
-
-            <span className="text-foreground font-semibold text-sm truncate block">
-              {collectionName}
-            </span>
-          </div>
-        )}*/}
-
-{/*        {collapsed && (
-          <Link href="/collections" title="Collections" className="text-muted-foreground hover:text-foreground transition-colors">
-            <ChevronLeft size={16} />
-          </Link>
-        )}*/}
-
-        <button
-          onClick={() => setCollapsed(c => !c)}
-          className="text-muted-foreground hover:text-foreground p-1 rounded transition-colors flex-shrink-0"
-          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
-        </button>
-      </div>
-    </aside>
+        {/* Collapse toggle */}
+        <div className={`flex items-center border-t border-muted flex-shrink-0 py-2 ${collapsed ? 'justify-center' : 'px-3 justify-end'}`}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => setCollapsed(c => !c)}
+                className="text-muted-foreground hover:text-foreground p-1 rounded transition-colors flex-shrink-0"
+              >
+                {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              {collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      </aside>
+    </TooltipProvider>
   );
 }
