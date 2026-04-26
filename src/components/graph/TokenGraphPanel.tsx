@@ -20,8 +20,9 @@ interface TokenGraphPanelProps {
   allTokens?: FlatToken[];
   /** Flat group list for the destination-group picker inside nodes */
   flatGroups?: FlatGroup[];
-  /** Active theme ID — ensures graph remounts when switching themes (each theme has unique nodes) */
-  activeThemeId?: string | null;
+  /** Dual active theme IDs — used to produce a stable remount key for GroupStructureGraph */
+  activeColorThemeId?: string | null;
+  activeDensityThemeId?: string | null;
 }
 
 function findGroupById(groups: TokenGroup[], id: string): TokenGroup | null {
@@ -46,7 +47,8 @@ export function TokenGraphPanel({
   namespace,
   allTokens,
   flatGroups,
-  activeThemeId,
+  activeColorThemeId,
+  activeDensityThemeId,
 }: TokenGraphPanelProps) {
   const selectedGroup = selectedGroupId && selectedGroupId !== '__all_groups__' 
     ? findGroupById(allGroups, selectedGroupId) 
@@ -87,7 +89,7 @@ export function TokenGraphPanel({
           <span className="text-xs text-muted-foreground ml-auto">unified view</span>
         </div>
         <GroupStructureGraph
-          key={`__all_groups__-${activeThemeId ?? 'default'}`}
+          key={`__all_groups__-${activeColorThemeId ?? 'c0'}-${activeDensityThemeId ?? 'd0'}`}
           allGroupsMode={true}
           allGroupsData={allGroups}
           namespace={namespace}
@@ -112,7 +114,7 @@ export function TokenGraphPanel({
     return (
       <div className="flex flex-col h-full">
         <GroupStructureGraph
-          key={`${selectedGroup.id}-${activeThemeId ?? 'default'}`}
+          key={`${selectedGroup.id}-${activeColorThemeId ?? 'c0'}-${activeDensityThemeId ?? 'd0'}`}
           group={selectedGroup}
           namespace={namespace}
           allTokens={allTokens}
