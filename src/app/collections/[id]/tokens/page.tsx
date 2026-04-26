@@ -24,7 +24,9 @@ import type { CollectionGraphState, GraphGroupState } from '@/types/graph-state.
 import type { FlatToken, FlatGroup } from '@/types/graph-nodes.types';
 import type { ITheme, ColorMode } from '@/types/theme.types';
 import { getAllGroups, findGroupById, generateId } from '@/utils';
-import { filterGroupsForActiveTheme } from '@/utils/filterGroupsForActiveTheme';
+import { filterGroupsForDualThemes } from '@/utils/filterGroupsForActiveTheme';
+import { resolveActiveThemeIdForGroup } from '@/utils/resolveActiveThemeForGroup';
+import { mergeDualThemeTokens } from '@/lib/themeTokenMerge';
 import { applyGroupMove, applyGroupRename, applyGroupToggleOmitFromPath, type DropMode } from '@/utils/groupMove';
 import {
   getTokenPathsFromGraphState,
@@ -150,13 +152,15 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   const generateTabTokensRef    = useRef<Record<string, unknown> | null>(null);
   const rawCollectionTokensRef  = useRef<Record<string, unknown> | null>(null);
   const graphAutoSaveTimerRef   = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const activeThemeIdRef        = useRef<string | null>(null);
+  const activeColorThemeIdRef   = useRef<string | null>(null);
+  const activeDensityThemeIdRef = useRef<string | null>(null);
 
   // Token groups master panel state
   const [globalNamespace, setGlobalNamespace] = useState('token');
   const [masterGroups, setMasterGroups] = useState<TokenGroup[]>([]);
   const [themes, setThemes] = useState<ITheme[]>([]);
-  const [activeThemeId, setActiveThemeId] = useState<string | null>(null);
+  const [activeColorThemeId, setActiveColorThemeId]     = useState<string | null>(null);
+  const [activeDensityThemeId, setActiveDensityThemeId] = useState<string | null>(null);
 
   // Theme-mode editable token copy and auto-save timer
   const [activeThemeTokens, setActiveThemeTokens] = useState<TokenGroup[]>([]);
@@ -203,12 +207,13 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     for (const group of masterGroups) traverseGroups(group, '');
     return result;
   }, [masterGroups]);
-  // Filtered group tree based on active theme (Disabled groups hidden)
+  // Filtered group tree based on active themes (Disabled groups hidden)
   const filteredGroups = useMemo(() => {
-    if (!activeThemeId) return masterGroups;
-    const activeTheme = themes.find(t => t.id === activeThemeId);
-    return filterGroupsForActiveTheme(masterGroups, activeTheme);
-  }, [masterGroups, activeThemeId, themes]);
+    if (!activeColorThemeId && !activeDensityThemeId) return masterGroups;
+    const colorTheme   = themes.find(t => t.id === activeColorThemeId)  ?? null;
+    const densityTheme = themes.find(t => t.id === activeDensityThemeId) ?? null;
+    return filterGroupsForDualThemes(masterGroups, colorTheme, densityTheme);
+  }, [masterGroups, activeColorThemeId, activeDensityThemeId, themes]);
 
 
   const [selectedGroupId, setSelectedGroupId] = useState('');
@@ -381,7 +386,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       if (namespace) setGlobalNamespace(namespace);
 
       // Theme mode persists via handleThemeTokenChange; default mode debounced PUT + tryRefreshAppShell.
-      if (activeThemeIdRef.current) return;
+      if (activeColorThemeIdRef.current || activeDensityThemeIdRef.current) return;
       if (!canEdit) return;
       const payload = tokens;
       if (!payload || Object.keys(payload).length === 0) return;
@@ -525,24 +530,31 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
 
   // Persist graph state to the correct theme (per theme > group)
   const persistGraphState = useCallback((gs: CollectionGraphState) => {
-    const themeId = activeThemeIdRef.current;
-    if (themeId) {
-      return fetch(`/api/collections/${id}/themes/${themeId}`, {
+    // Resolve which theme to write based on the selected group's dominant token type
+    const selectedGroup = selectedGroupId
+      ? findGroupById(masterGroups, selectedGroupId)
+      : null;
+    const targetThemeId = resolveActiveThemeIdForGroup(
+      selectedGroup,
+      activeColorThemeIdRef.current,
+      activeDensityThemeIdRef.current,
+    );
+    if (targetThemeId) {
+      return fetch(`/api/collections/${id}/themes/${targetThemeId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ graphState: gs }),
       }).then((res) => {
         if (res.ok) {
-          setThemes(prev => prev.map(t => t.id === themeId ? { ...t, graphState: gs } : t));
+          setThemes(prev => prev.map(t => t.id === targetThemeId ? { ...t, graphState: gs } : t));
         }
       }).catch((error) => {
         console.error('Failed to persist graph state:', error);
         showErrorToast('Failed to save graph state');
       });
     }
-    // Guard: if neither source is ready (page still loading), skip to avoid wiping DB with {}
+    // Collection default fallback (no active theme for this group)
     if (generateTabTokensRef.current === null && rawCollectionTokensRef.current === null) return;
-    // Fix: Only use generateTabTokensRef if it has actual content, otherwise fall back to rawCollectionTokensRef
     const tokens = (generateTabTokensRef.current && Object.keys(generateTabTokensRef.current).length > 0)
       ? generateTabTokensRef.current
       : (rawCollectionTokensRef.current ?? {});
@@ -559,7 +571,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       console.error('Failed to persist collection graph state:', error);
       showErrorToast('Failed to save collection graph state');
     });
-  }, [id, scheduleDebouncedAppShellRefresh]);
+  }, [id, scheduleDebouncedAppShellRefresh, selectedGroupId, masterGroups]);
 
   const handleGraphStateChange = useCallback((groupId: string, state: GraphGroupState, flushImmediate?: boolean) => {
     const next = { ...graphStateMapRef.current, [groupId]: state };
@@ -585,14 +597,20 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     setIsSaving(true);
     try {
       const gs = graphStateMapRef.current;
-      if (activeThemeId) {
-        const res = await fetch(`/api/collections/${id}/themes/${activeThemeId}`, {
+      const selectedGroup = selectedGroupId ? findGroupById(masterGroups, selectedGroupId) : null;
+      const targetThemeId = resolveActiveThemeIdForGroup(
+        selectedGroup,
+        activeColorThemeId,
+        activeDensityThemeId,
+      );
+      if (targetThemeId) {
+        const res = await fetch(`/api/collections/${id}/themes/${targetThemeId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ graphState: gs }),
         });
         if (res.ok) {
-          setThemes(prev => prev.map(t => t.id === activeThemeId ? { ...t, graphState: gs } : t));
+          setThemes(prev => prev.map(t => t.id === targetThemeId ? { ...t, graphState: gs } : t));
           showSuccessToast('Saved');
         } else {
           showErrorToast('Save failed');
@@ -621,7 +639,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     } finally {
       setIsSaving(false);
     }
-  }, [id, rawCollectionTokens, activeThemeId, globalNamespace, tryRefreshAppShell]);
+  }, [id, rawCollectionTokens, activeColorThemeId, activeDensityThemeId, selectedGroupId, masterGroups, globalNamespace, tryRefreshAppShell]);
 
   // ── Ctrl / Cmd + S and Ctrl / Cmd + Z keyboard shortcuts ──────────────
   useEffect(() => {
@@ -736,114 +754,114 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     setSelectedGroupId(group.id);
   }, []);
 
-  // ── Keep activeThemeIdRef in sync for debounced save ─────────────────────
+  // ── Keep dual theme refs in sync for debounced save ──────────────────────
   useEffect(() => {
-    activeThemeIdRef.current = activeThemeId;
-  }, [activeThemeId]);
+    activeColorThemeIdRef.current = activeColorThemeId;
+  }, [activeColorThemeId]);
 
-  // ── Sync graphStateMap when activeThemeId changes (per theme > group) ───
+  useEffect(() => {
+    activeDensityThemeIdRef.current = activeDensityThemeId;
+  }, [activeDensityThemeId]);
+
+  // ── Sync graphStateMap when active themes change (per theme > group) ─────
   // Each theme has its own graph state per group; never mix themes (like tokens table).
   useEffect(() => {
-    if (!activeThemeId) {
+    const selectedGroup = selectedGroupId
+      ? findGroupById(masterGroups, selectedGroupId)
+      : null;
+    const resolvedId = resolveActiveThemeIdForGroup(
+      selectedGroup,
+      activeColorThemeId,
+      activeDensityThemeId,
+    );
+    if (!resolvedId) {
       setGraphStateMap(collectionGraphState);
       graphStateMapRef.current = collectionGraphState;
       return;
     }
-    const theme = themes.find(t => t.id === activeThemeId);
+    const theme = themes.find(t => t.id === resolvedId);
     const gs = (theme?.graphState ?? {}) as CollectionGraphState;
     setGraphStateMap(gs);
     graphStateMapRef.current = gs;
-  }, [activeThemeId, themes, collectionGraphState]);
+  }, [activeColorThemeId, activeDensityThemeId, selectedGroupId, themes, collectionGraphState, masterGroups]);
 
-  // ── Sync activeThemeTokens when activeThemeId or themes changes ─────────
+  // ── Sync activeThemeTokens when active themes or selected group changes ───
   useEffect(() => {
-    if (!activeThemeId) {
+    if (!activeColorThemeId && !activeDensityThemeId) {
       setActiveThemeTokens([]);
       return;
     }
-    const theme = themes.find(t => t.id === activeThemeId);
+    // Resolve which theme's tokens to use for the active editing context
+    const selectedGroup = selectedGroupId ? findGroupById(masterGroups, selectedGroupId) : null;
+    const resolvedId = resolveActiveThemeIdForGroup(selectedGroup, activeColorThemeId, activeDensityThemeId);
+    const theme = resolvedId ? themes.find(t => t.id === resolvedId) : null;
     setActiveThemeTokens(theme ? JSON.parse(JSON.stringify(theme.tokens)) : []);
-  }, [activeThemeId, themes]);
+  }, [activeColorThemeId, activeDensityThemeId, selectedGroupId, themes, masterGroups]);
 
-  // ── Compute effective theme tokens: merge theme + master groups by state ────
-  // For display in TokenGeneratorForm - includes all enabled/source groups even if not yet edited
+  // ── Compute effective theme tokens: three-way merge default → color → density ─
   const effectiveThemeTokens = useMemo(() => {
-    if (!activeThemeId) return [];
-    const theme = themes.find(t => t.id === activeThemeId);
-    if (!theme) return [];
-    
-    // Build lookup map for theme's edited groups
-    const themeGroupMap = new Map(theme.tokens.map(g => [g.id, g]));
-    const themeGroups = theme.groups; // Capture for closure to avoid "possibly undefined"
-    
-    // Recursively process groups to maintain tree structure
-    function processGroups(groups: TokenGroup[]): TokenGroup[] {
-      return groups
-        .map(masterGroup => {
-          const state = themeGroups[masterGroup.id] ?? 'disabled';
-          if (state === 'disabled') return null;
-          
-          if (state === 'source') {
-            // Read-only collection default
-            return masterGroup;
-          } else {
-            // 'enabled': use theme snapshot if exists, else collection default
-            const themeGroup = themeGroupMap.get(masterGroup.id);
-            const baseGroup = themeGroup ?? masterGroup;
-            
-            // Process children recursively
-            if (baseGroup.children && baseGroup.children.length > 0) {
-              return {
-                ...baseGroup,
-                children: processGroups(baseGroup.children)
-              };
-            }
-            return baseGroup;
-          }
-        })
-        .filter((g): g is TokenGroup => g !== null);
-    }
-    
-    return processGroups(masterGroups);
-  }, [activeThemeId, themes, masterGroups]);
+    if (!activeColorThemeId && !activeDensityThemeId) return [];
+    if (!rawCollectionTokens) return [];
+    const colorTheme   = themes.find(t => t.id === activeColorThemeId)  ?? null;
+    const densityTheme = themes.find(t => t.id === activeDensityThemeId) ?? null;
+    const merged = mergeDualThemeTokens(rawCollectionTokens, colorTheme, densityTheme, globalNamespace);
+    const { groups } = tokenService.processImportedTokens(merged, globalNamespace);
+    return groups;
+  }, [activeColorThemeId, activeDensityThemeId, themes, rawCollectionTokens, globalNamespace]);
 
   const allCollectionTokens = useMemo(() => {
     const flattenGroups = (groups: TokenGroup[]): GeneratedToken[] =>
       groups.flatMap(g => [...(g.tokens ?? []), ...(g.children ? flattenGroups(g.children) : [])]);
-    const source = activeThemeId ? effectiveThemeTokens : filteredGroups;
+    const source = (activeColorThemeId || activeDensityThemeId) ? effectiveThemeTokens : filteredGroups;
     return flattenGroups(source);
-  }, [activeThemeId, effectiveThemeTokens, filteredGroups]);
+  }, [activeColorThemeId, activeDensityThemeId, effectiveThemeTokens, filteredGroups]);
 
-  // ── Theme selector change with group fallback ───────────────────────────
-  const handleThemeChange = useCallback((newThemeId: string | null) => {
-    // Sync graphStateMap BEFORE setActiveThemeId so the next render passes correct initialGraphState
-    // to GroupStructureGraph. The sync effect runs after render; without this, the new graph would
-    // mount with the previous theme's graph.
+  // ── Dual theme selector change handlers ────────────────────────────────
+  const handleColorThemeChange = useCallback((newThemeId: string | null) => {
     const newTheme = newThemeId ? themes.find(t => t.id === newThemeId) : null;
-
+    // Pre-sync graphState so graph mounts with correct state on next render
     const gs = newThemeId
       ? ((newTheme?.graphState ?? {}) as CollectionGraphState)
       : collectionGraphState;
     setGraphStateMap(gs);
     graphStateMapRef.current = gs;
-    setActiveThemeId(newThemeId);
+    setActiveColorThemeId(newThemeId);
     setSelectedToken(null);
-
     if (!newThemeId) {
-      // Returning to Default — restore the first available group if current is missing
       if (!selectedGroupId || !masterGroups.some(g => g.id === selectedGroupId)) {
         setSelectedGroupId(masterGroups[0]?.id ?? '');
       }
       return;
     }
-
     if (!newTheme) return;
-    const currentState = selectedGroupId
-      ? (newTheme.groups[selectedGroupId] ?? 'disabled')
-      : 'disabled';
+    const currentState = selectedGroupId ? (newTheme.groups[selectedGroupId] ?? 'disabled') : 'disabled';
     if (currentState === 'disabled' || !selectedGroupId) {
       const allGroupsList = getAllGroups(masterGroups);
-      // Prefer 'enabled' groups; fall back to any non-disabled group
+      const firstEnabled = allGroupsList.find(g => newTheme.groups[g.id] === 'enabled')
+        ?? allGroupsList.find(g => (newTheme.groups[g.id] ?? 'disabled') !== 'disabled');
+      setSelectedGroupId(firstEnabled?.id ?? masterGroups[0]?.id ?? '');
+    }
+  }, [themes, selectedGroupId, masterGroups, collectionGraphState]);
+
+  const handleDensityThemeChange = useCallback((newThemeId: string | null) => {
+    const newTheme = newThemeId ? themes.find(t => t.id === newThemeId) : null;
+    const gs = newThemeId
+      ? ((newTheme?.graphState ?? {}) as CollectionGraphState)
+      : collectionGraphState;
+    setGraphStateMap(gs);
+    graphStateMapRef.current = gs;
+    setActiveDensityThemeId(newThemeId);
+    setSelectedToken(null);
+    if (!newThemeId) {
+      if (!selectedGroupId || !masterGroups.some(g => g.id === selectedGroupId)) {
+        setSelectedGroupId(masterGroups[0]?.id ?? '');
+      }
+      return;
+    }
+    if (!newTheme) return;
+    const currentState = selectedGroupId ? (newTheme.groups[selectedGroupId] ?? 'disabled') : 'disabled';
+    if (currentState === 'disabled' || !selectedGroupId) {
+      const allGroupsList = getAllGroups(masterGroups);
       const firstEnabled = allGroupsList.find(g => newTheme.groups[g.id] === 'enabled')
         ?? allGroupsList.find(g => (newTheme.groups[g.id] ?? 'disabled') !== 'disabled');
       setSelectedGroupId(firstEnabled?.id ?? masterGroups[0]?.id ?? '');
@@ -852,13 +870,20 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
 
   // ── Theme token change with debounced PATCH auto-save ───────────────────
   const handleThemeTokenChange = useCallback((updatedTokens: TokenGroup[]) => {
-    if (!activeThemeId) return; // Default mode: mutations go through handleGroupsChange
+    if (!activeColorThemeId && !activeDensityThemeId) return; // Default mode: mutations go through handleGroupsChange
+    const selectedGroup = selectedGroupId ? findGroupById(masterGroups, selectedGroupId) : null;
+    const targetThemeId = resolveActiveThemeIdForGroup(
+      selectedGroup,
+      activeColorThemeId,
+      activeDensityThemeId,
+    );
+    if (!targetThemeId) return; // no active theme of the right kind for this group
     setActiveThemeTokens(updatedTokens);
-    setThemes(prev => prev.map(t => t.id === activeThemeId ? { ...t, tokens: updatedTokens } : t));
+    setThemes(prev => prev.map(t => t.id === targetThemeId ? { ...t, tokens: updatedTokens } : t));
     if (themeTokenSaveTimerRef.current) clearTimeout(themeTokenSaveTimerRef.current);
     themeTokenSaveTimerRef.current = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/collections/${id}/themes/${activeThemeId}/tokens`, {
+        const res = await fetch(`/api/collections/${id}/themes/${targetThemeId}/tokens`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ tokens: updatedTokens }),
@@ -868,12 +893,15 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
         // Silent — existing toast pattern; no disruptive error for auto-save
       }
     }, 400);
-  }, [id, activeThemeId, scheduleDebouncedAppShellRefresh]);
+  }, [id, activeColorThemeId, activeDensityThemeId, selectedGroupId, masterGroups, scheduleDebouncedAppShellRefresh]);
 
   // ── Derive active group state (enabled / source / disabled) ────────────
   // Token name mismatch when theme graph differs from default (for selected group)
   const tokenNameMismatch = useMemo<TokenPathMismatch | null>(() => {
-    if (!activeThemeId || !selectedGroupId) return null;
+    if ((!activeColorThemeId && !activeDensityThemeId) || !selectedGroupId) return null;
+    const selectedGroup = findGroupById(masterGroups, selectedGroupId);
+    const activeThemeId = resolveActiveThemeIdForGroup(selectedGroup, activeColorThemeId, activeDensityThemeId);
+    if (!activeThemeId) return null;
     const defaultState = collectionGraphState[selectedGroupId];
     const themeState = graphStateMap[selectedGroupId] ?? defaultState;
     const resolveTokenReference = masterGroups.length
@@ -896,14 +924,17 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       return null;
     }
     return mismatch;
-  }, [activeThemeId, selectedGroupId, collectionGraphState, graphStateMap, globalNamespace, masterGroups]);
+  }, [activeColorThemeId, activeDensityThemeId, selectedGroupId, collectionGraphState, graphStateMap, globalNamespace, masterGroups]);
 
   const activeGroupState = useMemo<'enabled' | 'source' | 'disabled' | null>(() => {
-    if (!activeThemeId || !selectedGroupId) return null;
+    if ((!activeColorThemeId && !activeDensityThemeId) || !selectedGroupId) return null;
+    const selectedGroup = findGroupById(masterGroups, selectedGroupId);
+    const activeThemeId = resolveActiveThemeIdForGroup(selectedGroup, activeColorThemeId, activeDensityThemeId);
+    if (!activeThemeId) return null;
     const theme = themes.find(t => t.id === activeThemeId);
     if (!theme) return null;
     return (theme.groups[selectedGroupId] ?? 'disabled') as 'enabled' | 'source' | 'disabled';
-  }, [activeThemeId, selectedGroupId, themes]);
+  }, [activeColorThemeId, activeDensityThemeId, selectedGroupId, themes, masterGroups]);
 
   const isThemeReadOnly = activeGroupState === 'source';
 
@@ -916,16 +947,16 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
 
   // ── Reset a theme token to its collection-default value ─────────────────
   const handleResetToDefault = useCallback((groupId: string, tokenId: string, masterValue: string) => {
-    if (!activeThemeId) return;
+    if (!activeColorThemeId && !activeDensityThemeId) return;
     const updatedTokens = activeThemeTokens.map(g =>
       updateGroupToken(g, groupId, tokenId, masterValue)
     );
     handleThemeTokenChange(updatedTokens);
-  }, [activeThemeId, activeThemeTokens, handleThemeTokenChange]);
+  }, [activeColorThemeId, activeDensityThemeId, activeThemeTokens, handleThemeTokenChange]);
 
   // ── Reset a group to source: delete tokens not in source, reset values ───
   const handleResetGroupToSource = useCallback((groupId: string) => {
-    if (!activeThemeId) return;
+    if (!activeColorThemeId && !activeDensityThemeId) return;
     const sourceGroup = findGroupById(masterGroups, groupId);
     if (!sourceGroup) return;
     const resetGroupInTree = (groups: TokenGroup[]): TokenGroup[] =>
@@ -945,13 +976,16 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
         return g;
       });
     handleThemeTokenChange(resetGroupInTree(activeThemeTokens));
-  }, [activeThemeId, activeThemeTokens, masterGroups, handleThemeTokenChange]);
+  }, [activeColorThemeId, activeDensityThemeId, activeThemeTokens, masterGroups, handleThemeTokenChange]);
 
   const isGroupSource = useCallback((groupId: string) => {
+    if (!activeColorThemeId && !activeDensityThemeId) return false;
+    const group = findGroupById(masterGroups, groupId);
+    const activeThemeId = resolveActiveThemeIdForGroup(group, activeColorThemeId, activeDensityThemeId);
     if (!activeThemeId) return false;
     const theme = themes.find(t => t.id === activeThemeId);
     return (theme?.groups[groupId] ?? 'disabled') === 'source';
-  }, [activeThemeId, themes]);
+  }, [activeColorThemeId, activeDensityThemeId, masterGroups, themes]);
 
   const confirmAddGroup = () => {
     const name = newGroupName.trim();
@@ -1177,32 +1211,56 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
         </h1> */}
 
 
-        {themes.length > 0 && (
-<div className="flex items-center gap-2">
-<label className="text-xs text-muted-foreground">Theme:</label>
-            <Select
-              key={activeThemeId ?? '__default__'}
-              value={activeThemeId ?? '__default__'}
-              onValueChange={(v) => handleThemeChange(v === '__default__' ? null : v)}
-            >
-              <SelectTrigger className="w-40 h-8 text-sm">
-                <SelectValue placeholder="Default" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__default__">Default</SelectItem>
-                {themes.map(t => (
-                  <SelectItem key={t.id} value={t.id}>
-                    <span className="flex items-center gap-1.5">
-                      Theme: 
-                      {t.name}
-                      <ColorModeBadge colorMode={(t.colorMode ?? 'light') as ColorMode} />
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-</div>
-          )}
+        {/* Dual theme selectors — per UI-SPEC §Dual Theme Selector */}
+        {(() => {
+          const colorThemes   = themes.filter(t => (t.kind ?? 'color') === 'color');
+          const densityThemes = themes.filter(t => (t.kind ?? 'color') === 'density');
+          if (colorThemes.length === 0 && densityThemes.length === 0) return null;
+          return (
+            <div className="flex items-center gap-2">
+              {colorThemes.length > 0 && (
+                <>
+                  <label className="text-xs text-muted-foreground">Color:</label>
+                  <Select
+                    key={activeColorThemeId ?? '__color_default__'}
+                    value={activeColorThemeId ?? '__default__'}
+                    onValueChange={(v) => handleColorThemeChange(v === '__default__' ? null : v)}
+                  >
+                    <SelectTrigger className="w-36 h-8 text-sm">
+                      <SelectValue placeholder="Default" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__default__">Default</SelectItem>
+                      {colorThemes.map(t => (
+                        <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </>
+              )}
+              {densityThemes.length > 0 && (
+                <>
+                  <label className="text-xs text-muted-foreground">Density:</label>
+                  <Select
+                    key={activeDensityThemeId ?? '__density_default__'}
+                    value={activeDensityThemeId ?? '__default__'}
+                    onValueChange={(v) => handleDensityThemeChange(v === '__default__' ? null : v)}
+                  >
+                    <SelectTrigger className="w-36 h-8 text-sm">
+                      <SelectValue placeholder="Default" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__default__">Default</SelectItem>
+                      {densityThemes.map(t => (
+                        <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </>
+              )}
+            </div>
+          );
+        })()}
         <span className="text-xs text-muted-foreground">
           Prefix: <span className="text-foreground font-mono">{globalNamespace}</span>
         </span>
@@ -1390,7 +1448,8 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
               namespace={globalNamespace}
               allTokens={allFlatTokens}
               flatGroups={allFlatGroups}
-              activeThemeId={activeThemeId}
+              activeColorThemeId={activeColorThemeId}
+              activeDensityThemeId={activeDensityThemeId}
             />
           }
           breadcrumb={
@@ -1405,10 +1464,10 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
           }
           mainContent={
             <TokenGeneratorForm
-            key={`${id}-${activeThemeId ?? 'default'}-${tokenFormReloadVersion}`}
+            key={`${id}-${activeColorThemeId ?? 'c0'}-${activeDensityThemeId ?? 'd0'}-${tokenFormReloadVersion}`}
             githubConfig={null}
             collectionToLoad={
-              !activeThemeId && rawCollectionTokens
+              !activeColorThemeId && !activeDensityThemeId && rawCollectionTokens
                 ? {
                     id,
                     name: collectionName,
@@ -1419,7 +1478,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
             onTokensChange={handleTokensChange}
             namespace={globalNamespace}
             onNamespaceChange={setGlobalNamespace}
-            onGroupsChange={activeThemeId ? undefined : handleGroupsChange}
+            onGroupsChange={(activeColorThemeId || activeDensityThemeId) ? undefined : handleGroupsChange}
             onGroupSelect={(gid) => {
               setSelectedGroupId(gid);
               setSelectedToken(null);
@@ -1437,20 +1496,20 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
             onGroupCreationProcessed={() => setPendingGroupCreation(null)}
             pendingGroupAction={pendingGroupAction}
             onGroupActionProcessed={() => setPendingGroupAction(null)}
-            themeTokens={activeThemeId ? effectiveThemeTokens : undefined}
-            onThemeTokensChange={activeThemeId ? handleThemeTokenChange : undefined}
+            themeTokens={(activeColorThemeId || activeDensityThemeId) ? effectiveThemeTokens : undefined}
+            onThemeTokensChange={(activeColorThemeId || activeDensityThemeId) ? handleThemeTokenChange : undefined}
             isReadOnly={isThemeReadOnly || !canEdit}
-            findMasterValue={activeThemeId ? findMasterValue : undefined}
-            onResetToDefault={activeThemeId && !isThemeReadOnly ? handleResetToDefault : undefined}
-            onResetGroupToSource={activeThemeId ? handleResetGroupToSource : undefined}
-            isGroupSource={activeThemeId ? isGroupSource : undefined}
+            findMasterValue={(activeColorThemeId || activeDensityThemeId) ? findMasterValue : undefined}
+            onResetToDefault={(activeColorThemeId || activeDensityThemeId) && !isThemeReadOnly ? handleResetToDefault : undefined}
+            onResetGroupToSource={(activeColorThemeId || activeDensityThemeId) ? handleResetGroupToSource : undefined}
+            isGroupSource={(activeColorThemeId || activeDensityThemeId) ? isGroupSource : undefined}
             tokenNameMismatch={tokenNameMismatch}
             onPreviewJSON={handlePreviewJSON}
             onDownloadJSON={handleDownloadJSONFromHeader}
             onUndoSnapshot={(snapshot) => {
               undoStackRef.current = [snapshot, ...undoStackRef.current.slice(0, MAX_UNDO - 1)];
             }}
-            groups={activeThemeId ? undefined : masterGroups}
+            groups={(activeColorThemeId || activeDensityThemeId) ? undefined : masterGroups}
             />
           }
         />
@@ -1463,7 +1522,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
         <StyleGuideTabPanel
           tokens={allCollectionTokens}
           allGroups={filteredGroups}
-          colorGroupsTree={activeThemeId ? effectiveThemeTokens : filteredGroups}
+          colorGroupsTree={(activeColorThemeId || activeDensityThemeId) ? effectiveThemeTokens : filteredGroups}
         />
       </TabsContent>
       </Tabs>
@@ -1481,7 +1540,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
           <AIChatPanel
             collectionId={id}
             collectionName={collectionName}
-            activeThemeId={activeThemeId}
+            activeThemeId={activeColorThemeId}
             onToolsExecuted={refreshTokens}
           />
         </div>
