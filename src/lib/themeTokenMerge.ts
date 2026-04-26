@@ -1,6 +1,8 @@
 import type { TokenGroup } from '@/types';
 import type { ITheme } from '@/types/theme.types';
 import { tokenService } from '@/services/token.service';
+import { COLOR_SCOPE_TYPES, DENSITY_SCOPE_TYPES } from '@/utils/tokenScope';
+import type { TokenType } from '@/types/token.types';
 
 /**
  * Merge collection-default tokens with a selected theme's group states.
@@ -52,4 +54,47 @@ export function mergeThemeTokens(
   }
 
   return tokenService.generateStyleDictionaryOutput(mergedGroups, namespace, true);
+}
+
+function applyThemeOverrides(
+  masterGroups: TokenGroup[],
+  theme: ITheme,
+  scopeTypes: readonly TokenType[],
+): TokenGroup[] {
+  const themeGroupMap = new Map<string, TokenGroup>(theme.tokens.map(g => [g.id, g]));
+  return masterGroups.map(masterGroup => {
+    const state = theme.groups[masterGroup.id] ?? 'disabled';
+    if (state === 'disabled' || state === 'source') return masterGroup;
+    const hasScoped = masterGroup.tokens.some(
+      t => (scopeTypes as readonly string[]).includes(t.type)
+    );
+    if (!hasScoped) return masterGroup;
+    return themeGroupMap.get(masterGroup.id) ?? masterGroup;
+  });
+}
+
+/**
+ * Three-way merge: collection default → color theme overrides → density theme overrides.
+ * Each theme only overrides tokens within its own type scope.
+ * When both themes are null, returns collection default tokens unchanged.
+ * Per CONTEXT.md D-04.
+ */
+export function mergeDualThemeTokens(
+  masterTokens: Record<string, unknown>,
+  colorTheme: ITheme | null,
+  densityTheme: ITheme | null,
+  namespace: string,
+): Record<string, unknown> {
+  if (!colorTheme && !densityTheme) {
+    const { groups } = tokenService.processImportedTokens(masterTokens, namespace);
+    return tokenService.generateStyleDictionaryOutput(groups, namespace, true);
+  }
+  const { groups: masterGroups } = tokenService.processImportedTokens(masterTokens, namespace);
+  const afterColor = colorTheme
+    ? applyThemeOverrides(masterGroups, colorTheme, COLOR_SCOPE_TYPES)
+    : masterGroups;
+  const afterDensity = densityTheme
+    ? applyThemeOverrides(afterColor, densityTheme, DENSITY_SCOPE_TYPES)
+    : afterColor;
+  return tokenService.generateStyleDictionaryOutput(afterDensity, namespace, true);
 }
