@@ -219,7 +219,11 @@ Plans:
   3. Theme sidebar (or equivalent) groups lists by kind and surfaces base/shared tokens outside color+density override scopes as specified.
   4. `/collections/[id]/themes` is no longer the primary surface (redirect or remove nav); themes CRUD lives on Tokens page.
   5. Config/export uses the dual selection model instead of a single `selectedThemeId`.
-**Plans**: Not planned yet — run `/gsd-discuss-phase 33` then `/gsd-plan-phase 33`
+Plans:
+- [ ] 33-01-PLAN.md — Data model + utility layer (ThemeKind, tokenScope.ts, resolveActiveThemeForGroup.ts, mergeDualThemeTokens, filterGroupsForDualThemes, test stubs)
+- [ ] 33-02-PLAN.md — tokens/page.tsx dual state refactor (activeColorThemeId/activeDensityThemeId, dual selectors, TokenGraphPanel)
+- [ ] 33-03-PLAN.md — Theme management UI consolidation (ThemeList grouped by kind, inline panel on Tokens page, themes/page.tsx redirect, sidebar cleanup)
+- [ ] 33-04-PLAN.md — API + Output page updates (POST/PUT/PATCH kind enforcement + scope trimming, output page dual selectors)
 
 ## Progress Table
 
@@ -231,7 +235,7 @@ Plans:
 | 30. AI-Assisted Naming and Queries | 3/3 | Complete | 2026-04-25 |
 | 31. Style Guide Verification | 3/3 | Complete   | 2026-04-09 |
 | 32. MCP Tool Service Layer | 2/2 | Complete | 2026-04-26 |
-| 33. Theme configuration — color/density | 0/? | Specified | - |
+| 33. Theme configuration — color/density | 1/4 | Planning | - |
 | 999.3. Tokens Studio graph math node parity | 1 plan + UAT | Implemented — verification open | - |
 
 ### Phase 1: review math node features
