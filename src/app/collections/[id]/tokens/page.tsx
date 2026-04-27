@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { MoreHorizontal, RotateCcw, Save, Sun, Moon, Eye, Download, EllipsisVertical, MessageSquare, X, Layers } from 'lucide-react';
+import { MoreHorizontal, RotateCcw, Save, Sun, Moon, Eye, Download, EllipsisVertical, MessageSquare, X } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { showSuccessToast, showErrorToast } from '@/utils/toast.utils';
 import { SaveCollectionDialog } from '@/components/collections/SaveCollectionDialog';
@@ -230,7 +230,6 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   const [addSubGroupParentId, setAddSubGroupParentId] = useState<string | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [isThemePanelOpen, setIsThemePanelOpen] = useState(false);
   const [configuringThemeId, setConfiguringThemeId] = useState<string | null>(null);
   const [tokenFormReloadVersion, setTokenFormReloadVersion] = useState(0);
 
@@ -1349,16 +1348,6 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
             </div>
           );
         })()}
-        <Button
-          variant={isThemePanelOpen ? 'default' : 'outline'}
-          size="sm"
-          className="px-2"
-          onClick={() => setIsThemePanelOpen(v => !v)}
-          title="Manage themes"
-        >
-          <Layers size={16} />
-        </Button>
-
         <span className="text-xs text-muted-foreground">
           Prefix: <span className="text-foreground font-mono">{globalNamespace}</span>
         </span>
@@ -1368,6 +1357,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
         <div className="flex items-center gap-2">
           <TabsList className="w-fit">
             <TabsTrigger value="tokens">Tokens</TabsTrigger>
+            <TabsTrigger value="themes">Themes</TabsTrigger>
             <TabsTrigger value="style-guide">Style Guide</TabsTrigger>
           </TabsList>
 
@@ -1505,24 +1495,6 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
 
       <SourceContextBar sourceMetadata={selectedSourceMetadata} />
 
-      {/* Collapsible theme management panel — per SPEC-GOAL-5 */}
-      {isThemePanelOpen && (
-        <div className="border-b border-muted bg-background shrink-0 max-h-80 overflow-y-auto">
-          <ThemeList
-            themes={themes}
-            selectedColorThemeId={activeColorThemeId}
-            selectedDensityThemeId={activeDensityThemeId}
-            onSelect={(themeId, kind) => {
-              if (kind === 'color') handleColorThemeChange(themeId);
-              else handleDensityThemeChange(themeId);
-            }}
-            onAdd={handleAddTheme}
-            onDelete={handleDeleteTheme}
-            onColorModeChange={handleColorModeChange}
-            onConfigure={setConfiguringThemeId}
-          />
-        </div>
-      )}
 
       {configuringThemeId && (() => {
         const configuringTheme = themes.find(t => t.id === configuringThemeId);
@@ -1650,6 +1622,25 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
             groups={(activeColorThemeId || activeDensityThemeId) ? undefined : masterGroups}
             />
           }
+        />
+      </TabsContent>
+
+      <TabsContent
+        value="themes"
+        className="flex flex-1 flex-col min-h-0 m-0 p-0 overflow-hidden"
+      >
+        <ThemeList
+          themes={themes}
+          selectedColorThemeId={activeColorThemeId}
+          selectedDensityThemeId={activeDensityThemeId}
+          onSelect={(themeId, kind) => {
+            if (kind === 'color') handleColorThemeChange(themeId);
+            else handleDensityThemeChange(themeId);
+          }}
+          onAdd={handleAddTheme}
+          onDelete={handleDeleteTheme}
+          onColorModeChange={handleColorModeChange}
+          onConfigure={setConfiguringThemeId}
         />
       </TabsContent>
 
