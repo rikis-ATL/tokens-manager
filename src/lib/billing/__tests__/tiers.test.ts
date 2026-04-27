@@ -5,18 +5,18 @@ describe('LIMITS config — BILLING-01 single source of truth', () => {
     expect(Object.keys(LIMITS).sort()).toEqual(['free', 'pro', 'team']);
   });
 
-  it('free tier caps match D-01 defaults (CONTEXT.md specifics)', () => {
+  it('free tier caps (public pricing)', () => {
     expect(LIMITS.free.maxCollections).toBe(1);
-    expect(LIMITS.free.maxThemesPerCollection).toBe(2);
+    expect(LIMITS.free.maxThemesPerCollection).toBe(0);
     expect(LIMITS.free.maxTokensTotal).toBe(500);
     expect(LIMITS.free.maxExportsPerMonth).toBe(10);
     expect(LIMITS.free.rateLimitPerMinute).toBe(60);
   });
 
   it('pro tier caps are higher than free', () => {
-    expect(LIMITS.pro.maxCollections).toBe(20);
-    expect(LIMITS.pro.maxThemesPerCollection).toBe(10);
-    expect(LIMITS.pro.maxTokensTotal).toBe(5000);
+    expect(LIMITS.pro.maxCollections).toBe(10);
+    expect(LIMITS.pro.maxThemesPerCollection).toBe(2);
+    expect(LIMITS.pro.maxTokensTotal).toBe(1000);
     expect(LIMITS.pro.maxExportsPerMonth).toBe(200);
     expect(LIMITS.pro.rateLimitPerMinute).toBe(120);
   });

@@ -5,7 +5,14 @@ import { AppHeader } from '@/components/layout/AppHeader';
 import { AppSidebar } from '@/components/layout/AppSidebar';
 import { OrgHeader } from '@/components/layout/OrgHeader';
 import { OrgSidebar } from '@/components/layout/OrgSidebar';
+import { MarketingHeader } from '@/components/layout/MarketingHeader';
 import { CollectionProvider } from '@/context/CollectionContext';
+
+/** Landing (`/`) and upgrade flows use a minimal chrome (no app sidebar). */
+function isMarketingPath(pathname: string): boolean {
+  if (pathname === '/' || pathname.startsWith('/upgrade')) return true;
+  return false;
+}
 
 function isCollectionRoute(pathname: string): boolean {
   // /collections/[id]/... — inside a specific collection
@@ -26,6 +33,17 @@ function isAuthRoute(pathname: string): boolean {
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+
+  if (isMarketingPath(pathname)) {
+    return (
+      <CollectionProvider>
+        <div className="flex min-h-screen flex-col bg-background text-foreground">
+          <MarketingHeader showBack={pathname !== '/'} />
+          <div className="flex-1 overflow-y-auto">{children}</div>
+        </div>
+      </CollectionProvider>
+    );
+  }
 
   return (
     <CollectionProvider>

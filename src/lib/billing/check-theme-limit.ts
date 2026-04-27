@@ -1,5 +1,5 @@
 // src/lib/billing/check-theme-limit.ts
-// Phase 23 LIMIT-02 — theme count guard per collection (free=2, pro=10, team=Infinity).
+// Phase 23 LIMIT-02 — theme count guard per collection (free=0, pro=2, team=Infinity). LIMITS in tiers.ts.
 // Replaces the hardcoded `existingThemes.length >= 10` in POST /api/collections/[id]/themes.
 // BILLING-01: LIMITS is the single source of truth — no other file may hardcode a cap number.
 

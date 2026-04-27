@@ -20,22 +20,17 @@ export async function GET() {
 
   try {
     const repo = await getRepository();
-    const isDemo = session.user.role === 'Demo';
-    const orgId = isDemo ? undefined : session.user.organizationId;
+    const orgId = session.user.organizationId;
 
-    // Prevent unscoped read: non-Demo users without an organizationId see nothing.
-    if (!isDemo && !orgId) {
+    if (!orgId) {
       return NextResponse.json({ collections: [] });
     }
 
-    const docs = await repo.list(orgId ? { organizationId: orgId } : undefined);
+    const docs = await repo.list({ organizationId: orgId });
 
     let visibleDocs = docs;
 
-    // In demo mode, show all collections to everyone (Demo role = org-scoped)
-    if (session.user.role === 'Demo') {
-      visibleDocs = docs; // All collections visible
-    } else if (session.user.role !== 'Admin') {
+    if (session.user.role !== 'Admin') {
       await dbConnect();
       const grants = await CollectionPermission.find({ userId: session.user.id }, 'collectionId').lean();
       // No grants = org-scoped access (all collections visible)

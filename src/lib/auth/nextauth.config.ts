@@ -9,6 +9,7 @@ import bcrypt from 'bcryptjs';
 import dbConnect from '@/lib/mongodb';
 import User from '@/lib/db/models/User';
 import Organization from '@/lib/db/models/Organization';
+import { isDemoMode, isSharedDemoAdminEmail } from '@/lib/auth/demo';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -53,10 +54,11 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       // Initial sign-in: set all fields and seed roleLastFetched
       if (user) {
-        const u = user as unknown as { id: string; role: string; name: string };
+        const u = user as unknown as { id: string; role: string; name: string; email?: string };
         token.id   = u.id;
         token.role = u.role;
         token.name = u.name;
+        token.email = u.email?.toLowerCase().trim() ?? (token.email as string | undefined);
         token.roleLastFetched = Date.now();
         // Phase 22 D-09 — copy org claim on initial sign-in. Not re-fetched on role-TTL refresh
         // because single-org-per-user means it does not change (see RESEARCH.md Open Question 2).
@@ -96,16 +98,23 @@ export const authOptions: NextAuthOptions = {
         token.roleLastFetched = Date.now();
       }
 
+      // Shared public demo: flag JWT so the client can lock integrations (session.demoMode).
+      token.demoMode = isDemoMode() && isSharedDemoAdminEmail(token.email as string | undefined);
+
       return token;
     },
     async session({ session, token }) {
       if (token) {
         session.user.id   = token.id as string;
         session.user.role = token.role as string;
+        if (token.email) {
+          session.user.email = String(token.email);
+        }
         // Phase 22 D-09 — expose org claim on the client-side session.user.
         session.user.organizationId = (token.organizationId as string | undefined) ?? '';
         session.user.isSuperAdmin = (token.isSuperAdmin as boolean | undefined) ?? false;
         session.user.orgName = (token.orgName as string | undefined) ?? '';
+        session.demoMode = Boolean(token.demoMode);
       }
       return session;
     },

@@ -24,21 +24,35 @@ export default function SettingsPage() {
     return null; // Don't render anything while checking/redirecting
   }
 
+  const hideSecrets = session.demoMode === true;
+
   return (
     <div className="p-6 max-w-3xl">
       <h1 className="text-2xl font-semibold text-foreground mb-8">Settings</h1>
       
-      <div className="space-y-8">
-        <AIConfiguration />
+      {hideSecrets && (
+        <p className="text-sm text-warning border border-warning/30 bg-warning/10 rounded-md px-3 py-2 mb-6">
+          Public shared demo: connection strings and some controls are hidden. Create your own org for full settings.
+        </p>
+      )}
 
-        {session.user.isSuperAdmin && (
+      <div className="space-y-8">
+        {hideSecrets ? (
+          <div className="border border-border rounded-lg p-4 text-sm text-muted-foreground">
+            AI and integration keys are not available in the shared demo.
+          </div>
+        ) : (
+          <AIConfiguration />
+        )}
+
+        {session.user.isSuperAdmin && !hideSecrets && (
           <div className="border-t border-border pt-8">
             <h2 className="text-xl font-semibold text-foreground mb-4">App theme (shell)</h2>
             <AppThemeAdminSection />
           </div>
         )}
 
-        {session.user.isSuperAdmin && (
+        {session.user.isSuperAdmin && !hideSecrets && (
           <div className="border-t border-border pt-8">
             <h2 className="text-xl font-semibold text-foreground mb-4">Database Settings</h2>
             <DatabaseConfig />

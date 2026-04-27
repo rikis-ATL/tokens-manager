@@ -1,26 +1,30 @@
 // src/lib/auth/demo.ts
 
 /**
- * Demo mode utilities.
- * 
- * IMPORTANT: This file is imported by middleware (Edge Runtime).
- * Keep imports minimal - no MongoDB/Mongoose here.
- * Database lookups are in demo-session.ts (server-only).
+ * Demo deploy utilities (public marketing + shared demo org).
+ * Safe for Edge: no MongoDB/Mongoose.
  */
 
-const DEMO_USER_EMAIL = 'demo@example.com';
-
 /**
- * Check if the app is running in demo mode.
- * When DEMO_MODE=true, visitors are automatically signed in as the demo user.
+ * True when this deployment is the public demo site (landing, shared org login).
  */
 export function isDemoMode(): boolean {
   return process.env.DEMO_MODE === 'true';
 }
 
 /**
- * Get the demo user email (for reference in other modules).
+ * Normalized shared demo admin email from env (DEMO_ADMIN_EMAIL). Used to set session.demoMode after real sign-in.
  */
-export function getDemoUserEmail(): string {
-  return DEMO_USER_EMAIL;
+export function getDemoAdminEmail(): string {
+  return (process.env.DEMO_ADMIN_EMAIL ?? '').trim().toLowerCase();
+}
+
+/**
+ * Whether the given email is the configured shared demo admin (DEMO_MODE + DEMO_ADMIN_EMAIL).
+ */
+export function isSharedDemoAdminEmail(email: string | undefined | null): boolean {
+  if (!isDemoMode() || !email) return false;
+  const expected = getDemoAdminEmail();
+  if (!expected) return false;
+  return email.trim().toLowerCase() === expected;
 }

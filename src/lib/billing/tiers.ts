@@ -17,15 +17,15 @@ export interface TierLimits {
 export const LIMITS: Record<PlanTier, TierLimits> = {
   free: {
     maxCollections: 1,
-    maxThemesPerCollection: 2,
+    maxThemesPerCollection: 0,
     maxTokensTotal: 500,
     maxExportsPerMonth: 10,
     rateLimitPerMinute: 60,
   },
   pro: {
-    maxCollections: 20,
-    maxThemesPerCollection: 10,
-    maxTokensTotal: 5000,
+    maxCollections: 10,
+    maxThemesPerCollection: 2,
+    maxTokensTotal: 1000,
     maxExportsPerMonth: 200,
     rateLimitPerMinute: 120,
   },

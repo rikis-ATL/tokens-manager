@@ -18,13 +18,6 @@ export function OrgSidebar() {
 
   const isConnected = db.state === 'connected';
   const isLoading = db.state === 'loading';
-  const isDemoMode = session?.demoMode === true;
-
-  // Hide sidebar for demo users
-  if (isDemoMode) {
-    return null;
-  }
-
   const navItems = [
     {
       href: '/collections',

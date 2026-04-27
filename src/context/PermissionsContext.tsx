@@ -100,13 +100,11 @@ export function PermissionsProvider({ children }: { children: React.ReactNode })
     return () => { cancelled = true; };
   }, [orgRole, collectionId, status]);
 
-  // Determine canEdit based on role and playground status
-  const isDemoEnvSession = session?.demoMode === true;
+  const isSharedDemo = session?.demoMode === true;
 
   const canEdit = effectiveRole
     ? effectiveRole === 'Demo'
-      ? isDemoEnvSession ||
-        (isPlayground && canPerform(effectiveRole, Action.WritePlayground))
+      ? isPlayground && canPerform(effectiveRole, Action.WritePlayground)
       : canPerform(effectiveRole, Action.Write)
     : false;
 
@@ -114,19 +112,22 @@ export function PermissionsProvider({ children }: { children: React.ReactNode })
     canEdit,
     canCreate: orgRole       ? canPerform(orgRole, Action.CreateCollection)       : false,
     isAdmin:   orgRole === 'Admin',
-    // Public demo session (DEMO_MODE): show GitHub/Figma sync; org-assigned Demo role stays gated by canPerform
     canGitHub:
       !!effectiveRole &&
-      (canPerform(effectiveRole, Action.PushGithub) || isDemoEnvSession),
+      canPerform(effectiveRole, Action.PushGithub) &&
+      !isSharedDemo,
     canFigma:
       !!effectiveRole &&
-      (canPerform(effectiveRole, Action.PushFigma) || isDemoEnvSession),
+      canPerform(effectiveRole, Action.PushFigma) &&
+      !isSharedDemo,
     canManageVersions:
       !!effectiveRole &&
-      (canPerform(effectiveRole, Action.ManageVersions) || isDemoEnvSession),
+      canPerform(effectiveRole, Action.ManageVersions) &&
+      !isSharedDemo,
     canPublishNpm:
       !!effectiveRole &&
-      (canPerform(effectiveRole, Action.PublishNpm) || isDemoEnvSession),
+      canPerform(effectiveRole, Action.PublishNpm) &&
+      !isSharedDemo,
   };
 
   return (

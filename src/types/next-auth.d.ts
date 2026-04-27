@@ -3,7 +3,7 @@ import { JWT } from 'next-auth/jwt';
 
 declare module 'next-auth' {
   interface Session {
-    /** True when session is served from DEMO_MODE synthetic demo visitor */
+    /** True when on a demo deploy and the user is the shared demo admin (DEMO_ADMIN_EMAIL). */
     demoMode?: boolean;
     user: {
       id: string;
@@ -27,5 +27,7 @@ declare module 'next-auth/jwt' {
     organizationId?: string;
     isSuperAdmin?: boolean;
     orgName?: string;
+    /** True when DEMO_MODE and the signed-in user is the shared demo admin (DEMO_ADMIN_EMAIL). */
+    demoMode?: boolean;
   }
 }

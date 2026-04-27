@@ -61,7 +61,7 @@ type OrgHeaderProps = {
 export function OrgHeader({ pageTitle, showPlaygroundBadge }: OrgHeaderProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
-  const isDemoUser = session?.user?.role === 'Demo';
+  const isDemoUser = session?.demoMode === true;
   const isSuperAdmin = session?.user?.isSuperAdmin ?? false;
   const db = useDbStatus(isSuperAdmin);
   const isCollectionDetail = pathname.startsWith('/collections/');

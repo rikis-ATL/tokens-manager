@@ -16,12 +16,10 @@ export function UserMenu() {
   const { data: session, status } = useSession();
   const appTheme = useAppTheme();
 
-  // Loading skeleton — prevents layout shift while session hydrates
   if (status === 'loading') {
     return <div className="w-28 h-8 rounded-md bg-muted animate-pulse" />;
   }
 
-  // No session — render nothing (Phase 18 will redirect unauthenticated users before they see this)
   if (!session?.user) return null;
 
   const initials =
@@ -32,17 +30,33 @@ export function UserMenu() {
       .toUpperCase()
       .slice(0, 2) ?? '?';
 
-  const isDemoUser = session.user.role === 'Demo';
+  const isSharedDemo = session.demoMode === true;
 
-  const handleExitDemo = () => {
-    // Reload page to clear demo session
-    window.location.href = '/collections';
+  const handleLeaveDemo = async () => {
+    await signOut({ redirect: false });
+    window.location.href = '/';
   };
 
   const showAppearanceToggle =
     appTheme?.configured &&
     appTheme.hasDarkPair &&
     appTheme.themeColorMode === null;
+
+  if (isSharedDemo) {
+    return (
+      <div className="flex items-center gap-2">
+        <ButtonLink href="/auth/signup" label="Create account" variant="default" />
+        <ButtonLink href="/upgrade" label="Pricing" variant="outline" />
+        <button
+          type="button"
+          onClick={handleLeaveDemo}
+          className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline px-2"
+        >
+          Leave demo
+        </button>
+      </div>
+    );
+  }
 
   return (
     <DropdownMenu>
@@ -51,56 +65,67 @@ export function UserMenu() {
           <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary text-primary-foreground text-xs font-semibold flex-shrink-0">
             {initials}
           </span>
-          {/* <span className="text-sm text-foreground max-w-[120px] truncate">
-            {session.user.name}
-          </span> */}
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        {isDemoUser ? (
-          <DropdownMenuItem onClick={handleExitDemo}>
-            Exit Demo
-          </DropdownMenuItem>
-        ) : (
-          <>
-            {showAppearanceToggle && appTheme && (
-              <>
-                <DropdownMenuItem
-                  onClick={() => appTheme.setPrefersDark(!appTheme.prefersDark)}
-                  className="flex items-center gap-2"
-                >
-                  {appTheme.prefersDark ? (
-                    <>
-                      <Sun size={14} />
-                      Switch to light mode
-                    </>
-                  ) : (
-                    <>
-                      <Moon size={14} />
-                      Switch to dark mode
-                    </>
-                  )}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-              </>
-            )}
-            <Link href="/settings" passHref legacyBehavior>
-              <DropdownMenuItem asChild>
-                <a>Settings</a>
+        <>
+          {showAppearanceToggle && appTheme && (
+            <>
+              <DropdownMenuItem
+                onClick={() => appTheme.setPrefersDark(!appTheme.prefersDark)}
+                className="flex items-center gap-2"
+              >
+                {appTheme.prefersDark ? (
+                  <>
+                    <Sun size={14} />
+                    Switch to light mode
+                  </>
+                ) : (
+                  <>
+                    <Moon size={14} />
+                    Switch to dark mode
+                  </>
+                )}
               </DropdownMenuItem>
-            </Link>
-            <Link href="/account" passHref legacyBehavior>
-              <DropdownMenuItem asChild>
-                <a>Account</a>
-              </DropdownMenuItem>
-            </Link>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => signOut({ callbackUrl: '/auth/sign-in' })}>
-              Sign out
+              <DropdownMenuSeparator />
+            </>
+          )}
+          <Link href="/settings" passHref legacyBehavior>
+            <DropdownMenuItem asChild>
+              <a>Settings</a>
             </DropdownMenuItem>
-          </>
-        )}
+          </Link>
+          <Link href="/account" passHref legacyBehavior>
+            <DropdownMenuItem asChild>
+              <a>Account</a>
+            </DropdownMenuItem>
+          </Link>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => signOut({ callbackUrl: '/auth/sign-in' })}>
+            Sign out
+          </DropdownMenuItem>
+        </>
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+}
+
+function ButtonLink({
+  href,
+  label,
+  variant,
+}: {
+  href: string;
+  label: string;
+  variant: 'default' | 'outline';
+}) {
+  const className =
+    variant === 'default'
+      ? 'text-xs font-medium rounded-md px-3 py-1.5 bg-primary text-primary-foreground hover:opacity-90'
+      : 'text-xs font-medium rounded-md px-3 py-1.5 border border-border hover:bg-accent';
+  return (
+    <Link href={href} className={className}>
+      {label}
+    </Link>
   );
 }

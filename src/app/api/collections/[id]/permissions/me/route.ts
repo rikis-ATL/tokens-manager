@@ -30,11 +30,6 @@ export async function GET(
 
   const orgRole = session.user.role as Role;
   
-  // Demo role gets viewer access to all collections
-  if (orgRole === 'Demo') {
-    return NextResponse.json({ role: 'Demo' });
-  }
-  
   if (orgRole === 'Admin') {
     return NextResponse.json({ role: 'Admin' });
   }
