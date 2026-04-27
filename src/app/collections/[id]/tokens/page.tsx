@@ -1298,56 +1298,6 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
         </h1> */}
 
 
-        {/* Dual theme selectors — per UI-SPEC §Dual Theme Selector */}
-        {(() => {
-          const colorThemes   = themes.filter(t => (t.kind ?? 'color') === 'color');
-          const densityThemes = themes.filter(t => (t.kind ?? 'color') === 'density');
-          if (colorThemes.length === 0 && densityThemes.length === 0) return null;
-          return (
-            <div className="flex items-center gap-2">
-              {colorThemes.length > 0 && (
-                <>
-                  <label className="text-xs text-muted-foreground">Color:</label>
-                  <Select
-                    key={activeColorThemeId ?? '__color_default__'}
-                    value={activeColorThemeId ?? '__default__'}
-                    onValueChange={(v) => handleColorThemeChange(v === '__default__' ? null : v)}
-                  >
-                    <SelectTrigger className="w-36 h-8 text-sm">
-                      <SelectValue placeholder="Default" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__default__">Default</SelectItem>
-                      {colorThemes.map(t => (
-                        <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </>
-              )}
-              {densityThemes.length > 0 && (
-                <>
-                  <label className="text-xs text-muted-foreground">Density:</label>
-                  <Select
-                    key={activeDensityThemeId ?? '__density_default__'}
-                    value={activeDensityThemeId ?? '__default__'}
-                    onValueChange={(v) => handleDensityThemeChange(v === '__default__' ? null : v)}
-                  >
-                    <SelectTrigger className="w-36 h-8 text-sm">
-                      <SelectValue placeholder="Default" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__default__">Default</SelectItem>
-                      {densityThemes.map(t => (
-                        <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </>
-              )}
-            </div>
-          );
-        })()}
         <span className="text-xs text-muted-foreground">
           Prefix: <span className="text-foreground font-mono">{globalNamespace}</span>
         </span>
@@ -1496,31 +1446,60 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       <SourceContextBar sourceMetadata={selectedSourceMetadata} />
 
 
-      {configuringThemeId && (() => {
-        const configuringTheme = themes.find(t => t.id === configuringThemeId);
-        return configuringTheme ? (
-          <Dialog open={true} onOpenChange={(open) => !open && setConfiguringThemeId(null)}>
-            <DialogContent className="sm:max-w-lg">
-              <DialogHeader>
-                <DialogTitle>Configure groups — {configuringTheme.name}</DialogTitle>
-              </DialogHeader>
-              <div className="overflow-y-auto max-h-[60vh]">
-                <ThemeGroupMatrix
-                  theme={configuringTheme}
-                  groups={masterGroups}
-                  onStateChange={handleGroupStateChange}
-                  onColorModeChange={handleColorModeChange}
-                />
-              </div>
-            </DialogContent>
-          </Dialog>
-        ) : null;
-      })()}
-
       <TabsContent
         value="tokens"
         className="flex flex-1 flex-col min-h-0 m-0 p-0 overflow-hidden"
       >
+        {/* Dual theme selectors — compact bar, only shown when themes exist */}
+        {(() => {
+          const colorThemes   = themes.filter(t => (t.kind ?? 'color') === 'color');
+          const densityThemes = themes.filter(t => (t.kind ?? 'color') === 'density');
+          if (colorThemes.length === 0 && densityThemes.length === 0) return null;
+          return (
+            <div className="flex items-center gap-3 px-4 py-2 border-b border-muted bg-background shrink-0">
+              {colorThemes.length > 0 && (
+                <>
+                  <label className="text-xs text-muted-foreground">Color:</label>
+                  <Select
+                    key={activeColorThemeId ?? '__color_default__'}
+                    value={activeColorThemeId ?? '__default__'}
+                    onValueChange={(v) => handleColorThemeChange(v === '__default__' ? null : v)}
+                  >
+                    <SelectTrigger className="w-36 h-8 text-xs">
+                      <SelectValue placeholder="Default" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__default__">Default</SelectItem>
+                      {colorThemes.map(t => (
+                        <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </>
+              )}
+              {densityThemes.length > 0 && (
+                <>
+                  <label className="text-xs text-muted-foreground">Density:</label>
+                  <Select
+                    key={activeDensityThemeId ?? '__density_default__'}
+                    value={activeDensityThemeId ?? '__default__'}
+                    onValueChange={(v) => handleDensityThemeChange(v === '__default__' ? null : v)}
+                  >
+                    <SelectTrigger className="w-36 h-8 text-xs">
+                      <SelectValue placeholder="Default" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__default__">Default</SelectItem>
+                      {densityThemes.map(t => (
+                        <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </>
+              )}
+            </div>
+          );
+        })()}
         <CollectionTokensWorkspace
           groupTree={{
             groups: filteredGroups,
@@ -1627,21 +1606,45 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
 
       <TabsContent
         value="themes"
-        className="flex flex-1 flex-col min-h-0 m-0 p-0 overflow-hidden"
+        className="flex flex-1 min-h-0 m-0 p-0 overflow-hidden"
       >
-        <ThemeList
-          themes={themes}
-          selectedColorThemeId={activeColorThemeId}
-          selectedDensityThemeId={activeDensityThemeId}
-          onSelect={(themeId, kind) => {
-            if (kind === 'color') handleColorThemeChange(themeId);
-            else handleDensityThemeChange(themeId);
-          }}
-          onAdd={handleAddTheme}
-          onDelete={handleDeleteTheme}
-          onColorModeChange={handleColorModeChange}
-          onConfigure={setConfiguringThemeId}
-        />
+        {/* Left panel — flat theme list */}
+        <aside className="w-52 flex-shrink-0 border-r border-muted flex flex-col overflow-hidden">
+          <ThemeList
+            flat
+            themes={themes}
+            selectedColorThemeId={null}
+            selectedDensityThemeId={null}
+            onSelect={() => {}}
+            onAdd={handleAddTheme}
+            onDelete={handleDeleteTheme}
+            onColorModeChange={handleColorModeChange}
+            matrixSelectedId={configuringThemeId}
+            onMatrixSelect={setConfiguringThemeId}
+          />
+        </aside>
+
+        {/* Right panel — group inclusion matrix */}
+        <div className="flex-1 overflow-y-auto p-4">
+          {(() => {
+            const selectedTheme = themes.find(t => t.id === configuringThemeId);
+            if (!selectedTheme) {
+              return (
+                <p className="text-xs text-muted-foreground mt-8 text-center">
+                  {themes.length === 0 ? 'No themes yet. Add one to get started.' : 'Select a theme to configure its groups.'}
+                </p>
+              );
+            }
+            return (
+              <ThemeGroupMatrix
+                theme={selectedTheme}
+                groups={masterGroups}
+                onStateChange={handleGroupStateChange}
+                onColorModeChange={handleColorModeChange}
+              />
+            );
+          })()}
+        </div>
       </TabsContent>
 
       <TabsContent

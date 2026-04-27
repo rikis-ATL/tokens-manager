@@ -39,6 +39,10 @@ interface ThemeListProps {
   onDelete: (themeId: string) => void;
   onColorModeChange?: (themeId: string, colorMode: ColorMode) => void;
   onConfigure?: (themeId: string) => void;
+  /** Flat mode: single unified list, no section grouping. Use with matrixSelectedId + onMatrixSelect. */
+  flat?: boolean;
+  matrixSelectedId?: string | null;
+  onMatrixSelect?: (themeId: string) => void;
 }
 
 /** Badge showing Light/Dark — shown on color theme rows only. */
@@ -86,6 +90,9 @@ export function ThemeList({
   onDelete,
   onColorModeChange,
   onConfigure,
+  flat,
+  matrixSelectedId,
+  onMatrixSelect,
 }: ThemeListProps) {
   const [addingKind, setAddingKind] = useState<ThemeKind | null>(null);
   const [addName, setAddName] = useState('');
@@ -223,6 +230,136 @@ export function ThemeList({
           })}
         </div>
       </>
+    );
+  }
+
+  const allThemes = [...colorThemes, ...densityThemes];
+
+  if (flat) {
+    return (
+      <div className="flex flex-col h-full overflow-hidden">
+        <div className="flex-1 overflow-y-auto py-1">
+          {allThemes.length === 0 && (
+            <p className="px-3 py-4 text-xs text-muted-foreground">No themes yet.</p>
+          )}
+          {allThemes.map((theme) => {
+            const isSelected = theme.id === matrixSelectedId;
+            const kind = (theme.kind ?? 'color') as ThemeKind;
+            const currentColorMode = (theme.colorMode ?? 'light') as ColorMode;
+            return (
+              <div
+                key={theme.id}
+                className={`group/item flex items-center pr-1 cursor-pointer transition-colors ${
+                  isSelected ? 'bg-info/10 text-foreground font-medium' : 'hover:bg-muted text-foreground'
+                }`}
+                onClick={() => onMatrixSelect?.(theme.id)}
+              >
+                <span className="flex-1 py-1.5 px-3 truncate text-xs">{theme.name}</span>
+                <KindBadge kind={kind} />
+                {kind === 'color' && <ColorModeBadge colorMode={currentColorMode} />}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      className="opacity-0 group-hover/item:opacity-100 p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-all flex-shrink-0"
+                      onClick={(e) => e.stopPropagation()}
+                      aria-label="Theme options"
+                    >
+                      <MoreHorizontal size={13} />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-44" onClick={(e) => e.stopPropagation()}>
+                    {kind === 'color' && (
+                      <>
+                        <DropdownMenuItem
+                          className="gap-2 text-xs"
+                          onClick={() => onColorModeChange?.(theme.id, currentColorMode === 'dark' ? 'light' : 'dark')}
+                        >
+                          {currentColorMode === 'dark' ? <><Sun size={12} /> Switch to Light</> : <><Moon size={12} /> Switch to Dark</>}
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                      </>
+                    )}
+                    <DropdownMenuItem
+                      className="gap-2 text-xs text-destructive focus:text-destructive"
+                      onClick={() => setDeleteTargetId(theme.id)}
+                    >
+                      <Trash2 size={12} /> Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Add buttons */}
+        <div className="border-t border-muted p-2 flex flex-col gap-1 flex-shrink-0">
+          <button
+            onClick={() => handleOpenDialog('color')}
+            disabled={colorAtLimit}
+            className="flex items-center gap-1.5 px-2 py-1.5 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <Plus size={12} /> Add Color Theme
+          </button>
+          <button
+            onClick={() => handleOpenDialog('density')}
+            disabled={densityAtLimit}
+            className="flex items-center gap-1.5 px-2 py-1.5 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <Plus size={12} /> Add Density Theme
+          </button>
+        </div>
+
+        {/* Shared dialogs */}
+        <Dialog open={!!addingKind} onOpenChange={(open) => !open && setAddingKind(null)}>
+          <DialogContent className="sm:max-w-sm">
+            <DialogHeader>
+              <DialogTitle>{addingKind === 'density' ? 'Create Density Theme' : 'Create Color Theme'}</DialogTitle>
+            </DialogHeader>
+            <div className="flex flex-col gap-4 py-2">
+              <Input
+                autoFocus
+                placeholder="Theme name"
+                value={addName}
+                onChange={(e) => setAddName(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleCreateTheme(); }}
+              />
+              {addingKind === 'color' && (
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => setAddColorMode('light')} className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded border text-sm transition-colors ${addColorMode === 'light' ? 'border-warning bg-warning/10 text-warning' : 'border-border bg-card text-muted-foreground hover:bg-background'}`}>
+                    <Sun size={14} /> Light
+                  </button>
+                  <button type="button" onClick={() => setAddColorMode('dark')} className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded border text-sm transition-colors ${addColorMode === 'dark' ? 'border-border bg-muted text-foreground' : 'border-border bg-card text-muted-foreground hover:bg-background'}`}>
+                    <Moon size={14} /> Dark
+                  </button>
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setAddingKind(null)}>Cancel</Button>
+              <Button onClick={handleCreateTheme} disabled={!addName.trim()}>
+                {addingKind === 'density' ? 'Create Density Theme' : 'Create Color Theme'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <AlertDialog open={!!deleteTargetId} onOpenChange={(open) => !open && setDeleteTargetId(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete theme</AlertDialogTitle>
+              <AlertDialogDescription>This will permanently delete &ldquo;{deleteTarget?.name ?? ''}&rdquo;. This action cannot be undone.</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={() => { if (deleteTargetId) { onDelete(deleteTargetId); setDeleteTargetId(null); } }}
+              >Delete Theme</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
     );
   }
 
