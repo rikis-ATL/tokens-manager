@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, MoreHorizontal, Trash2, Sun, Moon, Palette, Layers } from 'lucide-react';
+import { Plus, MoreHorizontal, Trash2, Sun, Moon, Palette, Layers, SlidersHorizontal } from 'lucide-react';
 import type { ITheme, ColorMode, ThemeKind } from '@/types/theme.types';
 import {
   DropdownMenu,
@@ -38,6 +38,7 @@ interface ThemeListProps {
   onAdd: (name: string, kind: ThemeKind, colorMode?: ColorMode) => void;
   onDelete: (themeId: string) => void;
   onColorModeChange?: (themeId: string, colorMode: ColorMode) => void;
+  onConfigure?: (themeId: string) => void;
 }
 
 /** Badge showing Light/Dark — shown on color theme rows only. */
@@ -84,6 +85,7 @@ export function ThemeList({
   onAdd,
   onDelete,
   onColorModeChange,
+  onConfigure,
 }: ThemeListProps) {
   const [addingKind, setAddingKind] = useState<ThemeKind | null>(null);
   const [addName, setAddName] = useState('');
@@ -193,6 +195,17 @@ export function ThemeList({
                           ) : (
                             <><Moon size={12} /> Switch to Dark</>
                           )}
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                      </>
+                    )}
+                    {onConfigure && (
+                      <>
+                        <DropdownMenuItem
+                          className="gap-2 text-xs"
+                          onClick={() => onConfigure(theme.id)}
+                        >
+                          <SlidersHorizontal size={12} /> Configure groups
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                       </>

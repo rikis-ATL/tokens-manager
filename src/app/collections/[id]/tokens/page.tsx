@@ -22,8 +22,9 @@ import type { TokenGroup, GeneratedToken } from '@/types';
 import type { ISourceMetadata } from '@/types/collection.types';
 import type { CollectionGraphState, GraphGroupState } from '@/types/graph-state.types';
 import type { FlatToken, FlatGroup } from '@/types/graph-nodes.types';
-import type { ITheme, ColorMode, ThemeKind } from '@/types/theme.types';
+import type { ITheme, ColorMode, ThemeKind, ThemeGroupState } from '@/types/theme.types';
 import { ThemeList } from '@/components/themes/ThemeList';
+import { ThemeGroupMatrix } from '@/components/themes/ThemeGroupMatrix';
 import { getAllGroups, findGroupById, generateId } from '@/utils';
 import { filterGroupsForDualThemes } from '@/utils/filterGroupsForActiveTheme';
 import { resolveActiveThemeIdForGroup } from '@/utils/resolveActiveThemeForGroup';
@@ -230,6 +231,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isThemePanelOpen, setIsThemePanelOpen] = useState(false);
+  const [configuringThemeId, setConfiguringThemeId] = useState<string | null>(null);
   const [tokenFormReloadVersion, setTokenFormReloadVersion] = useState(0);
 
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -932,6 +934,28 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     }
   }, [id]);
 
+  const handleGroupStateChange = useCallback(async (groupId: string, state: ThemeGroupState) => {
+    if (!configuringThemeId) return;
+    const targetTheme = themes.find(t => t.id === configuringThemeId);
+    if (!targetTheme) return;
+    const updatedGroups = { ...targetTheme.groups, [groupId]: state };
+    setThemes(prev => prev.map(t =>
+      t.id === configuringThemeId
+        ? { ...t, groups: updatedGroups }
+        : t
+    ));
+    try {
+      const res = await fetch(`/api/collections/${id}/themes/${configuringThemeId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ groups: updatedGroups }),
+      });
+      if (!res.ok) throw new Error('Failed to update group state');
+    } catch {
+      showErrorToast('Failed to update group state');
+    }
+  }, [id, configuringThemeId, themes]);
+
   // ── Theme token change with debounced PATCH auto-save ───────────────────
   const handleThemeTokenChange = useCallback((updatedTokens: TokenGroup[]) => {
     if (!activeColorThemeId && !activeDensityThemeId) return; // Default mode: mutations go through handleGroupsChange
@@ -1495,9 +1519,31 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
             onAdd={handleAddTheme}
             onDelete={handleDeleteTheme}
             onColorModeChange={handleColorModeChange}
+            onConfigure={setConfiguringThemeId}
           />
         </div>
       )}
+
+      {configuringThemeId && (() => {
+        const configuringTheme = themes.find(t => t.id === configuringThemeId);
+        return configuringTheme ? (
+          <Dialog open={true} onOpenChange={(open) => !open && setConfiguringThemeId(null)}>
+            <DialogContent className="sm:max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Configure groups — {configuringTheme.name}</DialogTitle>
+              </DialogHeader>
+              <div className="overflow-y-auto max-h-[60vh]">
+                <ThemeGroupMatrix
+                  theme={configuringTheme}
+                  groups={masterGroups}
+                  onStateChange={handleGroupStateChange}
+                  onColorModeChange={handleColorModeChange}
+                />
+              </div>
+            </DialogContent>
+          </Dialog>
+        ) : null;
+      })()}
 
       <TabsContent
         value="tokens"
