@@ -1,15 +1,15 @@
 'use client';
 
-import { Sun, Moon } from 'lucide-react';
-import type { ITheme, ThemeGroupState, ColorMode } from '@/types/theme.types';
+import type { ITheme, ThemeGroupState } from '@/types/theme.types';
 import type { TokenGroup } from '@/types';
 import { parseGroupPath } from '@/utils';
+import { dominantScopeForTokenTypes } from '@/utils/tokenScope';
 
 interface ThemeGroupMatrixProps {
   theme: ITheme;
   groups: TokenGroup[];
   onStateChange: (groupId: string, state: ThemeGroupState) => void;
-  onColorModeChange?: (themeId: string, colorMode: ColorMode) => void;
+  onColorModeChange?: (themeId: string, colorMode: 'light' | 'dark') => void;
 }
 
 const STATES: ThemeGroupState[] = ['disabled', 'enabled', 'source'];
@@ -20,87 +20,83 @@ const STATE_LABELS: Record<ThemeGroupState, string> = {
   source: 'Source',
 };
 
-export function ThemeGroupMatrix({ theme, groups, onStateChange, onColorModeChange }: ThemeGroupMatrixProps) {
-  const colorMode = (theme.colorMode ?? 'light') as ColorMode;
+function groupScope(group: TokenGroup): string {
+  const allTokens = group.tokens ?? [];
+  const types = allTokens.map(t => t.type);
+  const scope = dominantScopeForTokenTypes(types);
+  if (scope === 'color') return 'Color';
+  if (scope === 'density') return 'Density';
+  return '—';
+}
 
+export function ThemeGroupMatrix({ theme, groups, onStateChange }: ThemeGroupMatrixProps) {
   if (groups.length === 0) {
     return (
-      <p className="text-sm text-muted-foreground text-center mt-8">
+      <p className="text-xs text-muted-foreground text-center mt-8">
         No groups in this collection.
       </p>
     );
   }
 
   return (
-    <div className="flex flex-col gap-1">
-      {/* Color mode selector row */}
-      <div className="flex items-center justify-between gap-4 px-4 py-2 rounded-md hover:bg-background mb-2 border-b border-border pb-3">
-        <span className="text-sm text-foreground flex-1">Color Mode</span>
-        <div className="flex border border-border rounded-md overflow-hidden flex-shrink-0">
-          <button
-            className={`px-3 py-1 text-xs font-medium transition-colors border-r border-border flex items-center gap-1 ${
-              colorMode === 'light'
-                ? 'bg-warning text-warning-foreground border-warning'
-                : 'bg-card text-muted-foreground hover:bg-background'
-            }`}
-            onClick={() => onColorModeChange?.(theme.id, 'light')}
-          >
-            <Sun size={11} />
-            Light
-          </button>
-          <button
-            className={`px-3 py-1 text-xs font-medium transition-colors flex items-center gap-1 ${
-              colorMode === 'dark'
-                ? 'bg-foreground text-background border-border'
-                : 'bg-card text-muted-foreground hover:bg-background'
-            }`}
-            onClick={() => onColorModeChange?.(theme.id, 'dark')}
-          >
-            <Moon size={11} />
-            Dark
-          </button>
-        </div>
-      </div>
+    <div className="overflow-x-auto">
+      <table className="min-w-full border-collapse table-auto">
+        <thead className="border-b border-border">
+          <tr>
+            <th className="px-4 py-2 text-[10px] font-semibold text-left text-muted-foreground uppercase tracking-wide">
+              Name
+            </th>
+            <th className="px-4 py-2 text-[10px] font-semibold text-left text-muted-foreground uppercase tracking-wide w-24">
+              Type
+            </th>
+            <th className="px-4 py-2 text-[10px] font-semibold text-left text-muted-foreground uppercase tracking-wide w-48">
+              State
+            </th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-border">
+          {groups.map((group) => {
+            const segments = parseGroupPath(group.name);
+            const label = segments.join(' / ');
+            const currentState: ThemeGroupState = theme.groups[group.id] ?? 'disabled';
+            const type = groupScope(group);
 
-      {/* Group state rows */}
-      {groups.map((group) => {
-        const segments = parseGroupPath(group.name);
-        const label = segments.join(' / ');
-        const currentState: ThemeGroupState = theme.groups[group.id] ?? 'disabled';
-
-        return (
-          <div
-            key={group.id}
-            className="flex items-center justify-between gap-4 px-4 py-2 rounded-md hover:bg-background"
-          >
-            {/* Group label */}
-            <span className="text-sm text-foreground flex-1 truncate">{label}</span>
-
-            {/* 3-state button group */}
-            <div className="flex border border-border rounded-md overflow-hidden flex-shrink-0">
-              {STATES.map((state, idx) => {
-                const isActive = currentState === state;
-                return (
-                  <button
-                    key={state}
-                    className={`px-3 py-1 text-xs font-medium transition-colors ${
-                      idx < STATES.length - 1 ? 'border-r border-border' : ''
-                    } ${
-                      isActive
-                        ? 'bg-primary text-primary-foreground border-primary'
-                        : 'bg-card text-muted-foreground hover:bg-background'
-                    }`}
-                    onClick={() => onStateChange(group.id, state)}
-                    title={STATE_LABELS[state]}
-                  >
-                    {STATE_LABELS[state]}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })}
+            return (
+              <tr key={group.id} className="hover:bg-muted/40 transition-colors">
+                <td className="px-4 py-2 text-xs text-foreground truncate max-w-[200px]">
+                  {label}
+                </td>
+                <td className="px-4 py-2 text-xs text-muted-foreground">
+                  {type}
+                </td>
+                <td className="px-4 py-2">
+                  <div className="flex border border-border rounded-md overflow-hidden w-fit">
+                    {STATES.map((state, idx) => {
+                      const isActive = currentState === state;
+                      return (
+                        <button
+                          key={state}
+                          className={`px-3 py-1 text-xs font-medium transition-colors ${
+                            idx < STATES.length - 1 ? 'border-r border-border' : ''
+                          } ${
+                            isActive
+                              ? 'bg-primary text-primary-foreground'
+                              : 'bg-card text-muted-foreground hover:bg-muted'
+                          }`}
+                          onClick={() => onStateChange(group.id, state)}
+                          title={STATE_LABELS[state]}
+                        >
+                          {STATE_LABELS[state]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }

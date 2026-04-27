@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, MoreHorizontal, Trash2, Sun, Moon, Palette, Layers, SlidersHorizontal } from 'lucide-react';
+import { Plus, MoreHorizontal, Trash2, Sun, Moon, Palette, Layers, SlidersHorizontal, Ruler } from 'lucide-react';
 import type { ITheme, ColorMode, ThemeKind } from '@/types/theme.types';
 import {
   DropdownMenu,
@@ -255,8 +255,14 @@ export function ThemeList({
                 onClick={() => onMatrixSelect?.(theme.id)}
               >
                 <span className="flex-1 py-1.5 px-3 truncate text-xs">{theme.name}</span>
-                <KindBadge kind={kind} />
-                {kind === 'color' && <ColorModeBadge colorMode={currentColorMode} />}
+                <span className="px-2 flex-shrink-0 text-muted-foreground">
+                  {kind === 'density'
+                    ? <Ruler size={12} />
+                    : currentColorMode === 'dark'
+                      ? <Moon size={12} />
+                      : <Sun size={12} className="text-warning" />
+                  }
+                </span>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button
