@@ -1,8 +1,8 @@
 ---
 phase: 33-theme-configuration-color-density
-reviewed: 2026-04-26T00:00:00Z
+reviewed: 2026-05-03T00:00:00Z
 depth: standard
-files_reviewed: 17
+files_reviewed: 18
 files_reviewed_list:
   - src/app/api/collections/[id]/themes/[themeId]/route.ts
   - src/app/api/collections/[id]/themes/[themeId]/tokens/route.ts
@@ -12,6 +12,7 @@ files_reviewed_list:
   - src/app/collections/[id]/tokens/page.tsx
   - src/components/collections/CollectionSidebar.tsx
   - src/components/graph/TokenGraphPanel.tsx
+  - src/components/themes/ThemeGroupMatrix.tsx
   - src/components/themes/ThemeList.tsx
   - src/lib/themeTokenMerge.ts
   - src/types/theme.types.ts
@@ -24,16 +25,16 @@ files_reviewed_list:
 findings:
   critical: 0
   warning: 5
-  info: 6
-  total: 11
+  info: 8
+  total: 13
 status: issues_found
 ---
 
 # Phase 33: Code Review Report
 
-**Reviewed:** 2026-04-26T00:00:00Z
+**Reviewed:** 2026-05-03T00:00:00Z (updated to include plan 33-06 — ThemeGroupMatrix.tsx)
 **Depth:** standard
-**Files Reviewed:** 17
+**Files Reviewed:** 18
 **Status:** issues_found
 
 ## Summary
@@ -41,6 +42,8 @@ status: issues_found
 This phase introduces the dual-theme system (color + density) and associated supporting utilities. The core data model (`ITheme`, `ThemeKind`, `ColorMode`), scope utilities (`tokenScope.ts`), merge logic (`themeTokenMerge.ts`), and filter/resolve utilities are all clean and consistent. The API routes correctly guard source-group writes, enforce scope, and apply the whole-array Mongoose update pattern.
 
 The main risk areas are: (1) a silent data-loss window when deleting the currently active theme — the client removes it from state before clearing the selection, leaving a brief render with stale theme IDs; (2) the client-side theme limit (`>= 10` in `ThemeList`) is not enforced server-side, so the API can be called directly to exceed the limit; (3) the `filterGroupsForDualThemes` dual-theme filter checks root groups against their `g.id`, but the group IDs passed in `theme.groups` are keyed by root-level ID — child group IDs that differ from their parent may resolve to `'disabled'` by default, which is the existing intended behavior but is undocumented and therefore fragile; (4) several `console.log` debug statements remain in production code; (5) weak assertions in `themeTokenMerge.test.ts` do not verify actual merged values.
+
+The plan 33-06 addition (`flattenGroups` in `ThemeGroupMatrix.tsx`) is correct — the recursive depth-first traversal is safe, has proper guard conditions, and introduces no bugs. Two minor info-level issues were identified in the same file.
 
 ---
 
@@ -190,6 +193,38 @@ it('applies color theme overrides for color tokens', () => {
 
 ---
 
-_Reviewed: 2026-04-26T00:00:00Z_
+### IN-07: `onColorModeChange` prop declared but never used in `ThemeGroupMatrix`
+
+**File:** `src/components/themes/ThemeGroupMatrix.tsx:12` / `44`
+**Issue:** `onColorModeChange?: (themeId: string, colorMode: 'light' | 'dark') => void` is declared in `ThemeGroupMatrixProps` but is not destructured from props in the component signature (line 44) and is therefore never called. If the prop is intended for future use, TypeScript will not warn callers that pass it, since it is optional — any accidental omission of a required wiring will go undetected.
+**Fix:** Either remove the prop from the interface until it is implemented, or destructure and use it:
+```typescript
+export function ThemeGroupMatrix({ theme, groups, onStateChange, onColorModeChange }: ThemeGroupMatrixProps) {
+  // wire onColorModeChange where needed
+}
+```
+
+---
+
+### IN-08: `groupScope` ignores descendant tokens — parent structural groups always show `'—'`
+
+**File:** `src/components/themes/ThemeGroupMatrix.tsx:35-42`
+**Issue:** `groupScope` reads only `group.tokens ?? []` (the group's own direct tokens). After `flattenGroups` flattens the tree, parent groups that act as structural containers (no direct tokens, but with child groups that have tokens) will always display `'—'` as their type. This gives the user no type signal for structural parents, which may be confusing in a matrix context where every row is expected to have a meaningful type label.
+**Fix:** If showing a meaningful scope for structural parents is desired, collect tokens from descendants as well:
+```typescript
+function groupScope(group: TokenGroup): string {
+  const allTokens = collectAllTokens(group); // recurse into children
+  const types = allTokens.map(t => t.type);
+  const scope = dominantScopeForTokenTypes(types);
+  if (scope === 'color') return 'Color';
+  if (scope === 'density') return 'Density';
+  return '—';
+}
+```
+If showing `'—'` for structural parents is the intended design, add a comment noting this is deliberate so future readers do not "fix" it inadvertently.
+
+---
+
+_Reviewed: 2026-05-03T00:00:00Z (updated to include plan 33-06 — ThemeGroupMatrix.tsx)_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
