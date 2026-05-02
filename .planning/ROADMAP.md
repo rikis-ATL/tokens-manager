@@ -142,7 +142,11 @@ See: `.planning/milestones/v1.4-ROADMAP.md` for full phase details.
   4. Rate limiter enforces per-user-ID limits on export and token-update endpoints (never per-IP)
   5. `SELF_HOSTED=true` env var bypasses all limit checks
   6. UpgradeModal surfaces in the UI when a 402 is received
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [x] 23-01-PLAN.md — Billing tiers config, usage tracking schema, limit enforcement utilities
+- [x] 23-02-PLAN.md — API route enforcement (collections, exports, token-updates) + 402 error handling
+- [x] 23-03-PLAN.md — UpgradeModal UI + rate limiter integration
 
 ### Phase 24: Stripe Checkout and Webhook Integration
 **Goal**: Wire Stripe Checkout for plan upgrades and a webhook handler to keep org billing state in sync.
@@ -155,7 +159,11 @@ See: `.planning/milestones/v1.4-ROADMAP.md` for full phase details.
   4. `ProcessedWebhookEvent` idempotency guard prevents duplicate processing
   5. All three webhook event types handled: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`
   6. Successful checkout triggers a session refresh so the UI reflects the new tier immediately
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [x] 24-01-PLAN.md — Stripe singleton, checkout session creation, billing portal session
+- [x] 24-02-PLAN.md — Webhook handler (req.text()), ProcessedWebhookEvent idempotency, event types
+- [x] 24-03-PLAN.md — Success page session refresh + subscription state sync
 
 ### 🔄 v1.9 AI Completion + MCP Alignment (Active)
 
@@ -208,7 +216,10 @@ Plans:
   2. A code-level audit confirms the MCP server and in-app handlers call the same underlying service functions for every shared operation (MCP-01)
   3. MCP server exposes create-theme, update-theme, and delete-theme tools that a Claude Desktop session can invoke successfully (MCP-02)
   4. MCP theme tools produce the same database outcomes as their in-app chat equivalents (MCP-02)
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [x] 32-01-PLAN.md — Shared token/group/theme service modules extracted from MCP and HTTP handlers
+- [x] 32-02-PLAN.md — MCP server theme mutation tools (create-theme, update-theme, delete-theme)
 
 ### Phase 33: Theme configuration — color/density types and tokens-page consolidation
 **Goal**: Split themes into **color** and **density** kinds; allow one active theme per kind; scope overrides to color tokens vs dimension tokens; keep light/dark on color themes only; consolidate theme management UI under the Tokens page; replace single-theme selectors on Tokens, Config, and token-output flows with color + density controls.
@@ -236,7 +247,9 @@ Plans:
   3. A single `GroupStructureGraph` instance is mounted — no duplicate `key` fighting or remount on fullscreen toggle.
   4. Graph edits made in fullscreen are reflected immediately on exit; group/tab switching works in both states.
   5. `CollectionTokensWorkspace` wiring is unchanged outside fullscreen — split/tabs layout unaffected.
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 34-01-PLAN.md — Create GraphPanelWithChrome wrapper component and wire into tokens page
 
 ## Progress Table
 
