@@ -165,6 +165,7 @@ See: `.planning/milestones/v1.4-ROADMAP.md` for full phase details.
 - [x] **Phase 31: Style Guide Verification** — Browser verification of Phase 25 Style Guide tab; fix any regressions or nyquist coverage gaps (completed 2026-04-09)
 - [x] **Phase 32: MCP Tool Service Layer** — Extract shared token/group/theme service functions; add theme mutation tools to MCP server (completed 2026-04-26)
 - [ ] **Phase 33: Theme configuration — color/density** — Theme kinds (color vs density), dual active selection, merged effective token set, themes UI under Tokens page, config/export uses color + density instead of single theme
+- [ ] **Phase 34: Demo Hero — Graph Fullscreen Shell** — Extract graph presenter component (GraphPanelWithChrome) from TokenGraphPanel; add fullscreen toggle (fixed inset-0 z-50, Escape to exit, single mounted instance); wire CollectionTokensWorkspace to use new wrapper; optional localStorage persist; foundation for hero/playground demo experience
 
 ## Phase Details
 
@@ -224,6 +225,18 @@ Plans:
 - [ ] 33-02-PLAN.md — tokens/page.tsx dual state refactor (activeColorThemeId/activeDensityThemeId, dual selectors, TokenGraphPanel)
 - [ ] 33-03-PLAN.md — Theme management UI consolidation (ThemeList grouped by kind, inline panel on Tokens page, themes/page.tsx redirect, sidebar cleanup)
 - [ ] 33-04-PLAN.md — API + Output page updates (POST/PUT/PATCH kind enforcement + scope trimming, output page dual selectors)
+
+### Phase 34: Demo Hero — Graph Fullscreen Shell
+**Goal**: Extract a `GraphPanelWithChrome` presenter component from `TokenGraphPanel`; add a fullscreen toggle that portals the same mounted graph tree to `fixed inset-0 z-50 bg-background` (Escape to exit); keep a single `GroupStructureGraph` instance to preserve state and callbacks; wire `CollectionTokensWorkspace` to use the new wrapper so split/tabs layout is unchanged until fullscreen is toggled. Optional: persist fullscreen preference to `localStorage` alongside `tokens-workspace-main-layout`.
+**Depends on**: Phase 33 (active theme wiring)
+**Requirements**: DEMO-01
+**Success Criteria** (what must be TRUE):
+  1. Fullscreen toggle appears in the graph column header and expands the graph to fill the viewport with no layout shift in the rest of the workspace.
+  2. Escape key exits fullscreen.
+  3. A single `GroupStructureGraph` instance is mounted — no duplicate `key` fighting or remount on fullscreen toggle.
+  4. Graph edits made in fullscreen are reflected immediately on exit; group/tab switching works in both states.
+  5. `CollectionTokensWorkspace` wiring is unchanged outside fullscreen — split/tabs layout unaffected.
+**Plans**: TBD
 
 ## Progress Table
 

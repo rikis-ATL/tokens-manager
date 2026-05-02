@@ -1,7 +1,7 @@
 ---
 phase: 34
 slug: demo-hero-graph-fullscreen
-status: draft
+status: approved
 shadcn_initialized: true
 preset: default/slate/cssVariables
 created: 2026-05-03
