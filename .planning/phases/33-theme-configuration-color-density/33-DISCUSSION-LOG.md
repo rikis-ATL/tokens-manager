@@ -3,7 +3,7 @@
 > **Audit trail only.** Do not use as input to planning, research, or execution agents.
 > Decisions are captured in CONTEXT.md — this log preserves the alternatives considered.
 
-**Date:** 2026-04-26
+**Date:** 2026-04-26 (initial) / 2026-05-03 (update)
 **Phase:** 33-theme-configuration-color-density
 **Areas discussed:** Base token semantics, Multi-dimensional theming model, Token scope boundaries, Graph panel with dual themes, Selection persistence, Token snapshot storage
 
@@ -71,14 +71,67 @@
 
 ---
 
+## [2026-05-03 Update] — Evolved UI Design Decisions
+
+### Themes Tab Model
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Dedicated tab is final | Tokens = editing, Themes = managing | |
+| Revisit — themes back in Tokens tab | Collapsible panel approach | |
+| Hybrid — selectors in Tokens, tab for config only | Tokens tab has active selectors; Themes tab is purely create/delete/configure | ✓ |
+
+**User's choice:** Hybrid model — confirmed this is what the current implementation already does.
+**Notes:** Tokens tab contains the dual Color/Density selectors (in group sidebar). Themes tab is purely for theme management and group state configuration.
+
+---
+
+### Dual Selector Placement
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Sidebar is correct | Selectors in group tree sidebar, conditional on kind existence | ✓ |
+| Toolbar strip above token table | Horizontal compact bar, always visible when any theme exists | |
+| Back to page header | Always visible regardless of tab | |
+
+**User's choice:** Sidebar placement confirmed as final.
+**Notes:** Selectors only render when at least one theme of the relevant kind exists. Contextually placed next to the group tree they affect.
+
+---
+
+### ThemeGroupMatrix Display
+
+**User's clarification:** The matrix is still useful because group states (enabled/source/disabled) are needed — e.g. `typography/fontSize` may need `source` state on a color theme. However, the current matrix **only shows top-level groups**. Subgroups must appear as flat rows in the table (no indentation, no hierarchy). All `TokenGroup.children` must be recursively flattened.
+
+**Decisions captured:**
+- Two-panel inline approach confirmed (no dialog)
+- Group states (enabled/source/disabled) are still required — NOT to be removed
+- ThemeGroupMatrix needs a subgroup flattening fix (flat table, no indentation)
+
+---
+
+### DragScrubberHandle Scope
+
+**User's clarification:** Already committed and pushed as part of Phase 33 (commit 4749df7 "dimension drag and full screen graph"). Adds drag-to-scrub for numeric token values in TokenGeneratorForm.
+
+---
+
+### Output Generator
+
+**Topic raised by user** — flagged that output generator may need decisions about how dual themes are handled in export.
+**Decision:** Deferred to a future phase. Output/export dual theme format decisions are out of Phase 33 scope.
+
+---
+
 ## Claude's Discretion
 
 - Sidebar label for base/default section ("Base", "Default", "Collection default")
 - Whether snapshot trimming is eager (migration script) or lazy (on next save)
 - Tiebreaker for mixed-type groups in graph routing (D-08)
 - PATCH route behavior for out-of-scope token paths (reject vs. no-op)
+- Whether to flatten subgroups inside `ThemeGroupMatrix` component or at the call site
 
 ## Deferred Ideas
 
 - AI/MCP tool parity for dual themes (follow-up phase after Phase 32)
-- Export pair representation for config/export endpoints (plan-phase decision)
+- Export pair representation / output generator dual theme handling (future phase)
