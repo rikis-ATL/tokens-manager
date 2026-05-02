@@ -84,15 +84,16 @@ Token collections are always available and editable: stored in MongoDB, accessib
 
 - ✓ User can open and use the AI chat panel on the Tokens page without the tokens table being cleared — BUG-01-FIX, AI-01 — v1.8
 
-### Active (v1.9)
+### Validated (v1.9)
 
-<!-- v1.9 AI Completion + MCP Alignment -->
-- [ ] AI agent can create themes with AI-suggested token values via tool use — AI-11
-- [ ] User can query tokens in natural language ("which tokens use #0056D2?") — AI-12
-- [ ] User can request natural language edits ("rename all sm spacing tokens to small") — AI-13
-- [ ] User can paste token values and receive AI-suggested canonical names and group structure — AI-14
-- [ ] MCP server tools and in-app HTTP tool handlers share the same underlying service functions — MCP-01
-- [ ] Style Guide tab (Phase 25) is fully verified in the browser with no regressions — VERIFY-25
+<!-- v1.9 AI Completion + MCP Alignment — all phases complete 2026-05-03 -->
+- ✓ AI agent can create themes with AI-suggested token values via tool use — AI-11 — Validated in Phase 30
+- ✓ User can query tokens in natural language ("which tokens use #0056D2?") — AI-12 — Validated in Phase 30
+- ✓ User can request natural language edits ("rename all sm spacing tokens to small") — AI-13 — Validated in Phase 30
+- ✓ User can paste token values and receive AI-suggested canonical names and group structure — AI-14 — Validated in Phase 30
+- ✓ MCP server tools and in-app HTTP tool handlers share the same underlying service functions — MCP-01 — Validated in Phase 32
+- ✓ Style Guide tab (Phase 25) is fully verified in the browser with no regressions — VERIFY-25 — Validated in Phase 31
+- ✓ Graph panel has fullscreen toggle (fixed inset-0 z-50, Escape to exit, single mounted instance) — DEMO-01 — Validated in Phase 34
 
 <!-- v1.6 Multi-Tenant SaaS (planned, not yet executed) -->
 - [ ] All users and collections are scoped to an organization via organizationId — TENANT-01
