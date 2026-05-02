@@ -20,6 +20,18 @@ const STATE_LABELS: Record<ThemeGroupState, string> = {
   source: 'Source',
 };
 
+/** Recursively flatten a TokenGroup tree into a flat array (depth-first, parent before children). */
+function flattenGroups(groups: TokenGroup[]): TokenGroup[] {
+  const result: TokenGroup[] = [];
+  for (const group of groups) {
+    result.push(group);
+    if (group.children && group.children.length > 0) {
+      result.push(...flattenGroups(group.children));
+    }
+  }
+  return result;
+}
+
 function groupScope(group: TokenGroup): string {
   const allTokens = group.tokens ?? [];
   const types = allTokens.map(t => t.type);
@@ -55,7 +67,7 @@ export function ThemeGroupMatrix({ theme, groups, onStateChange }: ThemeGroupMat
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
-          {groups.map((group) => {
+          {flattenGroups(groups).map((group) => {
             const segments = parseGroupPath(group.name);
             const label = segments.join(' / ');
             const currentState: ThemeGroupState = theme.groups[group.id] ?? 'disabled';
