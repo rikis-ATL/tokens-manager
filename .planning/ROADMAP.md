@@ -172,7 +172,7 @@ Plans:
 - [x] **Phase 30: AI-Assisted Naming and Queries** — AI theme creation, natural language token queries and bulk edits, canonical naming suggestions (completed 2026-04-25)
 - [x] **Phase 31: Style Guide Verification** — Browser verification of Phase 25 Style Guide tab; fix any regressions or nyquist coverage gaps (completed 2026-04-09)
 - [x] **Phase 32: MCP Tool Service Layer** — Extract shared token/group/theme service functions; add theme mutation tools to MCP server (completed 2026-04-26)
-- [ ] **Phase 33: Theme configuration — color/density** — Theme kinds (color vs density), dual active selection, merged effective token set, themes UI under Tokens page, config/export uses color + density instead of single theme
+- [x] **Phase 33: Theme configuration — color/density** — Theme kinds (color vs density), dual active selection, merged effective token set, themes UI under Tokens page, config/export uses color + density instead of single theme (completed 2026-05-03)
 - [x] **Phase 34: Demo Hero — Graph Fullscreen Shell** — Extract graph presenter component (GraphPanelWithChrome) from TokenGraphPanel; add fullscreen toggle (fixed inset-0 z-50, Escape to exit, single mounted instance); wire CollectionTokensWorkspace to use new wrapper; optional localStorage persist; foundation for hero/playground demo experience (completed 2026-05-03)
 
 ## Phase Details
@@ -261,7 +261,7 @@ Plans:
 | 30. AI-Assisted Naming and Queries | 3/3 | Complete | 2026-04-25 |
 | 31. Style Guide Verification | 3/3 | Complete   | 2026-04-09 |
 | 32. MCP Tool Service Layer | 2/2 | Complete | 2026-04-26 |
-| 33. Theme configuration — color/density | 1/4 | Planning | - |
+| 33. Theme configuration — color/density | 6/6 | Complete | 2026-05-03 |
 | 34. Demo Hero — Graph Fullscreen Shell | 1/1 | Complete | 2026-05-03 |
 | 999.3. Tokens Studio graph math node parity | 1 plan + UAT | Implemented — verification open | - |
 

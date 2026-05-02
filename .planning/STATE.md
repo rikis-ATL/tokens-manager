@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-04-11)
 
 ## Current Position
 
-Phase: 34 (demo-hero-graph-fullscreen) — COMPLETE
-Plan: 1 of 1
-Status: Phase 34 verified — DEMO-01 satisfied (GraphPanelWithChrome fullscreen shell delivered, human UAT approved)
-Last activity: 2026-05-03 -- Phase 34 verified and closed
+Phase: 33 (theme-configuration-color-density) — COMPLETE
+Plan: 6 of 6
+Status: Phase 33 verified — 11/11 truths verified; flattenGroups subgroup fix (plan 33-06) closes D-18 and both gap items from initial verification
+Last activity: 2026-05-03 -- Phase 33 verified and closed
 
 ## Accumulated Context
 
