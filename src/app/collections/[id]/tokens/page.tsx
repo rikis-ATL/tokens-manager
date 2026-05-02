@@ -22,7 +22,7 @@ import { CollectionActions } from '@/components/collections/CollectionActions';
 import { GroupBreadcrumb } from '@/components/tokens/GroupBreadcrumb';
 import { CollectionTokensWorkspace } from '@/components/tokens/CollectionTokensWorkspace';
 import { StyleGuideTabPanel } from '@/components/tokens/StyleGuideTabPanel';
-import { TokenGraphPanel } from '@/components/graph/TokenGraphPanel';
+import { GraphPanelWithChrome } from '@/components/graph/GraphPanelWithChrome';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -1539,7 +1539,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
           }}
           onCollapseSidebar={() => setSidebarCollapsed(true)}
           graphPanel={
-            <TokenGraphPanel
+            <GraphPanelWithChrome
               allGroups={masterGroups}
               selectedGroupId={selectedGroupId}
               selectedToken={selectedToken}
