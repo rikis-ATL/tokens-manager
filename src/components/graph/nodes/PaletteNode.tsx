@@ -2,7 +2,7 @@
 
 import { memo, useState, useEffect, useMemo } from 'react';
 import { type NodeProps } from '@xyflow/react';
-import { Palette, Plus, X } from 'lucide-react';
+import { ColorPalette, Add, Close } from '@carbon/icons-react';
 import { evaluateNode } from '@/lib/graphEvaluator';
 import {
   NodeWrapper, NodeHeader, Row, RowHandle, NativeSelect, NumberInput, TextInput,
@@ -81,7 +81,7 @@ function SecondaryRow({
         onClick={onRemove}
         className="flex-shrink-0 p-0.5 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
       >
-        <X size={10} />
+        <Close size={10} />
       </button>
     </div>
   );
@@ -165,7 +165,7 @@ function PaletteNodeComponent({ data }: NodeProps) {
   return (
     <NodeWrapper borderColor="border-destructive" width={290}>
       <NodeHeader
-        icon={<Palette size={12} className="text-destructive" />}
+        icon={<ColorPalette size={12} className="text-destructive" />}
         title="Color Palette"
         badge={totalColors > 0 ? `${totalColors} colors` : undefined}
         headerClass="bg-destructive/10 border-destructive text-destructive"
@@ -311,7 +311,7 @@ function PaletteNodeComponent({ data }: NodeProps) {
                     }}
                     className="flex items-center gap-0.5 text-[10px] text-muted-foreground hover:text-info transition-colors"
                   >
-                    <Plus size={9} /> Add
+                    <Add size={9} /> Add
                   </button>
                 </div>
                 {(() => {
@@ -342,7 +342,7 @@ function PaletteNodeComponent({ data }: NodeProps) {
                         }}
                         className="flex-shrink-0 p-0.5 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                       >
-                        <X size={10} />
+                        <Close size={10} />
                       </button>
                     </div>
                   ));
@@ -430,7 +430,7 @@ function PaletteNodeComponent({ data }: NodeProps) {
                 onClick={addSecondary}
                 className="flex items-center gap-0.5 text-[10px] text-muted-foreground hover:text-destructive transition-colors"
               >
-                <Plus size={9} /> Add
+                <Add size={9} /> Add
               </button>
             </div>
 

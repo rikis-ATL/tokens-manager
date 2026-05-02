@@ -20,8 +20,10 @@
  * | --font-mono           | font-mono                           | --token-shadcn-font-mono  |
  * | --font-secondary      | font-secondary (accent / headings)  | --token-shadcn-font-secondary |
  * | type scale            | `text-2xs`…`text-9xl`, matching `leading-*` | see typography-defaults |
+ * | control density       | `button-*`, `button-group-*`, `input-*`, `card-*`, `menu-item-*`, `menubar-height` | see component-density-defaults |
  * | (import only)         | `font-google-sans` / `font-google-mono` / `font-google-secondary` | no Tailwind var alias |
  */
+import { COMPONENT_DENSITY_DEFAULTS, shadcnComponentDensityLeaves } from '@/lib/appTheme/component-density-defaults';
 import { prependGoogleFontImportsToCss } from '@/lib/appTheme/google-fonts';
 import { TYPE_SCALE_DEFAULTS, TYPE_SCALE_STEPS, shadcnTypeScaleLeaves } from '@/lib/appTheme/typography-defaults';
 
@@ -31,6 +33,8 @@ export const SHADCN_COLOR_LEAVES: readonly string[] = [
   'foreground',
   'card',
   'card-foreground',
+  'card-background',
+  'card-border',
   'popover',
   'popover-foreground',
   'primary',
@@ -46,6 +50,12 @@ export const SHADCN_COLOR_LEAVES: readonly string[] = [
   'border',
   'input',
   'ring',
+  'button-border',
+  'menu-border',
+  'tabs-border',
+  'popover-border',
+  'dialog-border',
+  'badge-border',
   'success',
   'success-foreground',
   'warning',
@@ -70,10 +80,25 @@ export const SHADCN_ALIASED_LEAVES: readonly string[] = [
   'radius',
   ...SHADCN_FONT_LEAVES,
   ...shadcnTypeScaleLeaves(),
+  ...shadcnComponentDensityLeaves(),
 ];
 
 /** Full `shadcn` group contract including optional Google `family=` specs (no top-level -- alias). */
 export const SHADCN_BRIDGE_LEAVES: readonly string[] = [...SHADCN_ALIASED_LEAVES, ...SHADCN_GOOGLE_LEAVES];
+
+const OPTIONAL_COMPONENT_BORDER_FALLBACKS: Record<string, string> = {
+  'button-border': 'var(--input)',
+  'menu-border': 'var(--border)',
+  'tabs-border': 'var(--border)',
+  'popover-border': 'var(--border)',
+  'dialog-border': 'var(--border)',
+  'badge-border': 'var(--border)',
+};
+
+const OPTIONAL_CARD_SURFACE_FALLBACKS: Record<string, string> = {
+  'card-background': 'var(--card)',
+  'card-border': 'var(--border)',
+};
 
 const OPTIONAL_STATUS_FALLBACKS: Record<string, string> = {
   success: '142.1 76.2% 36.3%',
@@ -85,7 +110,7 @@ const OPTIONAL_STATUS_FALLBACKS: Record<string, string> = {
 };
 
 const OPTIONAL_FONT_STACK_FALLBACKS: Record<string, string> = {
-  'font-sans': `ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"`,
+  'font-sans': `var(--font-inter), ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"`,
   'font-mono': `ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace`,
   'font-secondary': `var(--font-sans)`,
 };
@@ -101,9 +126,12 @@ function buildTypeScaleFallbacks(): Record<string, string> {
 }
 
 const MERGED_OPTIONAL_FALLBACKS: Record<string, string> = {
+  ...OPTIONAL_CARD_SURFACE_FALLBACKS,
+  ...OPTIONAL_COMPONENT_BORDER_FALLBACKS,
   ...buildTypeScaleFallbacks(),
   ...OPTIONAL_FONT_STACK_FALLBACKS,
   ...OPTIONAL_STATUS_FALLBACKS,
+  ...COMPONENT_DENSITY_DEFAULTS,
 };
 
 /**

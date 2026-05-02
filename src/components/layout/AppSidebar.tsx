@@ -3,12 +3,18 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Palette, Settings2, SlidersHorizontal, ChevronRight, ChevronLeft } from 'lucide-react';
+import {
+  ColorPalette,
+  Settings,
+  SettingsAdjust,
+  ChevronRight,
+  ChevronLeft,
+} from '@carbon/icons-react';
 
 const NAV_ITEMS = [
-  { href: '/', label: 'Tokens', icon: Palette },
-  { href: '/configuration', label: 'Configuration', icon: Settings2 },
-  { href: '/settings', label: 'Settings', icon: SlidersHorizontal },
+  { href: '/', label: 'Tokens', icon: ColorPalette },
+  { href: '/configuration', label: 'Configuration', icon: Settings },
+  { href: '/settings', label: 'Settings', icon: SettingsAdjust },
 ];
 
 export function AppSidebar() {

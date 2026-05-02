@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { Link2 } from 'lucide-react';
+import { Link as LinkIcon } from '@carbon/icons-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import type { TokenGroup, GeneratedToken } from '@/types';
@@ -105,7 +105,7 @@ export function TokenReferencePicker({ allGroups, namespace, onSelect }: TokenRe
           title="Select source token"
           type="button"
         >
-          <Link2 size={12} />
+          <LinkIcon size={12} className="shrink-0" />
         </Button>
       </PopoverTrigger>
       <PopoverContent

@@ -21,11 +21,23 @@ import {
 import { DeletableEdge } from './edges/DeletableEdge';
 
 import {
-  Plus,
-  Palette, Zap, Eye, Pipette, Coins, Type,
-  Hash, Waves, List, Calculator, Tag, FileJson, Layers, Braces,
-  FileCode, Code2,
-} from 'lucide-react';
+  Add,
+  ColorPalette,
+  Lightning,
+  View,
+  Eyedropper,
+  Currency,
+  TextFont,
+  Hashtag,
+  Waveform,
+  List,
+  Calculator,
+  Tag,
+  Json,
+  Layers,
+  Code,
+  CodeBlock,
+} from '@carbon/icons-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -108,21 +120,21 @@ const COMPOSABLE_NODES: {
   desc: string;
   icon: React.ReactNode;
 }[] = [
-  { kind: 'constant',    label: 'Constant',       desc: 'Fixed number or string',     icon: <Hash size={12} /> },
-  { kind: 'harmonic',    label: 'Harmonic Series', desc: 'Geometric progression',      icon: <Waves size={12} /> },
+  { kind: 'constant',    label: 'Constant',       desc: 'Fixed number or string',     icon: <Hashtag size={12} /> },
+  { kind: 'harmonic',    label: 'Harmonic Series', desc: 'Geometric progression',      icon: <Waveform size={12} /> },
   { kind: 'array',       label: 'Array',           desc: 'Format values with units',   icon: <List size={12} /> },
   { kind: 'math',         label: 'Math',            desc: 'Arithmetic operations',      icon: <Calculator size={12} /> },
-  { kind: 'cssString',    label: 'CSS string',      desc: 'CSS value with var(…) and {token}', icon: <Braces size={12} /> },
-  { kind: 'patternCss',   label: 'CSS pattern',     desc: 'Store CSS pattern → cssClass token', icon: <FileCode size={12} /> },
-  { kind: 'patternHtml',  label: 'HTML pattern',    desc: 'Store HTML (+ optional CSS) → html tokens', icon: <Code2 size={12} /> },
-  { kind: 'colorConvert', label: 'Color Converter', desc: 'CSS color format conversion', icon: <Pipette size={12} /> },
-  { kind: 'a11yContrast', label: 'A11y Contrast',   desc: 'WCAG contrast checker',       icon: <Eye size={12} /> },
-  { kind: 'tokenRef',     label: 'Token',           desc: 'Reference an existing token', icon: <Coins size={12} /> },
-  { kind: 'typography',   label: 'Typography',      desc: 'Composite font shorthand',    icon: <Type size={12} /> },
-  { kind: 'palette',      label: 'Color Palette',   desc: 'Generate a color scale',      icon: <Palette size={12} /> },
-  { kind: 'generator',      label: 'Generator',       desc: 'Color or dimension scale',    icon: <Zap size={12} /> },
+  { kind: 'cssString',    label: 'CSS string',      desc: 'CSS value with var(…) and {token}', icon: <Code size={12} /> },
+  { kind: 'patternCss',   label: 'CSS pattern',     desc: 'Store CSS pattern → cssClass token', icon: <CodeBlock size={12} /> },
+  { kind: 'patternHtml',  label: 'HTML pattern',    desc: 'Store HTML (+ optional CSS) → html tokens', icon: <Code size={12} /> },
+  { kind: 'colorConvert', label: 'Color Converter', desc: 'CSS color format conversion', icon: <Eyedropper size={12} /> },
+  { kind: 'a11yContrast', label: 'A11y Contrast',   desc: 'WCAG contrast checker',       icon: <View size={12} /> },
+  { kind: 'tokenRef',     label: 'Token',           desc: 'Reference an existing token', icon: <Currency size={12} /> },
+  { kind: 'typography',   label: 'Typography',      desc: 'Composite font shorthand',    icon: <TextFont size={12} /> },
+  { kind: 'palette',      label: 'Color Palette',   desc: 'Generate a color scale',      icon: <ColorPalette size={12} /> },
+  { kind: 'generator',      label: 'Generator',       desc: 'Color or dimension scale',    icon: <Lightning size={12} /> },
   { kind: 'tokenOutput',    label: 'Token Output',    desc: 'Create token group entries',  icon: <Tag size={12} /> },
-  { kind: 'json',           label: 'Json',            desc: 'Upload JSON file as token source', icon: <FileJson size={12} /> },
+  { kind: 'json',           label: 'Json',            desc: 'Upload JSON file as token source', icon: <Json size={12} /> },
   { kind: 'group', label: 'Group Creator', desc: 'Create a new group with tokens', icon: <Layers size={12} /> },
 ];
 
@@ -921,7 +933,7 @@ function GroupStructureGraphInner({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm" className="h-7 text-xs gap-1">
-              <Plus size={12} /> Add Node
+              <Add size={12} /> Add Node
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">

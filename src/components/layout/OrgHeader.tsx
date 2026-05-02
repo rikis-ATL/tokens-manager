@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ChevronLeft, Info } from 'lucide-react';
+import { ChevronLeft, Information } from '@carbon/icons-react';
 import { DATABASE_PROVIDERS } from '@/types/database.types';
 import { UserMenu } from '@/components/layout/UserMenu';
 import { useSession } from 'next-auth/react';
@@ -12,6 +12,7 @@ import { TokenGeneratorDocs } from '@/components/tokens/TokenGeneratorDocs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { UsageBadge } from '@/components/billing/UsageBadge';
+import { Plug, Box } from '@carbon/icons-react';
 
 type ConnectionState = 'connected' | 'local' | 'loading';
 
@@ -100,13 +101,13 @@ export function OrgHeader({ pageTitle, showPlaygroundBadge }: OrgHeaderProps) {
           <UsageBadge />
           {isDemoUser ? <DemoModeBadge /> : <DbPill status={db} />}
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             className="px-2"
             onClick={() => setGuideOpen(true)}
             title="Generator Guide"
           >
-            <Info size={16} />
+            <Information size={16} />
           </Button>
           <UserMenu />
         </div>
@@ -129,29 +130,17 @@ function DbPill({ status }: { status: DbStatus }) {
   const isConnected = status.state === 'connected';
 
   return (
-    <div className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition-colors ${
-      isLoading
-        ? 'text-muted-foreground border-muted bg-background'
-        : isConnected
-          ? 'text-success border-success bg-success/10'
-          : 'text-warning border-warning bg-warning/10'
-    }`}>
-      {isLoading ? (
-        <span className="w-2 h-2 rounded-full border border-muted border-t-transparent animate-spin" />
-      ) : (
-        <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-success' : 'bg-warning'}`} />
-      )}
-      <span>{status.label}</span>
-    </div>
+      <Badge variant="default" title={status.label} 
+      className={`${isLoading ? 'text-muted-foreground border-muted bg-background' : isConnected ? 'text-success border-success bg-success/10' : 'text-warning border-warning bg-warning/10'}`}>
+        <Plug size={12} className="mr-1" />{status.label}
+        </Badge>
+
   );
 }
 
 function DemoModeBadge() {
   return (
-    <div className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition-colors text-warning border-warning bg-warning/10">
-      <span className="w-2 h-2 rounded-full bg-warning" />
-      <span>Demo Mode</span>
-    </div>
+    <Badge variant="default" title="Demo Mode" className="bg-warning"><Box size={12} className="mr-1" />Demo Mode</Badge>
   );
 }
 

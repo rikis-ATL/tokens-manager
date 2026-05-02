@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Save, Check } from 'lucide-react';
+import { Save, Checkmark } from '@carbon/icons-react';
 import {
   Dialog,
   DialogContent,
@@ -134,7 +134,7 @@ export function SaveAsTokenDialog({
                 : 'bg-primary hover:bg-primary text-primary-foreground'
             }`}
           >
-            {saved ? <><Check size={14} /> Saved</> : <><Save size={14} /> Save to group</>}
+            {saved ? <><Checkmark size={14} /> Saved</> : <><Save size={14} /> Save to group</>}
           </button>
         </div>
       </DialogContent>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { X, Trash2, ArrowRight, Palette, Type } from 'lucide-react';
+import { Close, TrashCan, ArrowRight, ColorPalette, TextFont } from '@carbon/icons-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -86,7 +86,7 @@ export function BulkActionBar({
             onClick={() => setDeleteOpen(true)}
             title="Delete selected tokens"
           >
-            <Trash2 className="w-3.5 h-3.5" />
+            <TrashCan size={16} className="shrink-0 scale-90" />
           </Button>
 
           {/* Move */}
@@ -97,7 +97,7 @@ export function BulkActionBar({
             onClick={() => setMoveOpen(true)}
             title="Move to another group"
           >
-            <ArrowRight className="w-3.5 h-3.5" />
+            <ArrowRight size={16} className="shrink-0 scale-90" />
           </Button>
 
           {/* Change type */}
@@ -106,7 +106,7 @@ export function BulkActionBar({
               className="h-7 w-7 p-0 font-normal cursor-pointer flex items-center justify-center" 
               title="Change token type"
             >
-              <Type className="w-3.5 h-3.5" />
+              <TextFont size={16} className="shrink-0 scale-90" />
             </MenubarTrigger>
             <MenubarContent>
               {TOKEN_TYPES.map((type) => (
@@ -130,7 +130,7 @@ export function BulkActionBar({
               onClick={() => setFormatOpen(true)}
               title="Change color format"
             >
-              <Palette className="w-3.5 h-3.5" />
+              <ColorPalette size={16} className="shrink-0 scale-90" />
             </Button>
           )}
 
@@ -159,7 +159,7 @@ export function BulkActionBar({
             onClick={onClearSelection}
             title="Clear selection (Esc)"
           >
-            <X className="w-3.5 h-3.5 text-muted-foreground" />
+            <Close size={16} className="shrink-0 scale-90 text-muted-foreground" />
           </Button>
         </Menubar>
       </div>

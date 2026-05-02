@@ -2,7 +2,7 @@
 
 import { memo, useState, useCallback, useRef } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
-import { Check, Zap, FolderPlus, FileJson } from 'lucide-react';
+import { Checkmark, Lightning, FolderAdd, Json } from '@carbon/icons-react';
 import {
   NodeWrapper, NodeHeader, Row, NativeSelect, TextInput, HANDLE_OUT, HANDLE_ARRAY,
 } from './nodeShared';
@@ -89,7 +89,7 @@ function JsonNodeComponent({ data }: NodeProps) {
   return (
     <NodeWrapper borderColor="border-warning" width={268}>
       <NodeHeader
-        icon={isSubgroup ? <FolderPlus size={12} className="text-warning" /> : <FileJson size={12} className="text-warning" />}
+        icon={isSubgroup ? <FolderAdd size={12} className="text-warning" /> : <Json size={12} className="text-warning" />}
         title="Json"
         badge={count > 0 ? `${count} tokens` : undefined}
         headerClass="bg-warning/10 border-warning text-warning"
@@ -200,8 +200,8 @@ function JsonNodeComponent({ data }: NodeProps) {
           onClick={handleGenerate}
         >
           {generated
-            ? <><Check size={12} /> Added</>
-            : <><Zap size={12} /> {isSubgroup ? 'Add as Sub-group' : 'Add to Group'}</>
+            ? <><Checkmark size={12} /> Added</>
+            : <><Lightning size={12} /> {isSubgroup ? 'Add as Sub-group' : 'Add to Group'}</>
           }
         </button>
 

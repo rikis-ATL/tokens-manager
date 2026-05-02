@@ -10,7 +10,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2 } from 'lucide-react';
+import { InProgress } from '@carbon/icons-react';
 
 interface Collection {
   _id: string;
@@ -81,7 +81,14 @@ export function InviteModal({ open, onOpenChange, onSuccess }: InviteModalProps)
     }
 
     setLoading(false);
-    onSuccess((data as { invite: Record<string, unknown> }).invite);
+
+    const payload = data as { demoProvisioned?: boolean; invite?: Record<string, unknown> };
+    if (payload.demoProvisioned) {
+      onSuccess({ demoProvisioned: true });
+    } else if (payload.invite) {
+      onSuccess(payload.invite);
+    }
+
     handleOpenChange(false);
   };
 
@@ -162,7 +169,7 @@ export function InviteModal({ open, onOpenChange, onSuccess }: InviteModalProps)
             <Button type="submit" disabled={loading}>
               {loading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <InProgress size={16} className="mr-2 shrink-0 animate-spin" />
                   Sending...
                 </>
               ) : (

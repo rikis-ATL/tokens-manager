@@ -2,7 +2,13 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { PlusCircle, Search, X, LayoutGrid, List } from 'lucide-react';
+import {
+  AddFilled,
+  Search,
+  Close,
+  Grid,
+  List,
+} from '@carbon/icons-react';
 import { TagFilterCombobox } from '@/components/collections/TagFilterCombobox';
 import type { CollectionCardData } from '@/types/collection.types';
 import { CollectionCard } from '@/components/collections/CollectionCard';
@@ -165,7 +171,7 @@ export default function CollectionsPage() {
         <h1 className="text-2xl font-bold text-foreground">Collections</h1>
         {canCreate && (
           <Button onClick={handleNewCollection}>
-            <PlusCircle size={14} className="mr-1.5" />
+            <AddFilled size={14} className="mr-1.5 shrink-0" />
             New Collection
           </Button>
         )}
@@ -189,7 +195,7 @@ export default function CollectionsPage() {
                 onClick={() => setSearch('')}
                 aria-label="Clear search"
               >
-                <X size={14} />
+                <Close size={14} className="shrink-0" />
               </button>
             )}
           </div>
@@ -213,7 +219,7 @@ export default function CollectionsPage() {
             }`}
             title="Grid view"
           >
-            <LayoutGrid size={16} />
+            <Grid size={16} className="shrink-0" />
           </button>
           <button
             onClick={() => setViewMode('table')}
@@ -247,7 +253,7 @@ export default function CollectionsPage() {
           </p>
           {canCreate && (
             <Button onClick={handleNewCollection}>
-              <PlusCircle size={14} className="mr-1.5" />
+              <AddFilled size={14} className="mr-1.5 shrink-0" />
               Create Collection
             </Button>
           )}

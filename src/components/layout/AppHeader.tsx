@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { PlusCircle, RefreshCw } from 'lucide-react';
+import { AddFilled, Renew } from '@carbon/icons-react';
 import { useCollection } from '@/context/CollectionContext';
 import { CollectionSelector } from '@/components/collections/CollectionSelector';
 import { Button } from '@/components/ui/button';
@@ -36,8 +36,8 @@ export function AppHeader() {
       {loadError ? (
         <div className="flex items-center gap-2 text-sm text-destructive">
           <span>Failed to load collections</span>
-          <Button variant="outline" size="sm" onClick={() => refreshCollections()}>
-            <RefreshCw size={13} className="mr-1.5" />
+          <Button variant="ghost" size="sm" onClick={() => refreshCollections()}>
+            <Renew size={13} className="mr-1.5 shrink-0" />
             Retry
           </Button>
         </div>
@@ -57,7 +57,7 @@ export function AppHeader() {
           onClick={handleNewCollection}
           disabled={creating}
         >
-          <PlusCircle size={14} className="mr-1.5" />
+          <AddFilled size={14} className="mr-1.5 shrink-0" />
           New Collection
         </Button>
       </div>

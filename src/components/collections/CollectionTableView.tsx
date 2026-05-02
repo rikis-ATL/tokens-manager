@@ -1,8 +1,16 @@
 'use client';
 
 import { useRef, useState, useEffect } from 'react';
-import { MoreVertical } from 'lucide-react';
+import {
+  OverflowMenuVertical,
+  Plug,
+  Tag,
+  Box,
+  EventSchedule,
+} from '@carbon/icons-react';
 import type { CollectionCardData } from '@/types/collection.types';
+import { Badge } from '../ui/badge';
+import { CollectionThemesSummaryChips } from './CollectionThemesSummaryChips';
 
 interface CollectionTableViewProps {
   collections: CollectionCardData[];
@@ -94,54 +102,32 @@ export function CollectionTableView({
     }
   };
 
-  const getThemeDisplay = (collection: CollectionCardData) => {
-    if (collection.themesCount === 0) {
-      return <span className="text-muted-foreground">—</span>;
-    }
-    const hasLightDark = collection.themesCount >= 2;
-    if (hasLightDark) {
-      return <span className="text-sm text-foreground">Light, Dark{collection.themesCount > 2 ? `, +${collection.themesCount - 2}` : ''}</span>;
-    }
-    return <span className="text-sm text-foreground">{collection.themesCount} theme{collection.themesCount > 1 ? 's' : ''}</span>;
-  };
-
   return (
     <div className="overflow-x-auto bg-card rounded-lg border border-border">
       <table className="min-w-full divide-y divide-border">
         <thead>
           <tr>
-            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider w-8">
-              {/* Color swatch column */}
+            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground w-8">
+              <span className="sr-only">Accent</span>
             </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Name
-            </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Description
-            </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Tags
-            </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Themes
-            </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Connection
-            </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Token Count
-            </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Last Updated
-            </th>
-            <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider w-12">
-              {/* Actions */}
+            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Name</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Description</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Tags</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Themes</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Connection</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Token count</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Last updated</th>
+            <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground w-12">
+              <span className="sr-only">Actions</span>
             </th>
           </tr>
         </thead>
         <tbody className="bg-card divide-y divide-border">
           {collections.map((collection) => {
-            const formattedDate = new Date(collection.updatedAt).toLocaleDateString();
+            const formattedDate = new Date(collection.updatedAt).toLocaleDateString(undefined, {
+              month: 'short',
+              day: '2-digit',
+            });
             const isRenaming = renamingId === collection._id;
 
             return (
@@ -174,23 +160,17 @@ export function CollectionTableView({
                       onClick={(e) => e.stopPropagation()}
                     />
                   ) : (
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-foreground">{collection.name}</span>
-                      {collection.isPlayground && (
-                        <span className="bg-warning/10 text-warning text-xs px-1.5 py-0.5 rounded border border-warning flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-warning inline-block" />
-                          Playground
-                        </span>
-                      )}
-                    </div>
+                    <span className="text-sm font-medium text-foreground">{collection.name}</span>
                   )}
                 </td>
 
                 {/* Description */}
                 <td className="px-4 py-3 max-w-xs">
-                  <p className="text-sm text-muted-foreground truncate">
-                    {collection.description || <span className="text-muted-foreground">—</span>}
-                  </p>
+                  {collection.description?.trim() ? (
+                    <p className="text-sm text-foreground truncate">{collection.description}</p>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">—</p>
+                  )}
                 </td>
 
                 {/* Tags */}
@@ -198,12 +178,10 @@ export function CollectionTableView({
                   {collection.tags.length > 0 ? (
                     <div className="flex flex-wrap gap-1">
                       {collection.tags.slice(0, 3).map((tag) => (
-                        <span
-                          key={tag}
-                          className="bg-muted text-muted-foreground text-xs px-2 py-0.5 rounded-full"
-                        >
+                        <Badge key={tag} variant="secondary">
+                          <Tag size={12} className="text-info mr-1" />
                           {tag}
-                        </span>
+                        </Badge>
                       ))}
                       {collection.tags.length > 3 && (
                         <span className="text-xs text-muted-foreground">
@@ -212,34 +190,41 @@ export function CollectionTableView({
                       )}
                     </div>
                   ) : (
-                    <span className="text-muted-foreground">—</span>
+                    <span className="text-sm text-muted-foreground">—</span>
                   )}
                 </td>
 
                 {/* Themes */}
                 <td className="px-4 py-3">
-                  {getThemeDisplay(collection)}
+                  <CollectionThemesSummaryChips
+                    summary={collection.themesSummary}
+                    whenEmpty={<span className="text-sm text-muted-foreground">—</span>}
+                  />
                 </td>
 
                 {/* Connection */}
                 <td className="px-4 py-3">
-                  {(collection.figmaConfigured || collection.githubConfigured) ? (
-                    <div className="flex gap-1">
+                  {collection.figmaConfigured || collection.githubConfigured || collection.isPlayground ? (
+                    <div className="flex flex-wrap gap-1.5">
+                      {collection.isPlayground && (
+                        <Badge variant="default" title="Playground" className="bg-info">
+                          <Box size={12} className="mr-1" />
+                          Playground
+                        </Badge>
+                      )}
                       {collection.figmaConfigured && (
-                        <span className="bg-success/10 text-success text-xs px-1.5 py-0.5 rounded border border-success flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-success inline-block" />
-                          Figma
-                        </span>
+                        <Badge variant="default" title="Figma">
+                          <Plug size={12} className="text-success mr-1" /> Figma
+                        </Badge>
                       )}
                       {collection.githubConfigured && (
-                        <span className="bg-success/10 text-success text-xs px-1.5 py-0.5 rounded border border-success flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-success inline-block" />
-                          GitHub
-                        </span>
+                        <Badge variant="default" title="GitHub">
+                          <Plug size={12} className="text-success mr-1" /> GitHub
+                        </Badge>
                       )}
                     </div>
                   ) : (
-                    <span className="text-muted-foreground">—</span>
+                    <span className="text-sm text-muted-foreground">—</span>
                   )}
                 </td>
 
@@ -250,7 +235,10 @@ export function CollectionTableView({
 
                 {/* Last Updated */}
                 <td className="px-4 py-3">
-                  <span className="text-sm text-muted-foreground">{formattedDate}</span>
+                  <span className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <EventSchedule size={12} className="text-info shrink-0" />
+                    {formattedDate}
+                  </span>
                 </td>
 
                 {/* Actions */}
@@ -260,7 +248,7 @@ export function CollectionTableView({
                     onClick={(e) => handleKebabClick(e, collection._id)}
                     aria-label="Collection options"
                   >
-                    <MoreVertical size={16} className="text-muted-foreground" />
+                    <OverflowMenuVertical size={16} className="text-muted-foreground" />
                   </button>
 
                   {openMenuId === collection._id && (

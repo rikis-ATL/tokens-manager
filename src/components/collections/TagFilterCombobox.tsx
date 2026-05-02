@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Search, X, Check } from 'lucide-react';
+import { ChevronDown, Search, Close, Checkmark } from '@carbon/icons-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 interface TagFilterComboboxProps {
@@ -54,7 +54,7 @@ export function TagFilterCombobox({ allTags, selectedTags, onChange }: TagFilter
         >
           <span className="truncate max-w-[140px]">{label}</span>
           {selectedTags.length > 0 ? (
-            <X size={13} className="shrink-0 text-primary hover:text-primary" onClick={clearAll} />
+            <Close size={13} className="shrink-0 text-primary hover:text-primary" onClick={clearAll} />
           ) : (
             <ChevronDown size={13} className="shrink-0 text-muted-foreground" />
           )}
@@ -74,7 +74,7 @@ export function TagFilterCombobox({ allTags, selectedTags, onChange }: TagFilter
           />
           {query && (
             <button onClick={() => setQuery('')} className="text-muted-foreground hover:text-muted-foreground">
-              <X size={12} />
+              <Close size={12} className="shrink-0" />
             </button>
           )}
         </div>
@@ -97,7 +97,7 @@ export function TagFilterCombobox({ allTags, selectedTags, onChange }: TagFilter
                       active ? 'bg-primary border-primary' : 'border-border'
                     }`}
                   >
-                    {active && <Check size={10} className="text-primary-foreground" strokeWidth={3} />}
+                    {active && <Checkmark size={10} className="text-primary-foreground shrink-0" />}
                   </span>
                   <span className="truncate">{tag}</span>
                 </button>

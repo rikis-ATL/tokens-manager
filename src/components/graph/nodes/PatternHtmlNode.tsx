@@ -2,7 +2,7 @@
 
 import { memo, useCallback, useEffect, useState } from 'react';
 import { type NodeProps } from '@xyflow/react';
-import { Code2 } from 'lucide-react';
+import { Code } from '@carbon/icons-react';
 import {
   NodeWrapper,
   NodeHeader,
@@ -48,7 +48,7 @@ function PatternHtmlNodeComponent({ data }: NodeProps) {
   return (
     <NodeWrapper borderColor="border-success" width={280}>
       <NodeHeader
-        icon={<Code2 size={12} className="text-success" />}
+        icon={<Code size={12} className="text-success" />}
         title="HTML pattern"
         headerClass="bg-success/10 border-success text-success"
         onDelete={onDeleteNode ? () => onDeleteNode(nodeId) : undefined}

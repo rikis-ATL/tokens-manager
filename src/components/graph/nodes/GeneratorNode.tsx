@@ -2,7 +2,7 @@
 
 import { memo, useState, useCallback, useMemo } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
-import { Zap, ChevronDown, ChevronUp, Check } from 'lucide-react';
+import { Lightning, ChevronDown, ChevronUp, Checkmark } from '@carbon/icons-react';
 import {
   COLOR_FORMATS,
   COLOR_CHANNELS,
@@ -265,7 +265,7 @@ function GeneratorNodeComponent({ data }: NodeProps) {
   return (
     <NodeWrapper borderColor="border-primary/40" width={290}>
       <NodeHeader
-        icon={<Zap size={12} className="text-info" />}
+        icon={<Lightning size={12} className="text-info" />}
         title="Generator"
         badge={`${cfg.count} tokens`}
         headerClass="bg-info/10 border-primary/30 text-info"
@@ -395,7 +395,7 @@ function GeneratorNodeComponent({ data }: NodeProps) {
           }`}
           onClick={handleGenerate}
         >
-          {generated ? <><Check size={12} /> Added</> : <><Zap size={12} /> Add to Group</>}
+          {generated ? <><Checkmark size={12} /> Added</> : <><Lightning size={12} /> Add to Group</>}
         </button>
       </div>
     </NodeWrapper>

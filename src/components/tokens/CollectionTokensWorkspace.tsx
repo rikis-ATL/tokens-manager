@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState, type ComponentProps, type ReactNode } from 'react';
-import { Columns2, GalleryHorizontal } from 'lucide-react';
+import { TableSplit, CarouselHorizontal } from '@carbon/icons-react';
 import { TokenGroupTree } from '@/components/tokens/TokenGroupTree';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -12,6 +12,8 @@ const LAYOUT_STORAGE_KEY = 'tokens-workspace-main-layout';
 type MainLayoutMode = 'split' | 'tabs';
 
 export interface CollectionTokensWorkspaceProps {
+  /** Optional block above groups (e.g. theme selectors) */
+  sidebarHeader?: ReactNode;
   groupTree: ComponentProps<typeof TokenGroupTree>;
   onCollapseSidebar: () => void;
   graphPanel: ReactNode;
@@ -35,8 +37,10 @@ function readStoredLayout(): MainLayoutMode {
 /**
  * Tokens tab layout: group tree sidebar, token form (table), and graph — split or tabbed.
  * Layout controls share one row with the group breadcrumb to save vertical space.
+ * Theme selectors live in the left sidebar header to reclaim main-column height.
  */
 export function CollectionTokensWorkspace({
+  sidebarHeader,
   groupTree,
   onCollapseSidebar,
   graphPanel,
@@ -67,10 +71,18 @@ export function CollectionTokensWorkspace({
 
   return (
     <div className="flex flex-1 min-h-0 w-full overflow-hidden">
-      <aside className="border-r border-muted bg-background flex-shrink-0 flex flex-col transition-all duration-200 w-56">
-        <div className="flex flex-col h-full" onClick={(e) => e.stopPropagation()}>
-          <TokenGroupTree {...groupTree} />
-          <div className="mt-auto p-2 border-t border-muted">
+      <aside className="border-r border-muted bg-background flex-shrink-0 flex flex-col transition-all duration-200 w-56 min-h-0">
+        <div
+          className="flex flex-col h-full min-h-0 overflow-hidden"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {sidebarHeader != null ? (
+            <div className="shrink-0 border-b border-muted px-2 py-3">{sidebarHeader}</div>
+          ) : null}
+          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
+            <TokenGroupTree {...groupTree} />
+          </div>
+          <div className="shrink-0 mt-auto p-2 border-t border-muted">
             <button
               type="button"
               className="w-full flex items-center justify-center text-muted-foreground hover:text-foreground py-1 text-xs gap-1"
@@ -101,7 +113,7 @@ export function CollectionTokensWorkspace({
                     title="Tab between table and graph"
                     aria-label="Switch to tabbed layout: Table and Graph tabs"
                   >
-                    <GalleryHorizontal className="h-4 w-4" aria-hidden />
+                    <CarouselHorizontal size={16} className="shrink-0" aria-hidden />
                   </Button>,
                 )}
                 {mainContent}
@@ -139,7 +151,7 @@ export function CollectionTokensWorkspace({
                     title="Split view — table and graph side by side"
                     aria-label="Switch to split view"
                   >
-                    <Columns2 className="h-4 w-4" aria-hidden />
+                    <TableSplit size={16} className="shrink-0" aria-hidden />
                   </Button>
                 </>,
               )}

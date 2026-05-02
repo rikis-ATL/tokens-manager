@@ -6,11 +6,11 @@ import { usePathname } from 'next/navigation';
 import {
   ChevronLeft,
   ChevronRight,
-  FileOutput,
-  GitBranch,
-  Palette,
-  SlidersHorizontal,
-} from 'lucide-react';
+  DocumentExport,
+  Branch,
+  ColorPalette,
+  SettingsAdjust,
+} from '@carbon/icons-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface CollectionSidebarProps {
@@ -23,10 +23,10 @@ export function CollectionSidebar({ collectionId, collectionName: _collectionNam
   const [collapsed, setCollapsed] = useState(true);
 
   const navItems = [
-    { href: `/collections/${collectionId}/tokens`, label: 'Tokens', icon: Palette },
-{ href: `/collections/${collectionId}/output`, label: 'Output', icon: FileOutput },
-    { href: `/collections/${collectionId}/versions`, label: 'Versions', icon: GitBranch },
-    { href: `/collections/${collectionId}/settings`, label: 'Settings', icon: SlidersHorizontal },
+    { href: `/collections/${collectionId}/tokens`, label: 'Tokens', icon: ColorPalette },
+    { href: `/collections/${collectionId}/output`, label: 'Output', icon: DocumentExport },
+    { href: `/collections/${collectionId}/versions`, label: 'Versions', icon: Branch },
+    { href: `/collections/${collectionId}/settings`, label: 'Settings', icon: SettingsAdjust },
   ];
 
   return (

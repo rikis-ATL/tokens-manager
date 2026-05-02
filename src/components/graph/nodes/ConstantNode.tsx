@@ -2,7 +2,7 @@
 
 import { memo, useState } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
-import { Hash, Link2, X, Save, Plus } from 'lucide-react';
+import { Hashtag, Link as LinkIcon, Close, Save, Add } from '@carbon/icons-react';
 import {
   NodeWrapper, NodeHeader, Row, NativeSelect, TextInput,
   HANDLE_OUT, HANDLE_IN, HANDLE_STRING, HANDLE_NUMBER, HANDLE_ARRAY,
@@ -101,7 +101,7 @@ function ConstantNodeComponent({ data }: NodeProps) {
         />
 
         <NodeHeader
-          icon={<Hash size={12} className="text-muted-foreground" />}
+          icon={<Hashtag size={12} className="text-muted-foreground" />}
           title="Constant"
           badge={isWired ? '⇐ wired' : cfg.valueType}
           headerClass="bg-background border-border text-foreground"
@@ -142,18 +142,18 @@ function ConstantNodeComponent({ data }: NodeProps) {
               {isLinked ? (
                 <div className="flex items-center gap-1 mb-1">
                   <div className="flex-1 flex items-center gap-1 min-w-0 px-1.5 py-1 bg-primary/10 border border-primary rounded text-[10px] font-mono text-primary overflow-hidden">
-                    <Link2 size={9} className="text-info flex-shrink-0" />
+                    <LinkIcon size={9} className="text-info flex-shrink-0" />
                     <span className="truncate min-w-0">{'{' + cfg.sourceTokenPath + '}'}</span>
                   </div>
                   <button title="Remove token link" onClick={() => update({ sourceTokenPath: undefined })}
                     className="flex-shrink-0 p-0.5 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors">
-                    <X size={10} />
+                    <Close size={10} />
                   </button>
                 </div>
               ) : (
                 <button onClick={() => setModalOpen(true)}
                   className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-primary transition-colors py-0.5 mb-0.5">
-                  <Link2 size={9} /> link to token
+                  <LinkIcon size={9} /> link to token
                 </button>
               )}
 
@@ -171,7 +171,7 @@ function ConstantNodeComponent({ data }: NodeProps) {
                     onClick={() => removeItem(i)}
                     className="flex-shrink-0 p-0.5 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                   >
-                    <X size={10} />
+                    <Close size={10} />
                   </button>
                 </div>
               ))}
@@ -179,7 +179,7 @@ function ConstantNodeComponent({ data }: NodeProps) {
                 onClick={addItem}
                 className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-primary transition-colors py-0.5"
               >
-                <Plus size={10} /> add item
+                <Add size={10} /> add item
               </button>
             </div>
           )}
@@ -193,7 +193,7 @@ function ConstantNodeComponent({ data }: NodeProps) {
                 /* Token reference pill */
                 <div className="flex-1 flex items-center gap-1 min-w-0">
                   <div className="flex-1 flex items-center gap-1 min-w-0 px-1.5 py-1 bg-primary/10 border border-primary rounded text-[10px] font-mono text-primary overflow-hidden">
-                    <Link2 size={9} className="text-info flex-shrink-0" />
+                    <LinkIcon size={9} className="text-info flex-shrink-0" />
                     <span className="truncate min-w-0">{'{' + cfg.sourceTokenPath + '}'}</span>
                   </div>
                   <button
@@ -201,7 +201,7 @@ function ConstantNodeComponent({ data }: NodeProps) {
                     onClick={() => update({ sourceTokenPath: undefined })}
                     className="flex-shrink-0 p-0.5 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                   >
-                    <X size={10} />
+                    <Close size={10} />
                   </button>
                 </div>
               ) : (
@@ -237,7 +237,7 @@ function ConstantNodeComponent({ data }: NodeProps) {
                     onClick={() => setModalOpen(true)}
                     className="flex-shrink-0 p-1 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
                   >
-                    <Link2 size={10} />
+                    <LinkIcon size={10} />
                   </button>
                 </div>
               )}

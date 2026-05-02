@@ -14,7 +14,7 @@ import {
   type DragCancelEvent,
 } from '@dnd-kit/core';
 import { SortableContext } from '@dnd-kit/sortable';
-import { Plus } from 'lucide-react';
+import { Add } from '@carbon/icons-react';
 import { TokenGroup } from '@/types';
 import { applyGroupMove, flattenTree, type FlatNode, type DropMode } from '@/utils/groupMove';
 import { SortableGroupRow } from '@/components/tokens/SortableGroupRow';
@@ -177,14 +177,14 @@ export function TokenGroupTree({
     <div className="flex flex-col h-full">
       {/* Section heading */}
       <div className="px-3 py-2 border-b border-muted flex items-center justify-between flex-shrink-0">
-        <span className="text-xs font-semibold text-foreground uppercase tracking-wider">Groups</span>
+        <span className="text-xs font-semibold text-foreground tracking-wider">Groups</span>
         {onAddGroup && (
           <button
             onClick={onAddGroup}
             className="text-muted-foreground hover:text-foreground text-base leading-none px-1"
             title="Add group"
           >
-            <Plus size={14} />
+            <Add size={14} className="shrink-0" />
           </button>
         )}
       </div>

@@ -2,7 +2,7 @@
 
 import { memo } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
-import { Type } from 'lucide-react';
+import { TextFont } from '@carbon/icons-react';
 import {
   NodeWrapper, NodeHeader, Row, RowHandle, NativeSelect, TextInput,
   PreviewSection, HANDLE_STRING, HANDLE_OUT,
@@ -59,7 +59,7 @@ function TypographyNodeComponent({ data }: NodeProps) {
   return (
     <NodeWrapper borderColor="border-info/40" width={268}>
       <NodeHeader
-        icon={<Type size={12} className="text-info" />}
+        icon={<TextFont size={12} className="text-info" />}
         title="Typography"
         badge="composite"
         headerClass="bg-info/10 border-info/30 text-info"

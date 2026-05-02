@@ -1,5 +1,5 @@
 'use client';
-import { ListTree } from 'lucide-react';
+import { ListTree } from '@carbon/icons-react';
 import { TokenGroup } from '@/types';
 import { parseGroupPath } from '@/utils';
 

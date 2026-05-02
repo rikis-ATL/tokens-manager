@@ -2,7 +2,7 @@
 
 import { memo, useCallback, useEffect, useState } from 'react';
 import { type NodeProps } from '@xyflow/react';
-import { FileCode } from 'lucide-react';
+import { CodeBlock } from '@carbon/icons-react';
 import {
   NodeWrapper,
   NodeHeader,
@@ -40,7 +40,7 @@ function PatternCssNodeComponent({ data }: NodeProps) {
   return (
     <NodeWrapper borderColor="border-border" width={280}>
       <NodeHeader
-        icon={<FileCode size={12} className="text-foreground" />}
+        icon={<CodeBlock size={12} className="text-foreground" />}
         title="CSS pattern"
         headerClass="bg-background border-border text-foreground"
         onDelete={onDeleteNode ? () => onDeleteNode(nodeId) : undefined}

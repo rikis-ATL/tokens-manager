@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
+import { InProgress } from '@carbon/icons-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -106,7 +106,7 @@ export default function InviteSetupForm({ token }: { token: string }) {
   if (validating) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <InProgress size={24} className="animate-spin shrink-0 text-muted-foreground" />
       </div>
     );
   }
@@ -185,7 +185,7 @@ export default function InviteSetupForm({ token }: { token: string }) {
           <Button type="submit" disabled={loading} className="w-full mt-2">
             {loading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <InProgress size={16} className="mr-2 shrink-0 animate-spin" />
                 Creating account...
               </>
             ) : (

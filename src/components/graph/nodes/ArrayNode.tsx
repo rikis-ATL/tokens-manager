@@ -2,7 +2,7 @@
 
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
-import { List, Plus, X, Save } from 'lucide-react';
+import { List, Add, Close, Save } from '@carbon/icons-react';
 import {
   NodeWrapper, NodeHeader, Row, NativeSelect, NumberInput, TextInput,
   PreviewSection, HANDLE_ARRAY, HANDLE_STRING,
@@ -186,7 +186,7 @@ function ArrayNodeComponent({ data }: NodeProps) {
                       onClick={() => removeListItem(i)}
                       title="Remove"
                     >
-                      <X size={10} />
+                      <Close size={10} />
                     </button>
                   </div>
                 ))}
@@ -194,7 +194,7 @@ function ArrayNodeComponent({ data }: NodeProps) {
                   className="nodrag flex items-center gap-1 text-[10px] text-info hover:text-info font-medium mt-0.5"
                   onClick={addListItem}
                 >
-                  <Plus size={10} /> Add item
+                  <Add size={10} /> Add item
                 </button>
               </div>
             )}

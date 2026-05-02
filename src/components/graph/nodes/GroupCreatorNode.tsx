@@ -2,7 +2,7 @@
 
 import { memo, useState, useCallback } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
-import { Check, FolderPlus, Plus, Trash2 } from 'lucide-react';
+import { Checkmark, FolderAdd, Add, TrashCan } from '@carbon/icons-react';
 import {
   NodeWrapper, NodeHeader, Row, NativeSelect, TextInput, HANDLE_OUT,
 } from './nodeShared';
@@ -64,7 +64,7 @@ function GroupCreatorNodeComponent({ data }: NodeProps) {
   return (
     <NodeWrapper borderColor="border-info/40">
       <NodeHeader
-        icon={<FolderPlus size={12} />}
+        icon={<FolderAdd size={12} />}
         title="Group Creator"
         headerClass="bg-info/10 border-info/30 text-info"
         onDelete={() => onDeleteNode?.(nodeId)}
@@ -103,7 +103,7 @@ function GroupCreatorNodeComponent({ data }: NodeProps) {
             onClick={addToken}
             className="text-xs bg-primary/10 text-primary px-2 py-1 rounded hover:bg-primary/15 flex items-center gap-1"
           >
-            <Plus size={10} /> Add Token
+            <Add size={10} /> Add Token
           </button>
         </div>
 
@@ -131,7 +131,7 @@ function GroupCreatorNodeComponent({ data }: NodeProps) {
               onClick={() => removeToken(index)}
               className="text-destructive hover:text-destructive p-1"
             >
-              <Trash2 size={10} />
+              <TrashCan size={10} />
             </button>
           </div>
         ))}
@@ -152,12 +152,12 @@ function GroupCreatorNodeComponent({ data }: NodeProps) {
         >
           {generated ? (
             <>
-              <Check size={14} />
+              <Checkmark size={14} />
               Created Group
             </>
           ) : (
             <>
-              <FolderPlus size={14} />
+              <FolderAdd size={14} />
               Create Group
             </>
           )}

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
+import { InProgress } from '@carbon/icons-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -94,7 +94,7 @@ export default function SignInPage() {
           <Button type="submit" disabled={loading} className="w-full mt-2">
             {loading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <InProgress size={16} className="mr-2 shrink-0 animate-spin" />
                 Signing in...
               </>
             ) : (

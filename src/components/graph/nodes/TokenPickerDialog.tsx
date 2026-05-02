@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { Search } from 'lucide-react';
+import { Search } from '@carbon/icons-react';
 import {
   Dialog,
   DialogContent,

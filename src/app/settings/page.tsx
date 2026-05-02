@@ -6,7 +6,7 @@ import { DatabaseConfig } from '@/components/dev/DatabaseConfig';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { showSuccessToast, showErrorToast } from '@/utils/toast.utils';
-import { Eye, EyeOff, Key, Check } from 'lucide-react';
+import { View, ViewOff, Key, Checkmark } from '@carbon/icons-react';
 import { AppThemeAdminSection } from '@/components/settings/AppThemeAdminSection';
 
 export default function SettingsPage() {
@@ -201,7 +201,7 @@ function AIConfiguration() {
       {process.env.NEXT_PUBLIC_SELF_HOSTED === 'true' ? (
         <div className="bg-primary/10 border border-primary rounded-md p-4">
           <div className="flex items-center gap-2">
-            <Check size={16} className="text-primary" />
+            <Checkmark size={16} className="text-primary shrink-0" />
             <p className="text-sm font-medium text-primary">
               Server API Key Configured
             </p>
@@ -215,7 +215,7 @@ function AIConfiguration() {
           {hasExistingKey && (
             <div className="bg-success/10 border border-success rounded-md p-3 mb-4">
               <div className="flex items-center gap-2">
-                <Check size={16} className="text-success" />
+                <Checkmark size={16} className="text-success shrink-0" />
                 <p className="text-sm font-medium text-success">API Key Configured</p>
               </div>
               <p className="text-xs text-success mt-1">
@@ -243,7 +243,7 @@ function AIConfiguration() {
                     onClick={() => setShowKey(!showKey)}
                     className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-muted-foreground"
                   >
-                    {showKey ? <EyeOff size={16} /> : <Eye size={16} />}
+                    {showKey ? <ViewOff size={16} className="shrink-0" /> : <View size={16} className="shrink-0" />}
                   </button>
                 </div>
               </div>

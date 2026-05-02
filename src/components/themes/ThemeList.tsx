@@ -1,7 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, MoreHorizontal, Trash2, Sun, Moon, Palette, Layers, SlidersHorizontal, Ruler } from 'lucide-react';
+import {
+  Add,
+  OverflowMenuHorizontal,
+  TrashCan,
+  Sun,
+  Moon,
+  ColorPalette,
+  Layers,
+  SettingsAdjust,
+  Ruler,
+} from '@carbon/icons-react';
 import type { ITheme, ColorMode, ThemeKind } from '@/types/theme.types';
 import {
   DropdownMenu,
@@ -75,7 +85,7 @@ function KindBadge({ kind }: { kind: ThemeKind }) {
   }
   return (
     <span className="inline-flex items-center gap-0.5 px-1 py-1 rounded text-[10px] bg-primary/10 text-primary flex-shrink-0">
-      <Palette size={9} />
+      <ColorPalette size={9} />
       Color
     </span>
   );
@@ -151,7 +161,7 @@ export function ThemeList({
             aria-label={`Add ${kind} theme`}
             className="text-muted-foreground hover:text-foreground text-base leading-none px-1 disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            <Plus size={14} />
+            <Add size={14} />
           </button>
         </div>
 
@@ -187,7 +197,7 @@ export function ThemeList({
                       onClick={(e) => e.stopPropagation()}
                       aria-label="Theme options"
                     >
-                      <MoreHorizontal size={13} />
+                      <OverflowMenuHorizontal size={13} />
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-40" onClick={(e) => e.stopPropagation()}>
@@ -212,7 +222,7 @@ export function ThemeList({
                           className="gap-2 text-xs"
                           onClick={() => onConfigure(theme.id)}
                         >
-                          <SlidersHorizontal size={12} /> Configure groups
+                          <SettingsAdjust size={12} /> Configure groups
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                       </>
@@ -221,7 +231,7 @@ export function ThemeList({
                       className="gap-2 text-xs text-destructive focus:text-destructive"
                       onClick={() => setDeleteTargetId(theme.id)}
                     >
-                      <Trash2 size={12} /> Delete
+                      <TrashCan size={12} /> Delete
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -270,7 +280,7 @@ export function ThemeList({
                       onClick={(e) => e.stopPropagation()}
                       aria-label="Theme options"
                     >
-                      <MoreHorizontal size={13} />
+                      <OverflowMenuHorizontal size={13} />
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-44" onClick={(e) => e.stopPropagation()}>
@@ -289,7 +299,7 @@ export function ThemeList({
                       className="gap-2 text-xs text-destructive focus:text-destructive"
                       onClick={() => setDeleteTargetId(theme.id)}
                     >
-                      <Trash2 size={12} /> Delete
+                      <TrashCan size={12} /> Delete
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -305,14 +315,14 @@ export function ThemeList({
             disabled={colorAtLimit}
             className="flex items-center gap-1.5 px-2 py-1.5 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            <Plus size={12} /> Add Color Theme
+            <Add size={12} /> Add Color Theme
           </button>
           <button
             onClick={() => handleOpenDialog('density')}
             disabled={densityAtLimit}
             className="flex items-center gap-1.5 px-2 py-1.5 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            <Plus size={12} /> Add Density Theme
+            <Add size={12} /> Add Density Theme
           </button>
         </div>
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { Network, GitBranch } from 'lucide-react';
+import { Network_4, Branch } from '@carbon/icons-react';
 import { GroupStructureGraph } from './GroupStructureGraph';
 import { TokenDetailGraph } from './TokenDetailGraph';
 import type { TokenGroup, GeneratedToken } from '@/types';
@@ -60,7 +60,7 @@ export function TokenGraphPanel({
     return (
       <div className="flex flex-col h-full">
         <div className="flex items-center gap-2 px-3 py-2 border-b border-muted bg-background flex-shrink-0">
-          <GitBranch size={14} className="text-warning" />
+          <Branch size={14} className="text-warning" />
           <span className="text-xs font-medium text-muted-foreground">Token</span>
           <span className="font-mono text-xs text-warning bg-warning/10 border border-warning px-1.5 py-0.5 rounded">
             {selectedToken.token.path}
@@ -83,11 +83,11 @@ export function TokenGraphPanel({
   if (isAllGroupsView) {
     return (
       <div className="flex flex-col h-full">
-        <div className="flex items-center gap-2 px-3 py-2 border-b border-muted bg-background flex-shrink-0">
-          <Network size={14} className="text-primary" />
+        {/* <div className="flex items-center gap-2 px-3 py-2 border-b border-muted bg-background flex-shrink-0">
+          <Network_4 size={14} className="text-primary" />
           <span className="text-xs font-medium text-muted-foreground">All Groups</span>
           <span className="text-xs text-muted-foreground ml-auto">unified view</span>
-        </div>
+        </div> */}
         <GroupStructureGraph
           key={`__all_groups__-${activeColorThemeId ?? 'c0'}-${activeDensityThemeId ?? 'd0'}`}
           allGroupsMode={true}
@@ -135,7 +135,7 @@ export function TokenGraphPanel({
 
   return (
     <div className="flex flex-col h-full items-center justify-center text-center p-8">
-      <Network size={32} className="text-muted-foreground mb-3" />
+      <Network_4 size={32} className="text-muted-foreground mb-3" />
       <p className="text-sm text-muted-foreground">Select a group from the sidebar</p>
       <p className="text-xs text-muted-foreground mt-1">or click a token row to inspect its reference chain</p>
     </div>

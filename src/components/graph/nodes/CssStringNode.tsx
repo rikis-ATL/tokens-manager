@@ -2,7 +2,7 @@
 
 import { memo, useState, useRef, useCallback, useMemo, useEffect, useLayoutEffect } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
-import { Braces } from 'lucide-react';
+import { Code } from '@carbon/icons-react';
 import {
   NodeWrapper, NodeHeader, Row, RowHandle, PreviewSection, HANDLE_STRING, HANDLE_IN,
 } from './nodeShared';
@@ -83,7 +83,7 @@ function CssStringNodeComponent({ data }: NodeProps) {
       />
 
       <NodeHeader
-        icon={<Braces size={12} className="text-info" />}
+        icon={<Code size={12} className="text-info" />}
         title="CSS string"
         badge={isWired ? '⇐ wired' : 'text'}
         headerClass="bg-info/10 border-info/30 text-info"

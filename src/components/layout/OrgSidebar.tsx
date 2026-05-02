@@ -4,7 +4,14 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { LayoutGrid, SlidersHorizontal, ChevronLeft, ChevronRight, Users, UserCircle } from 'lucide-react';
+import {
+  Grid,
+  SettingsAdjust,
+  ChevronLeft,
+  ChevronRight,
+  UserMultiple,
+  UserAvatar,
+} from '@carbon/icons-react';
 import { useDbStatus } from './OrgHeader';
 import { usePermissions } from '@/context/PermissionsContext';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -22,20 +29,20 @@ export function OrgSidebar() {
     {
       href: '/collections',
       label: 'Collections',
-      icon: LayoutGrid,
+      icon: Grid,
       badge: null,
     },
     {
       href: '/account',
       label: 'Account',
-      icon: UserCircle,
+      icon: UserAvatar,
       badge: null,
     },
     ...(isAdmin ? [
       {
         href: '/settings',
         label: 'Settings',
-        icon: SlidersHorizontal,
+        icon: SettingsAdjust,
         badge: (
           <span
             title={isLoading ? 'Connecting...' : db.label}
@@ -49,7 +56,7 @@ export function OrgSidebar() {
           />
         ),
       },
-      { href: '/org/users', label: 'Users', icon: Users, badge: null },
+      { href: '/org/users', label: 'Users', icon: UserMultiple, badge: null },
     ] : []),
   ];
 

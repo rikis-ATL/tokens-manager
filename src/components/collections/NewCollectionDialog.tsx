@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { Loader2, X } from 'lucide-react';
+import { InProgress, Close } from '@carbon/icons-react';
 import { apiFetch } from '@/lib/api-client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -266,7 +266,7 @@ export function NewCollectionDialog({
                 <span key={tag} className="flex items-center gap-1 bg-muted text-foreground text-xs px-2 py-0.5 rounded-full">
                   {tag}
                   <button type="button" className="text-muted-foreground hover:text-muted-foreground" onClick={(e) => { e.stopPropagation(); setTags((p) => p.filter((t) => t !== tag)); }}>
-                    <X size={10} />
+                    <Close size={10} />
                   </button>
                 </span>
               ))}
@@ -505,7 +505,7 @@ export function NewCollectionDialog({
             Cancel
           </Button>
           <Button onClick={handleCreate} disabled={isCreating || !name.trim()}>
-            {isCreating && <Loader2 size={14} className="mr-1.5 animate-spin" />}
+            {isCreating && <InProgress size={14} className="mr-1.5 shrink-0 animate-spin" />}
             Create
           </Button>
         </DialogFooter>

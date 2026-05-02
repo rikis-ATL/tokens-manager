@@ -1,6 +1,6 @@
 'use client';
 
-import { GripVertical } from 'lucide-react';
+import { DragVertical } from '@carbon/icons-react';
 import { Group, Panel, Separator } from 'react-resizable-panels';
 import type { ComponentProps } from 'react';
 
@@ -31,8 +31,8 @@ const ResizableHandle = ({
     {...props}
   >
     {withHandle && (
-      <div className="z-10 flex h-4 w-3 items-center justify-center rounded-sm border bg-border">
-        <GripVertical className="h-2.5 w-2.5" />
+      <div className="z-10 flex h-4 w-3 items-center justify-center rounded-sm border border-border bg-border">
+        <DragVertical size={16} className="shrink-0 scale-75" />
       </div>
     )}
   </Separator>

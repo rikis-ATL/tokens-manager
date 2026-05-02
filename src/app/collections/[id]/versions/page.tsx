@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { Trash2 } from 'lucide-react';
+import { TrashCan } from '@carbon/icons-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -429,7 +429,7 @@ export default function CollectionVersionsPage({ params }: VersionsPageProps) {
                           onClick={() => setPendingDeleteIds([v._id])}
                           aria-label={`Delete version ${v.semver}`}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <TrashCan size={16} className="shrink-0" />
                         </Button>
                       )}
                     </td>

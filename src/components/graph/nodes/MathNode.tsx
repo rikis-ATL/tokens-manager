@@ -2,7 +2,7 @@
 
 import { memo, useState, useRef, useCallback, useMemo, useEffect, useLayoutEffect } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
-import { Calculator, Minus, Plus } from 'lucide-react';
+import { Calculator, Subtract, Add } from '@carbon/icons-react';
 import {
   NodeWrapper, NodeHeader, Row, RowHandle, NativeSelect, NumberInput, TextInput,
   PreviewSection, HANDLE_NUMBER, HANDLE_ARRAY, HANDLE_OUT,
@@ -416,7 +416,7 @@ function MathNodeComponent({ data }: NodeProps) {
                       className="p-0.5 rounded border border-border bg-card text-muted-foreground disabled:opacity-40"
                       title="Remove last operand row"
                     >
-                      <Minus size={12} />
+                      <Subtract size={12} />
                     </button>
                     <button
                       type="button"
@@ -425,7 +425,7 @@ function MathNodeComponent({ data }: NodeProps) {
                       className="p-0.5 rounded border border-border bg-card text-muted-foreground disabled:opacity-40"
                       title="Add operand row"
                     >
-                      <Plus size={12} />
+                      <Add size={12} />
                     </button>
                   </div>
                 </div>

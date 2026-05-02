@@ -2,7 +2,7 @@
 
 import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Sun } from '@carbon/icons-react';
 import {
   DropdownMenu,
   DropdownMenuContent,

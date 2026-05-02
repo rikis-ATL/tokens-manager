@@ -60,6 +60,15 @@ export interface ITokenCollection {
 }
 
 /**
+ * Aggregated theme counts for the collections list (aligned with ThemeList color/density semantics).
+ */
+export interface CollectionThemesSummary {
+  colorLight: number;
+  colorDark: number;
+  density: number;
+}
+
+/**
  * Shape for collection list items returned by GET /api/collections.
  * Derived fields (tokenCount, figmaConfigured, githubConfigured) are computed server-side.
  */
@@ -75,6 +84,7 @@ export interface CollectionCardData {
   isPlayground: boolean;
   accentColor: string | null;
   themesCount: number;
+  themesSummary: CollectionThemesSummary;
 }
 
 /**

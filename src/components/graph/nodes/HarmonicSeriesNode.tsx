@@ -2,7 +2,7 @@
 
 import { memo } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
-import { Waves } from 'lucide-react';
+import { Waveform } from '@carbon/icons-react';
 import {
   NodeWrapper, NodeHeader, Row, RowHandle, NativeSelect, NumberInput,
   PreviewSection, HANDLE_NUMBER, HANDLE_ARRAY,
@@ -47,7 +47,7 @@ function HarmonicSeriesNodeComponent({ data }: NodeProps) {
   return (
     <NodeWrapper borderColor="border-info/40" width={252}>
       <NodeHeader
-        icon={<Waves size={12} className="text-info" />}
+        icon={<Waveform size={12} className="text-info" />}
         title="Harmonic Series"
         badge={`${total} values`}
         headerClass="bg-info/10 border-info/30 text-info"

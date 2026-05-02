@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Sun, Moon } from 'lucide-react';
+import { Sun, Moon } from '@carbon/icons-react';
 import { BuildTokensPanel } from '@/components/dev/BuildTokensPanel';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import type { ITheme, ColorMode } from '@/types/theme.types';

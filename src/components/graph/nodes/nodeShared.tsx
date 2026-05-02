@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { Handle, Position } from '@xyflow/react';
-import { X } from 'lucide-react';
+import { Close } from '@carbon/icons-react';
 
 // ── Form row ──────────────────────────────────────────────────────────────────
 // `handle` renders inside the same `relative` container so that handles
@@ -233,7 +233,7 @@ export function NodeHeader({
           title="Delete node"
           className="nodrag flex-shrink-0 p-0.5 rounded opacity-0 group-hover:opacity-60 hover:!opacity-100 text-current hover:text-destructive hover:bg-destructive/15 transition-all"
         >
-          <X size={10} />
+          <Close size={10} />
         </button>
       )}
     </div>

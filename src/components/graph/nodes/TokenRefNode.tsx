@@ -2,7 +2,7 @@
 
 import { memo, useState } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
-import { Coins, Search, X } from 'lucide-react';
+import { Currency, Search, Close } from '@carbon/icons-react';
 import { NodeWrapper, NodeHeader, RowHandle, HANDLE_OUT, HANDLE_STRING } from './nodeShared';
 import { TokenPickerDialog } from './TokenPickerDialog';
 import type { ComposableNodeData, TokenRefConfig, FlatToken } from '@/types/graph-nodes.types';
@@ -46,7 +46,7 @@ function TokenRefNodeComponent({ data }: NodeProps) {
     <>
       <NodeWrapper borderColor="border-warning" width={240}>
         <NodeHeader
-          icon={<Coins size={12} className="text-warning" />}
+          icon={<Currency size={12} className="text-warning" />}
           title="Token"
           badge={cfg.tokenType || undefined}
           headerClass="bg-warning/10 border-warning text-warning"
@@ -70,7 +70,7 @@ function TokenRefNodeComponent({ data }: NodeProps) {
                   onClick={() => update({ tokenPath: '', tokenValue: '', tokenType: '' })}
                   className="flex-shrink-0 text-muted-foreground hover:text-destructive transition-colors"
                 >
-                  <X size={11} />
+                  <Close size={11} />
                 </button>
               </div>
 

@@ -7,9 +7,30 @@ import { Action } from '@/lib/auth/permissions';
 import { authOptions } from '@/lib/auth/nextauth.config';
 import { bootstrapCollectionGrants } from '@/lib/auth/collection-bootstrap';
 import CollectionPermission from '@/lib/db/models/CollectionPermission';
-import type { CollectionCardData, ISourceMetadata } from '@/types/collection.types';
 import { countTokensInCollection } from '@/lib/utils/count-tokens';
 import { checkCollectionLimit, checkRateLimit } from '@/lib/billing';
+import type {
+  CollectionCardData,
+  CollectionThemesSummary,
+  ISourceMetadata,
+} from '@/types/collection.types';
+import type { ITheme } from '@/types/theme.types';
+
+function summarizeThemesForList(themes: ITheme[] | undefined): CollectionThemesSummary {
+  let colorLight = 0;
+  let colorDark = 0;
+  let density = 0;
+  for (const t of themes ?? []) {
+    if ((t.kind ?? 'color') === 'density') {
+      density += 1;
+    } else if ((t.colorMode ?? 'light') === 'dark') {
+      colorDark += 1;
+    } else {
+      colorLight += 1;
+    }
+  }
+  return { colorLight, colorDark, density };
+}
 
 export async function GET() {
   await bootstrapCollectionGrants();
@@ -55,6 +76,7 @@ export async function GET() {
         isPlayground: doc.isPlayground ?? false,
         accentColor: doc.accentColor ?? null,
         themesCount: doc.themes?.length ?? 0,
+        themesSummary: summarizeThemesForList(doc.themes),
       };
     });
 

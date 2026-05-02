@@ -2,7 +2,7 @@
 
 import { memo } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
-import { Zap } from 'lucide-react';
+import { Lightning } from '@carbon/icons-react';
 
 export interface GroupNodeData {
   label: string;
@@ -59,7 +59,7 @@ function GroupNodeComponent({ data, selected }: NodeProps) {
             className="nodrag w-full flex items-center justify-center gap-1.5 text-xs font-medium rounded px-3 py-1.5 bg-success hover:bg-success/90 text-success-foreground transition-colors"
             onClick={e => { e.stopPropagation(); onApplyTokens(); }}
           >
-            <Zap size={11} />
+            <Lightning size={11} />
             Apply {pendingTokenCount} token{(pendingTokenCount ?? 0) !== 1 ? 's' : ''}
           </button>
         </div>

@@ -1,8 +1,10 @@
 'use client';
 
 import { useRef, useState, useEffect } from 'react';
-import { MoreVertical } from 'lucide-react';
+import { OverflowMenuVertical,Plug, Tag ,Box, EventSchedule} from '@carbon/icons-react';
 import type { CollectionCardData } from '@/types/collection.types';
+import { Badge } from '../ui/badge';
+import { CollectionThemesSummaryChips } from './CollectionThemesSummaryChips';
 
 interface CollectionCardProps {
   collection: CollectionCardData;
@@ -95,13 +97,20 @@ export function CollectionCard({
     }
   };
 
-  const formattedDate = new Date(collection.updatedAt).toLocaleDateString();
+  const formattedDate = new Date(collection.updatedAt).toLocaleDateString(undefined, { month: 'short', day: '2-digit' });
+
+  const themeTotal =
+    collection.themesSummary.colorLight +
+    collection.themesSummary.colorDark +
+    collection.themesSummary.density;
+  const showTagsRow = collection.tags.length > 0 || themeTotal > 0;
 
   return (
     <div
-      className="relative bg-card rounded-lg border border-border p-4 cursor-pointer hover:shadow-md hover:border-border transition-all group"
+      className="relative bg-card rounded-lg min-h-[150px] border border-border p-4 cursor-pointer hover:shadow-md hover:border-border transition-all group"
       onClick={() => onClick(collection._id)}
     >
+
       {/* Color swatch accent bar */}
       {collection.accentColor && (
         <div
@@ -117,11 +126,11 @@ export function CollectionCard({
         onClick={(e) => e.stopPropagation()}
       >
         <button
-          className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-muted transition-opacity"
+          className="p-1 rounded hover:bg-muted transition-opacity"
           onClick={handleKebabClick}
           aria-label="Collection options"
         >
-          <MoreVertical size={16} className="text-muted-foreground" />
+          <OverflowMenuVertical size={16} className="text-muted-foreground" />
         </button>
 
         {isMenuOpen && (
@@ -153,76 +162,76 @@ export function CollectionCard({
           </div>
         )}
       </div>
+      <div className="flex flex-col justify-between gap-1 h-full">
 
-      {/* Title / Inline rename */}
-      {isRenaming ? (
-        <input
-          ref={inputRef}
-          autoFocus
-          className="w-full text-foreground font-semibold text-base border border-border rounded px-1 py-0.5 pr-6 mb-1 focus:outline-none focus:ring-2 focus:ring-primary"
-          value={renameValue}
-          disabled={isRenamePending}
-          onChange={(e) => setRenameValue(e.target.value)}
-          onKeyDown={handleRenameKeyDown}
-          onBlur={commitRename}
-          onClick={(e) => e.stopPropagation()}
-        />
-      ) : (
-        <h3 className="text-foreground font-semibold text-base truncate pr-6">
-          {collection.name}
-        </h3>
+
+      <header className="flex flex-col">
+        {/* Title / Inline rename */}
+        {isRenaming ? (
+          <input
+            ref={inputRef}
+            autoFocus
+            className="w-full text-foreground font-semibold text-base border border-border rounded px-1 py-0.5 pr-6 mb-1 focus:outline-none focus:ring-2 focus:ring-primary"
+            value={renameValue}
+            disabled={isRenamePending}
+            onChange={(e) => setRenameValue(e.target.value)}
+            onKeyDown={handleRenameKeyDown}
+            onBlur={commitRename}
+            onClick={(e) => e.stopPropagation()}
+          />
+        ) : (
+          <h3 className="text-foreground font-semibold text-base truncate pr-6">
+            {collection.name}
+          </h3>
+        )}
+
+        <div className="flex items-center gap-3 justify-between text-xs text-muted-foreground">
+          <span>{collection.tokenCount} tokens</span>
+          <span className="flex items-center gap-1"> <EventSchedule size={12} className="mr-1" />{formattedDate}</span>
+        </div>
+      </header>
+
+    <div className="flex flex-col h-full flex-grow gap-1">
+      {/* Description */}
+      {collection.description && (
+        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+          {collection.description}
+        </p>
       )}
 
-      {/* Description */}
-      <p className="text-muted-foreground text-sm mt-1 line-clamp-2">
-        {collection.description ?? (
-          <span className="text-muted-foreground">No description</span>
-        )}
-      </p>
-
-      {/* Tags */}
-      {collection.tags.length > 0 && (
+      {/* Tags + theme summary */}
+      {showTagsRow && (
         <div className="flex flex-wrap gap-1 mt-2">
           {collection.tags.map((tag) => (
-            <span
-              key={tag}
-              className="bg-muted text-muted-foreground text-xs px-2 py-0.5 rounded-full"
-            >
+            <Badge key={tag} variant="secondary">
+              <Tag size={12} className="text-info mr-1" />
               {tag}
-            </span>
+            </Badge>
           ))}
+          <CollectionThemesSummaryChips summary={collection.themesSummary} />
         </div>
       )}
+</div>
 
-      {/* Stats row */}
-      <div className="flex items-center gap-3 mt-3 text-xs text-muted-foreground">
-        <span>{collection.tokenCount} tokens</span>
-        <span>Updated {formattedDate}</span>
-      </div>
+
 
       {/* Integration badges */}
       {(collection.figmaConfigured || collection.githubConfigured || collection.isPlayground) && (
         <div className="flex gap-1.5 mt-2">
           {collection.isPlayground && (
-            <span className="bg-warning/10 text-warning text-xs px-1.5 py-0.5 rounded border border-warning flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-warning inline-block" />
-              Playground
-            </span>
+            <Badge variant="default" title="Playground" className="bg-info"><Box size={12} className="mr-1" />Playground</Badge>
           )}
           {collection.figmaConfigured && (
-            <span className="bg-success/10 text-success text-xs px-1.5 py-0.5 rounded border border-success flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-success inline-block" />
-              Figma
-            </span>
+            <Badge variant="default" title="Figma"><Plug size={12} className="text-success mr-1" /> Figma</Badge>
           )}
           {collection.githubConfigured && (
-            <span className="bg-success/10 text-success text-xs px-1.5 py-0.5 rounded border border-success flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-success inline-block" />
-              GitHub
-            </span>
+            <Badge variant="default" title="GitHub"><Plug size={12} className="text-success mr-1" /> GitHub</Badge>
           )}
         </div>
       )}
     </div>
+
+    </div>
+
   );
 }

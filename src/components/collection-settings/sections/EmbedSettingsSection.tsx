@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Copy, Check } from 'lucide-react';
+import { Copy, Checkmark } from '@carbon/icons-react';
 import { useCollectionSettings } from '@/components/collection-settings/CollectionSettingsContext';
 
 export function EmbedSettingsSection() {
@@ -34,12 +34,12 @@ export function EmbedSettingsSection() {
           >
             {embedScriptCopied ? (
               <>
-                <Check size={16} className="mr-1" />
+                <Checkmark size={16} className="mr-1 shrink-0" />
                 Copied!
               </>
             ) : (
               <>
-                <Copy size={16} className="mr-1" />
+                <Copy size={16} className="mr-1 shrink-0" />
                 Copy
               </>
             )}

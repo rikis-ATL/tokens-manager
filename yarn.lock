@@ -331,6 +331,22 @@
     stream "^0.0.3"
     util "^0.12.5"
 
+"@carbon/icon-helpers@^10.75.0":
+  version "10.75.0"
+  resolved "https://registry.yarnpkg.com/@carbon/icon-helpers/-/icon-helpers-10.75.0.tgz#880411533e8dcfc1e9b23dccd6a875b3e7f8cea2"
+  integrity sha512-WD5zGVE0onRVWHNW+VTf3xM/+WVE2LXuFnNMio6Jf56HqjzNCWLOM2oRRBuDpmtQmDoOUPfCEj8fHgwx3N6CCQ==
+  dependencies:
+    "@ibm/telemetry-js" "^1.5.0"
+
+"@carbon/icons-react@^11.79.0":
+  version "11.79.0"
+  resolved "https://registry.yarnpkg.com/@carbon/icons-react/-/icons-react-11.79.0.tgz#a4b31d95f98a82389502e63df005c82dbcdc0444"
+  integrity sha512-560qV1R5xkaZtL6XbGeABoeXTL46CnJi01aeR6/XYW0yRxhHw7yLkdcahOrCBDJClg3X9n+2Xs/XddW9KorB9Q==
+  dependencies:
+    "@carbon/icon-helpers" "^10.75.0"
+    "@ibm/telemetry-js" "^1.5.0"
+    prop-types "^15.8.1"
+
 "@cspotcode/source-map-support@^0.8.0":
   version "0.8.1"
   resolved "https://registry.yarnpkg.com/@cspotcode/source-map-support/-/source-map-support-0.8.1.tgz#00629c35a688e05a88b1cda684fb9d5e73f000a1"
@@ -636,6 +652,11 @@
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/@humanwhocodes/object-schema/-/object-schema-2.0.3.tgz#4a2868d75d6d6963e423bcf90b7fd1be343409d3"
   integrity sha512-93zYdMES/c1D69yZiKDBj0V24vqNzB/koF26KPaagAfd3P/4gUlh3Dys5ogAK+Exi9QyzlD8x/08Zt7wIKcDcA==
+
+"@ibm/telemetry-js@^1.5.0":
+  version "1.11.0"
+  resolved "https://registry.yarnpkg.com/@ibm/telemetry-js/-/telemetry-js-1.11.0.tgz#3270e7b7ec8f30eb940e1d28448315ea9287062e"
+  integrity sha512-RO/9j+URJnSfseWg9ZkEX9p+a3Ousd33DBU7rOafoZB08RqdzxFVYJ2/iM50dkBuD0o7WX7GYt1sLbNgCoE+pA==
 
 "@isaacs/cliui@^8.0.2":
   version "8.0.2"
@@ -5570,11 +5591,6 @@ lru-cache@^6.0.0:
   integrity sha512-Jo6dJ04CmSjuznwJSS3pUeWmd/H0ffTlkXXgwZi+eq1UCmqQwCh+eLsYOYCwY991i2Fah4h1BEMCx4qThGbsiA==
   dependencies:
     yallist "^4.0.0"
-
-lucide-react@^0.577.0:
-  version "0.577.0"
-  resolved "https://registry.yarnpkg.com/lucide-react/-/lucide-react-0.577.0.tgz#8ae89edd8415f99c6319a38b40d9c513f6fa5062"
-  integrity sha512-4LjoFv2eEPwYDPg/CUdBJQSDfPyzXCRrVW1X7jrx/trgxnxkHFjnVZINbzvzxjN70dxychOfg+FTYwBiS3pQ5A==
 
 lz-string@^1.5.0:
   version "1.5.0"

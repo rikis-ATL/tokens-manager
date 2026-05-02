@@ -2,7 +2,7 @@
 
 import { memo } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
-import { Pipette } from 'lucide-react';
+import { Eyedropper } from '@carbon/icons-react';
 import {
   NodeWrapper, NodeHeader, Row, RowHandle, NativeSelect, NumberInput,
   PreviewSection, HANDLE_STRING, HANDLE_ARRAY, HANDLE_NUMBER, HANDLE_OUT,
@@ -67,7 +67,7 @@ function ColorConvertNodeComponent({ data }: NodeProps) {
   return (
     <NodeWrapper borderColor="border-primary" width={240}>
       <NodeHeader
-        icon={<Pipette size={12} className="text-primary" />}
+        icon={<Eyedropper size={12} className="text-primary" />}
         title="Color Convert"
         badge={cfg.mode === 'hslCompose' ? 'HSL Compose' : 'Convert'}
         headerClass="bg-primary/10 border-primary text-primary"

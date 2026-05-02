@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { Search, Link2, X, Save, Check } from 'lucide-react';
+import { Search, Link as LinkIcon, Close, Save, Checkmark } from '@carbon/icons-react';
 import {
   Dialog,
   DialogContent,
@@ -146,7 +146,7 @@ export function ConstantNodeModal({
             {/* Current link badge */}
             {cfg.sourceTokenPath && (
               <div className="flex items-center gap-2 px-4 py-2.5 bg-primary/10 border-b border-primary">
-                <Link2 size={12} className="text-primary flex-shrink-0" />
+                <LinkIcon size={12} className="text-primary flex-shrink-0" />
                 <span className="flex-1 font-mono text-xs text-primary truncate min-w-0">
                   {'{' + cfg.sourceTokenPath + '}'}
                 </span>
@@ -155,7 +155,7 @@ export function ConstantNodeModal({
                   title="Remove link"
                   className="p-0.5 rounded text-info hover:text-destructive hover:bg-destructive/10 transition-colors flex-shrink-0"
                 >
-                  <X size={11} />
+                  <Close size={11} />
                 </button>
               </div>
             )}
@@ -211,7 +211,7 @@ export function ConstantNodeModal({
                       <span className="text-xs text-muted-foreground flex-shrink-0 truncate max-w-[80px] font-mono" title={t.value}>
                         {t.value}
                       </span>
-                      {isLinked && <Link2 size={10} className="text-primary flex-shrink-0" />}
+                      {isLinked && <LinkIcon size={10} className="text-primary flex-shrink-0" />}
                     </button>
                   );
                 })
@@ -285,7 +285,7 @@ export function ConstantNodeModal({
                   : 'bg-primary hover:bg-primary text-primary-foreground'
               }`}
             >
-              {saved ? <><Check size={14} /> Saved</> : <><Save size={14} /> Save to group</>}
+              {saved ? <><Checkmark size={14} /> Saved</> : <><Save size={14} /> Save to group</>}
             </button>
           </div>
         )}

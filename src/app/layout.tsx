@@ -10,6 +10,7 @@ import { Toaster } from "sonner";
 
 const inter = Inter({
   subsets: ["latin"],
+  variable: "--font-inter",
 });
 
 export const metadata: Metadata = {
@@ -23,7 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={inter.variable}>
       <body className={`${inter.className} antialiased`}>
         <AuthProviders>
           <AppThemeProvider>

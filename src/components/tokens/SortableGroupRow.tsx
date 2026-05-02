@@ -4,7 +4,16 @@ import { useEffect, useRef, useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { useDroppable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
-import { ChevronDown, ChevronRight, GripVertical, MoreHorizontal, Pencil, Plus, Slash, Trash2 } from 'lucide-react';
+import {
+  ChevronDown,
+  ChevronRight,
+  DragVertical,
+  OverflowMenuHorizontal,
+  Edit,
+  Add,
+  TableSplit,
+  TrashCan,
+} from '@carbon/icons-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -132,7 +141,7 @@ function GroupActions({
           onClick={e => e.stopPropagation()}
           title="Group actions"
         >
-          <MoreHorizontal size={13} />
+          <OverflowMenuHorizontal size={13} />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-52" onClick={e => e.stopPropagation()}>
@@ -141,7 +150,7 @@ function GroupActions({
             className="gap-2 text-xs"
             onSelect={() => onStartRename()}
           >
-            <Pencil size={12} /> Rename
+            <Edit size={12} /> Rename
           </DropdownMenuItem>
         )}
         {onToggleOmitFromPath && (
@@ -149,7 +158,7 @@ function GroupActions({
             className="gap-2 text-xs"
             onClick={() => onToggleOmitFromPath(node.group.id)}
           >
-            <Slash size={12} className={isOmitted ? 'text-warning' : ''} />
+            <TableSplit size={12} className={isOmitted ? 'text-warning' : ''} />
             {isOmitted ? 'Include name in output' : 'Skip name in output'}
           </DropdownMenuItem>
         )}
@@ -159,7 +168,7 @@ function GroupActions({
             className="gap-2 text-xs"
             onClick={() => onAddSubGroup(node.group.id)}
           >
-            <Plus size={12} /> Add Sub-group
+            <Add size={12} /> Add Sub-group
           </DropdownMenuItem>
         )}
         {onAddSubGroup && onDeleteGroup && <DropdownMenuSeparator />}
@@ -169,7 +178,7 @@ function GroupActions({
             className="gap-2 text-xs text-destructive focus:text-destructive"
             onClick={() => onDeleteGroup(node.group.id)}
           >
-            <Trash2 size={12} /> Delete Group
+            <TrashCan size={12} /> Delete Group
           </DropdownMenuItem>
         )}
       </DropdownMenuContent>
@@ -201,7 +210,7 @@ export function SortableGroupRow({
         style={{ paddingLeft: node.depth * 14 + 8 }}
         className={rowClassName(node, isSelected)}
       >
-        <GripVertical size={12} className="text-muted-foreground mr-1 flex-shrink-0" />
+        <DragVertical size={12} className="text-muted-foreground mr-1 flex-shrink-0" />
         <span className="flex-1 py-1.5 truncate text-xs">{node.displayLabel}</span>
       </div>
     );
@@ -326,7 +335,7 @@ function SortableRowInner({
           tabIndex={-1}
           aria-hidden={isEditing}
         >
-          <GripVertical size={12} />
+          <DragVertical size={12} className="shrink-0" />
         </button>
       </div>
 
@@ -367,12 +376,12 @@ function SortableRowInner({
           }`}
           onClick={e => { e.stopPropagation(); onToggleOmitFromPath(node.group.id); }}
         >
-          <Slash size={10} />
+          <TableSplit size={10} className="shrink-0" />
         </button>
       )}
       {!onToggleOmitFromPath && node.group.omitFromPath && !isEditing && (
         <span title="Name omitted from output path" className="text-warning flex-shrink-0">
-          <Slash size={10} />
+          <TableSplit size={10} className="shrink-0" />
         </span>
       )}
 

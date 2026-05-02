@@ -4,12 +4,11 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import {
   ChevronDown,
   ChevronUp,
-  Trash2,
-  RotateCcw,
-  Lock,
-  EllipsisVertical,
-  Eye,
-} from "lucide-react";
+  TrashCan,
+  RotateCounterclockwise,
+  Locked,
+  View,
+} from "@carbon/icons-react";
 import { LoadingIndicator } from "@/components/layout/LoadingIndicator";
 import { showSuccessToast, showErrorToast } from "@/utils/toast.utils";
 import { JsonPreviewDialog } from "@/components/dev/JsonPreviewDialog";
@@ -265,7 +264,7 @@ function TokenTableRow({
               }
             >
               {isSourceGroup && (
-                <Lock size={12} className="mr-1.5 text-muted-foreground flex-shrink-0" />
+                <Locked size={12} className="mr-1.5 text-muted-foreground flex-shrink-0" />
               )}
               <span className="truncate">
                 {token.path || <span className="text-muted-foreground">—</span>}
@@ -531,7 +530,7 @@ function TokenTableRow({
                   }}
                   className="text-muted-foreground hover:text-info flex-shrink-0 focus:outline-none"
                 >
-                  <RotateCcw size={12} />
+                  <RotateCounterclockwise size={12} className="shrink-0" />
                 </button>
               )}
 
@@ -589,7 +588,7 @@ function TokenTableRow({
                 title="Preview CSS / HTML"
                 aria-label="Preview pattern code"
               >
-                <Eye size={12} />
+                <View size={12} className="shrink-0" />
               </Button>
             )}
             <Button
@@ -602,14 +601,14 @@ function TokenTableRow({
               }}
               title="Toggle attributes"
             >
-              {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+              {isExpanded ? <ChevronUp size={12} className="shrink-0" /> : <ChevronDown size={12} className="shrink-0" />}
             </Button>
             {isReadOnly ? (
               <span
                 title="Source group — read only"
                 className="h-6 w-6 flex items-center justify-center text-muted-foreground"
               >
-                <Lock size={12} />
+                <Locked size={12} className="shrink-0" />
               </span>
             ) : (
               <Button
@@ -623,7 +622,7 @@ function TokenTableRow({
                 disabled={isReadOnly}
                 title={isReadOnly ? "Source group — read only" : "Delete token"}
               >
-                <Trash2 size={12} />
+                <TrashCan size={12} className="shrink-0" />
               </Button>
             )}
           </div>
@@ -1797,7 +1796,7 @@ export function TokenGeneratorForm({
                           onClick={() => onResetGroupToSource(group.id)}
                           className="text-warning focus:text-warning"
                         >
-                          <RotateCcw size={14} className="mr-2" />
+                          <RotateCounterclockwise size={14} className="mr-2 shrink-0" />
                           Reset to source
                         </DropdownMenuItem>
                         {!isReadOnly && <DropdownMenuSeparator />}

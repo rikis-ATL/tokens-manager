@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, KeyboardEvent } from 'react';
-import { X, Loader2 } from 'lucide-react';
+import { InProgress, Close } from '@carbon/icons-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -150,7 +150,7 @@ export function EditCollectionDialog({ isOpen, collection, onClose, onSaved }: E
                     onClick={(e) => { e.stopPropagation(); removeTag(tag); }}
                     aria-label={`Remove ${tag}`}
                   >
-                    <X size={10} />
+                    <Close size={10} />
                   </button>
                 </span>
               ))}
@@ -204,7 +204,7 @@ export function EditCollectionDialog({ isOpen, collection, onClose, onSaved }: E
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={isSaving}>Cancel</Button>
           <Button onClick={handleSave} disabled={isSaving || !name.trim()}>
-            {isSaving && <Loader2 size={14} className="mr-1.5 animate-spin" />}
+            {isSaving && <InProgress size={14} className="mr-1.5 shrink-0 animate-spin" />}
             Save
           </Button>
         </DialogFooter>

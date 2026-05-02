@@ -2,7 +2,7 @@
 
 import { memo, useState, useCallback } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
-import { Check, Zap, Tag, FolderPlus } from 'lucide-react';
+import { Checkmark, Lightning, Tag, FolderAdd } from '@carbon/icons-react';
 import {
   NodeWrapper, NodeHeader, Row, NativeSelect, TextInput, HANDLE_STRING, HANDLE_ARRAY, HANDLE_OUT,
 } from './nodeShared';
@@ -110,7 +110,7 @@ function TokenOutputNodeComponent({ data }: NodeProps) {
   return (
     <NodeWrapper borderColor="border-success" width={268}>
       <NodeHeader
-        icon={isSubgroup ? <FolderPlus size={12} className="text-success" /> : <Tag size={12} className="text-success" />}
+        icon={isSubgroup ? <FolderAdd size={12} className="text-success" /> : <Tag size={12} className="text-success" />}
         title="Token Output"
         badge={count > 0 ? `${count} tokens` : undefined}
         headerClass="bg-success/10 border-success text-success"
@@ -264,8 +264,8 @@ function TokenOutputNodeComponent({ data }: NodeProps) {
           onClick={handleGenerate}
         >
           {generated
-            ? <><Check size={12} /> Added</>
-            : <><Zap size={12} /> {isSingleMode ? 'Add Token' : isSubgroup ? 'Add as Sub-group' : 'Add to Group'}</>
+            ? <><Checkmark size={12} /> Added</>
+            : <><Lightning size={12} /> {isSingleMode ? 'Add Token' : isSubgroup ? 'Add as Sub-group' : 'Add to Group'}</>
           }
         </button>
 

@@ -2,7 +2,16 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { MoreHorizontal, RotateCcw, Save, Sun, Moon, Eye, Download, EllipsisVertical, MessageSquare, X } from 'lucide-react';
+import {
+  Save,
+  Sun,
+  Moon,
+  View,
+  Download,
+  OverflowMenuVertical,
+  Chat,
+  Close,
+} from '@carbon/icons-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { showSuccessToast, showErrorToast } from '@/utils/toast.utils';
 import { SaveCollectionDialog } from '@/components/collections/SaveCollectionDialog';
@@ -217,6 +226,14 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     return filterGroupsForDualThemes(masterGroups, colorTheme, densityTheme);
   }, [masterGroups, activeColorThemeId, activeDensityThemeId, themes]);
 
+  const sidebarColorThemes = useMemo(
+    () => themes.filter((t) => (t.kind ?? 'color') === 'color'),
+    [themes],
+  );
+  const sidebarDensityThemes = useMemo(
+    () => themes.filter((t) => (t.kind ?? 'color') === 'density'),
+    [themes],
+  );
 
   const [selectedGroupId, setSelectedGroupId] = useState('');
   const [selectedToken, setSelectedToken] = useState<{ token: GeneratedToken; groupPath: string } | null>(null);
@@ -1313,21 +1330,21 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
 
 
         </div>
-        <div className="flex gap-2 items-center">
+        <div className="flex items-center">
           {/* Preview JSON button */}
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             className="px-2"
             onClick={handlePreviewJSON}
             title="Preview JSON"
           >
-            <Eye size={16} />
+            <View size={16} />
           </Button>
 
           {/* Download JSON button */}
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             className="px-2"
             onClick={handleDownloadJSONFromHeader}
@@ -1341,7 +1358,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
             <Button
               onClick={handleSave}
               disabled={isSaving}
-              className="bg-primary hover:bg-primary text-primary-foreground gap-1"
+              variant="default"
               size="sm"
             >
               <Save size={14} />
@@ -1351,20 +1368,20 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
 
           {/* AI Chat toggle */}
           <Button
-            variant={isChatOpen ? 'default' : 'outline'}
+            variant={isChatOpen ? 'default' : 'ghost'}
             size="sm"
             className="px-2"
             onClick={() => setIsChatOpen(v => !v)}
             title="AI Assistant"
           >
-            <MessageSquare size={16} />
+            <Chat size={16} />
           </Button>
 
           {/* More actions dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="px-2">
-                <EllipsisVertical size={16} />
+              <Button variant="ghost" size="sm" className="px-2">
+                <OverflowMenuVertical size={16} />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -1450,57 +1467,57 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
         value="tokens"
         className="flex flex-1 flex-col min-h-0 m-0 p-0 overflow-hidden"
       >
-        {/* Dual theme selectors — compact bar, only shown when themes exist */}
-        {(() => {
-          const colorThemes   = themes.filter(t => (t.kind ?? 'color') === 'color');
-          const densityThemes = themes.filter(t => (t.kind ?? 'color') === 'density');
-          if (colorThemes.length === 0 && densityThemes.length === 0) return null;
-          return (
-            <div className="flex items-center gap-3 px-4 py-2 border-b border-muted bg-background shrink-0">
-              {colorThemes.length > 0 && (
-                <>
-                  <label className="text-xs text-muted-foreground">Color:</label>
-                  <Select
-                    key={activeColorThemeId ?? '__color_default__'}
-                    value={activeColorThemeId ?? '__default__'}
-                    onValueChange={(v) => handleColorThemeChange(v === '__default__' ? null : v)}
-                  >
-                    <SelectTrigger className="w-36 h-8 text-xs">
-                      <SelectValue placeholder="Default" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__default__">Default</SelectItem>
-                      {colorThemes.map(t => (
-                        <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </>
-              )}
-              {densityThemes.length > 0 && (
-                <>
-                  <label className="text-xs text-muted-foreground">Density:</label>
-                  <Select
-                    key={activeDensityThemeId ?? '__density_default__'}
-                    value={activeDensityThemeId ?? '__default__'}
-                    onValueChange={(v) => handleDensityThemeChange(v === '__default__' ? null : v)}
-                  >
-                    <SelectTrigger className="w-36 h-8 text-xs">
-                      <SelectValue placeholder="Default" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__default__">Default</SelectItem>
-                      {densityThemes.map(t => (
-                        <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </>
-              )}
-            </div>
-          );
-        })()}
         <CollectionTokensWorkspace
+          sidebarHeader={
+            sidebarColorThemes.length === 0 && sidebarDensityThemes.length === 0 ? undefined : (
+              <div className="space-y-2.5">
+                {sidebarColorThemes.length > 0 && (
+                  <div className="space-y-1">
+                    <label htmlFor="tokens-sidebar-color-theme" className="text-[11px] text-muted-foreground block">
+                      Color
+                    </label>
+                    <Select
+                      key={activeColorThemeId ?? '__color_default__'}
+                      value={activeColorThemeId ?? '__default__'}
+                      onValueChange={(v) => handleColorThemeChange(v === '__default__' ? null : v)}
+                    >
+                      <SelectTrigger id="tokens-sidebar-color-theme" className="w-full h-8 text-xs">
+                        <SelectValue placeholder="Default" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__default__">Default</SelectItem>
+                        {sidebarColorThemes.map(t => (
+                          <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                {sidebarDensityThemes.length > 0 && (
+                  <div className="space-y-1">
+                    <label htmlFor="tokens-sidebar-density-theme" className="text-[11px] text-muted-foreground block">
+                      Density
+                    </label>
+                    <Select
+                      key={activeDensityThemeId ?? '__density_default__'}
+                      value={activeDensityThemeId ?? '__default__'}
+                      onValueChange={(v) => handleDensityThemeChange(v === '__default__' ? null : v)}
+                    >
+                      <SelectTrigger id="tokens-sidebar-density-theme" className="w-full h-8 text-xs">
+                        <SelectValue placeholder="Default" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__default__">Default</SelectItem>
+                        {sidebarDensityThemes.map(t => (
+                          <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+            )
+          }
           groupTree={{
             groups: filteredGroups,
             selectedGroupId,
@@ -1665,7 +1682,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
         <div className="flex items-center justify-between px-4 py-3 border-b border-muted bg-background text-foreground">
           <span className="text-sm font-medium text-foreground">AI Assistant — {collectionName}</span>
           <Button variant="ghost" size="sm" className="px-1" onClick={() => setIsChatOpen(false)}>
-            <X size={16} />
+            <Close size={16} />
           </Button>
         </div>
         <div className="h-[calc(100%-48px)]">

@@ -7,6 +7,8 @@
   --foreground: 222.2 84% 4.9%;
   --card: 0 0% 100%;
   --card-foreground: 222.2 84% 4.9%;
+  --card-background: var(--card);
+  --card-border: var(--border);
   --popover: 0 0% 100%;
   --popover-foreground: 222.2 84% 4.9%;
   --primary: 222.2 47.4% 11.2%;
@@ -22,6 +24,12 @@
   --border: 214.3 31.8% 91.4%;
   --input: 214.3 31.8% 91.4%;
   --ring: 222.2 84% 4.9%;
+  --button-border: var(--input);
+  --menu-border: var(--border);
+  --tabs-border: var(--border);
+  --popover-border: var(--border);
+  --dialog-border: var(--border);
+  --badge-border: var(--border);
   --radius: 0.5rem;
   /* Semantic status (overridable via app theme collection `shadcn` group + bridge) */
   --success: 142.1 76.2% 36.3%;
@@ -31,8 +39,8 @@
   --info: 221.2 83.2% 53.3%;
   --info-foreground: 210 40% 98%;
   /* Typography (app-theme `shadcn` group; bridge: --font-*, --text-*, --leading-*) */
-  --font-sans: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-    'Segoe UI Symbol';
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Segoe UI Symbol';
   --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
   --font-secondary: var(--font-sans);
   --text-2xs: 0.625rem;
@@ -63,6 +71,39 @@
   --leading-8xl: 1;
   --text-9xl: 8rem;
   --leading-9xl: 1;
+  /* Control density (app-theme `shadcn` group; bridge: --button-*, --input-*, …) */
+  --button-padding-x: 1rem;
+  --button-padding-y: 0.625rem;
+  --button-padding-x-sm: 0.75rem;
+  --button-padding-y-sm: 0.375rem;
+  --button-padding-x-lg: 1.25rem;
+  --button-padding-y-lg: 0.75rem;
+  --button-font-size: var(--text-xs);
+  --button-line-height: var(--leading-xs);
+  --button-icon-size: 1.75rem;
+  --button-icon-padding: 0.375rem;
+  --button-border-radius: calc(var(--radius) - 4px);
+  --button-group-gap: var(--button-padding-y);
+  --button-group-padding: var(--button-padding-y);
+  --input-padding-x: 0.75rem;
+  --input-padding-y: 0.5rem;
+  --input-font-size: var(--text-sm);
+  --input-line-height: var(--leading-sm);
+  --input-min-height: 5rem;
+  --input-viewport-padding: 0.25rem;
+  --input-label-font-size: var(--text-sm);
+  --input-label-line-height: var(--leading-sm);
+  --input-border-radius: calc(var(--radius) - 2px);
+  --menu-item-padding-x: 0.5rem;
+  --menu-item-padding-y: 0.375rem;
+  --menu-item-font-size: var(--text-sm);
+  --menu-item-line-height: var(--leading-sm);
+  --menubar-height: calc(var(--input-line-height) + 2 * var(--input-padding-y) + 2px);
+  --card-border-radius: var(--radius);
+  --card-title-font-size: var(--text-lg);
+  --card-title-line-height: var(--leading-lg);
+  --card-subtitle-font-size: var(--text-sm);
+  --card-subtitle-line-height: var(--leading-sm);
 }
 
 /* Tailwind darkMode: class — `html.dark` (AppThemeProvider) + token export selector */
@@ -72,6 +113,8 @@
   --foreground: 210 40% 98%;
   --card: 222.2 84% 4.9%;
   --card-foreground: 210 40% 98%;
+  --card-background: var(--card);
+  --card-border: var(--border);
   --popover: 222.2 84% 4.9%;
   --popover-foreground: 210 40% 98%;
   --primary: 210 40% 98%;
@@ -87,6 +130,12 @@
   --border: 217.2 32.6% 17.5%;
   --input: 217.2 32.6% 17.5%;
   --ring: 212.7 26.8% 83.9%;
+  --button-border: var(--input);
+  --menu-border: var(--border);
+  --tabs-border: var(--border);
+  --popover-border: var(--border);
+  --dialog-border: var(--border);
+  --badge-border: var(--border);
   --success: 142.1 70.6% 45.3%;
   --success-foreground: 144.9 80.4% 10%;
   --warning: 32.1 90% 48%;

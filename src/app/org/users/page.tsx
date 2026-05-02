@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { UserPlus, RefreshCw, Trash2, Pencil, Check } from 'lucide-react';
+import { UserFollow, Renew, TrashCan, Edit, Checkmark } from '@carbon/icons-react';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,7 +19,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { InviteModal } from '@/components/org/InviteModal';
-import { showErrorToast } from '@/utils/toast.utils';
+import { showErrorToast, showSuccessToast } from '@/utils/toast.utils';
 
 interface InviteRow {
   _id: string;
@@ -115,9 +115,13 @@ export default function OrgUsersPage() {
     }
   }
 
-  function handleInviteSuccess(invite: Record<string, unknown>) {
-    // Optimistically add the new row
-    setInvites((prev) => [invite as unknown as InviteRow, ...prev]);
+  function handleInviteSuccess(payload: Record<string, unknown>) {
+    if (payload.demoProvisioned) {
+      showSuccessToast('Shared demo user created — no verification email was sent.');
+      void fetchUsers();
+      return;
+    }
+    setInvites((prev) => [payload as unknown as InviteRow, ...prev]);
   }
 
   async function handleResend(id: string) {
@@ -181,7 +185,7 @@ export default function OrgUsersPage() {
           </p>
         </div>
         <Button onClick={() => setModalOpen(true)}>
-          <UserPlus className="mr-2 h-4 w-4" />
+          <UserFollow className="mr-2 h-4 w-4" />
           Invite User
         </Button>
       </div>
@@ -247,7 +251,7 @@ export default function OrgUsersPage() {
                         ? <span className="text-muted-foreground dark:text-muted-foreground">All collections</span>
                         : <span>{user.collections.map((c) => c.name).join(', ')}</span>
                       }
-                      {canAct && <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-50 flex-shrink-0" />}
+                      {canAct && <Edit className="h-3 w-3 opacity-0 group-hover:opacity-50 flex-shrink-0" />}
                     </button>
                   </td>
                   <td className="px-4 py-3">
@@ -264,7 +268,7 @@ export default function OrgUsersPage() {
                       title={!canAct ? (user.isSuperAdmin ? 'Cannot remove superadmin' : 'Cannot remove yourself') : 'Remove user'}
                       className="text-destructive hover:text-destructive disabled:opacity-30"
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
+                      <TrashCan className="h-3.5 w-3.5" />
                     </Button>
                   </td>
                 </tr>
@@ -294,7 +298,7 @@ export default function OrgUsersPage() {
                         onClick={() => handleResend(invite._id)}
                         title="Resend invitation email"
                       >
-                        <RefreshCw className="h-3.5 w-3.5" />
+                        <Renew className="h-3.5 w-3.5" />
                       </Button>
                       <Button
                         variant="ghost"
@@ -303,7 +307,7 @@ export default function OrgUsersPage() {
                         title="Revoke invitation"
                         className="text-destructive hover:text-destructive"
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
+                        <TrashCan className="h-3.5 w-3.5" />
                       </Button>
                     </div>
                   </td>
@@ -356,7 +360,7 @@ export default function OrgUsersPage() {
           <DialogFooter className="mt-4">
             <Button variant="outline" onClick={() => setCollectionsTarget(null)} disabled={savingCollections}>Cancel</Button>
             <Button onClick={handleSaveCollections} disabled={savingCollections}>
-              {savingCollections ? 'Saving...' : <><Check className="mr-2 h-4 w-4" />Save</>}
+              {savingCollections ? 'Saving...' : <><Checkmark size={16} className="mr-2 shrink-0" />Save</>}
             </Button>
           </DialogFooter>
         </DialogContent>

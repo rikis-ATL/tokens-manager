@@ -2,7 +2,7 @@
 
 import { memo, useState, useEffect } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
-import { Eye } from 'lucide-react';
+import { View } from '@carbon/icons-react';
 import {
   NodeWrapper, NodeHeader, Row, RowHandle, TextInput,
   HANDLE_STRING, HANDLE_NUMBER, HANDLE_OUT,
@@ -117,7 +117,7 @@ function A11yContrastNodeComponent({ data }: NodeProps) {
   return (
     <NodeWrapper borderColor="border-info/40" width={252}>
       <NodeHeader
-        icon={<Eye size={12} className="text-info" />}
+        icon={<View size={12} className="text-info" />}
         title="A11y Contrast"
         badge={ratio != null ? `${ratio}:1` : undefined}
         headerClass="bg-info/10 border-info/30 text-info"

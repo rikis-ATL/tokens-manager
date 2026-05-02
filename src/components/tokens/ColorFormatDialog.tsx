@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Palette } from 'lucide-react';
+import { ColorPalette } from '@carbon/icons-react';
 import {
   Dialog,
   DialogContent,
@@ -65,7 +65,7 @@ export function ColorFormatDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Palette className="w-4 h-4" />
+            <ColorPalette size={16} className="shrink-0" />
             Convert Color Format
           </DialogTitle>
           <DialogDescription>

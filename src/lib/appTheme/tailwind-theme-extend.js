@@ -1,7 +1,7 @@
 /**
  * Single source for Tailwind `theme.extend` — matches CSS variables in
- * `src/app/globals.css`, the shadcn bridge, and `semantic-tailwind.ts`.
- * Keep in sync when adding a new semantic token.
+ * `src/app/globals.css`, the shadcn bridge, `semantic-tailwind.ts`, and
+ * `component-density-defaults.ts`. Keep in sync when adding a new semantic token.
  */
 const typeSteps = [
   '2xs',
@@ -27,6 +27,42 @@ for (const s of typeSteps) {
   lineHeight[s] = `var(--leading-${s})`;
 }
 
+fontSize.button = ['var(--button-font-size)', { lineHeight: 'var(--button-line-height)' }];
+fontSize.input = ['var(--input-font-size)', { lineHeight: 'var(--input-line-height)' }];
+fontSize['input-label'] = [
+  'var(--input-label-font-size)',
+  { lineHeight: 'var(--input-label-line-height)' },
+];
+fontSize['menu-item'] = [
+  'var(--menu-item-font-size)',
+  { lineHeight: 'var(--menu-item-line-height)' },
+];
+fontSize['card-title'] = [
+  'var(--card-title-font-size)',
+  { lineHeight: 'var(--card-title-line-height)' },
+];
+fontSize['card-subtitle'] = [
+  'var(--card-subtitle-font-size)',
+  { lineHeight: 'var(--card-subtitle-line-height)' },
+];
+
+/** Matches `--*-padding-*` in globals.css / component-density-defaults */
+const controlSpacing = {
+  'button-x': 'var(--button-padding-x)',
+  'button-y': 'var(--button-padding-y)',
+  'button-x-sm': 'var(--button-padding-x-sm)',
+  'button-y-sm': 'var(--button-padding-y-sm)',
+  'button-x-lg': 'var(--button-padding-x-lg)',
+  'button-y-lg': 'var(--button-padding-y-lg)',
+  'input-x': 'var(--input-padding-x)',
+  'input-y': 'var(--input-padding-y)',
+  'input-viewport': 'var(--input-viewport-padding)',
+  'menu-item-x': 'var(--menu-item-padding-x)',
+  'menu-item-y': 'var(--menu-item-padding-y)',
+  'button-group-gap': 'var(--button-group-gap)',
+  'button-group-padding': 'var(--button-group-padding)',
+};
+
 module.exports = {
   colors: {
     border: 'hsl(var(--border))',
@@ -46,6 +82,21 @@ module.exports = {
       DEFAULT: 'hsl(var(--destructive))',
       foreground: 'hsl(var(--destructive-foreground))',
     },
+    button: {
+      border: 'hsl(var(--button-border))',
+    },
+    menu: {
+      border: 'hsl(var(--menu-border))',
+    },
+    tabs: {
+      border: 'hsl(var(--tabs-border))',
+    },
+    dialog: {
+      border: 'hsl(var(--dialog-border))',
+    },
+    badge: {
+      border: 'hsl(var(--badge-border))',
+    },
     muted: {
       DEFAULT: 'hsl(var(--muted))',
       foreground: 'hsl(var(--muted-foreground))',
@@ -57,10 +108,12 @@ module.exports = {
     popover: {
       DEFAULT: 'hsl(var(--popover))',
       foreground: 'hsl(var(--popover-foreground))',
+      border: 'hsl(var(--popover-border))',
     },
     card: {
-      DEFAULT: 'hsl(var(--card))',
+      DEFAULT: 'hsl(var(--card-background))',
       foreground: 'hsl(var(--card-foreground))',
+      border: 'hsl(var(--card-border))',
     },
     success: {
       DEFAULT: 'hsl(var(--success))',
@@ -75,10 +128,20 @@ module.exports = {
       foreground: 'hsl(var(--info-foreground))',
     },
   },
+  spacing: controlSpacing,
+  height: {
+    menubar: 'var(--menubar-height)',
+  },
+  minHeight: {
+    'input-min': 'var(--input-min-height)',
+  },
   borderRadius: {
     lg: 'var(--radius)',
     md: 'calc(var(--radius) - 2px)',
     sm: 'calc(var(--radius) - 4px)',
+    button: 'var(--button-border-radius)',
+    input: 'var(--input-border-radius)',
+    card: 'var(--card-border-radius)',
   },
   fontFamily: {
     sans: [

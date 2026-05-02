@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from '@carbon/icons-react';
 import { Button } from '@/components/ui/button';
 
 type MarketingHeaderProps = {

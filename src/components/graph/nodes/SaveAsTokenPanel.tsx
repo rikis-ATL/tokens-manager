@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Save, Check, ChevronDown } from 'lucide-react';
+import { Save, Checkmark, ChevronDown } from '@carbon/icons-react';
 import { TextInput } from './nodeShared';
 import type { FlatGroup } from '@/types/graph-nodes.types';
 
@@ -173,7 +173,7 @@ export function SaveAsTokenPanel({
         }`}
       >
         {saved
-          ? <><Check size={11} /> Saved</>
+          ? <><Checkmark size={11} /> Saved</>
           : <><Save size={11} /> Save to group</>
         }
       </button>

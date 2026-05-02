@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { getPlanTierLimitsForDisplay } from '@/lib/billing/pricing-public';
 import { showSuccessToast, showErrorToast } from '@/utils/toast.utils';
-import { Copy, Check, Loader2 } from 'lucide-react';
+import { Copy, Checkmark, InProgress } from '@carbon/icons-react';
 
 type Creds = { email: string; password: string };
 
@@ -79,7 +79,7 @@ export function DemoLanding() {
           </p>
           {loading ? (
             <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
-              <Loader2 className="animate-spin w-4 h-4" />
+              <InProgress size={16} className="animate-spin shrink-0" />
               Loading demo sign-in…
             </div>
           ) : creds ? (
@@ -96,7 +96,7 @@ export function DemoLanding() {
                     onClick={() => copy('email', creds.email)}
                     aria-label="Copy email"
                   >
-                    {copiedField === 'email' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    {copiedField === 'email' ? <Checkmark size={16} className="shrink-0" /> : <Copy size={16} className="shrink-0" />}
                   </Button>
                 </div>
               </div>
@@ -112,7 +112,7 @@ export function DemoLanding() {
                     onClick={() => copy('password', creds.password)}
                     aria-label="Copy password"
                   >
-                    {copiedField === 'password' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    {copiedField === 'password' ? <Checkmark size={16} className="shrink-0" /> : <Copy size={16} className="shrink-0" />}
                   </Button>
                 </div>
               </div>

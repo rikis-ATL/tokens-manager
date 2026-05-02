@@ -1,0 +1,258 @@
+{
+  "$description": "Example `shadcn` group under collection tokens (`namespace.shadcn.*`). Colors use CSS hsl(); omit optional keys to use bridge fallbacks from globals.css. Path aliases `{shadcn.*}` assume Style Dictionary–style references.",
+  "shadcn": {
+    "background": { "$type": "color", "$value": "hsl(0 0% 100%)" },
+    "foreground": { "$type": "color", "$value": "hsl(222.2 84% 4.9%)" },
+    "card": { "$type": "color", "$value": "hsl(0 0% 100%)" },
+    "card-foreground": { "$type": "color", "$value": "hsl(222.2 84% 4.9%)" },
+    "card-background": { "$type": "color", "$value": "hsl(0 0% 100%)" },
+    "card-border": { "$type": "color", "$value": "hsl(214.3 31.8% 91.4%)" },
+    "popover": { "$type": "color", "$value": "hsl(0 0% 100%)" },
+    "popover-foreground": { "$type": "color", "$value": "hsl(222.2 84% 4.9%)" },
+    "primary": { "$type": "color", "$value": "hsl(222.2 47.4% 11.2%)" },
+    "primary-foreground": { "$type": "color", "$value": "hsl(210 40% 98%)" },
+    "secondary": { "$type": "color", "$value": "hsl(210 40% 96.1%)" },
+    "secondary-foreground": { "$type": "color", "$value": "hsl(222.2 47.4% 11.2%)" },
+    "muted": { "$type": "color", "$value": "hsl(210 40% 96.1%)" },
+    "muted-foreground": { "$type": "color", "$value": "hsl(215.4 16.3% 46.9%)" },
+    "accent": { "$type": "color", "$value": "hsl(210 40% 96.1%)" },
+    "accent-foreground": { "$type": "color", "$value": "hsl(222.2 47.4% 11.2%)" },
+    "destructive": { "$type": "color", "$value": "hsl(0 84.2% 60.2%)" },
+    "destructive-foreground": { "$type": "color", "$value": "hsl(210 40% 98%)" },
+    "border": { "$type": "color", "$value": "hsl(214.3 31.8% 91.4%)" },
+    "input": { "$type": "color", "$value": "hsl(214.3 31.8% 91.4%)" },
+    "ring": { "$type": "color", "$value": "hsl(222.2 84% 4.9%)" },
+    "button-border": { "$type": "color", "$value": "hsl(214.3 31.8% 91.4%)" },
+    "menu-border": { "$type": "color", "$value": "hsl(214.3 31.8% 91.4%)" },
+    "tabs-border": { "$type": "color", "$value": "hsl(214.3 31.8% 91.4%)" },
+    "popover-border": { "$type": "color", "$value": "hsl(214.3 31.8% 91.4%)" },
+    "dialog-border": { "$type": "color", "$value": "hsl(214.3 31.8% 91.4%)" },
+    "badge-border": { "$type": "color", "$value": "hsl(214.3 31.8% 91.4%)" },
+    "success": { "$type": "color", "$value": "hsl(142.1 76.2% 36.3%)" },
+    "success-foreground": { "$type": "color", "$value": "hsl(355.7 100% 97.3%)" },
+    "warning": { "$type": "color", "$value": "hsl(32.1 94.6% 43.7%)" },
+    "warning-foreground": { "$type": "color", "$value": "hsl(26 83.3% 14.1%)" },
+    "info": { "$type": "color", "$value": "hsl(221.2 83.2% 53.3%)" },
+    "info-foreground": { "$type": "color", "$value": "hsl(210 40% 98%)" },
+    "radius": { "$type": "dimension", "$value": { "value": 0.5, "unit": "rem" } },
+    "font-sans": {
+      "$type": "fontFamily",
+      "$value": [
+        "var(--font-inter)",
+        "ui-sans-serif",
+        "system-ui",
+        "sans-serif",
+        "Apple Color Emoji",
+        "Segoe UI Emoji",
+        "Segoe UI Symbol"
+      ]
+    },
+    "font-mono": {
+      "$type": "fontFamily",
+      "$value": [
+        "ui-monospace",
+        "SFMono-Regular",
+        "SF Mono",
+        "Menlo",
+        "Consolas",
+        "Liberation Mono",
+        "monospace"
+      ]
+    },
+    "font-secondary": {
+      "$type": "fontFamily",
+      "$value": ["{shadcn.font-sans}"]
+    },
+    "text-2xs": { "$type": "dimension", "$value": { "value": 0.625, "unit": "rem" } },
+    "leading-2xs": { "$type": "dimension", "$value": { "value": 0.875, "unit": "rem" } },
+    "text-xs": { "$type": "dimension", "$value": { "value": 0.75, "unit": "rem" } },
+    "leading-xs": { "$type": "dimension", "$value": { "value": 1, "unit": "rem" } },
+    "text-sm": { "$type": "dimension", "$value": { "value": 0.875, "unit": "rem" } },
+    "leading-sm": { "$type": "dimension", "$value": { "value": 1.25, "unit": "rem" } },
+    "text-base": { "$type": "dimension", "$value": { "value": 1, "unit": "rem" } },
+    "leading-base": { "$type": "dimension", "$value": { "value": 1.5, "unit": "rem" } },
+    "text-lg": { "$type": "dimension", "$value": { "value": 1.125, "unit": "rem" } },
+    "leading-lg": { "$type": "dimension", "$value": { "value": 1.75, "unit": "rem" } },
+    "text-xl": { "$type": "dimension", "$value": { "value": 1.25, "unit": "rem" } },
+    "leading-xl": { "$type": "dimension", "$value": { "value": 1.75, "unit": "rem" } },
+    "text-2xl": { "$type": "dimension", "$value": { "value": 1.5, "unit": "rem" } },
+    "leading-2xl": { "$type": "dimension", "$value": { "value": 2, "unit": "rem" } },
+    "text-3xl": { "$type": "dimension", "$value": { "value": 1.875, "unit": "rem" } },
+    "leading-3xl": { "$type": "dimension", "$value": { "value": 2.25, "unit": "rem" } },
+    "text-4xl": { "$type": "dimension", "$value": { "value": 2.25, "unit": "rem" } },
+    "leading-4xl": { "$type": "dimension", "$value": { "value": 2.5, "unit": "rem" } },
+    "text-5xl": { "$type": "dimension", "$value": { "value": 3, "unit": "rem" } },
+    "leading-5xl": { "$type": "number", "$value": 1 },
+    "text-6xl": { "$type": "dimension", "$value": { "value": 3.75, "unit": "rem" } },
+    "leading-6xl": { "$type": "number", "$value": 1 },
+    "text-7xl": { "$type": "dimension", "$value": { "value": 4.5, "unit": "rem" } },
+    "leading-7xl": { "$type": "number", "$value": 1 },
+    "text-8xl": { "$type": "dimension", "$value": { "value": 6, "unit": "rem" } },
+    "leading-8xl": { "$type": "number", "$value": 1 },
+    "text-9xl": { "$type": "dimension", "$value": { "value": 8, "unit": "rem" } },
+    "leading-9xl": { "$type": "number", "$value": 1 },
+    "button-padding-x": { "$type": "dimension", "$value": { "value": 1, "unit": "rem" } },
+    "button-padding-y": { "$type": "dimension", "$value": { "value": 0.625, "unit": "rem" } },
+    "button-padding-x-sm": { "$type": "dimension", "$value": { "value": 0.75, "unit": "rem" } },
+    "button-padding-y-sm": { "$type": "dimension", "$value": { "value": 0.375, "unit": "rem" } },
+    "button-padding-x-lg": { "$type": "dimension", "$value": { "value": 1.25, "unit": "rem" } },
+    "button-padding-y-lg": { "$type": "dimension", "$value": { "value": 0.75, "unit": "rem" } },
+    "button-font-size": {
+      "$type": "dimension",
+      "$value": "{shadcn.text-xs}",
+      "$extensions": {
+        "com.tokens-manager.note": "Alias to text-xs; bridge resolves via Style Dictionary transforms."
+      }
+    },
+    "button-line-height": {
+      "$type": "dimension",
+      "$value": "{shadcn.leading-xs}",
+      "$extensions": {
+        "com.tokens-manager.note": "Alias to leading-xs."
+      }
+    },
+    "button-icon-size": { "$type": "dimension", "$value": { "value": 1.75, "unit": "rem" } },
+    "button-icon-padding": { "$type": "dimension", "$value": { "value": 0.375, "unit": "rem" } },
+    "button-border-radius": {
+      "$extensions": {
+        "com.tokens-manager.css": "calc(var(--radius) - 4px)",
+        "com.tokens-manager.note": "DTCG has no calc dimension in core profile; emit via SD transform from radius token."
+      },
+      "$type": "dimension",
+      "$value": { "value": 4, "unit": "px" }
+    },
+    "button-group-gap": {
+      "$type": "dimension",
+      "$value": "{shadcn.button-padding-y}"
+    },
+    "button-group-padding": {
+      "$type": "dimension",
+      "$value": "{shadcn.button-padding-y}"
+    },
+    "input-padding-x": { "$type": "dimension", "$value": { "value": 0.75, "unit": "rem" } },
+    "input-padding-y": { "$type": "dimension", "$value": { "value": 0.5, "unit": "rem" } },
+    "input-font-size": {
+      "$type": "dimension",
+      "$value": "{shadcn.text-sm}"
+    },
+    "input-line-height": {
+      "$type": "dimension",
+      "$value": "{shadcn.leading-sm}"
+    },
+    "input-min-height": { "$type": "dimension", "$value": { "value": 5, "unit": "rem" } },
+    "input-viewport-padding": { "$type": "dimension", "$value": { "value": 0.25, "unit": "rem" } },
+    "input-label-font-size": {
+      "$type": "dimension",
+      "$value": "{shadcn.text-sm}"
+    },
+    "input-label-line-height": {
+      "$type": "dimension",
+      "$value": "{shadcn.leading-sm}"
+    },
+    "input-border-radius": {
+      "$extensions": {
+        "com.tokens-manager.css": "calc(var(--radius) - 2px)",
+        "com.tokens-manager.note": "Prefer emitting literal calc from radius in build pipeline."
+      },
+      "$type": "dimension",
+      "$value": { "value": 6, "unit": "px" }
+    },
+    "menu-item-padding-x": { "$type": "dimension", "$value": { "value": 0.5, "unit": "rem" } },
+    "menu-item-padding-y": { "$type": "dimension", "$value": { "value": 0.375, "unit": "rem" } },
+    "menu-item-font-size": {
+      "$type": "dimension",
+      "$value": "{shadcn.text-sm}"
+    },
+    "menu-item-line-height": {
+      "$type": "dimension",
+      "$value": "{shadcn.leading-sm}"
+    },
+    "menubar-height": {
+      "$extensions": {
+        "com.tokens-manager.css": "calc(var(--input-line-height) + 2 * var(--input-padding-y) + 2px)",
+        "com.tokens-manager.note": "Computed surface height for menubar primitive."
+      },
+      "$type": "dimension",
+      "$value": { "value": 2.25, "unit": "rem" }
+    },
+    "card-border-radius": {
+      "$type": "dimension",
+      "$value": "{shadcn.radius}"
+    },
+    "card-title-font-size": {
+      "$type": "dimension",
+      "$value": "{shadcn.text-lg}"
+    },
+    "card-title-line-height": {
+      "$type": "dimension",
+      "$value": "{shadcn.leading-lg}"
+    },
+    "card-subtitle-font-size": {
+      "$type": "dimension",
+      "$value": "{shadcn.text-sm}"
+    },
+    "card-subtitle-line-height": {
+      "$type": "dimension",
+      "$value": "{shadcn.leading-sm}"
+    },
+    "font-google-sans": {
+      "$type": "fontFamily",
+      "$extensions": {
+        "com.tokens-manager.googleFontsCss2": "Inter:wght@400;500;600;700",
+        "com.tokens-manager.note": "Optional — drives @import only; not aliased to --font-* by bridge."
+      },
+      "$value": ["Inter"]
+    },
+    "font-google-mono": {
+      "$type": "fontFamily",
+      "$extensions": {
+        "com.tokens-manager.googleFontsCss2": "JetBrains+Mono:ital,wght@0,400;0,500",
+        "com.tokens-manager.note": "Optional Google Fonts family spec."
+      },
+      "$value": ["JetBrains Mono"]
+    },
+    "font-google-secondary": {
+      "$type": "fontFamily",
+      "$extensions": {
+        "com.tokens-manager.note": "Optional; omit if unused."
+      },
+      "$value": ["{shadcn.font-google-sans}"]
+    }
+  },
+  "shadcn-dark": {
+    "$description": "Parallel example for `[data-color-mode=\"dark\"]` / `.dark` — same leaf keys; swap colors only.",
+    "background": { "$type": "color", "$value": "hsl(222.2 84% 4.9%)" },
+    "foreground": { "$type": "color", "$value": "hsl(210 40% 98%)" },
+    "card": { "$type": "color", "$value": "hsl(222.2 84% 4.9%)" },
+    "card-foreground": { "$type": "color", "$value": "hsl(210 40% 98%)" },
+    "card-background": { "$type": "color", "$value": "hsl(222.2 84% 4.9%)" },
+    "card-border": { "$type": "color", "$value": "hsl(217.2 32.6% 17.5%)" },
+    "popover": { "$type": "color", "$value": "hsl(222.2 84% 4.9%)" },
+    "popover-foreground": { "$type": "color", "$value": "hsl(210 40% 98%)" },
+    "primary": { "$type": "color", "$value": "hsl(210 40% 98%)" },
+    "primary-foreground": { "$type": "color", "$value": "hsl(222.2 47.4% 11.2%)" },
+    "secondary": { "$type": "color", "$value": "hsl(217.2 32.6% 17.5%)" },
+    "secondary-foreground": { "$type": "color", "$value": "hsl(210 40% 98%)" },
+    "muted": { "$type": "color", "$value": "hsl(217.2 32.6% 17.5%)" },
+    "muted-foreground": { "$type": "color", "$value": "hsl(215 20.2% 65.1%)" },
+    "accent": { "$type": "color", "$value": "hsl(217.2 32.6% 17.5%)" },
+    "accent-foreground": { "$type": "color", "$value": "hsl(210 40% 98%)" },
+    "destructive": { "$type": "color", "$value": "hsl(0 62.8% 30.6%)" },
+    "destructive-foreground": { "$type": "color", "$value": "hsl(210 40% 98%)" },
+    "border": { "$type": "color", "$value": "hsl(217.2 32.6% 17.5%)" },
+    "input": { "$type": "color", "$value": "hsl(217.2 32.6% 17.5%)" },
+    "ring": { "$type": "color", "$value": "hsl(212.7 26.8% 83.9%)" },
+    "button-border": { "$type": "color", "$value": "hsl(217.2 32.6% 17.5%)" },
+    "menu-border": { "$type": "color", "$value": "hsl(217.2 32.6% 17.5%)" },
+    "tabs-border": { "$type": "color", "$value": "hsl(217.2 32.6% 17.5%)" },
+    "popover-border": { "$type": "color", "$value": "hsl(217.2 32.6% 17.5%)" },
+    "dialog-border": { "$type": "color", "$value": "hsl(217.2 32.6% 17.5%)" },
+    "badge-border": { "$type": "color", "$value": "hsl(217.2 32.6% 17.5%)" },
+    "success": { "$type": "color", "$value": "hsl(142.1 70.6% 45.3%)" },
+    "success-foreground": { "$type": "color", "$value": "hsl(144.9 80.4% 10%)" },
+    "warning": { "$type": "color", "$value": "hsl(32.1 90% 48%)" },
+    "warning-foreground": { "$type": "color", "$value": "hsl(26 83.3% 14.1%)" },
+    "info": { "$type": "color", "$value": "hsl(204 94% 56%)" },
+    "info-foreground": { "$type": "color", "$value": "hsl(222.2 84% 4.9%)" }
+  }
+}
