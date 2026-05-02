@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.9
 milestone_name: AI Completion + MCP Alignment
 status: active
-stopped_at: Phase 32 complete
-last_updated: "2026-04-26T00:00:00.000Z"
-last_activity: 2026-04-26 -- Phase 32 verified and closed
+stopped_at: Phase 34 complete
+last_updated: "2026-05-03T00:00:00.000Z"
+last_activity: 2026-05-03 -- Phase 34 verified and closed
 progress:
   total_phases: 4
-  completed_phases: 3
-  total_plans: 11
-  completed_plans: 8
-  percent: 75
+  completed_phases: 4
+  total_plans: 12
+  completed_plans: 12
+  percent: 100
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-11)
 
 **Core value:** Token collections are always available and editable: stored in MongoDB, accessible via collection-scoped URLs, with per-collection Figma/GitHub config, full CRUD from the collections grid, Figma import/export fully integrated, and a Themes system where each theme is a complete token value set with per-group edit permissions, dark-mode awareness, and theme-targeted export.
-**Current focus:** Phase 33 — Theme configuration — color/density (next in v1.9)
+**Current focus:** v1.9 milestone complete — all 4 phases done
 
 ## Current Position
 
-Phase: 32 (mcp-tool-service-layer) — COMPLETE
-Plan: 2 of 2
-Status: Phase 32 verified — 6/6 must-haves passed (MCP-01 fully satisfied, MCP-02 satisfied)
-Last activity: 2026-04-26 -- Phase 32 verified and closed
+Phase: 34 (demo-hero-graph-fullscreen) — COMPLETE
+Plan: 1 of 1
+Status: Phase 34 verified — DEMO-01 satisfied (GraphPanelWithChrome fullscreen shell delivered, human UAT approved)
+Last activity: 2026-05-03 -- Phase 34 verified and closed
 
 ## Accumulated Context
 
@@ -68,6 +68,7 @@ Key decisions captured from v1.6 research (pre-recorded in PROJECT.md):
 - Phase 31 (Style Guide Verification): Complete (completed 2026-04-09)
 - Phase 32 (MCP Tool Service Layer): Complete — MCP-01 and MCP-02 satisfied. Shared service layer used by both MCP tools and API routes. 4 theme mutation tools added to MCP server.
 - Phase 33 (Theme configuration — color/density): Not started
+- Phase 34 (Demo Hero — Graph Fullscreen Shell): Complete — DEMO-01 satisfied. GraphPanelWithChrome wrapper with fullscreen toggle + Escape handler. Single mounted TokenGraphPanel instance. Human UAT approved 2026-05-03.
 
 ## Session Continuity
 

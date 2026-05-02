@@ -173,7 +173,7 @@ Plans:
 - [x] **Phase 31: Style Guide Verification** — Browser verification of Phase 25 Style Guide tab; fix any regressions or nyquist coverage gaps (completed 2026-04-09)
 - [x] **Phase 32: MCP Tool Service Layer** — Extract shared token/group/theme service functions; add theme mutation tools to MCP server (completed 2026-04-26)
 - [ ] **Phase 33: Theme configuration — color/density** — Theme kinds (color vs density), dual active selection, merged effective token set, themes UI under Tokens page, config/export uses color + density instead of single theme
-- [ ] **Phase 34: Demo Hero — Graph Fullscreen Shell** — Extract graph presenter component (GraphPanelWithChrome) from TokenGraphPanel; add fullscreen toggle (fixed inset-0 z-50, Escape to exit, single mounted instance); wire CollectionTokensWorkspace to use new wrapper; optional localStorage persist; foundation for hero/playground demo experience
+- [x] **Phase 34: Demo Hero — Graph Fullscreen Shell** — Extract graph presenter component (GraphPanelWithChrome) from TokenGraphPanel; add fullscreen toggle (fixed inset-0 z-50, Escape to exit, single mounted instance); wire CollectionTokensWorkspace to use new wrapper; optional localStorage persist; foundation for hero/playground demo experience (completed 2026-05-03)
 
 ## Phase Details
 
@@ -249,7 +249,7 @@ Plans:
   5. `CollectionTokensWorkspace` wiring is unchanged outside fullscreen — split/tabs layout unaffected.
 **Plans**: 1 plan
 Plans:
-- [ ] 34-01-PLAN.md — Create GraphPanelWithChrome wrapper component and wire into tokens page
+- [x] 34-01-PLAN.md — Create GraphPanelWithChrome wrapper component and wire into tokens page
 
 ## Progress Table
 
@@ -262,6 +262,7 @@ Plans:
 | 31. Style Guide Verification | 3/3 | Complete   | 2026-04-09 |
 | 32. MCP Tool Service Layer | 2/2 | Complete | 2026-04-26 |
 | 33. Theme configuration — color/density | 1/4 | Planning | - |
+| 34. Demo Hero — Graph Fullscreen Shell | 1/1 | Complete | 2026-05-03 |
 | 999.3. Tokens Studio graph math node parity | 1 plan + UAT | Implemented — verification open | - |
 
 ### Phase 1: review math node features
