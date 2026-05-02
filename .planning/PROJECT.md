@@ -94,6 +94,7 @@ Token collections are always available and editable: stored in MongoDB, accessib
 - ✓ MCP server tools and in-app HTTP tool handlers share the same underlying service functions — MCP-01 — Validated in Phase 32
 - ✓ Style Guide tab (Phase 25) is fully verified in the browser with no regressions — VERIFY-25 — Validated in Phase 31
 - ✓ Graph panel has fullscreen toggle (fixed inset-0 z-50, Escape to exit, single mounted instance) — DEMO-01 — Validated in Phase 34
+- ✓ Themes split into color and density kinds; dual active selection (one color + one density); merged effective token set; themes UI consolidated under Tokens page; config/export uses dual selectors — SPEC-GOAL-1 through SPEC-GOAL-4 — Validated in Phase 33
 
 <!-- v1.6 Multi-Tenant SaaS (planned, not yet executed) -->
 - [ ] All users and collections are scoped to an organization via organizationId — TENANT-01
