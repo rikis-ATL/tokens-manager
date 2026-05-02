@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import {
+  ArrowsHorizontal,
   ChevronDown,
   ChevronUp,
   TrashCan,
@@ -78,6 +79,69 @@ import { type ColorFormat } from "@/utils/color.utils";
 import { createLoadingState } from "../../utils";
 import { BulkActionBar } from "./BulkActionBar";
 import { Badge } from "@/components/ui/badge";
+
+const NUMERIC_TOKEN_TYPES = new Set<TokenType>([
+  'dimension', 'fontSize', 'lineHeight', 'letterSpacing',
+  'borderRadius', 'borderWidth', 'opacity', 'fontWeight', 'number', 'duration',
+]);
+
+function DragScrubberHandle({
+  value,
+  onChange,
+  onActivate,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  onActivate?: () => void;
+}) {
+  const dragRef = useRef<{ startX: number; startNum: number; unit: string } | null>(null);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const match = (value ?? '').toString().match(/^(-?\d*\.?\d+)(.*)/);
+    if (!match) return;
+    const startNum = parseFloat(match[1]);
+    const unit = match[2].trim();
+    dragRef.current = { startX: e.clientX, startNum, unit };
+    onActivate?.();
+
+    const onMove = (me: MouseEvent) => {
+      if (!dragRef.current) return;
+      const delta = me.clientX - dragRef.current.startX;
+      const step = me.shiftKey ? 1 : 0.01;
+      const raw = dragRef.current.startNum + delta * step;
+      const rounded = Math.round(raw * 100) / 100;
+      onChange(`${rounded}${dragRef.current.unit}`);
+    };
+
+    const onUp = () => {
+      dragRef.current = null;
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      document.body.style.removeProperty('cursor');
+      document.body.style.removeProperty('user-select');
+    };
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    document.body.style.cursor = 'ew-resize';
+    document.body.style.userSelect = 'none';
+  }, [value, onChange, onActivate]);
+
+  return (
+    <button
+      type="button"
+      className="flex-shrink-0 flex items-center justify-center w-4 h-4 rounded text-muted-foreground hover:text-foreground cursor-ew-resize"
+      onMouseDown={handleMouseDown}
+      tabIndex={-1}
+      title="Drag left/right to adjust (shift = ×10)"
+      aria-label="Drag to scrub value"
+    >
+      <ArrowsHorizontal size={10} />
+    </button>
+  );
+}
 
 // ─── TokenTableRow ─────────────────────────────────────────────────────────────
 
@@ -201,7 +265,9 @@ function TokenTableRow({
     tokenValueStr.startsWith("{") &&
     tokenValueStr.endsWith("}");
   const isUnresolvedReference = isReference && resolvedValue === tokenValueStr;
-  
+  const isNumericScrubApplicable =
+    !isReadOnly && !isPatternLikeRow && !isReference && NUMERIC_TOKEN_TYPES.has(token.type);
+
   const swatchBg = resolvedValue.startsWith("#")
     ? resolvedValue
     : resolvedValue.startsWith("{")
@@ -458,22 +524,30 @@ function TokenTableRow({
                   className="flex-1 min-h-[60px] border border-border rounded px-2 py-1.5 text-sm font-mono text-foreground shadow-none focus-visible:ring-1 focus-visible:ring-primary resize-y"
                 />
               ) : (
-                <Input
-                  autoFocus
-                  value={token.value?.toString() ?? ""}
-                  onChange={(e) =>
-                    onUpdateToken(
-                      group.id,
-                      token.id,
-                      "value",
-                      parseValue(e.target.value, token.type),
-                    )
-                  }
-                  onBlur={handleBlur}
-                  onClick={(e) => e.stopPropagation()}
-                  placeholder={getValuePlaceholder(token.type)}
-                  className="flex-1 h-7 border border-border rounded px-2 text-sm font-mono text-foreground shadow-none focus-visible:ring-1 focus-visible:ring-primary"
-                />
+                <>
+                  {isNumericScrubApplicable && (
+                    <DragScrubberHandle
+                      value={token.value?.toString() ?? ""}
+                      onChange={(v) => onUpdateToken(group.id, token.id, "value", parseValue(v, token.type))}
+                    />
+                  )}
+                  <Input
+                    autoFocus
+                    value={token.value?.toString() ?? ""}
+                    onChange={(e) =>
+                      onUpdateToken(
+                        group.id,
+                        token.id,
+                        "value",
+                        parseValue(e.target.value, token.type),
+                      )
+                    }
+                    onBlur={handleBlur}
+                    onClick={(e) => e.stopPropagation()}
+                    placeholder={getValuePlaceholder(token.type)}
+                    className="flex-1 h-7 border border-border rounded px-2 text-sm font-mono text-foreground shadow-none focus-visible:ring-1 focus-visible:ring-primary"
+                  />
+                </>
               )
             ) : (
               <div className="flex-1 flex items-center gap-1 min-w-0">
@@ -489,6 +563,13 @@ function TokenTableRow({
                   </div>
                 ) : (
                   <>
+                    {isNumericScrubApplicable && (
+                      <DragScrubberHandle
+                        value={token.value?.toString() ?? ""}
+                        onChange={(v) => onUpdateToken(group.id, token.id, "value", parseValue(v, token.type))}
+                        onActivate={() => setEditingField("value")}
+                      />
+                    )}
                     <div
                       className={`flex-1 text-sm font-mono text-foreground truncate ${isReadOnly ? "cursor-default" : "cursor-text"}`}
                       onClick={isReadOnly ? undefined : enterEdit("value")}
