@@ -61,6 +61,7 @@ Key decisions captured from v1.6 research (pre-recorded in PROJECT.md):
 ### Roadmap Evolution
 
 - Phase 33 added (2026-04-25): Theme configuration — color/density types, dual active selection, themes UI under Tokens page — see `.planning/phases/33-theme-configuration-color-density/33-SPEC.md`
+- Phase 35 added (2026-05-03): Demo Hero Phase 2 — session-storage persist, API sandbox (block Demo writes), middleware public hero path, hero default state (graph expanded on playground collection route)
 
 ### v1.9 Progress
 

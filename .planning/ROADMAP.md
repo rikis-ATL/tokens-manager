@@ -174,6 +174,7 @@ Plans:
 - [x] **Phase 32: MCP Tool Service Layer** — Extract shared token/group/theme service functions; add theme mutation tools to MCP server (completed 2026-04-26)
 - [x] **Phase 33: Theme configuration — color/density** — Theme kinds (color vs density), dual active selection, merged effective token set, themes UI under Tokens page, config/export uses color + density instead of single theme (completed 2026-05-03)
 - [x] **Phase 34: Demo Hero — Graph Fullscreen Shell** — Extract graph presenter component (GraphPanelWithChrome) from TokenGraphPanel; add fullscreen toggle (fixed inset-0 z-50, Escape to exit, single mounted instance); wire CollectionTokensWorkspace to use new wrapper; optional localStorage persist; foundation for hero/playground demo experience (completed 2026-05-03)
+- [ ] **Phase 35: Demo Hero Phase 2 — Persist, API Sandbox, Middleware, Hero Default** — Wire session-storage persist for hero + signed-in Demo on playground (no parallel key scheme); block Demo writes to real collections (align Write vs WritePlayground in require-auth.ts + collection API handlers); public hero middleware path under DEMO_MODE; hero default opens playground collection with graph expanded + overlay CTAs
 
 ## Phase Details
 
@@ -251,6 +252,18 @@ Plans:
 Plans:
 - [x] 34-01-PLAN.md — Create GraphPanelWithChrome wrapper component and wire into tokens page
 
+### Phase 35: Demo Hero Phase 2 — Persist, API Sandbox, Middleware, Hero Default
+**Goal**: Complete the demo/playground experience: session-storage persist for hero + signed-in Demo edits; block Demo user writes to real collections; public hero middleware path; hero default state opens playground collection with graph expanded.
+**Depends on**: Phase 34 (GraphPanelWithChrome fullscreen shell)
+**Requirements**: DEMO-02, DEMO-03, DEMO-04, DEMO-05
+**Success Criteria** (what must be TRUE):
+  1. `src/lib/playground/session-storage.ts` is wired; hero and signed-in Demo edits persist to sessionStorage, not MongoDB (no parallel key scheme).
+  2. Demo user cannot POST to `/api/collections` or issue PUT/theme writes — `require-auth.ts` Write vs WritePlayground mismatch resolved; all collection write handlers aligned.
+  3. Middleware serves the hero path publicly under `DEMO_MODE` (or chosen policy); signed-in Demo retains read-only non-playground browsing.
+  4. Hero default: playground collection opens with graph expanded (fullscreen or maximized graph column via `?graph=full` or env prop) — same `/collections/[id]/tokens` route, no separate marketing layout.
+**Plans**: TBD
+Plans:
+
 ## Progress Table
 
 | Phase | Plans Complete | Status | Completed |
@@ -263,6 +276,7 @@ Plans:
 | 32. MCP Tool Service Layer | 2/2 | Complete | 2026-04-26 |
 | 33. Theme configuration — color/density | 6/6 | Complete | 2026-05-03 |
 | 34. Demo Hero — Graph Fullscreen Shell | 1/1 | Complete | 2026-05-03 |
+| 35. Demo Hero Phase 2 — Persist, API Sandbox, Middleware, Hero Default | 0/? | Not started | - |
 | 999.3. Tokens Studio graph math node parity | 1 plan + UAT | Implemented — verification open | - |
 
 ### Phase 1: review math node features
