@@ -9,6 +9,14 @@ const DEMO_PUBLIC_PATH_PREFIXES = [
   '/upgrade',
 ] as const;
 
+// Hero path: the playground collection tokens page in DEMO_MODE
+const PLAYGROUND_ID = process.env.PLAYGROUND_COLLECTION_ID;
+
+function isHeroPath(pathname: string): boolean {
+  if (!PLAYGROUND_ID) return false;
+  return pathname === `/collections/${PLAYGROUND_ID}/tokens`;
+}
+
 function isDemoPublicPath(pathname: string): boolean {
   if (pathname === '/') return true;
   for (const p of DEMO_PUBLIC_PATH_PREFIXES) {
@@ -28,6 +36,15 @@ export function middleware(req: NextRequest) {
   const hasSession = Boolean(sessionToken);
 
   if (DEMO_MODE) {
+    // Hero path: redirect unauthenticated visitors to auto-sign-in (per D-07, D-08)
+    if (isHeroPath(pathname) && !hasSession) {
+      const autoDemoUrl = new URL('/auth/auto-demo', req.url);
+      autoDemoUrl.searchParams.set(
+        'callbackUrl',
+        `/collections/${PLAYGROUND_ID}/tokens?graph=full`
+      );
+      return NextResponse.redirect(autoDemoUrl);
+    }
     if (isDemoPublicPath(pathname)) {
       if (pathname === '/auth/sign-in' && hasSession) {
         return NextResponse.redirect(new URL('/collections', req.url));
