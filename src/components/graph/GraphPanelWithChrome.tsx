@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Maximize, Minimize } from '@carbon/icons-react';
 import { TokenGraphPanel } from './TokenGraphPanel';
+import { DemoOverlayCTA } from '@/components/demo/DemoOverlayCTA';
 import type { TokenGroup, GeneratedToken } from '@/types';
 import type { GraphGroupState, CollectionGraphState } from '@/types/graph-state.types';
 import type { FlatToken, FlatGroup } from '@/types/graph-nodes.types';
@@ -54,8 +55,9 @@ export function GraphPanelWithChrome({ initialFullscreen, ...panelProps }: Graph
           {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
         </Button>
       </div>
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 min-h-0 relative">
         <TokenGraphPanel {...panelProps} />
+        <DemoOverlayCTA />
       </div>
     </div>
   );
