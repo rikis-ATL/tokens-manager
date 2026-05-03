@@ -33,3 +33,6 @@ env.local
 # Build outputs
 **/build/
 **/www/
+
+# Agent worktrees (embedded git repos, not submodules)
+.claude/worktrees/
