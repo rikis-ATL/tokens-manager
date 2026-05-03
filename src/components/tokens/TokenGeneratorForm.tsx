@@ -265,6 +265,15 @@ function TokenTableRow({
     !isPatternLikeRow &&
     tokenValueStr.startsWith("{") &&
     tokenValueStr.endsWith("}");
+  // True when the value contains any DTCG {refs} — includes pure aliases and composite calc() etc.
+  const hasDtcgRefs = !isPatternLikeRow && /\{[^}]+\}/.test(tokenValueStr);
+  // Resolve every {ref} in a composite value to its raw token value.
+  const resolvedCompositeValue = hasDtcgRefs
+    ? tokenValueStr.replace(/\{[^}]+\}/g, (match) => {
+        const r = resolveRef(match);
+        return r !== match ? r : match;
+      })
+    : resolvedValue;
   const isUnresolvedReference = isReference && resolvedValue === tokenValueStr;
   const isNumericScrubApplicable =
     !isReadOnly && !isPatternLikeRow && !isReference && NUMERIC_TOKEN_TYPES.has(token.type);
@@ -624,8 +633,8 @@ function TokenTableRow({
                 <TokenReferencePicker
                   allGroups={tokenGroups}
                   namespace={namespace}
-                  isAliased={isReference}
-                  onUnlink={isReference ? () => onUpdateToken(group.id, token.id, "value", resolvedValue !== tokenValueStr ? resolvedValue : "") : undefined}
+                  isAliased={hasDtcgRefs}
+                  onUnlink={hasDtcgRefs ? () => onUpdateToken(group.id, token.id, "value", resolvedCompositeValue) : undefined}
                   onSelect={(alias) =>
                     onUpdateToken(group.id, token.id, "value", alias)
                   }

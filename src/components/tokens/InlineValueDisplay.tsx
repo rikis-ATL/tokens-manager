@@ -13,8 +13,10 @@ type RefSegment  = {
   type: 'ref';
   /** The exact substring to replace in the original value string. */
   raw: string;
-  /** CSS var name shown as the label, e.g. `--token-shadcn-radius`. */
+  /** CSS var name used for resolution checks, e.g. `--token-shadcn-radius`. */
   cssVar: string;
+  /** Display label shown in the span, always `var(--name)` form. */
+  label: string;
 };
 type Segment = TextSegment | RefSegment;
 
@@ -38,7 +40,9 @@ function parseSegments(value: string): Segment[] {
     const cssVar = tokenPath
       ? refPathToCssVar(tokenPath)          // {token.path} → --token-path
       : `--${cssName}`;                     // var(--name)  → --name
-    segments.push({ type: 'ref', raw: full, cssVar });
+    // Aliases ({token.path}) display as --name; CSS var() refs keep their var() wrapper
+    const label = tokenPath ? cssVar : `var(${cssVar})`;
+    segments.push({ type: 'ref', raw: full, cssVar, label });
     last = match.index + full.length;
   }
   if (last < value.length) {
@@ -75,6 +79,7 @@ function buildResolvedVarSet(groups: TokenGroup[], namespace = ''): Set<string> 
 
 interface RefSpanProps {
   cssVar: string;
+  label: string;
   raw: string;
   isResolved: boolean;
   allGroups: TokenGroup[];
@@ -88,7 +93,7 @@ interface RefSpanProps {
  * Double-click → falls through to raw text editing.
  * Unresolved refs are shown in warning colour.
  */
-function RefSpan({ cssVar, raw, isResolved, allGroups, namespace, onReplace, onEditText }: RefSpanProps) {
+function RefSpan({ cssVar, label, raw, isResolved, allGroups, namespace, onReplace, onEditText }: RefSpanProps) {
   const [open, setOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const clickTimer = useRef<ReturnType<typeof setTimeout>>();
@@ -125,7 +130,7 @@ function RefSpan({ cssVar, raw, isResolved, allGroups, namespace, onReplace, onE
           onClick={handleClick}
           onDoubleClick={handleDoubleClick}
         >
-          {cssVar}
+          {label}
         </span>
       </PopoverAnchor>
       <PopoverContent
@@ -218,6 +223,7 @@ export function InlineValueDisplay({
             <RefSpan
               key={i}
               cssVar={seg.cssVar}
+              label={seg.label}
               raw={seg.raw}
               isResolved={isResolved}
               allGroups={allGroups}
@@ -235,7 +241,7 @@ export function InlineValueDisplay({
             title={seg.raw}
             className={`font-mono text-table-cell shrink-0 ${isResolved ? 'text-info' : 'text-warning'}`}
           >
-            {seg.cssVar}
+            {seg.label}
           </span>
         );
       })}
