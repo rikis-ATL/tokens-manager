@@ -24,10 +24,12 @@ export interface GraphPanelWithChromeProps {
   /** Dual active theme IDs — used to produce a stable remount key for GroupStructureGraph */
   activeColorThemeId?: string | null;
   activeDensityThemeId?: string | null;
+  /** When true, the graph opens in fullscreen on first render (e.g. driven by ?graph=full URL param). */
+  initialFullscreen?: boolean;
 }
 
-export function GraphPanelWithChrome(props: GraphPanelWithChromeProps) {
-  const [isFullscreen, setIsFullscreen] = useState(false);
+export function GraphPanelWithChrome({ initialFullscreen, ...panelProps }: GraphPanelWithChromeProps) {
+  const [isFullscreen, setIsFullscreen] = useState(initialFullscreen ?? false);
 
   useEffect(() => {
     if (!isFullscreen) return;
@@ -53,7 +55,7 @@ export function GraphPanelWithChrome(props: GraphPanelWithChromeProps) {
         </Button>
       </div>
       <div className="flex-1 min-h-0">
-        <TokenGraphPanel {...props} />
+        <TokenGraphPanel {...panelProps} />
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Save,
   Sun,
@@ -97,6 +97,8 @@ function ColorModeBadge({ colorMode }: { colorMode: ColorMode }) {
 export default function CollectionTokensPage({ params }: TokensPageProps) {
   const { id } = params;
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialFullscreen = searchParams.get('graph') === 'full';
 
   const [collectionName, setCollectionName] = useState('');
   const [rawCollectionTokens, setRawCollectionTokens] = useState<Record<string, unknown> | null>(null);
@@ -1556,6 +1558,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
               flatGroups={allFlatGroups}
               activeColorThemeId={activeColorThemeId}
               activeDensityThemeId={activeDensityThemeId}
+              initialFullscreen={initialFullscreen}
             />
           }
           breadcrumb={
