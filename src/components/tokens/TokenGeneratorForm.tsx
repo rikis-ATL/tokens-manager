@@ -16,6 +16,7 @@ import { JsonPreviewDialog } from "@/components/dev/JsonPreviewDialog";
 import { PatternCodePreviewDialog } from "@/components/tokens/PatternCodePreviewDialog";
 import { LoadCollectionDialog } from "@/components/collections/LoadCollectionDialog";
 import { TokenReferencePicker } from "@/components/tokens/TokenReferencePicker";
+import { InlineValueDisplay } from "@/components/tokens/InlineValueDisplay";
 import { MultiFormatColorPicker } from "@/components/ui/MultiFormatColorPicker";
 import { detectColorFormat } from "@/utils/color.utils";
 import { Button } from "@/components/ui/button";
@@ -570,16 +571,18 @@ function TokenTableRow({
                         onActivate={() => setEditingField("value")}
                       />
                     )}
-                    <div
-                      className={`flex-1 text-sm font-mono text-foreground truncate ${isReadOnly ? "cursor-default" : "cursor-text"}`}
-                      onClick={isReadOnly ? undefined : enterEdit("value")}
-                    >
-                      {token.value?.toString() || (
-                        <span className="text-muted-foreground">
-                          {getValuePlaceholder(token.type)}
-                        </span>
-                      )}
-                    </div>
+                    <InlineValueDisplay
+                      value={token.value?.toString() ?? ""}
+                      placeholder={getValuePlaceholder(token.type)}
+                      onEditText={enterEdit("value")}
+                      isReadOnly={isReadOnly}
+                      allGroups={tokenGroups}
+                      namespace={namespace}
+                      onReplaceRef={isReadOnly ? undefined : (oldRef, newRef) => {
+                        const current = token.value?.toString() ?? "";
+                        onUpdateToken(group.id, token.id, "value", current.replace(oldRef, newRef));
+                      }}
+                    />
                     {/* Unresolved reference warning indicator */}
                     {isUnresolvedReference && (
                       <span
@@ -621,6 +624,8 @@ function TokenTableRow({
                 <TokenReferencePicker
                   allGroups={tokenGroups}
                   namespace={namespace}
+                  isAliased={isReference}
+                  onUnlink={isReference ? () => onUpdateToken(group.id, token.id, "value", resolvedValue !== tokenValueStr ? resolvedValue : "") : undefined}
                   onSelect={(alias) =>
                     onUpdateToken(group.id, token.id, "value", alias)
                   }
