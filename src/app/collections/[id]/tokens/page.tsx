@@ -53,6 +53,11 @@ import { JsonPreviewDialog } from '@/components/dev/JsonPreviewDialog';
 import type { GitHubConfig } from '@/types';
 import { usePermissions } from '@/context/PermissionsContext';
 import { useAppTheme } from '@/components/providers/AppThemeProvider';
+import {
+  loadPlaygroundSession,
+  savePlaygroundSession,
+  mergePlaygroundData,
+} from '@/lib/playground/session-storage';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { AIChatPanel } from '@/components/ai/AIChatPanel';
 
@@ -110,6 +115,12 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   useEffect(() => {
     appThemeRef.current = appTheme;
   }, [appTheme]);
+
+  const [isPlayground, setIsPlayground] = useState(false);
+  const isPlaygroundRef = useRef(false);
+  useEffect(() => {
+    isPlaygroundRef.current = isPlayground;
+  }, [isPlayground]);
 
   /** After persisting this collection, refresh shell CSS if it is the designated app-theme collection. */
   const tryRefreshAppShell = useCallback(() => {
@@ -325,6 +336,27 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       const { groups: defaultGroups } = tokenService.processImportedTokens(rawTokens, col.namespace ?? '');
       setMasterGroups(defaultGroups);
 
+      // Playground: set flag and overlay sessionStorage draft over MongoDB base (per D-01, D-02, D-03)
+      setIsPlayground(col.isPlayground ?? false);
+      isPlaygroundRef.current = col.isPlayground ?? false;
+      if (col.isPlayground) {
+        const playgroundSession = loadPlaygroundSession(id);
+        if (playgroundSession) {
+          const merged = mergePlaygroundData(col, playgroundSession);
+          const mergedTokens = (merged.tokens ?? {}) as Record<string, unknown>;
+          setRawCollectionTokens(mergedTokens);
+          rawCollectionTokensRef.current = mergedTokens;
+          if (merged.graphState) {
+            const mergedGs = merged.graphState as CollectionGraphState;
+            setCollectionGraphState(mergedGs);
+            setGraphStateMap(mergedGs);
+            graphStateMapRef.current = mergedGs;
+          }
+          const { groups: mergedGroups } = tokenService.processImportedTokens(mergedTokens, col.namespace ?? '');
+          setMasterGroups(mergedGroups);
+        }
+      }
+
       // Load custom themes for the theme selector
       const themesRes = await fetch(`/api/collections/${id}/themes`, {
         signal: abortControllerRef.current?.signal,
@@ -420,6 +452,16 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
         const prev = rawCollectionTokensRef.current;
         if (prev && JSON.stringify(toSave) === JSON.stringify(prev)) return;
         const ns = namespace?.trim() || globalNamespace;
+        // Playground: write to sessionStorage instead of MongoDB (per D-02, D-04)
+        if (isPlaygroundRef.current) {
+          savePlaygroundSession({
+            collectionId: id,
+            tokens: toSave,
+            graphState: graphStateMapRef.current,
+            lastModified: Date.now(),
+          });
+          return;
+        }
         try {
           const res = await fetch(`/api/collections/${id}`, {
             method: 'PUT',
@@ -482,6 +524,17 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     // Persist to MongoDB (debounced 300ms)
     if (groupReorderSaveTimerRef.current) clearTimeout(groupReorderSaveTimerRef.current);
     groupReorderSaveTimerRef.current = setTimeout(async () => {
+      // Playground guard (per D-02, D-04)
+      if (isPlaygroundRef.current) {
+        const rawTokens = tokenService.generateStyleDictionaryOutput(newGroups, globalNamespace);
+        savePlaygroundSession({
+          collectionId: id,
+          tokens: rawTokens as Record<string, unknown>,
+          graphState: graphStateMapRef.current,
+          lastModified: Date.now(),
+        });
+        return;
+      }
       try {
         const rawTokens = tokenService.generateStyleDictionaryOutput(newGroups, globalNamespace);
         const res = await fetch(`/api/collections/${id}`, {
@@ -512,6 +565,17 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     setMasterGroups(newGroups);
     setThemes(updatedThemes);
 
+    // Playground guard (per D-02, D-04)
+    if (isPlaygroundRef.current) {
+      const rawTokens = tokenService.generateStyleDictionaryOutput(newGroups, globalNamespace);
+      savePlaygroundSession({
+        collectionId: id,
+        tokens: rawTokens as Record<string, unknown>,
+        graphState: graphStateMapRef.current,
+        lastModified: Date.now(),
+      });
+      return;
+    }
     try {
       const rawTokens = tokenService.generateStyleDictionaryOutput(newGroups, globalNamespace);
       const res = await fetch(`/api/collections/${id}`, {
@@ -533,6 +597,17 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   const handleToggleOmitFromPath = useCallback(async (groupId: string) => {
     const newGroups = applyGroupToggleOmitFromPath(masterGroups, groupId);
     setMasterGroups(newGroups);
+    // Playground guard (per D-02, D-04)
+    if (isPlaygroundRef.current) {
+      const rawTokens = tokenService.generateStyleDictionaryOutput(newGroups, globalNamespace);
+      savePlaygroundSession({
+        collectionId: id,
+        tokens: rawTokens as Record<string, unknown>,
+        graphState: graphStateMapRef.current,
+        lastModified: Date.now(),
+      });
+      return;
+    }
     try {
       const rawTokens = tokenService.generateStyleDictionaryOutput(newGroups, globalNamespace);
       const res = await fetch(`/api/collections/${id}`, {
@@ -552,6 +627,19 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
 
   // Persist graph state to the correct theme (per theme > group)
   const persistGraphState = useCallback((gs: CollectionGraphState) => {
+    // Playground guard (per D-02, D-04) — save graph state to sessionStorage
+    if (isPlaygroundRef.current) {
+      const tokens = (generateTabTokensRef.current && Object.keys(generateTabTokensRef.current).length > 0)
+        ? generateTabTokensRef.current
+        : (rawCollectionTokensRef.current ?? {});
+      savePlaygroundSession({
+        collectionId: id,
+        tokens,
+        graphState: gs,
+        lastModified: Date.now(),
+      });
+      return;
+    }
     // Resolve which theme to write based on the selected group's dominant token type
     const selectedGroup = selectedGroupId
       ? findGroupById(masterGroups, selectedGroupId)
@@ -617,6 +705,12 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   // ── Primary save: persist tokens + graph state ───────────────────────────
   const handleSave = useCallback(async () => {
     setIsSaving(true);
+    // Playground: changes are already saved to sessionStorage on every edit — show confirmation and skip MongoDB write (per D-02, D-04)
+    if (isPlaygroundRef.current) {
+      showSuccessToast('Changes saved locally');
+      setIsSaving(false);
+      return;
+    }
     try {
       const gs = graphStateMapRef.current;
       const selectedGroup = selectedGroupId ? findGroupById(masterGroups, selectedGroupId) : null;
@@ -988,6 +1082,19 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     setThemes(prev => prev.map(t => t.id === targetThemeId ? { ...t, tokens: updatedTokens } : t));
     if (themeTokenSaveTimerRef.current) clearTimeout(themeTokenSaveTimerRef.current);
     themeTokenSaveTimerRef.current = setTimeout(async () => {
+      // Playground guard (per D-02, D-04)
+      if (isPlaygroundRef.current) {
+        const tokens = (generateTabTokensRef.current && Object.keys(generateTabTokensRef.current).length > 0)
+          ? generateTabTokensRef.current
+          : (rawCollectionTokensRef.current ?? {});
+        savePlaygroundSession({
+          collectionId: id,
+          tokens,
+          graphState: graphStateMapRef.current,
+          lastModified: Date.now(),
+        });
+        return;
+      }
       try {
         const res = await fetch(`/api/collections/${id}/themes/${targetThemeId}/tokens`, {
           method: 'PATCH',
