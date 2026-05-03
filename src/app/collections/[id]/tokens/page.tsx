@@ -53,6 +53,11 @@ import { JsonPreviewDialog } from '@/components/dev/JsonPreviewDialog';
 import type { GitHubConfig } from '@/types';
 import { usePermissions } from '@/context/PermissionsContext';
 import { useAppTheme } from '@/components/providers/AppThemeProvider';
+import {
+  loadPlaygroundSession,
+  savePlaygroundSession,
+  mergePlaygroundData,
+} from '@/lib/playground/session-storage';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { AIChatPanel } from '@/components/ai/AIChatPanel';
 
@@ -108,6 +113,12 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   useEffect(() => {
     appThemeRef.current = appTheme;
   }, [appTheme]);
+
+  const [isPlayground, setIsPlayground] = useState(false);
+  const isPlaygroundRef = useRef(false);
+  useEffect(() => {
+    isPlaygroundRef.current = isPlayground;
+  }, [isPlayground]);
 
   /** After persisting this collection, refresh shell CSS if it is the designated app-theme collection. */
   const tryRefreshAppShell = useCallback(() => {
@@ -322,6 +333,27 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       // Always parse collection tokens into masterGroups
       const { groups: defaultGroups } = tokenService.processImportedTokens(rawTokens, col.namespace ?? '');
       setMasterGroups(defaultGroups);
+
+      // Playground: set flag and overlay sessionStorage draft over MongoDB base (per D-01, D-02, D-03)
+      setIsPlayground(col.isPlayground ?? false);
+      isPlaygroundRef.current = col.isPlayground ?? false;
+      if (col.isPlayground) {
+        const playgroundSession = loadPlaygroundSession(id);
+        if (playgroundSession) {
+          const merged = mergePlaygroundData(col, playgroundSession);
+          const mergedTokens = (merged.tokens ?? {}) as Record<string, unknown>;
+          setRawCollectionTokens(mergedTokens);
+          rawCollectionTokensRef.current = mergedTokens;
+          if (merged.graphState) {
+            const mergedGs = merged.graphState as CollectionGraphState;
+            setCollectionGraphState(mergedGs);
+            setGraphStateMap(mergedGs);
+            graphStateMapRef.current = mergedGs;
+          }
+          const { groups: mergedGroups } = tokenService.processImportedTokens(mergedTokens, col.namespace ?? '');
+          setMasterGroups(mergedGroups);
+        }
+      }
 
       // Load custom themes for the theme selector
       const themesRes = await fetch(`/api/collections/${id}/themes`, {
