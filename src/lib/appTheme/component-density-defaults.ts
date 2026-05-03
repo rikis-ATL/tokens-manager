@@ -1,7 +1,9 @@
 /**
  * Default padding, typography, and sizing for interactive controls.
  * Field controls (`input-*`): native input, textarea, select trigger/list rows, select viewport padding, form labels.
- * Menus (`menu-item-*`): dropdown + menubar rows only.
+ * Menus (`menu-item-*`): sidebar/nav rows (AppSidebar, CollectionSidebar, OrgSidebar, TokenGroupTree).
+ * Dropdowns (`dropdown-item-*`): floating dropdown rows (DropdownMenu*, Select*, Menubar content rows).
+ * Tabs (`tabs-list-*` / `tabs-trigger-*` / `tabs-content-*`): tab list bar, trigger padding, content offset.
  * Surfaces (`card-*`): panel radius + title/subtitle type scale (see `Card` primitive).
  * Mirrors `:root` in globals.css and bridge fallbacks in shadcn-bridge.ts.
  */
@@ -33,12 +35,33 @@ export const COMPONENT_DENSITY_LEAVES = [
   'menu-item-padding-y',
   'menu-item-font-size',
   'menu-item-line-height',
+  'dropdown-item-padding-x',
+  'dropdown-item-padding-y',
+  'dropdown-item-font-size',
+  'dropdown-item-line-height',
   'menubar-height',
+  'tabs-list-height',
+  'tabs-list-padding',
+  'tabs-list-border-radius',
+  'tabs-trigger-padding-x',
+  'tabs-trigger-padding-y',
+  'tabs-trigger-font-size',
+  'tabs-trigger-line-height',
+  'tabs-content-margin-top',
   'card-border-radius',
   'card-title-font-size',
   'card-title-line-height',
   'card-subtitle-font-size',
   'card-subtitle-line-height',
+  'table-header-padding-x',
+  'table-header-padding-y',
+  'table-header-font-size',
+  'table-header-line-height',
+  'table-cell-padding-x',
+  'table-cell-padding-y',
+  'table-cell-font-size',
+  'table-cell-line-height',
+  'table-row-height',
 ] as const;
 
 export type ComponentDensityLeaf = (typeof COMPONENT_DENSITY_LEAVES)[number];
@@ -75,10 +98,31 @@ export const COMPONENT_DENSITY_DEFAULTS: Readonly<Record<ComponentDensityLeaf, s
   'menu-item-padding-y': '0.375rem',
   'menu-item-font-size': 'var(--text-sm)',
   'menu-item-line-height': 'var(--leading-sm)',
+  'dropdown-item-padding-x': '0.5rem',
+  'dropdown-item-padding-y': '0.375rem',
+  'dropdown-item-font-size': 'var(--text-sm)',
+  'dropdown-item-line-height': 'var(--leading-sm)',
   'menubar-height': 'calc(var(--input-line-height) + 2 * var(--input-padding-y) + 2px)',
+  'tabs-list-height': '2.5rem',
+  'tabs-list-padding': '0.25rem',
+  'tabs-list-border-radius': 'calc(var(--radius) - 2px)',
+  'tabs-trigger-padding-x': '0.5rem',
+  'tabs-trigger-padding-y': '0.25rem',
+  'tabs-trigger-font-size': 'var(--text-sm)',
+  'tabs-trigger-line-height': 'var(--leading-sm)',
+  'tabs-content-margin-top': '0.5rem',
   'card-border-radius': 'var(--radius)',
   'card-title-font-size': 'var(--text-lg)',
   'card-title-line-height': 'var(--leading-lg)',
   'card-subtitle-font-size': 'var(--text-sm)',
   'card-subtitle-line-height': 'var(--leading-sm)',
+  'table-header-padding-x': '1rem',
+  'table-header-padding-y': '0.75rem',
+  'table-header-font-size': 'var(--text-xs)',
+  'table-header-line-height': 'var(--leading-xs)',
+  'table-cell-padding-x': '1rem',
+  'table-cell-padding-y': '0.75rem',
+  'table-cell-font-size': 'var(--text-sm)',
+  'table-cell-line-height': 'var(--leading-sm)',
+  'table-row-height': '2.25rem',
 };

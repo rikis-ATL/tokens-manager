@@ -13,7 +13,7 @@ import { TYPE_SCALE_STEPS } from '@/lib/appTheme/typography-defaults';
  * - HSL values: bare components or full `hsl()` / `hsla()` in tokens; the app-theme bridge normalizes to components for Tailwind.
  * - Control density: `button-*`, `button-group-*`, `input-*`, `menu-item-*`, `menubar-height`,
  *   `card-*` (surface radius + title/subtitle type) → matching utilities (see {@link COMPONENT_DENSITY_SEMANTIC}).
- *   `font-sans` = primary, `font-secondary` = secondary, `font-mono` = monospace. Pair with
+ *   `dropdown-item-*` for floating dropdown rows. `font-sans` = primary, `font-secondary` = secondary, `font-mono` = monospace. Pair with
  *   optional `font-google-*` leaves for the same families.
  *
  * @see shadcn-bridge.ts for `--*` → `--token-shadcn-*` mapping
@@ -60,12 +60,33 @@ const COMPONENT_DENSITY_SEMANTIC = {
   'menu-item-padding-y': ['py-menu-item-y'],
   'menu-item-font-size': ['text-menu-item'],
   'menu-item-line-height': ['text-menu-item'],
+  'dropdown-item-padding-x': ['px-dropdown-item-x'],
+  'dropdown-item-padding-y': ['py-dropdown-item-y'],
+  'dropdown-item-font-size': ['text-dropdown-item'],
+  'dropdown-item-line-height': ['text-dropdown-item'],
   'menubar-height': ['h-menubar'],
+  'tabs-list-height': ['h-tabs-list'],
+  'tabs-list-padding': ['p-tabs-list-pad'],
+  'tabs-list-border-radius': ['rounded-tabs-list'],
+  'tabs-trigger-padding-x': ['px-tabs-trigger-x'],
+  'tabs-trigger-padding-y': ['py-tabs-trigger-y'],
+  'tabs-trigger-font-size': ['text-tabs-trigger'],
+  'tabs-trigger-line-height': ['text-tabs-trigger'],
+  'tabs-content-margin-top': ['mt-tabs-content'],
   'card-border-radius': ['rounded-card'],
   'card-title-font-size': ['text-card-title'],
   'card-title-line-height': ['text-card-title'],
   'card-subtitle-font-size': ['text-card-subtitle'],
   'card-subtitle-line-height': ['text-card-subtitle'],
+  'table-header-padding-x': ['px-table-header-x'],
+  'table-header-padding-y': ['py-table-header-y'],
+  'table-header-font-size': ['text-table-header'],
+  'table-header-line-height': ['text-table-header'],
+  'table-cell-padding-x': ['px-table-cell-x'],
+  'table-cell-padding-y': ['py-table-cell-y'],
+  'table-cell-font-size': ['text-table-cell'],
+  'table-cell-line-height': ['text-table-cell'],
+  'table-row-height': ['h-table-row', 'min-h-table-row'],
 } as const satisfies Record<ComponentDensityLeaf, readonly string[]>;
 
 /** Maps each bridge token key to recommended Tailwind class strings (subset you may combine). */
@@ -104,6 +125,7 @@ export const SEMANTIC_TAILWIND_BY_TOKEN = {
 
   border: ['border-border', 'divide-border', 'divide-border/60'],
   input: ['border-input', 'ring-offset-background'],
+  'input-border': ['border-input-border', 'divide-input-border', 'ring-input-border'],
   ring: [
     'ring-ring',
     'ring-1',
@@ -162,7 +184,7 @@ export const SEMANTIC_SURFACE_EXAMPLES = {
   buttonGroupShell:
     'inline-flex items-center rounded-button border border-border bg-background p-button-group-padding gap-button-group-gap',
   inputField:
-    'bg-background border border-input text-foreground px-input-x py-input-y text-input rounded-input',
+    'bg-background border border-input-border text-foreground px-input-x py-input-y text-input rounded-input',
   fieldLabel: 'text-input-label font-medium',
   focusRing: 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background',
 } as const;

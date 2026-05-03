@@ -1416,7 +1416,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
 
 <Tabs defaultValue="tokens" className="flex flex-col flex-1 overflow-hidden">
 
-      <header className="px-4 py-3 flex justify-between items-center border-b border-muted bg-background text-foreground shrink-0">
+      <header className="px-2 py-2 flex justify-between items-center border-b border-muted bg-background text-foreground shrink-0">
        <div className="flex items-center gap-2">  
  
         {/* <h1 className="text-lg line-height-0">
@@ -1590,7 +1590,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
                       value={activeColorThemeId ?? '__default__'}
                       onValueChange={(v) => handleColorThemeChange(v === '__default__' ? null : v)}
                     >
-                      <SelectTrigger id="tokens-sidebar-color-theme" className="w-full h-8 text-xs">
+                      <SelectTrigger id="tokens-sidebar-color-theme" className="w-full">
                         <SelectValue placeholder="Default" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1612,7 +1612,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
                       value={activeDensityThemeId ?? '__default__'}
                       onValueChange={(v) => handleDensityThemeChange(v === '__default__' ? null : v)}
                     >
-                      <SelectTrigger id="tokens-sidebar-density-theme" className="w-full h-8 text-xs">
+                      <SelectTrigger id="tokens-sidebar-density-theme" className="w-full">
                         <SelectValue placeholder="Default" />
                       </SelectTrigger>
                       <SelectContent>

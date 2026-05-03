@@ -1,6 +1,7 @@
 'use client';
 
-import { Network_4, Branch } from '@carbon/icons-react';
+import { Network_4, Branch, Maximize, Minimize } from '@carbon/icons-react';
+import { Button } from '@/components/ui/button';
 import { GroupStructureGraph } from './GroupStructureGraph';
 import { TokenDetailGraph } from './TokenDetailGraph';
 import type { TokenGroup, GeneratedToken } from '@/types';
@@ -23,6 +24,9 @@ interface TokenGraphPanelProps {
   /** Dual active theme IDs — used to produce a stable remount key for GroupStructureGraph */
   activeColorThemeId?: string | null;
   activeDensityThemeId?: string | null;
+  /** Fullscreen state — controlled by parent GraphPanelWithChrome */
+  isFullscreen?: boolean;
+  onToggleFullscreen?: () => void;
 }
 
 function findGroupById(groups: TokenGroup[], id: string): TokenGroup | null {
@@ -49,11 +53,26 @@ export function TokenGraphPanel({
   flatGroups,
   activeColorThemeId,
   activeDensityThemeId,
+  isFullscreen,
+  onToggleFullscreen,
 }: TokenGraphPanelProps) {
   const selectedGroup = selectedGroupId && selectedGroupId !== '__all_groups__' 
     ? findGroupById(allGroups, selectedGroupId) 
     : null;
   const isAllGroupsView = selectedGroupId === '__all_groups__';
+
+  const fullscreenButton = onToggleFullscreen ? (
+    <Button
+      variant="ghost"
+      size="icon"
+      className="h-7 w-7 shrink-0 text-muted-foreground"
+      onClick={onToggleFullscreen}
+      aria-label={isFullscreen ? 'Exit fullscreen graph view' : 'Enter fullscreen graph view'}
+      title={isFullscreen ? 'Exit fullscreen graph view' : 'Enter fullscreen graph view'}
+    >
+      {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
+    </Button>
+  ) : null;
 
   // Token detail takes priority when a token row is selected
   if (selectedToken) {
@@ -66,6 +85,7 @@ export function TokenGraphPanel({
             {selectedToken.token.path}
           </span>
           <span className="text-xs text-muted-foreground ml-auto">reference chain</span>
+          {fullscreenButton}
         </div>
         <div className="flex-1 min-h-0" style={{ position: 'relative' }}>
           <TokenDetailGraph
@@ -82,12 +102,10 @@ export function TokenGraphPanel({
   // All Groups view - unified graph showing all top-level groups
   if (isAllGroupsView) {
     return (
-      <div className="flex flex-col h-full">
-        {/* <div className="flex items-center gap-2 px-3 py-2 border-b border-muted bg-background flex-shrink-0">
-          <Network_4 size={14} className="text-primary" />
-          <span className="text-xs font-medium text-muted-foreground">All Groups</span>
-          <span className="text-xs text-muted-foreground ml-auto">unified view</span>
-        </div> */}
+      <div className="relative flex flex-col h-full">
+        {fullscreenButton && (
+          <div className="absolute top-2 right-2 z-10">{fullscreenButton}</div>
+        )}
         <GroupStructureGraph
           key={`__all_groups__-${activeColorThemeId ?? 'c0'}-${activeDensityThemeId ?? 'd0'}`}
           allGroupsMode={true}
@@ -112,7 +130,10 @@ export function TokenGraphPanel({
   // Single group view
   if (selectedGroup) {
     return (
-      <div className="flex flex-col h-full">
+      <div className="relative flex flex-col h-full">
+        {fullscreenButton && (
+          <div className="absolute top-2 right-2 z-10">{fullscreenButton}</div>
+        )}
         <GroupStructureGraph
           key={`${selectedGroup.id}-${activeColorThemeId ?? 'c0'}-${activeDensityThemeId ?? 'd0'}`}
           group={selectedGroup}
@@ -134,7 +155,10 @@ export function TokenGraphPanel({
   }
 
   return (
-    <div className="flex flex-col h-full items-center justify-center text-center p-8">
+    <div className="relative flex flex-col h-full items-center justify-center text-center p-8">
+      {fullscreenButton && (
+        <div className="absolute top-2 right-2 z-10">{fullscreenButton}</div>
+      )}
       <Network_4 size={32} className="text-muted-foreground mb-3" />
       <p className="text-sm text-muted-foreground">Select a group from the sidebar</p>
       <p className="text-xs text-muted-foreground mt-1">or click a token row to inspect its reference chain</p>

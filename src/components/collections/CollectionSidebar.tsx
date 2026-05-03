@@ -41,8 +41,8 @@ export function CollectionSidebar({ collectionId, collectionName: _collectionNam
               <Link
                 key={href}
                 href={href}
-                className={`flex items-center rounded-md text-sm font-medium w-full transition-colors ${
-                  collapsed ? 'justify-center p-2' : 'gap-3 px-3 py-2'
+                className={`flex items-center rounded-md text-menu-item font-medium w-full transition-colors ${
+                  collapsed ? 'justify-center px-menu-item-x py-menu-item-y' : 'gap-3 px-menu-item-x py-menu-item-y'
                 } ${
                   isActive
                     ? 'bg-primary text-primary-foreground'

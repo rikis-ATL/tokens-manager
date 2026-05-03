@@ -55,13 +55,13 @@ export function ThemeGroupMatrix({ theme, groups, onStateChange }: ThemeGroupMat
       <table className="min-w-full border-collapse table-auto">
         <thead className="border-b border-border">
           <tr>
-            <th className="px-4 py-2 text-[10px] font-semibold text-left text-muted-foreground uppercase tracking-wide">
+            <th className="px-table-header-x py-table-header-y text-table-header font-semibold text-left text-muted-foreground uppercase tracking-wide">
               Name
             </th>
-            <th className="px-4 py-2 text-[10px] font-semibold text-left text-muted-foreground uppercase tracking-wide w-24">
+            <th className="px-table-header-x py-table-header-y text-table-header font-semibold text-left text-muted-foreground uppercase tracking-wide w-24">
               Type
             </th>
-            <th className="px-4 py-2 text-[10px] font-semibold text-left text-muted-foreground uppercase tracking-wide w-48">
+            <th className="px-table-header-x py-table-header-y text-table-header font-semibold text-left text-muted-foreground uppercase tracking-wide w-48">
               State
             </th>
           </tr>
@@ -75,13 +75,13 @@ export function ThemeGroupMatrix({ theme, groups, onStateChange }: ThemeGroupMat
 
             return (
               <tr key={group.id} className="hover:bg-muted/40 transition-colors">
-                <td className="px-4 py-2 text-xs text-foreground truncate max-w-[200px]">
+                <td className="px-table-cell-x py-table-cell-y text-table-cell text-foreground truncate max-w-[200px]">
                   {label}
                 </td>
-                <td className="px-4 py-2 text-xs text-muted-foreground">
+                <td className="px-table-cell-x py-table-cell-y text-table-cell text-muted-foreground">
                   {type}
                 </td>
-                <td className="px-4 py-2">
+                <td className="px-table-cell-x py-table-cell-y text-table-cell">
                   <div className="flex border border-border rounded-md overflow-hidden w-fit">
                     {STATES.map((state, idx) => {
                       const isActive = currentState === state;

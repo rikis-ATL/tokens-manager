@@ -107,17 +107,17 @@ export function CollectionTableView({
       <table className="min-w-full divide-y divide-border">
         <thead>
           <tr>
-            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground w-8">
+            <th className="px-table-header-x py-table-header-y text-left text-table-header font-medium text-muted-foreground w-8">
               <span className="sr-only">Accent</span>
             </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Name</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Description</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Tags</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Themes</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Connection</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Token count</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Last updated</th>
-            <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground w-12">
+            <th className="px-table-header-x py-table-header-y text-left text-table-header font-medium text-muted-foreground">Name</th>
+            <th className="px-table-header-x py-table-header-y text-left text-table-header font-medium text-muted-foreground">Description</th>
+            <th className="px-table-header-x py-table-header-y text-left text-table-header font-medium text-muted-foreground">Tags</th>
+            <th className="px-table-header-x py-table-header-y text-left text-table-header font-medium text-muted-foreground">Themes</th>
+            <th className="px-table-header-x py-table-header-y text-left text-table-header font-medium text-muted-foreground">Connection</th>
+            <th className="px-table-header-x py-table-header-y text-left text-table-header font-medium text-muted-foreground">Token count</th>
+            <th className="px-table-header-x py-table-header-y text-left text-table-header font-medium text-muted-foreground">Last updated</th>
+            <th className="px-table-header-x py-table-header-y text-right text-table-header font-medium text-muted-foreground w-12">
               <span className="sr-only">Actions</span>
             </th>
           </tr>
@@ -137,7 +137,7 @@ export function CollectionTableView({
                 className="hover:bg-background cursor-pointer transition-colors group"
               >
                 {/* Color swatch */}
-                <td className="px-4 py-3">
+                <td className="px-table-cell-x py-table-cell-y text-table-cell">
                   <div
                     className="w-6 h-6 rounded border border-border"
                     style={{ backgroundColor: collection.accentColor ?? '#e5e7eb' }}
@@ -146,7 +146,7 @@ export function CollectionTableView({
                 </td>
 
                 {/* Name */}
-                <td className="px-4 py-3">
+                <td className="px-table-cell-x py-table-cell-y text-table-cell">
                   {isRenaming ? (
                     <input
                       ref={inputRef}
@@ -165,7 +165,7 @@ export function CollectionTableView({
                 </td>
 
                 {/* Description */}
-                <td className="px-4 py-3 max-w-xs">
+                <td className="px-table-cell-x py-table-cell-y text-table-cell max-w-xs">
                   {collection.description?.trim() ? (
                     <p className="text-sm text-foreground truncate">{collection.description}</p>
                   ) : (
@@ -174,7 +174,7 @@ export function CollectionTableView({
                 </td>
 
                 {/* Tags */}
-                <td className="px-4 py-3">
+                <td className="px-table-cell-x py-table-cell-y text-table-cell">
                   {collection.tags.length > 0 ? (
                     <div className="flex flex-wrap gap-1">
                       {collection.tags.slice(0, 3).map((tag) => (
@@ -195,7 +195,7 @@ export function CollectionTableView({
                 </td>
 
                 {/* Themes */}
-                <td className="px-4 py-3">
+                <td className="px-table-cell-x py-table-cell-y text-table-cell">
                   <CollectionThemesSummaryChips
                     summary={collection.themesSummary}
                     whenEmpty={<span className="text-sm text-muted-foreground">—</span>}
@@ -203,7 +203,7 @@ export function CollectionTableView({
                 </td>
 
                 {/* Connection */}
-                <td className="px-4 py-3">
+                <td className="px-table-cell-x py-table-cell-y text-table-cell">
                   {collection.figmaConfigured || collection.githubConfigured || collection.isPlayground ? (
                     <div className="flex flex-wrap gap-1.5">
                       {collection.isPlayground && (
@@ -229,20 +229,20 @@ export function CollectionTableView({
                 </td>
 
                 {/* Token count */}
-                <td className="px-4 py-3">
-                  <span className="text-sm text-muted-foreground">{collection.tokenCount}</span>
+                <td className="px-table-cell-x py-table-cell-y text-table-cell">
+                  <span className="text-muted-foreground">{collection.tokenCount}</span>
                 </td>
 
                 {/* Last Updated */}
-                <td className="px-4 py-3">
-                  <span className="flex items-center gap-1 text-sm text-muted-foreground">
+                <td className="px-table-cell-x py-table-cell-y text-table-cell">
+                  <span className="flex items-center gap-1 text-muted-foreground">
                     <EventSchedule size={12} className="text-info shrink-0" />
                     {formattedDate}
                   </span>
                 </td>
 
                 {/* Actions */}
-                <td className="px-4 py-3 text-right relative" onClick={(e) => e.stopPropagation()}>
+                <td className="px-table-cell-x py-table-cell-y text-table-cell text-right relative" onClick={(e) => e.stopPropagation()}>
                   <button
                     className="p-1 rounded hover:bg-muted transition-colors"
                     onClick={(e) => handleKebabClick(e, collection._id)}

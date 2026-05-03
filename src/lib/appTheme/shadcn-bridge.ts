@@ -20,7 +20,7 @@
  * | --font-mono           | font-mono                           | --token-shadcn-font-mono  |
  * | --font-secondary      | font-secondary (accent / headings)  | --token-shadcn-font-secondary |
  * | type scale            | `text-2xs`…`text-9xl`, matching `leading-*` | see typography-defaults |
- * | control density       | `button-*`, `button-group-*`, `input-*`, `card-*`, `menu-item-*`, `menubar-height` | see component-density-defaults |
+ * | control density       | `button-*`, `button-group-*`, `input-*`, `card-*`, `menu-item-*`, `dropdown-item-*`, `menubar-height` | see component-density-defaults |
  * | (import only)         | `font-google-sans` / `font-google-mono` / `font-google-secondary` | no Tailwind var alias |
  */
 import { COMPONENT_DENSITY_DEFAULTS, shadcnComponentDensityLeaves } from '@/lib/appTheme/component-density-defaults';
@@ -49,6 +49,7 @@ export const SHADCN_COLOR_LEAVES: readonly string[] = [
   'destructive-foreground',
   'border',
   'input',
+  'input-border',
   'ring',
   'button-border',
   'menu-border',
@@ -87,6 +88,7 @@ export const SHADCN_ALIASED_LEAVES: readonly string[] = [
 export const SHADCN_BRIDGE_LEAVES: readonly string[] = [...SHADCN_ALIASED_LEAVES, ...SHADCN_GOOGLE_LEAVES];
 
 const OPTIONAL_COMPONENT_BORDER_FALLBACKS: Record<string, string> = {
+  'input-border': 'var(--input)',
   'button-border': 'var(--input)',
   'menu-border': 'var(--border)',
   'tabs-border': 'var(--border)',

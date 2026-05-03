@@ -1,10 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Maximize, Minimize } from '@carbon/icons-react';
 import { TokenGraphPanel } from './TokenGraphPanel';
-import { DemoOverlayCTA } from '@/components/demo/DemoOverlayCTA';
 import type { TokenGroup, GeneratedToken } from '@/types';
 import type { GraphGroupState, CollectionGraphState } from '@/types/graph-state.types';
 import type { FlatToken, FlatGroup } from '@/types/graph-nodes.types';
@@ -43,21 +40,12 @@ export function GraphPanelWithChrome({ initialFullscreen, ...panelProps }: Graph
 
   return (
     <div className={isFullscreen ? 'fixed inset-0 z-50 bg-background flex flex-col' : 'flex flex-col h-full'}>
-      <div className="flex items-center justify-end px-3 py-1 border-b border-muted bg-background flex-shrink-0">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 shrink-0 text-muted-foreground"
-          onClick={() => setIsFullscreen(prev => !prev)}
-          aria-label={isFullscreen ? 'Exit fullscreen graph view' : 'Enter fullscreen graph view'}
-          title={isFullscreen ? 'Exit fullscreen graph view' : 'Enter fullscreen graph view'}
-        >
-          {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
-        </Button>
-      </div>
-      <div className="flex-1 min-h-0 relative">
-        <TokenGraphPanel {...panelProps} />
-        <DemoOverlayCTA />
+      <div className="flex-1 min-h-0">
+        <TokenGraphPanel
+          {...panelProps}
+          isFullscreen={isFullscreen}
+          onToggleFullscreen={() => setIsFullscreen(prev => !prev)}
+        />
       </div>
     </div>
   );

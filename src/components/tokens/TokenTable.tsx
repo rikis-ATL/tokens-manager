@@ -189,13 +189,13 @@ export function TokenTable({ section, tokens, onSave }: TokenTableProps) {
             <table className="min-w-full table-auto">
               <thead>
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <th className="px-table-header-x py-table-header-y text-left text-table-header font-medium text-muted-foreground uppercase tracking-wider">
                     Token Name
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <th className="px-table-header-x py-table-header-y text-left text-table-header font-medium text-muted-foreground uppercase tracking-wider">
                     Value
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <th className="px-table-header-x py-table-header-y text-left text-table-header font-medium text-muted-foreground uppercase tracking-wider">
                     Type
                   </th>
                 </tr>
@@ -208,7 +208,7 @@ export function TokenTable({ section, tokens, onSave }: TokenTableProps) {
 
                   return (
                     <tr key={tokenGroup.path} className={`hover:bg-background ${saving[tokenKey] ? 'bg-primary/10' : ''}`}>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-table-cell-x py-table-cell-y text-table-cell whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <div className="text-sm font-medium text-foreground font-mono">
                             {tokenGroup.path.replace(/\./g, '-').replace(/[/\\]/g, '-').replace(/-{2,}/g, '-')}
@@ -218,7 +218,7 @@ export function TokenTable({ section, tokens, onSave }: TokenTableProps) {
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap w-[120px]">
+                      <td className="px-table-cell-x py-table-cell-y text-table-cell whitespace-nowrap w-[120px]">
                         {isColor ? (
                           <ColorSwatch
                             value={currentValue}
@@ -234,7 +234,7 @@ export function TokenTable({ section, tokens, onSave }: TokenTableProps) {
                           />
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-table-cell-x py-table-cell-y text-table-cell whitespace-nowrap">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/15 text-primary">
                           {tokenGroup.token.type}
                         </span>

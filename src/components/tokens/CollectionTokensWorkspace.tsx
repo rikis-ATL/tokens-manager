@@ -131,7 +131,7 @@ export function CollectionTokensWorkspace({
             defaultValue="table"
             className="flex flex-col flex-1 min-h-0 overflow-hidden gap-0"
           >
-            <div className="flex-shrink-0 px-6 pt-6 pb-3 border-b border-muted bg-background">
+            <div className="flex-shrink-0 px-3 py-2 border-b border-muted bg-background">
               {breadcrumbActionsRow(
                 <>
                   <TabsList className="h-8 p-0.5">

@@ -37,6 +37,10 @@ fontSize['menu-item'] = [
   'var(--menu-item-font-size)',
   { lineHeight: 'var(--menu-item-line-height)' },
 ];
+fontSize['dropdown-item'] = [
+  'var(--dropdown-item-font-size)',
+  { lineHeight: 'var(--dropdown-item-line-height)' },
+];
 fontSize['card-title'] = [
   'var(--card-title-font-size)',
   { lineHeight: 'var(--card-title-line-height)' },
@@ -45,6 +49,12 @@ fontSize['card-subtitle'] = [
   'var(--card-subtitle-font-size)',
   { lineHeight: 'var(--card-subtitle-line-height)' },
 ];
+fontSize['tabs-trigger'] = [
+  'var(--tabs-trigger-font-size)',
+  { lineHeight: 'var(--tabs-trigger-line-height)' },
+];
+fontSize['table-header'] = ['var(--table-header-font-size)', { lineHeight: 'var(--table-header-line-height)' }];
+fontSize['table-cell'] = ['var(--table-cell-font-size)', { lineHeight: 'var(--table-cell-line-height)' }];
 
 /** Matches `--*-padding-*` in globals.css / component-density-defaults */
 const controlSpacing = {
@@ -59,14 +69,27 @@ const controlSpacing = {
   'input-viewport': 'var(--input-viewport-padding)',
   'menu-item-x': 'var(--menu-item-padding-x)',
   'menu-item-y': 'var(--menu-item-padding-y)',
+  'dropdown-item-x': 'var(--dropdown-item-padding-x)',
+  'dropdown-item-y': 'var(--dropdown-item-padding-y)',
   'button-group-gap': 'var(--button-group-gap)',
   'button-group-padding': 'var(--button-group-padding)',
+  'tabs-list-pad': 'var(--tabs-list-padding)',
+  'tabs-trigger-x': 'var(--tabs-trigger-padding-x)',
+  'tabs-trigger-y': 'var(--tabs-trigger-padding-y)',
+  'tabs-content': 'var(--tabs-content-margin-top)',
+  'table-header-x': 'var(--table-header-padding-x)',
+  'table-header-y': 'var(--table-header-padding-y)',
+  'table-cell-x': 'var(--table-cell-padding-x)',
+  'table-cell-y': 'var(--table-cell-padding-y)',
 };
 
 module.exports = {
   colors: {
     border: 'hsl(var(--border))',
-    input: 'hsl(var(--input))',
+    input: {
+      DEFAULT: 'hsl(var(--input))',
+      border: 'hsl(var(--input-border))',
+    },
     ring: 'hsl(var(--ring))',
     background: 'hsl(var(--background))',
     foreground: 'hsl(var(--foreground))',
@@ -131,9 +154,12 @@ module.exports = {
   spacing: controlSpacing,
   height: {
     menubar: 'var(--menubar-height)',
+    'tabs-list': 'var(--tabs-list-height)',
+    'table-row': 'var(--table-row-height)',
   },
   minHeight: {
     'input-min': 'var(--input-min-height)',
+    'table-row': 'var(--table-row-height)',
   },
   borderRadius: {
     lg: 'var(--radius)',
@@ -141,6 +167,7 @@ module.exports = {
     sm: 'calc(var(--radius) - 4px)',
     button: 'var(--button-border-radius)',
     input: 'var(--input-border-radius)',
+    'tabs-list': 'var(--tabs-list-border-radius)',
     card: 'var(--card-border-radius)',
   },
   fontFamily: {

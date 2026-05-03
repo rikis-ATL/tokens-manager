@@ -47,7 +47,7 @@ interface SortableGroupRowProps {
 // ---------------------------------------------------------------------------
 
 function rowClassName(node: FlatNode, isSelected: boolean): string {
-  const base = 'group/item flex items-center pr-1 text-sm cursor-pointer transition-colors';
+  const base = 'group/item flex items-center pr-1 text-menu-item cursor-pointer transition-colors';
   const selected = isSelected
     ? 'bg-info/10 text-foreground font-medium'
     : 'hover:bg-muted text-foreground';
@@ -99,7 +99,7 @@ function InlineLabel({
 
   return (
     <span
-      className="flex-1 py-1.5 truncate text-xs"
+      className="flex-1 py-menu-item-y truncate text-menu-item"
       onDoubleClick={e => { e.stopPropagation(); onStartEdit(); }}
     >
       {displayLabel}
@@ -211,7 +211,7 @@ export function SortableGroupRow({
         className={rowClassName(node, isSelected)}
       >
         <DragVertical size={12} className="text-muted-foreground mr-1 flex-shrink-0" />
-        <span className="flex-1 py-1.5 truncate text-xs">{node.displayLabel}</span>
+        <span className="flex-1 py-menu-item-y truncate text-menu-item">{node.displayLabel}</span>
       </div>
     );
   }
