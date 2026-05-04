@@ -1,55 +1,14 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { getPlanTierLimitsForDisplay } from '@/lib/billing/pricing-public';
-import { showSuccessToast, showErrorToast } from '@/utils/toast.utils';
-import { Copy, Checkmark, InProgress } from '@carbon/icons-react';
 
-type Creds = { email: string; password: string };
-
-export function DemoLanding() {
-  const [creds, setCreds] = useState<Creds | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [copiedField, setCopiedField] = useState<'email' | 'password' | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch('/api/demo/credentials')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data: Creds | null) => {
-        if (!cancelled && data) setCreds(data);
-      })
-      .catch(() => {
-        if (!cancelled) setCreds(null);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
+export function DemoLanding({ demoUrl }: { demoUrl: string }) {
   const free = getPlanTierLimitsForDisplay('free');
   const pro = getPlanTierLimitsForDisplay('pro');
   const team = getPlanTierLimitsForDisplay('team');
-
-  const signInWithDemo = creds
-    ? `/auth/sign-in?email=${encodeURIComponent(creds.email)}`
-    : '/auth/sign-in';
-
-  const copy = async (field: 'email' | 'password', value: string) => {
-    try {
-      await navigator.clipboard.writeText(value);
-      setCopiedField(field);
-      showSuccessToast('Copied');
-      setTimeout(() => setCopiedField(null), 2000);
-    } catch {
-      showErrorToast('Could not copy');
-    }
-  };
 
   return (
     <div className="max-w-4xl mx-auto px-5 py-10 space-y-12">
@@ -73,55 +32,11 @@ export function DemoLanding() {
 
         <div className="rounded-lg border border-border bg-card p-6 flex flex-col gap-3">
           <h2 className="text-lg font-semibold">Try the shared demo</h2>
-          <p className="text-sm text-muted-foreground">
-            Use the read-only public credentials for the shared demo org. Do not put private data here — anyone can
-            sign in. Rotate the password in your environment for your deploy.
+          <p className="text-sm text-muted-foreground flex-1">
+            Explore a live playground with sample token collections. No sign-up required.
           </p>
-          {loading ? (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
-              <InProgress size={16} className="animate-spin shrink-0" />
-              Loading demo sign-in…
-            </div>
-          ) : creds ? (
-            <div className="space-y-2 text-sm">
-              <div>
-                <p className="text-xs font-medium text-muted-foreground mb-1">Email</p>
-                <div className="flex gap-2 items-center">
-                  <code className="flex-1 text-xs break-all bg-muted px-2 py-1.5 rounded">{creds.email}</code>
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="outline"
-                    className="shrink-0"
-                    onClick={() => copy('email', creds.email)}
-                    aria-label="Copy email"
-                  >
-                    {copiedField === 'email' ? <Checkmark size={16} className="shrink-0" /> : <Copy size={16} className="shrink-0" />}
-                  </Button>
-                </div>
-              </div>
-              <div>
-                <p className="text-xs font-medium text-muted-foreground mb-1">Password</p>
-                <div className="flex gap-2 items-center">
-                  <code className="flex-1 text-xs break-all bg-muted px-2 py-1.5 rounded">{creds.password}</code>
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="outline"
-                    className="shrink-0"
-                    onClick={() => copy('password', creds.password)}
-                    aria-label="Copy password"
-                  >
-                    {copiedField === 'password' ? <Checkmark size={16} className="shrink-0" /> : <Copy size={16} className="shrink-0" />}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <p className="text-sm text-destructive">Demo sign-in is not configured (set DEMO_ADMIN_* in the server environment).</p>
-          )}
-          <Button asChild variant="secondary" disabled={!creds}>
-            <Link href={signInWithDemo}>Open sign in</Link>
+          <Button asChild variant="secondary">
+            <Link href={demoUrl}>Enter demo</Link>
           </Button>
         </div>
       </div>

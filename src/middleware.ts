@@ -7,6 +7,7 @@ const DEMO_MODE = process.env.DEMO_MODE === 'true';
 const DEMO_PUBLIC_PATH_PREFIXES = [
   '/auth',
   '/upgrade',
+  '/landing',
 ] as const;
 
 // Hero path: the playground collection tokens page in DEMO_MODE

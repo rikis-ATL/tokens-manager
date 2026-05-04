@@ -8,9 +8,9 @@ import { OrgSidebar } from '@/components/layout/OrgSidebar';
 import { MarketingHeader } from '@/components/layout/MarketingHeader';
 import { CollectionProvider } from '@/context/CollectionContext';
 
-/** Landing (`/`) and upgrade flows use a minimal chrome (no app sidebar). */
+/** Landing (`/`), `/landing`, and upgrade flows use a minimal chrome (no app sidebar). */
 function isMarketingPath(pathname: string): boolean {
-  if (pathname === '/' || pathname.startsWith('/upgrade')) return true;
+  if (pathname === '/' || pathname === '/landing' || pathname.startsWith('/upgrade')) return true;
   return false;
 }
 
@@ -38,7 +38,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
     return (
       <CollectionProvider>
         <div className="flex min-h-screen flex-col bg-background text-foreground">
-          <MarketingHeader showBack={pathname !== '/'} />
+          <MarketingHeader showBack={pathname !== '/' && pathname !== '/landing'} />
           <div className="flex-1 overflow-y-auto">{children}</div>
         </div>
       </CollectionProvider>

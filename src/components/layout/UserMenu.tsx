@@ -34,7 +34,7 @@ export function UserMenu() {
 
   const handleLeaveDemo = async () => {
     await signOut({ redirect: false });
-    window.location.href = '/';
+    window.location.href = '/landing';
   };
 
   const showAppearanceToggle =
@@ -44,17 +44,13 @@ export function UserMenu() {
 
   if (isSharedDemo) {
     return (
-      <div className="flex items-center gap-2">
-        <ButtonLink href="/auth/signup" label="Create account" variant="default" />
-        <ButtonLink href="/upgrade" label="Pricing" variant="outline" />
-        <button
-          type="button"
-          onClick={handleLeaveDemo}
-          className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline px-2"
-        >
-          Leave demo
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={handleLeaveDemo}
+        className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline px-2"
+      >
+        Leave demo
+      </button>
     );
   }
 

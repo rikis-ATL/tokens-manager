@@ -1,9 +1,12 @@
 import { redirect } from 'next/navigation';
-import { DemoLanding } from '@/components/demo/DemoLanding';
 
 export default function Home() {
   if (process.env.DEMO_MODE === 'true') {
-    return <DemoLanding />;
+    const playgroundId = process.env.PLAYGROUND_COLLECTION_ID;
+    const callbackUrl = playgroundId
+      ? `/collections/${playgroundId}/tokens?graph=full`
+      : '/collections';
+    redirect(`/auth/auto-demo?callbackUrl=${encodeURIComponent(callbackUrl)}`);
   }
   redirect('/collections');
 }
