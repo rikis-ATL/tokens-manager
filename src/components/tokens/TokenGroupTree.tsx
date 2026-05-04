@@ -198,17 +198,15 @@ export function TokenGroupTree({
         {/* All Groups item - only show if there are groups */}
         {flatNodes.length > 0 && (
           <div
-            className={`px-menu-item-x py-menu-item-y mx-2 mb-1 rounded cursor-pointer transition-colors ${
+            className={`relative group/item flex items-center pr-1 text-menu-item cursor-pointer transition-colors font-medium  ${
               selectedGroupId === '__all_groups__'
-                ? 'bg-primary/10 border border-primary text-primary'
-                : 'hover:bg-background text-foreground'
+                ? 'bg-info/10 text-foreground'
+                : 'hover:bg-muted text-foreground'
             }`}
             onClick={() => onGroupSelect?.('__all_groups__')}
           >
-            <div className="flex items-center">
-              <span className="text-menu-item font-medium">All Groups</span>
-              <span className="ml-2 text-xs text-muted-foreground">({flatNodes.length})</span>
-            </div>
+            <span className="flex-1 truncate">All Groups</span>
+            <span className="text-xs text-muted-foreground">({flatNodes.length})</span>
           </div>
         )}
         

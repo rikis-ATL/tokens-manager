@@ -8,7 +8,7 @@ export default function LandingPage() {
 
   const playgroundId = process.env.PLAYGROUND_COLLECTION_ID;
   const demoUrl = playgroundId
-    ? `/auth/auto-demo?callbackUrl=${encodeURIComponent(`/collections/${playgroundId}/tokens?graph=full`)}`
+    ? `/auth/auto-demo?callbackUrl=${encodeURIComponent(`/collections/${playgroundId}/tokens`)}`
     : '/auth/auto-demo';
 
   return <DemoLanding demoUrl={demoUrl} />;

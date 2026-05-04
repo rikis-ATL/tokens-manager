@@ -42,7 +42,7 @@ export function middleware(req: NextRequest) {
       const autoDemoUrl = new URL('/auth/auto-demo', req.url);
       autoDemoUrl.searchParams.set(
         'callbackUrl',
-        `/collections/${PLAYGROUND_ID}/tokens?graph=full`
+        `/collections/${PLAYGROUND_ID}/tokens`
       );
       return NextResponse.redirect(autoDemoUrl);
     }

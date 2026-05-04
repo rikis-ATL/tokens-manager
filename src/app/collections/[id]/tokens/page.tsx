@@ -306,6 +306,14 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
+  // Default to first group when groups load and nothing is selected
+  useEffect(() => {
+    if (masterGroups.length > 0 && !selectedGroupId) {
+      setSelectedGroupId(masterGroups[0].id);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [masterGroups]);
+
 
   const loadCollection = async () => {
     abortControllerRef.current?.abort();
@@ -335,6 +343,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
       // Always parse collection tokens into masterGroups
       const { groups: defaultGroups } = tokenService.processImportedTokens(rawTokens, col.namespace ?? '');
       setMasterGroups(defaultGroups);
+      setSelectedGroupId(defaultGroups[0]?.id ?? '');
 
       // Playground: set flag and overlay sessionStorage draft over MongoDB base (per D-01, D-02, D-03)
       setIsPlayground(col.isPlayground ?? false);
