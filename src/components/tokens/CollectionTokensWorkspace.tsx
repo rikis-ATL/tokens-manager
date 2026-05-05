@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState, type ComponentProps, type ReactNode } from 'react';
-import { TableSplit, CarouselHorizontal } from '@carbon/icons-react';
+import { TableSplit, CarouselHorizontal, Maximize, Minimize } from '@carbon/icons-react';
 import { TokenGroupTree } from '@/components/tokens/TokenGroupTree';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -21,6 +21,9 @@ export interface CollectionTokensWorkspaceProps {
   breadcrumb: ReactNode;
   /** Token table / generator (below the breadcrumb row). */
   mainContent: ReactNode;
+  /** Fullscreen state */
+  isFullscreen?: boolean;
+  onToggleFullscreen?: () => void;
 }
 
 function readStoredLayout(): MainLayoutMode {
@@ -46,12 +49,24 @@ export function CollectionTokensWorkspace({
   graphPanel,
   breadcrumb,
   mainContent,
+  isFullscreen = false,
+  onToggleFullscreen,
 }: CollectionTokensWorkspaceProps) {
   const [layoutMode, setLayoutMode] = useState<MainLayoutMode>('split');
 
   useEffect(() => {
     setLayoutMode(readStoredLayout());
   }, []);
+
+  // Handle Escape key to exit fullscreen
+  useEffect(() => {
+    if (!isFullscreen || !onToggleFullscreen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onToggleFullscreen();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isFullscreen, onToggleFullscreen]);
 
   const persistLayout = useCallback((mode: MainLayoutMode) => {
     setLayoutMode(mode);
@@ -65,11 +80,26 @@ export function CollectionTokensWorkspace({
   const breadcrumbActionsRow = (actions: ReactNode) => (
     <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 shrink-0">
       <div className="min-w-0 flex-1">{breadcrumb}</div>
-      <div className="flex items-center gap-1.5 shrink-0">{actions}</div>
+      <div className="flex items-center gap-1.5 shrink-0">
+        {actions}
+        {onToggleFullscreen && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 shrink-0 text-muted-foreground"
+            onClick={onToggleFullscreen}
+            title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+            aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+          >
+            {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
+          </Button>
+        )}
+      </div>
     </div>
   );
 
-  return (
+  const workspaceContent = (
     <div className="flex flex-1 min-h-0 w-full overflow-hidden">
       <aside className="border-r border-muted bg-background flex-shrink-0 flex flex-col transition-all duration-200 w-56 min-h-0">
         <div
@@ -175,4 +205,15 @@ export function CollectionTokensWorkspace({
       </div>
     </div>
   );
+
+  // Return fullscreen wrapper if in fullscreen mode
+  if (isFullscreen) {
+    return (
+      <div className="fixed inset-0 z-50 bg-background flex flex-col">
+        {workspaceContent}
+      </div>
+    );
+  }
+
+  return workspaceContent;
 }

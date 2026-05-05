@@ -7,23 +7,25 @@ declare global {
     conn: typeof mongoose | null;
     promise: Promise<typeof mongoose> | null;
     uri: string | null;
+    listenersAttached: boolean;
   };
 }
 
-let cached = global.__mongoose_cache ?? { conn: null, promise: null, uri: null };
+let cached = global.__mongoose_cache ?? {
+  conn: null,
+  promise: null,
+  uri: null,
+  listenersAttached: false,
+};
 global.__mongoose_cache = cached;
 
-mongoose.connection.on('connected', () => {
-  console.log('[MongoDB] Connected');
-});
-
-mongoose.connection.on('error', (err) => {
-  console.error('[MongoDB] Connection error:', err);
-});
-
-mongoose.connection.on('disconnected', () => {
-  console.warn('[MongoDB] Disconnected');
-});
+// Guard prevents duplicate listeners across HMR re-evaluations
+if (!cached.listenersAttached) {
+  cached.listenersAttached = true;
+  mongoose.connection.on('connected', () => console.log('[MongoDB] Connected'));
+  mongoose.connection.on('error', (err) => console.error('[MongoDB] Connection error:', err));
+  mongoose.connection.on('disconnected', () => console.warn('[MongoDB] Disconnected'));
+}
 
 function getMongoUri(): string {
   const fromConfig = resolveMongoUri();

@@ -19,12 +19,14 @@ import {
   type NodeChange,
 } from '@xyflow/react';
 import { DeletableEdge } from './edges/DeletableEdge';
+import { ReferenceEdge } from './edges/ReferenceEdge';
 
 import {
   Add,
   ColorPalette,
   Lightning,
   View,
+  ViewOff,
   Eyedropper,
   Currency,
   TextFont,
@@ -37,6 +39,10 @@ import {
   Layers,
   Code,
   CodeBlock,
+  FlowConnection,
+  ProgressBarRound,
+  FitToScreen,
+  Reset,
 } from '@carbon/icons-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -48,12 +54,15 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-import { buildGroupGraph, buildAllGroupsGraph } from '@/lib/tokenGroupToGraph';
+import { buildGroupGraph, buildAllGroupsGraph, buildGroupGraphLR, buildAllGroupsGraphLR } from '@/lib/tokenGroupToGraph';
 import { evaluateGraph } from '@/lib/graphEvaluator';
 import { tokenService } from '@/services/token.service';
 
 import { GroupNode } from './nodes/GroupNode';
 import type { GroupNodeData } from './nodes/GroupNode';
+import { TokenNode } from './nodes/TokenNode';
+import { AliasNode } from './nodes/AliasNode';
+import { GroupBoundaryNode } from './nodes/GroupBoundaryNode';
 import { ConstantNode }       from './nodes/ConstantNode';
 import { HarmonicSeriesNode } from './nodes/HarmonicSeriesNode';
 import { ArrayNode }          from './nodes/ArrayNode';
@@ -180,6 +189,9 @@ const NODE_WIDTHS: Record<string, number> = {
 
 const NODE_TYPES = {
   groupNode:              GroupNode,
+  groupBoundary:          GroupBoundaryNode,
+  tokenNode:              TokenNode,
+  aliasNode:              AliasNode,
   composableGenerator:    GeneratorNode,
   composableConstant:     ConstantNode,
   composableHarmonic:     HarmonicSeriesNode,
@@ -200,6 +212,7 @@ const NODE_TYPES = {
 
 const EDGE_TYPES = {
   deletable: DeletableEdge,
+  referenceEdge: ReferenceEdge,
 } as const;
 
 // ── Default configs ───────────────────────────────────────────────────────────
@@ -319,6 +332,7 @@ interface GroupStructureGraphProps {
   onBulkAddTokens?: (groupId: string, tokens: GeneratedToken[], subgroupName?: string) => void;
   onBulkCreateGroups?: (parentGroupId: string | null, groupData: { name: string; tokens: GeneratedToken[] }) => void;
   onGraphStateChange?: (state: GraphGroupState, options?: { flushImmediate?: boolean }) => void;
+  onNavigateToGroup?: (groupId: string) => void;
 }
 
 /** Wraps the canvas with {@link ReactFlowProvider} so placement can use the flow viewport. */
@@ -341,9 +355,10 @@ function GroupStructureGraphInner({
   initialGraphState,
   onBulkAddTokens,
   onBulkCreateGroups,
-  onGraphStateChange
+  onGraphStateChange,
+  onNavigateToGroup
 }: GroupStructureGraphProps) {
-  const { screenToFlowPosition } = useReactFlow();
+  const { screenToFlowPosition, fitView } = useReactFlow();
   const flowPaneRef = useRef<HTMLDivElement>(null);
   
   // Validate props - either single group mode or all groups mode
@@ -353,6 +368,89 @@ function GroupStructureGraphInner({
   if (allGroupsMode && !allGroupsData) {
     throw new Error('GroupStructureGraph: allGroupsData prop is required when in allGroupsMode');
   }
+
+  // ── Token expansion state ─────────────────────────────────────────────────
+  const [expandedGroupIds, setExpandedGroupIds] = useState<Set<string>>(new Set());
+
+  // Collect all group IDs for expand/collapse all
+  const allGroupIds = useMemo(() => {
+    const ids: string[] = [];
+    const collectIds = (groups: TokenGroup[]) => {
+      groups.forEach(g => {
+        ids.push(g.id);
+        if (g.children) collectIds(g.children);
+      });
+    };
+    if (allGroupsMode && allGroupsData) {
+      collectIds(allGroupsData);
+    } else if (group) {
+      collectIds([group]);
+    }
+    return ids;
+  }, [allGroupsMode, allGroupsData, group]);
+
+  // ── Edge visibility state ─────────────────────────────────────────────────
+  const [showStructuralEdges, setShowStructuralEdges] = useState(true);
+  const [showTokenEdges, setShowTokenEdges] = useState(true);
+  const [showAliasEdges, setShowAliasEdges] = useState(true);
+  const [showGroupBoundaries, setShowGroupBoundaries] = useState(false);
+
+  // ── Subtree selection for drag ───────────────────────────────────────────
+  // Build a map of group node ID to its descendant group node IDs
+  const groupDescendantsMap = useMemo(() => {
+    const map = new Map<string, string[]>();
+    
+    const buildDescendantsMap = (grp: TokenGroup): string[] => {
+      const nodeId = `group-${grp.id}`;
+      const descendants: string[] = [];
+      
+      if (grp.children) {
+        for (const child of grp.children) {
+          const childId = `group-${child.id}`;
+          descendants.push(childId);
+          const childDescendants = buildDescendantsMap(child);
+          descendants.push(...childDescendants);
+        }
+      }
+      
+      map.set(nodeId, descendants);
+      return descendants;
+    };
+    
+    if (allGroupsMode && allGroupsData) {
+      allGroupsData.forEach(g => buildDescendantsMap(g));
+    } else if (group) {
+      buildDescendantsMap(group);
+    }
+    
+    return map;
+  }, [allGroupsMode, allGroupsData, group]);
+
+
+  // Select a group node and all its descendants using React Flow's built-in selection
+  // Note: setNodes will be available from useNodesState below, but we define this callback early
+  // setNodes is stable from React Flow, so we don't need it in dependencies
+  const selectSubtreeRef = useRef<((nodeId: string) => void) | null>(null);
+
+  const handleToggleExpand = useCallback((groupId: string) => {
+    setExpandedGroupIds(prev => {
+      const next = new Set(prev);
+      if (next.has(groupId)) {
+        next.delete(groupId);
+      } else {
+        next.add(groupId);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleExpandAll = useCallback(() => {
+    setExpandedGroupIds(new Set(allGroupIds));
+  }, [allGroupIds]);
+
+  const handleCollapseAll = useCallback(() => {
+    setExpandedGroupIds(new Set());
+  }, []);
 
   // ── Composable node state ────────────────────────────────────────────────
   const [composableNodeMetas, setComposableNodeMetas] = useState<Map<string, ComposableNodeMeta>>(
@@ -795,31 +893,104 @@ function GroupStructureGraphInner({
 
   // ── Build all React Flow nodes ───────────────────────────────────────────
   const { nodes: rawGroupNodes, edges: groupEdges } = useMemo(() => {
+    // Collect all groups for alias edge resolution
+    const allGroupsForAliases = allGroupsMode && allGroupsData ? allGroupsData : (group ? [group] : []);
+    
     if (allGroupsMode && allGroupsData) {
-      return buildAllGroupsGraph(allGroupsData);
+      return buildAllGroupsGraphLR(allGroupsData, expandedGroupIds, allGroupsForAliases);
     } else if (group) {
-      return buildGroupGraph(group);
+      return buildGroupGraphLR(group, expandedGroupIds, allGroupsForAliases);
     } else {
       return { nodes: [], edges: [] };
     }
-  }, [allGroupsMode, allGroupsData, group]);
+  }, [allGroupsMode, allGroupsData, group, expandedGroupIds]);
 
   const rootNode = rootNodeId ? rawGroupNodes.find(n => n.id === rootNodeId) : null;
   const rootX = rootNode?.position.x ?? 0;
   const rootY = rootNode?.position.y ?? 0;
 
-  // Inject pendingTokenCount + onApplyTokens into the root GroupNode
+  // ── Group boundary boxes ──────────────────────────────────────────────────
+  // Calculate bounding boxes for parent groups with children
+  const groupBoundaryNodes = useMemo(() => {
+    if (!showGroupBoundaries) return [];
+    
+    const boundaryNodes: Node[] = [];
+    const PADDING = 40;
+    
+    // For each parent group, calculate bounding box
+    groupDescendantsMap.forEach((descendants, parentId) => {
+      if (descendants.length === 0) return; // Skip leaf nodes
+      
+      // Find the parent node and all descendant nodes in rawGroupNodes
+      const allSubtreeIds = [parentId, ...descendants];
+      const subtreeNodes = rawGroupNodes.filter(n => allSubtreeIds.includes(n.id));
+      
+      if (subtreeNodes.length === 0) return;
+      
+      // Calculate bounding box
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      
+      subtreeNodes.forEach(node => {
+        const x = node.position.x;
+        const y = node.position.y;
+        const width = 200; // GROUP_NODE_W
+        const height = 80; // GROUP_NODE_H
+        
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x + width);
+        maxY = Math.max(maxY, y + height);
+      });
+      
+      // Create boundary node
+      boundaryNodes.push({
+        id: `boundary-${parentId}`,
+        type: 'groupBoundary',
+        position: { x: minX - PADDING, y: minY - PADDING },
+        data: {
+          width: maxX - minX + (PADDING * 2),
+          height: maxY - minY + (PADDING * 2),
+        },
+        draggable: false,
+        selectable: false,
+        zIndex: -1,
+      });
+    });
+    
+    return boundaryNodes;
+  }, [showGroupBoundaries, groupDescendantsMap, rawGroupNodes]);
+
+  // Inject callbacks into group nodes
   const groupNodes = useMemo(() => rawGroupNodes.map(n => {
-    if (!rootNodeId || n.id !== rootNodeId || groupNodePendingTokens.length === 0) return n;
+    const nodeData = n.data as unknown as GroupNodeData;
+    const updatedData: GroupNodeData = { ...nodeData };
+
+    // Inject pendingTokenCount + onApplyTokens into the root GroupNode
+    if (rootNodeId && n.id === rootNodeId && groupNodePendingTokens.length > 0) {
+      updatedData.pendingTokenCount = groupNodePendingTokens.length;
+      updatedData.onApplyTokens = handleApplyGroupTokens;
+    }
+
+    // Inject expansion toggle callback
+    if (nodeData.groupId) {
+      updatedData.onToggleExpand = () => handleToggleExpand(nodeData.groupId!);
+    }
+
+    // Inject navigation callback (only in allGroupsMode)
+    if (allGroupsMode && onNavigateToGroup && nodeData.groupId) {
+      updatedData.onNavigateTo = () => onNavigateToGroup(nodeData.groupId!);
+    }
+
+    // Inject subtree drag selection callback
+    if (nodeData.childCount && nodeData.childCount > 0) {
+      updatedData.onDragSubtree = () => selectSubtreeRef.current?.(n.id);
+    }
+
     return {
       ...n,
-      data: {
-        ...(n.data as unknown as GroupNodeData),
-        pendingTokenCount: groupNodePendingTokens.length,
-        onApplyTokens: handleApplyGroupTokens,
-      } as unknown as Record<string, unknown>,
+      data: updatedData as unknown as Record<string, unknown>,
     };
-  }), [rawGroupNodes, rootNodeId, groupNodePendingTokens, handleApplyGroupTokens]);
+  }), [rawGroupNodes, rootNodeId, groupNodePendingTokens, handleApplyGroupTokens, handleToggleExpand, allGroupsMode, onNavigateToGroup]);
 
   const composableReactFlowNodes = useMemo<Node[]>(() => {
     const result: Node[] = [];
@@ -857,8 +1028,8 @@ function GroupStructureGraphInner({
   }, [composableNodeMetas, nodeValues, handleComposableConfigChange, handleComposableGenerate, getComposableInputHandlers, namespace, allTokens, allGroups, resolveTokenReference, graphInputLockEpoch]);
 
   const allNodes = useMemo(
-    () => [...groupNodes, ...composableReactFlowNodes],
-    [groupNodes, composableReactFlowNodes],
+    () => [...groupBoundaryNodes, ...groupNodes, ...composableReactFlowNodes],
+    [groupBoundaryNodes, groupNodes, composableReactFlowNodes],
   );
 
   // Inject the onDelete callback into every composable edge at render time so
@@ -873,10 +1044,24 @@ function GroupStructureGraphInner({
     [composableEdges, handleEdgeDelete],
   );
 
-  const allEdges = useMemo(
-    () => [...groupEdges, ...composableEdgesWithDelete],
-    [groupEdges, composableEdgesWithDelete],
-  );
+  // Filter edges based on visibility settings
+  const allEdges = useMemo(() => {
+    const filteredGroupEdges = groupEdges.filter((edge) => {
+      // Categorize edges by their characteristics
+      if (edge.type === 'referenceEdge') {
+        return showAliasEdges; // Alias edges between tokens
+      }
+      if (edge.source.startsWith('group-') && edge.target.startsWith('group-')) {
+        return showStructuralEdges; // Group → Group hierarchy edges
+      }
+      if (edge.source.startsWith('group-') && !edge.target.startsWith('group-')) {
+        return showTokenEdges; // Group → Token edges
+      }
+      return true; // Unknown edges, show by default
+    });
+
+    return [...filteredGroupEdges, ...composableEdgesWithDelete];
+  }, [groupEdges, composableEdgesWithDelete, showStructuralEdges, showTokenEdges, showAliasEdges]);
 
   // ── React Flow state ─────────────────────────────────────────────────────
   const [nodes, setNodes, onNodesChange] = useNodesState(allNodes);
@@ -884,6 +1069,54 @@ function GroupStructureGraphInner({
 
   // Wire onEdgesChange into the ref so handleEdgesChange can call it
   useEffect(() => { onEdgesChangeRef.current = onEdgesChange; }, [onEdgesChange]);
+
+  // Initialize selectSubtree callback now that setNodes is available
+  useEffect(() => {
+    selectSubtreeRef.current = (nodeId: string) => {
+      const descendants = groupDescendantsMap.get(nodeId) ?? [];
+      const subtreeIds = [nodeId, ...descendants];
+      
+      setNodes((nds) =>
+        nds.map((n) => ({
+          ...n,
+          selected: subtreeIds.includes(n.id),
+        }))
+      );
+    };
+  }, [groupDescendantsMap, setNodes]);
+
+  // Reset layout to original calculated positions
+  const handleResetLayout = useCallback(() => {
+    // Build a map of original positions from rawGroupNodes and groupBoundaryNodes
+    const originalPositions = new Map<string, { x: number; y: number }>();
+    
+    rawGroupNodes.forEach(node => {
+      originalPositions.set(node.id, node.position);
+    });
+    
+    groupBoundaryNodes.forEach(node => {
+      originalPositions.set(node.id, node.position);
+    });
+    
+    // Reset all group/boundary/token/alias nodes to their original positions
+    setNodes((nds) =>
+      nds.map((n) => {
+        const originalPos = originalPositions.get(n.id);
+        if (originalPos) {
+          return {
+            ...n,
+            position: originalPos,
+          };
+        }
+        return n;
+      })
+    );
+    
+    // Trigger fitView after a short delay to show the reset
+    setTimeout(() => {
+      fitView({ padding: 0.2, duration: 400 });
+    }, 100);
+  }, [rawGroupNodes, groupBoundaryNodes, setNodes, fitView]);
 
   // Sync allNodes → React Flow while PRESERVING current positions so that
   // data updates (e.g. typing in a field) never reposition or re-focus nodes.
@@ -930,6 +1163,114 @@ function GroupStructureGraphInner({
         <span className="text-xs font-medium text-muted-foreground flex-1 truncate">
           {allGroupsMode ? 'All Groups' : group?.name || 'Group'}
         </span>
+        {expandedGroupIds.size > 0 ? (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-7 text-xs gap-1"
+            onClick={handleCollapseAll}
+            title="Collapse all token expansions"
+          >
+            <ViewOff size={12} /> Collapse All
+          </Button>
+        ) : (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-7 text-xs gap-1"
+            onClick={handleExpandAll}
+            title="Expand all groups to show tokens"
+          >
+            <View size={12} /> Expand All
+          </Button>
+        )}
+        
+        {/* Fit View button */}
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="h-7 text-xs gap-1"
+          onClick={() => fitView({ padding: 0.2, duration: 300 })}
+          title="Fit all nodes in view"
+        >
+          <FitToScreen size={12} /> Fit View
+        </Button>
+
+        {/* Reset Layout button */}
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="h-7 text-xs gap-1"
+          onClick={handleResetLayout}
+          title="Reset all nodes to calculated positions"
+        >
+          <Reset size={12} /> Reset Layout
+        </Button>
+        
+        {/* Edge visibility controls */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" title="Toggle edge visibility">
+              <FlowConnection size={12} /> Edges
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuLabel className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
+              Edge Visibility
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="gap-2 cursor-pointer"
+              onClick={() => setShowStructuralEdges(!showStructuralEdges)}
+            >
+              <div className={`w-3 h-3 rounded border flex items-center justify-center ${showStructuralEdges ? 'bg-primary border-primary' : 'border-border'}`}>
+                {showStructuralEdges && <span className="text-[8px] text-primary-foreground">✓</span>}
+              </div>
+              <div className="flex flex-col flex-1">
+                <span className="text-xs font-medium">Group Hierarchy</span>
+                <span className="text-[10px] text-muted-foreground">Parent → Child edges</span>
+              </div>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="gap-2 cursor-pointer"
+              onClick={() => setShowTokenEdges(!showTokenEdges)}
+            >
+              <div className={`w-3 h-3 rounded border flex items-center justify-center ${showTokenEdges ? 'bg-primary border-primary' : 'border-border'}`}>
+                {showTokenEdges && <span className="text-[8px] text-primary-foreground">✓</span>}
+              </div>
+              <div className="flex flex-col flex-1">
+                <span className="text-xs font-medium">Token Edges</span>
+                <span className="text-[10px] text-muted-foreground">Group → Token edges</span>
+              </div>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="gap-2 cursor-pointer"
+              onClick={() => setShowAliasEdges(!showAliasEdges)}
+            >
+              <div className={`w-3 h-3 rounded border flex items-center justify-center ${showAliasEdges ? 'bg-warning border-warning' : 'border-border'}`}>
+                {showAliasEdges && <span className="text-[8px] text-warning-foreground">✓</span>}
+              </div>
+              <div className="flex flex-col flex-1">
+                <span className="text-xs font-medium">Alias References</span>
+                <span className="text-[10px] text-muted-foreground">Token → Token aliases</span>
+              </div>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="gap-2 cursor-pointer"
+              onClick={() => setShowGroupBoundaries(!showGroupBoundaries)}
+            >
+              <div className={`w-3 h-3 rounded border flex items-center justify-center ${showGroupBoundaries ? 'bg-info border-info' : 'border-border'}`}>
+                {showGroupBoundaries && <span className="text-[8px] text-info-foreground">✓</span>}
+              </div>
+              <div className="flex flex-col flex-1">
+                <span className="text-xs font-medium">Group Boundaries</span>
+                <span className="text-[10px] text-muted-foreground">Boxes around subtrees</span>
+              </div>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm" className="h-7 text-xs gap-1">
@@ -972,22 +1313,41 @@ function GroupStructureGraphInner({
           edgeTypes={EDGE_TYPES}
           connectionLineType={ConnectionLineType.Bezier}
           fitView
-          fitViewOptions={{ padding: 0.25 }}
-          minZoom={0.2}
-          maxZoom={2}
+          fitViewOptions={{ padding: 0.2, duration: 300 }}
+          minZoom={0.05}
+          maxZoom={2.5}
           proOptions={{ hideAttribution: true }}
           style={{ width: '100%', height: '100%' }}
         >
           <Controls showInteractive={false} />
           <MiniMap
             nodeColor={n => {
+              // Boundary nodes are invisible on minimap
+              if (n.type === 'groupBoundary') return 'transparent';
+              // Composable nodes in purple
               if (n.type?.startsWith('composable')) return '#a78bfa';
-              return n.selected ? '#6366f1' : '#e2e8f0';
+              // Token/alias nodes in amber/warning
+              if (n.type === 'tokenNode' || n.type === 'aliasNode') return '#f59e0b';
+              // Selected nodes in primary blue
+              if (n.selected) return '#6366f1';
+              // Group nodes in info blue
+              if (n.type === 'groupNode') return '#3b82f6';
+              // Default
+              return '#94a3b8';
             }}
-            maskColor="rgba(248,250,252,0.7)"
-            className="!border !border-border !rounded-lg !shadow-sm"
+            maskColor="rgba(15, 23, 42, 0.6)"
+            className="!bg-card/95 !border !border-border !rounded-lg !shadow-md !cursor-pointer"
+            style={{ backgroundColor: 'hsl(var(--card) / 0.95)' }}
+            pannable={true}
+            zoomable={true}
+            inversePan={false}
           />
-          <Background variant={BackgroundVariant.Dots} gap={16} size={1} color="#e2e8f0" />
+          <Background 
+            variant={BackgroundVariant.Dots} 
+            gap={16} 
+            size={1} 
+            color="hsl(var(--muted-foreground) / 0.2)"
+          />
         </ReactFlow>
       </div>
     </div>

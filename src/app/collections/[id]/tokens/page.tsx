@@ -105,6 +105,9 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
   const searchParams = useSearchParams();
   const initialFullscreen = searchParams.get('graph') === 'full';
 
+  const [isFullscreen, setIsFullscreen] = useState(initialFullscreen);
+  const handleToggleFullscreen = useCallback(() => setIsFullscreen((prev) => !prev), []);
+
   const [collectionName, setCollectionName] = useState('');
   const [rawCollectionTokens, setRawCollectionTokens] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -1674,7 +1677,10 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
               flatGroups={allFlatGroups}
               activeColorThemeId={activeColorThemeId}
               activeDensityThemeId={activeDensityThemeId}
-              initialFullscreen={initialFullscreen}
+              onNavigateToGroup={(groupId) => {
+                setSelectedGroupId(groupId);
+                setSelectedToken(null);
+              }}
             />
           }
           breadcrumb={
@@ -1737,6 +1743,8 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
             groups={(activeColorThemeId || activeDensityThemeId) ? undefined : masterGroups}
             />
           }
+          isFullscreen={isFullscreen}
+          onToggleFullscreen={handleToggleFullscreen}
         />
       </TabsContent>
 

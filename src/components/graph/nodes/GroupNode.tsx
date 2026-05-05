@@ -2,7 +2,7 @@
 
 import { memo } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
-import { Lightning } from '@carbon/icons-react';
+import { Lightning, ChevronRight, ChevronDown, DragHorizontal } from '@carbon/icons-react';
 
 export interface GroupNodeData {
   label: string;
@@ -11,13 +11,29 @@ export interface GroupNodeData {
   level: number;
   pendingTokenCount?: number;
   onApplyTokens?: () => void;
+  isExpanded?: boolean;
+  onToggleExpand?: () => void;
+  onNavigateTo?: () => void;
+  groupId?: string;
+  onDragSubtree?: () => void;
 }
 
 function GroupNodeComponent({ data, selected }: NodeProps) {
-  const { label, tokenCount, childCount, level, pendingTokenCount, onApplyTokens } =
-    data as unknown as GroupNodeData;
+  const { 
+    label, 
+    tokenCount, 
+    childCount, 
+    level, 
+    pendingTokenCount, 
+    onApplyTokens,
+    isExpanded,
+    onToggleExpand,
+    onNavigateTo,
+    onDragSubtree,
+  } = data as unknown as GroupNodeData;
 
   const hasPending = (pendingTokenCount ?? 0) > 0;
+  const hasTokens = tokenCount > 0;
 
   return (
     <div
@@ -25,11 +41,46 @@ function GroupNodeComponent({ data, selected }: NodeProps) {
         bg-card rounded-lg border-2 shadow-sm min-w-[180px]
         ${selected ? 'border-primary shadow-sm' : 'border-border'}
       `}
+      onDoubleClick={(e) => {
+        if (onNavigateTo) {
+          e.stopPropagation();
+          onNavigateTo();
+        }
+      }}
     >
       <div className="px-3 py-2 bg-background rounded-t-lg border-b border-border">
         <div className="flex items-center gap-2">
+          {/* Drag handle for moving entire subtree */}
+          {childCount > 0 && onDragSubtree && (
+            <div
+              className="cursor-move p-0.5 hover:bg-muted/50 rounded transition-colors flex-shrink-0"
+              title="Click to select group with all children, then drag to move together"
+              onMouseDown={(e) => {
+                e.stopPropagation();
+                onDragSubtree();
+              }}
+            >
+              <DragHorizontal size={12} className="text-muted-foreground" />
+            </div>
+          )}
           <div className="w-2 h-2 rounded-full bg-info flex-shrink-0" />
           <span className="font-semibold text-sm text-foreground truncate">{label}</span>
+          {hasTokens && onToggleExpand && (
+            <button
+              className="nodrag ml-auto p-0.5 hover:bg-muted rounded transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleExpand();
+              }}
+              title={isExpanded ? 'Collapse tokens' : 'Expand tokens'}
+            >
+              {isExpanded ? (
+                <ChevronDown size={14} className="text-muted-foreground" />
+              ) : (
+                <ChevronRight size={14} className="text-muted-foreground" />
+              )}
+            </button>
+          )}
         </div>
         {level > 0 && (
           <span className="text-[10px] text-muted-foreground font-mono">level {level}</span>
@@ -68,6 +119,16 @@ function GroupNodeComponent({ data, selected }: NodeProps) {
       <Handle type="target" position={Position.Top}    className="!w-2 !h-2 !bg-muted" />
       <Handle type="source" position={Position.Bottom} className="!w-2 !h-2 !bg-muted" />
       <Handle type="source" id="generator-out" position={Position.Right} className="!w-2 !h-2 !bg-info" />
+
+      {/* tokens-out: source handle for token expansion edges */}
+      <Handle
+        type="source"
+        id="tokens-out"
+        position={Position.Right}
+        title="tokens-out (to expanded tokens)"
+        className="!w-2 !h-2 !bg-warning"
+        style={{ top: '60%' }}
+      />
 
       {/* tokens-in: accepts token data piped from a TokenOutputNode */}
       <Handle

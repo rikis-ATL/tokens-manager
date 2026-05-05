@@ -1,6 +1,5 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { TokenGraphPanel } from './TokenGraphPanel';
 import type { TokenGroup, GeneratedToken } from '@/types';
 import type { GraphGroupState, CollectionGraphState } from '@/types/graph-state.types';
@@ -22,30 +21,18 @@ export interface GraphPanelWithChromeProps {
   /** Dual active theme IDs — used to produce a stable remount key for GroupStructureGraph */
   activeColorThemeId?: string | null;
   activeDensityThemeId?: string | null;
-  /** When true, the graph opens in fullscreen on first render (e.g. driven by ?graph=full URL param). */
-  initialFullscreen?: boolean;
+  /** Navigation callback for group node double-click and breadcrumb */
+  onNavigateToGroup?: (groupId: string) => void;
 }
 
-export function GraphPanelWithChrome({ initialFullscreen, ...panelProps }: GraphPanelWithChromeProps) {
-  const [isFullscreen, setIsFullscreen] = useState(initialFullscreen ?? false);
-
-  useEffect(() => {
-    if (!isFullscreen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsFullscreen(false);
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isFullscreen]);
-
+/**
+ * Simple wrapper for TokenGraphPanel. Fullscreen is managed at the workspace level.
+ */
+export function GraphPanelWithChrome(props: GraphPanelWithChromeProps) {
   return (
-    <div className={isFullscreen ? 'fixed inset-0 z-50 bg-background flex flex-col' : 'flex flex-col h-full'}>
+    <div className="flex flex-col h-full">
       <div className="flex-1 min-h-0">
-        <TokenGraphPanel
-          {...panelProps}
-          isFullscreen={isFullscreen}
-          onToggleFullscreen={() => setIsFullscreen(prev => !prev)}
-        />
+        <TokenGraphPanel {...props} />
       </div>
     </div>
   );

@@ -12,6 +12,8 @@ function ReferenceEdgeComponent({
   sourcePosition,
   targetPosition,
   label,
+  style,
+  markerEnd,
 }: EdgeProps) {
   const [edgePath, labelX, labelY] = getBezierPath({
     sourceX,
@@ -31,8 +33,9 @@ function ReferenceEdgeComponent({
         stroke="#f59e0b"
         strokeWidth={1.5}
         strokeDasharray="5 4"
-        className="animated"
-        markerEnd="url(#arrow-amber)"
+        style={style}
+        className="react-flow__edge-path"
+        markerEnd={markerEnd || "url(#arrow-amber)"}
       />
       <defs>
         <marker
