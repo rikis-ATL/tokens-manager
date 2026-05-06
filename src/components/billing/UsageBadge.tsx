@@ -6,6 +6,7 @@
 // "Exports" = Figma + GitHub export actions / month (not in-app build/preview), see checkAndIncrementExport.
 
 import { useEffect, useState } from 'react';
+import { Badge } from '@/components/ui/badge';
 import { useUpgradeModal } from './UpgradeModalProvider';
 
 type Plan = 'free' | 'pro' | 'team';
@@ -119,23 +120,25 @@ export function UsageBadge() {
       onClick={handleClick}
       data-testid="usage-badge"
       title={usageHint}
-      className="flex items-center flex-wrap justify-end gap-x-2 gap-y-0.5 text-xs px-2.5 py-1 rounded-full border border-border bg-background hover:bg-accent transition-colors text-left max-w-[min(100%,42rem)]"
+      className="text-left cursor-pointer bg-transparent border-none p-0"
     >
-      <span className="font-medium text-foreground shrink-0">{usage.orgName}</span>
-      <span className="text-muted-foreground shrink-0">·</span>
-      <span className="capitalize text-muted-foreground shrink-0">{usage.plan}</span>
-      <span className="text-muted-foreground shrink-0" aria-hidden>|</span>
-      <span className="text-muted-foreground shrink-0">
-        {usage.collectionCount}/{fmt(usage.collectionMax)} collections
-      </span>
-      <span className="text-muted-foreground shrink-0" aria-hidden>|</span>
-      <span className="text-muted-foreground shrink-0">
-        {usage.tokenCount}/{fmt(usage.tokenMax)} tokens
-      </span>
-      <span className="text-muted-foreground shrink-0" aria-hidden>|</span>
-      <span className="text-muted-foreground shrink-0">
-        {usage.exportsThisMonth}/{fmt(usage.exportsMax)} exports
-      </span>
+      <Badge className="flex items-center flex-wrap justify-end gap-x-2 gap-y-0.5 text-xs px-2.5 py-1 rounded-full border border-border bg-background hover:bg-accent transition-colors max-w-[min(100%,42rem)]">
+        <span className="font-medium text-foreground shrink-0">{usage.orgName}</span>
+        <span className="text-muted-foreground shrink-0">·</span>
+        <span className="capitalize text-muted-foreground shrink-0">{usage.plan}</span>
+        {/* <span className="text-muted-foreground shrink-0" aria-hidden>|</span> */}
+        {/* <span className="text-muted-foreground shrink-0">
+          {usage.collectionCount}/{fmt(usage.collectionMax)} collections
+        </span>
+        <span className="text-muted-foreground shrink-0" aria-hidden>|</span>
+        <span className="text-muted-foreground shrink-0">
+          {usage.tokenCount}/{fmt(usage.tokenMax)} tokens
+        </span>
+        <span className="text-muted-foreground shrink-0" aria-hidden>|</span>
+        <span className="text-muted-foreground shrink-0">
+          {usage.exportsThisMonth}/{fmt(usage.exportsMax)} exports
+        </span> */}
+      </Badge>
     </button>
   );
 }

@@ -205,7 +205,7 @@ export function TokenGroupTree({
             }`}
             onClick={() => onGroupSelect?.('__all_groups__')}
           >
-            <span className="flex-1 truncate">All Groups</span>
+            <span className="flex-1 truncate text-menu-item py-menu-item-y px-menu-item-x">All Groups</span>
             <span className="text-xs text-muted-foreground">({flatNodes.length})</span>
           </div>
         )}

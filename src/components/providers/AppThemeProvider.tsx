@@ -9,6 +9,8 @@ import {
   useRef,
   useState,
 } from 'react';
+import { io as connectSocket } from 'socket.io-client';
+import type { Socket } from 'socket.io-client';
 
 const STYLE_ID = 'app-theme-dynamic-css';
 const STORAGE_THEME_ID = 'app-theme-shell-theme-id';
@@ -24,6 +26,10 @@ type AppThemeContextValue = {
   prefersDark: boolean;
   setPrefersDark: (value: boolean) => void;
   refresh: () => Promise<void>;
+  /** Re-fetch CSS for a specific theme ID without changing the stored app-shell theme. */
+  refreshForTheme: (tid: string) => Promise<void>;
+  /** Generate and inject CSS from caller-supplied tokens (playground / unsaved edits) without a DB write. */
+  previewTokens: (tokens: Record<string, unknown>, themeId?: string | null) => Promise<void>;
 };
 
 const AppThemeContext = createContext<AppThemeContextValue | null>(null);
@@ -144,6 +150,59 @@ export function AppThemeProvider({ children }: { children: React.ReactNode }) {
     await runFetch(themeIdRef.current);
   }, [runFetch]);
 
+  const refreshForTheme = useCallback(async (tid: string) => {
+    await runFetch(tid && tid !== '__default__' ? tid : '__default__');
+  }, [runFetch]);
+
+  const previewTokens = useCallback(async (tokens: Record<string, unknown>, themeId?: string | null) => {
+    try {
+      const res = await fetch('/api/app-theme/css', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tokens, themeId: themeId ?? null }),
+        cache: 'no-store',
+      });
+      if (!res.ok) {
+        console.warn('[AppTheme] Preview CSS failed', res.status);
+        return;
+      }
+      const data = (await res.json()) as { css?: string; hasDarkPair?: boolean; themeColorMode?: 'light' | 'dark' | null };
+      setHasDarkPair(Boolean(data.hasDarkPair));
+      setThemeColorMode(data.themeColorMode ?? null);
+      if (data.css != null) injectCss(data.css);
+    } catch (err) {
+      console.warn('[AppTheme] Preview CSS error', err);
+    }
+  }, [injectCss]);
+
+  // Re-fetch CSS whenever the server broadcasts a token update for this collection
+  useEffect(() => {
+    if (!collectionId) return;
+
+    const socket: Socket = connectSocket({ path: '/api/socketio', transports: ['websocket'] });
+
+    socket.on('connect', () => {
+      socket.emit('subscribe', collectionId);
+    });
+
+    socket.on('token-update', (payload: { collectionId: string; themeId?: string | null }) => {
+      if (payload.collectionId !== collectionId) return;
+      // Refresh only if the broadcast theme matches what the shell is currently showing,
+      // or if a default-collection save came in (themeId is null/undefined).
+      const updatedTheme = payload.themeId ?? '__default__';
+      if (updatedTheme === themeIdRef.current || updatedTheme === '__default__') {
+        void refresh();
+      }
+    });
+
+    return () => {
+      if (socket.connected) {
+        socket.emit('unsubscribe', collectionId);
+      }
+      socket.disconnect();
+    };
+  }, [collectionId, refresh]);
+
   useEffect(() => {
     setThemeIdState(readStoredThemeId());
     setPrefersDarkState(readStoredPrefersDark());
@@ -213,6 +272,8 @@ export function AppThemeProvider({ children }: { children: React.ReactNode }) {
       prefersDark,
       setPrefersDark,
       refresh,
+      refreshForTheme,
+      previewTokens,
     }),
     [
       configured,
@@ -224,6 +285,8 @@ export function AppThemeProvider({ children }: { children: React.ReactNode }) {
       prefersDark,
       setPrefersDark,
       refresh,
+      refreshForTheme,
+      previewTokens,
     ]
   );
 

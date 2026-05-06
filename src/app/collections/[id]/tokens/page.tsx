@@ -125,12 +125,22 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     isPlaygroundRef.current = isPlayground;
   }, [isPlayground]);
 
-  /** After persisting this collection, refresh shell CSS if it is the designated app-theme collection. */
+  /** After persisting this collection, refresh shell CSS if it is the designated app-theme collection.
+   *  Uses refreshForTheme with the active editor theme so live preview reflects the token being edited,
+   *  not the app-shell's stored theme (which may differ when editing a custom theme). */
   const tryRefreshAppShell = useCallback(() => {
     const at = appThemeRef.current;
-    if (at?.configured && at.collectionId === id) {
-      void at.refresh();
-    }
+    if (!at?.configured || at.collectionId !== id) return;
+    const activeEditorTheme = activeColorThemeIdRef.current ?? activeDensityThemeIdRef.current ?? '__default__';
+    void at.refreshForTheme(activeEditorTheme);
+  }, [id]);
+
+  /** Playground variant — generates preview CSS from caller-supplied tokens without a DB write. */
+  const triggerPlaygroundPreview = useCallback((tokens: Record<string, unknown>) => {
+    const at = appThemeRef.current;
+    if (!at?.configured || at.collectionId !== id) return;
+    const activeEditorTheme = activeColorThemeIdRef.current ?? activeDensityThemeIdRef.current ?? null;
+    void at.previewTokens(tokens, activeEditorTheme);
   }, [id]);
 
   /** Coalesce shell CSS reload while editing (esp. shadcn colors) so the editor does not re-apply the live theme on every 400ms save tick. */
@@ -472,6 +482,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
             graphState: graphStateMapRef.current,
             lastModified: Date.now(),
           });
+          triggerPlaygroundPreview(toSave);
           return;
         }
         try {
@@ -494,7 +505,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
         }
       }, 400);
     },
-    [canEdit, id, globalNamespace, scheduleDebouncedAppShellRefresh]
+    [canEdit, id, globalNamespace, scheduleDebouncedAppShellRefresh, triggerPlaygroundPreview]
   );
 
   // ── Group drag-and-drop reorder handler ────────────────────────────────
@@ -719,6 +730,8 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     setIsSaving(true);
     // Playground: changes are already saved to sessionStorage on every edit — show confirmation and skip MongoDB write (per D-02, D-04)
     if (isPlaygroundRef.current) {
+      const tokens = generateTabTokensRef.current ?? rawCollectionTokensRef.current ?? {};
+      triggerPlaygroundPreview(tokens);
       showSuccessToast('Changes saved locally');
       setIsSaving(false);
       return;
@@ -767,7 +780,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     } finally {
       setIsSaving(false);
     }
-  }, [id, rawCollectionTokens, activeColorThemeId, activeDensityThemeId, selectedGroupId, masterGroups, globalNamespace, tryRefreshAppShell]);
+  }, [id, rawCollectionTokens, activeColorThemeId, activeDensityThemeId, selectedGroupId, masterGroups, globalNamespace, tryRefreshAppShell, triggerPlaygroundPreview]);
 
   // ── Ctrl / Cmd + S and Ctrl / Cmd + Z keyboard shortcuts ──────────────
   useEffect(() => {
