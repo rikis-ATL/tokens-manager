@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { InProgress } from '@carbon/icons-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -44,64 +45,93 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="w-full max-w-sm bg-card dark:bg-card rounded-xl shadow-md p-8">
-        <h1 className="text-xl font-semibold text-center text-foreground dark:text-foreground mb-6">
-          Token Manager
-        </h1>
-
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <label
-              htmlFor="email"
-              className="text-sm font-medium text-foreground dark:text-muted-foreground"
-            >
-              Email
-            </label>
-            <Input
-              id="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-            />
+    <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden">
+      {/* Dot matrix background pattern */}
+      <div 
+        className="absolute inset-0 opacity-[0.15] dark:opacity-[0.08]"
+        style={{
+          backgroundImage: 'radial-gradient(circle, currentColor 1px, transparent 1px)',
+          backgroundSize: '24px 24px',
+        }}
+      />
+      
+      <div className="relative z-10 w-full max-w-md mx-4">
+        <div className="bg-card rounded-2xl shadow-2xl border border-border p-10">
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold text-center text-foreground mb-2">
+              tokenflow
+            </h1>
+            <p className="text-sm text-center text-muted-foreground">
+              Sign in to your account
+            </p>
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <label
-              htmlFor="password"
-              className="text-sm font-medium text-foreground dark:text-muted-foreground"
-            >
-              Password
-            </label>
-            <Input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-            />
-          </div>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+            <div className="flex flex-col gap-2">
+              <label
+                htmlFor="email"
+                className="text-sm font-medium text-foreground"
+              >
+                Email
+              </label>
+              <Input
+                id="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                className="h-11"
+              />
+            </div>
 
-          {error && (
-            <p className="text-sm text-destructive dark:text-destructive mt-1">{error}</p>
-          )}
+            <div className="flex flex-col gap-2">
+              <label
+                htmlFor="password"
+                className="text-sm font-medium text-foreground"
+              >
+                Password
+              </label>
+              <Input
+                id="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="h-11"
+              />
+            </div>
 
-          <Button type="submit" disabled={loading} className="w-full mt-2">
-            {loading ? (
-              <>
-                <InProgress size={16} className="mr-2 shrink-0 animate-spin" />
-                Signing in...
-              </>
-            ) : (
-              'Sign in'
+            {error && (
+              <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+                <p className="text-sm text-destructive">{error}</p>
+              </div>
             )}
-          </Button>
-        </form>
+
+            <Button type="submit" disabled={loading} className="w-full h-11 mt-2">
+              {loading ? (
+                <>
+                  <InProgress size={16} className="mr-2 shrink-0 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                'Sign in'
+              )}
+            </Button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <p className="text-sm text-muted-foreground">
+              Don't have an account?{' '}
+              <Link href="/auth/signup" className="text-foreground font-medium hover:underline">
+                Sign up
+              </Link>
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

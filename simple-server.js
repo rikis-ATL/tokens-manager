@@ -196,7 +196,7 @@ app.get('/', (req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Token Manager server running on http://localhost:${PORT}`);
+  console.log(`🚀 tokenflow server running on http://localhost:${PORT}`);
   console.log(`📁 Serving tokens from: ${tokensDir}`);
 
   // Check if tokens directory exists

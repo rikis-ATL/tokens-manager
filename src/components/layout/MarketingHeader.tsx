@@ -31,7 +31,7 @@ export function MarketingHeader({
         href="/"
         className="text-sm font-semibold text-foreground tracking-wide hover:text-muted-foreground transition-colors"
       >
-        Design Token Manager
+        tokenflow
       </Link>
       {showBack ? (
         <Button type="button" variant="ghost" size="sm" onClick={handleBack} className="gap-1.5 text-muted-foreground">

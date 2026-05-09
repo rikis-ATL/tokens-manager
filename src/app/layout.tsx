@@ -14,7 +14,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Design Token Manager",
+  title: "tokenflow",
   description: "Visual design token editor and manager",
 };
 

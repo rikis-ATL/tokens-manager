@@ -47,9 +47,9 @@ export async function POST(
   const setupUrl = `${process.env.NEXTAUTH_URL}/auth/invite-setup?token=${plainToken}`;
   const resend = new Resend(process.env.RESEND_API_KEY);
   const { error: emailError } = await resend.emails.send({
-    from: process.env.RESEND_FROM ?? 'Token Manager <noreply@tokenflow.studio>',
+    from: process.env.RESEND_FROM ?? 'tokenflow <noreply@tokenflow.studio>',
     to: [invite.email],
-    subject: `You've been invited to Token Manager as ${invite.role}`,
+    subject: `You've been invited to tokenflow as ${invite.role}`,
     html: buildInviteEmailHtml(invite.email, invite.role, setupUrl),
   });
 

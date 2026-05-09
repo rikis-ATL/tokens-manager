@@ -53,7 +53,7 @@ function useDbStatus(enabled: boolean): DbStatus {
 }
 
 type OrgHeaderProps = {
-  /** When set (collection detail shell), replaces "Token Manager" as the primary title. */
+  /** When set (collection detail shell), replaces "tokenflow" as the primary title. */
   pageTitle?: string;
   /** Collection is playground mode — show badge next to the title. */
   showPlaygroundBadge?: boolean;
@@ -67,7 +67,7 @@ export function OrgHeader({ pageTitle, showPlaygroundBadge }: OrgHeaderProps) {
   const db = useDbStatus(isSuperAdmin);
   const isCollectionDetail = pathname.startsWith('/collections/');
   const [guideOpen, setGuideOpen] = useState(false);
-  const mainTitle = pageTitle?.trim() || 'Token Manager';
+  const mainTitle = pageTitle?.trim() || 'tokenflow';
 
   return (
     <>

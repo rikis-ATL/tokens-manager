@@ -219,7 +219,13 @@ export function CollectionSettingsProvider({
           }),
         });
 
-        if (!res.ok) throw new Error('Save failed');
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          const msg = typeof (data as Record<string, unknown>).error === 'string'
+            ? (data as Record<string, unknown>).error as string
+            : 'Failed to save settings';
+          throw new Error(msg);
+        }
 
         setSaveStatus('saved');
         if (statusTimeoutRef.current) clearTimeout(statusTimeoutRef.current);
@@ -227,6 +233,7 @@ export function CollectionSettingsProvider({
       } catch (err) {
         console.error('[CollectionSettingsProvider] Auto-save failed:', err);
         setSaveStatus('error');
+        showErrorToast(err instanceof Error ? err.message : 'Failed to save settings');
       }
     },
     [id]

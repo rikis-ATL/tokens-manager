@@ -51,7 +51,7 @@ export function AppSidebar() {
 
       <div className={`flex items-center border-t border-muted flex-shrink-0 ${collapsed ? 'justify-center py-3' : 'px-4 py-3 justify-between'}`}>
         {!collapsed && (
-          <span className="text-foreground font-semibold text-sm tracking-wide truncate">Token Manager</span>
+          <span className="text-foreground font-semibold text-sm tracking-wide truncate">tokenflow</span>
         )}
         <button
           onClick={() => setCollapsed(c => !c)}

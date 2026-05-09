@@ -173,6 +173,22 @@
   textarea::placeholder {
     @apply text-muted-foreground;
   }
+  /* Prevent browser autofill from overriding text colors */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    -webkit-text-fill-color: rgb(17 24 39) !important;
+    -webkit-box-shadow: 0 0 0 1000px hsl(var(--background)) inset !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+  .dark input:-webkit-autofill,
+  .dark input:-webkit-autofill:hover,
+  .dark input:-webkit-autofill:focus,
+  .dark input:-webkit-autofill:active {
+    -webkit-text-fill-color: rgb(243 244 246) !important;
+    -webkit-box-shadow: 0 0 0 1000px hsl(var(--background)) inset !important;
+  }
   /* Header row has no own fill — use the wrapping card/panel/surface */
   thead {
     @apply bg-transparent;

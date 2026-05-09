@@ -93,9 +93,6 @@ export async function PUT(
   const rateGuard = await checkRateLimit(authResult.user.id, authResult.user.organizationId);
   if (rateGuard) return rateGuard;
 
-  const tokenGuard = await checkTokenLimit(authResult.user.organizationId ?? '');
-  if (tokenGuard) return tokenGuard;
-
   // Org ownership check — prevent cross-tenant writes
   {
     const repo = await getRepository();
@@ -110,6 +107,15 @@ export async function PUT(
   try {
     const body = (await request.json()) as PutBody;
     const { npmToken, ...rest } = body;
+
+    // Token-count limit only applies when tokens are actually being written.
+    // Settings-only updates (isPlayground, figmaToken, githubRepo, etc.) must
+    // never be blocked by the billing guard — otherwise users cannot disable
+    // playground mode or edit integrations when their org is at the token cap.
+    if (rest.tokens !== undefined) {
+      const tokenGuard = await checkTokenLimit(authResult.user.organizationId ?? '');
+      if (tokenGuard) return tokenGuard;
+    }
 
     if (
       rest.name === undefined &&

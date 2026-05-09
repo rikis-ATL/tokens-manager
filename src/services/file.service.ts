@@ -116,7 +116,7 @@ export class FileService {
       const exportData = {
         $metadata: {
           exportedAt: new Date().toISOString(),
-          generator: 'Token Manager',
+          generator: 'tokenflow',
           version: '1.0.0',
           globalNamespace
         },

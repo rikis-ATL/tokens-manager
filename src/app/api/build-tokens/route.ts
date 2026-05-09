@@ -8,7 +8,9 @@ import { checkRateLimit } from '@/lib/billing';
 const COMMENT_FORMATS = new Set(['css', 'scss', 'less', 'js', 'ts']);
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
-  const authResult = await requireRole(Action.Write);
+  // Build is a pure compute step — no database writes — so Read permission is sufficient.
+  // This allows Demo/playground users to preview build output from their session tokens.
+  const authResult = await requireRole(Action.Read);
   if (authResult instanceof NextResponse) return authResult;
 
   const rateGuard = await checkRateLimit(authResult.user.id, authResult.user.organizationId);

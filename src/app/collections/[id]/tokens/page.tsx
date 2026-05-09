@@ -50,6 +50,7 @@ import { ExportToFigmaDialog } from '@/components/figma/ExportToFigmaDialog';
 import { LoadCollectionDialog } from '@/components/collections/LoadCollectionDialog';
 import { ClearFormDialog } from '@/components/tokens/ClearFormDialog';
 import { JsonPreviewDialog } from '@/components/dev/JsonPreviewDialog';
+import { BuildTokensPanel } from '@/components/dev';
 import type { GitHubConfig } from '@/types';
 import { usePermissions } from '@/context/PermissionsContext';
 import { useAppTheme } from '@/components/providers/AppThemeProvider';
@@ -485,6 +486,10 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
           triggerPlaygroundPreview(toSave);
           return;
         }
+        // Immediate CSS preview for the app-theme collection while editing (non-playground path).
+        // triggerPlaygroundPreview is a no-op when id !== appTheme.collectionId, so this is safe
+        // for all collections. The debounced DB refresh still runs to confirm the persisted state.
+        triggerPlaygroundPreview(toSave);
         try {
           const res = await fetch(`/api/collections/${id}`, {
             method: 'PUT',
@@ -1460,6 +1465,7 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
             <TabsTrigger value="tokens">Tokens</TabsTrigger>
             <TabsTrigger value="themes">Themes</TabsTrigger>
             <TabsTrigger value="style-guide">Style Guide</TabsTrigger>
+            <TabsTrigger value="build">Build</TabsTrigger>
           </TabsList>
 
 
@@ -1812,6 +1818,17 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
           tokens={allCollectionTokens}
           allGroups={filteredGroups}
           colorGroupsTree={(activeColorThemeId || activeDensityThemeId) ? effectiveThemeTokens : filteredGroups}
+        />
+      </TabsContent>
+
+      <TabsContent
+        value="build"
+        className="flex flex-1 flex-col min-h-0 m-0 p-0 overflow-hidden"
+      >
+        <BuildTokensPanel
+          tokens={generateTabTokens ?? rawCollectionTokens}
+          namespace={globalNamespace}
+          collectionName={collectionName}
         />
       </TabsContent>
       </Tabs>

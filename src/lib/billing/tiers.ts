@@ -37,3 +37,77 @@ export const LIMITS: Record<PlanTier, TierLimits> = {
     rateLimitPerMinute: 300,
   },
 };
+
+export interface TierFeatures {
+  githubExport: boolean;
+  figmaExport: boolean;
+  npmPublish: boolean;
+  versionHistory: boolean;
+  aiChat: boolean;
+  teamMembers: boolean;
+  graphEditor: boolean;
+  mathNodes: boolean;
+  tokenReferences: boolean;
+  multiFormatExport: boolean;
+  bulkOperations: boolean;
+  colorSwatches: boolean;
+}
+
+export const FEATURE_FLAGS: Record<PlanTier | 'selfHosted', TierFeatures> = {
+  free: {
+    githubExport: false,
+    figmaExport: false,
+    npmPublish: false,
+    versionHistory: true,
+    aiChat: false,
+    teamMembers: false,
+    graphEditor: true,
+    mathNodes: true,
+    tokenReferences: true,
+    multiFormatExport: true,
+    bulkOperations: true,
+    colorSwatches: true,
+  },
+  pro: {
+    githubExport: true,
+    figmaExport: true,
+    npmPublish: true,
+    versionHistory: true,
+    aiChat: true,
+    teamMembers: false,
+    graphEditor: true,
+    mathNodes: true,
+    tokenReferences: true,
+    multiFormatExport: true,
+    bulkOperations: true,
+    colorSwatches: true,
+  },
+  team: {
+    githubExport: true,
+    figmaExport: true,
+    npmPublish: true,
+    versionHistory: true,
+    aiChat: true,
+    teamMembers: true,
+    graphEditor: true,
+    mathNodes: true,
+    tokenReferences: true,
+    multiFormatExport: true,
+    bulkOperations: true,
+    colorSwatches: true,
+  },
+  selfHosted: {
+    githubExport: true,
+    figmaExport: true,
+    npmPublish: true,
+    versionHistory: true,
+    aiChat: true,
+    teamMembers: true,
+    graphEditor: true,
+    mathNodes: true,
+    tokenReferences: true,
+    multiFormatExport: true,
+    bulkOperations: true,
+    colorSwatches: true,
+  },
+};
