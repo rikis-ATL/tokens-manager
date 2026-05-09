@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { InProgress } from '@carbon/icons-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { TextAnimNavigators } from '@/components/ui/motion/text-anim-navigators';
 
 export default function SignInPage() {
   const router = useRouter();
@@ -45,7 +46,7 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden">
+    <div className="flex overflow-hidden relative justify-center items-center min-h-screen bg-background">
       {/* Dot matrix background pattern */}
       <div 
         className="absolute inset-0 opacity-[0.15] dark:opacity-[0.08]"
@@ -55,10 +56,16 @@ export default function SignInPage() {
         }}
       />
       
-      <div className="relative z-10 w-full max-w-md mx-4">
-        <div className="bg-card rounded-2xl shadow-2xl border border-border p-10">
+
+   
+      <div className="relative z-10 mx-4 w-full max-w-md">
+        <div className="p-10 rounded-2xl border shadow-2xl bg-card border-border">
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-center text-foreground mb-2">
+
+            <div className="mb-2 text-2xl font-bold text-center text-foreground">
+              <TextAnimNavigators content="Sign in to your account" delay={0} highlight="background" />
+            </div>
+            <h1 className="mb-2 text-2xl font-bold text-center text-foreground">
               tokenflow
             </h1>
             <p className="text-sm text-center text-muted-foreground">
@@ -106,15 +113,15 @@ export default function SignInPage() {
             </div>
 
             {error && (
-              <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+              <div className="p-3 rounded-lg border bg-destructive/10 border-destructive/20">
                 <p className="text-sm text-destructive">{error}</p>
               </div>
             )}
 
-            <Button type="submit" disabled={loading} className="w-full h-11 mt-2">
+            <Button type="submit" disabled={loading} className="mt-2 w-full h-11">
               {loading ? (
                 <>
-                  <InProgress size={16} className="mr-2 shrink-0 animate-spin" />
+                  <InProgress size={16} className="mr-2 animate-spin shrink-0" />
                   Signing in...
                 </>
               ) : (
@@ -126,7 +133,7 @@ export default function SignInPage() {
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
               Don't have an account?{' '}
-              <Link href="/auth/signup" className="text-foreground font-medium hover:underline">
+              <Link href="/auth/signup" className="font-medium text-foreground hover:underline">
                 Sign up
               </Link>
             </p>

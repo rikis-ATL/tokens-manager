@@ -2,7 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+
 :root {
+  --text-accent:red;
+  --surface1:blue;
   --background: 0 0% 100%;
   --foreground: 222.2 84% 4.9%;
   --card: 0 0% 100%;
@@ -127,6 +130,10 @@
   --table-cell-line-height: var(--leading-sm);
   --table-row-height: 2.25rem;
 }
+
+
+
+
 
 /* Tailwind darkMode: class — `html.dark` (AppThemeProvider) + token export selector */
 .dark,
