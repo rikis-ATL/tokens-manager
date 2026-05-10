@@ -37,7 +37,10 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
   if (isMarketingPath(pathname)) {
     return (
       <CollectionProvider>
-        <div className="flex min-h-screen flex-col bg-background text-foreground">
+        <div
+          data-marketing="true"
+          className="flex min-h-screen flex-col bg-background text-foreground"
+        >
           <MarketingHeader showBack={pathname !== '/' && pathname !== '/landing'} />
           <div className="flex-1 overflow-y-auto">{children}</div>
         </div>

@@ -30,7 +30,22 @@ export function FigmaSettingsSection() {
     setShowImportFigmaDialog,
     handleFigmaImported,
     collectionTokens,
+    hidePersonalIntegrationSecrets,
   } = useCollectionSettings();
+
+  if (hidePersonalIntegrationSecrets) {
+    return (
+      <section aria-label="Figma">
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+          Figma
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          Figma personal access tokens and file credentials are not available on this demo deployment
+          for your role. Ask an organization admin to configure or change the integration.
+        </p>
+      </section>
+    );
+  }
 
   return (
     <>

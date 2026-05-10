@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { useSession } from 'next-auth/react';
 import { usePermissions } from '@/context/PermissionsContext';
 import { showSuccessToast, showErrorToast } from '@/utils/toast.utils';
 import { githubService } from '@/services';
@@ -98,6 +99,8 @@ export interface CollectionSettingsContextValue {
   canPublishNpm: boolean;
   canManageVersions: boolean;
   isAdmin: boolean;
+  /** Demo deployment: non-admins must not see or edit PAT fields (API also redacts). */
+  hidePersonalIntegrationSecrets: boolean;
 }
 
 const CollectionSettingsContext = createContext<CollectionSettingsContextValue | null>(null);
@@ -109,8 +112,14 @@ export function CollectionSettingsProvider({
   collectionId: string;
   children: React.ReactNode;
 }) {
+  const { data: session, status: sessionStatus } = useSession();
   const { isAdmin, canGitHub, canFigma, canPublishNpm, canManageVersions } = usePermissions();
   const id = collectionId;
+
+  const hidePersonalIntegrationSecrets =
+    sessionStatus === 'authenticated' &&
+    session?.demoDeployment === true &&
+    !isAdmin;
 
   const [collectionName, setCollectionName] = useState('');
   const [figmaToken, setFigmaToken] = useState('');
@@ -167,15 +176,21 @@ export function CollectionSettingsProvider({
         const githubConfigRaw = localStorage.getItem('github-config');
         const githubConfig = githubConfigRaw ? JSON.parse(githubConfigRaw) : null;
 
-        setFigmaToken(col.figmaToken ?? figmaConfig?.token ?? '');
-        setFigmaFileId(col.figmaFileId ?? figmaConfig?.fileKey ?? '');
+        if (hidePersonalIntegrationSecrets) {
+          setFigmaToken('');
+          setFigmaFileId(col.figmaFileId ?? '');
+          setGithubToken('');
+        } else {
+          setFigmaToken(col.figmaToken ?? figmaConfig?.token ?? '');
+          setFigmaFileId(col.figmaFileId ?? figmaConfig?.fileKey ?? '');
+          const savedGithubToken =
+            localStorage.getItem('github-token-settings') || githubConfig?.token || '';
+          setGithubToken(savedGithubToken);
+        }
+
         setGithubRepo(col.githubRepo ?? githubConfig?.repository ?? '');
         setGithubBranch(col.githubBranch ?? githubConfig?.branch ?? '');
         setGithubPath(col.githubPath ?? '');
-
-        const savedGithubToken =
-          localStorage.getItem('github-token-settings') || githubConfig?.token || '';
-        setGithubToken(savedGithubToken);
 
         setIsPlayground(col.isPlayground ?? false);
         setNpmPackageName(col.npmPackageName ?? '');
@@ -190,7 +205,7 @@ export function CollectionSettingsProvider({
     }
 
     loadCollection();
-  }, [id]);
+  }, [id, hidePersonalIntegrationSecrets]);
 
   const saveToDb = useCallback(
     async (fields: {
@@ -288,10 +303,11 @@ export function CollectionSettingsProvider({
   }, [loading]);
 
   useEffect(() => {
+    if (hidePersonalIntegrationSecrets) return;
     if (githubToken) {
       localStorage.setItem('github-token-settings', githubToken);
     }
-  }, [githubToken]);
+  }, [githubToken, hidePersonalIntegrationSecrets]);
 
   const clearFigmaFields = useCallback(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -805,6 +821,7 @@ export function CollectionSettingsProvider({
       canPublishNpm,
       canManageVersions,
       isAdmin,
+      hidePersonalIntegrationSecrets,
     }),
     [
       id,
@@ -852,6 +869,7 @@ export function CollectionSettingsProvider({
       canPublishNpm,
       canManageVersions,
       isAdmin,
+      hidePersonalIntegrationSecrets,
     ]
   );
 

@@ -7,6 +7,8 @@ import Link from 'next/link';
 import { InProgress } from '@carbon/icons-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { TextAnimNavigators } from '@/components/ui/motion/text-anim-navigators';
+import { AuthMarketingSplitLayout } from '@/components/auth/AuthMarketingSplitLayout';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -61,25 +63,30 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden py-12">
-      {/* Dot matrix background pattern */}
-      <div 
-        className="absolute inset-0 opacity-[0.15] dark:opacity-[0.08]"
-        style={{
-          backgroundImage: 'radial-gradient(circle, currentColor 1px, transparent 1px)',
-          backgroundSize: '24px 24px',
-        }}
-      />
-      
-      <div className="relative z-10 w-full max-w-md mx-4">
-        <div className="bg-card rounded-2xl shadow-2xl border border-border p-10">
+    <AuthMarketingSplitLayout>
+      <div className="flex relative flex-col gap-4 self-end p-8 rounded-md border shadow-xl transition-all duration-300 border-lime-500/30 bg-card/40 hover:bg-card/80">
+      <div className="absolute right-0 top-0 h-3 w-3 translate-x-[50%] translate-y-[-50%] animate-pulse rounded-full bg-lime-500" />
+
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-center text-foreground mb-2">
-              Create your organization
+            <h1 className="mb-1 text-2xl font-bold text-center text-foreground">
+              tokenflow
             </h1>
-            <p className="text-sm text-center text-muted-foreground">
-              Sign up to get started with tokenflow
-            </p>
+
+            <h1 className="text-5xl font-bold tracking-tight text-foreground">
+            <TextAnimNavigators
+              content="One Collection, all features"
+              delay={0}
+              highlight="background"
+            />
+          </h1>
+          <p className="text-xl text-muted-foreground">
+            Token generation and management for humans with eyes
+          </p>
+
+
+            <div className="mb-2 text-sm font-medium text-center text-foreground/70">
+              <TextAnimNavigators content="Create your organization" delay={0} highlight="background" />
+            </div>
           </div>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
@@ -149,15 +156,15 @@ export default function SignupPage() {
             </div>
 
             {error && (
-              <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+              <div className="p-3 rounded-lg border bg-destructive/10 border-destructive/20">
                 <p className="text-sm text-destructive">{error}</p>
               </div>
             )}
 
-            <Button type="submit" disabled={loading} className="w-full h-11 mt-2">
+            <Button type="submit" disabled={loading} className="mt-2 w-full h-11">
               {loading ? (
                 <>
-                  <InProgress size={16} className="mr-2 shrink-0 animate-spin" />
+                  <InProgress size={16} className="mr-2 animate-spin shrink-0" />
                   Creating account...
                 </>
               ) : (
@@ -169,13 +176,12 @@ export default function SignupPage() {
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
               Already have an account?{' '}
-              <Link href="/auth/sign-in" className="text-foreground font-medium hover:underline">
+              <Link href="/auth/sign-in" className="font-medium text-foreground hover:underline">
                 Sign in
               </Link>
             </p>
           </div>
-        </div>
       </div>
-    </div>
+    </AuthMarketingSplitLayout>
   );
 }

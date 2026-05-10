@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft } from '@carbon/icons-react';
@@ -26,12 +27,22 @@ export function MarketingHeader({
   };
 
   return (
-    <header className="flex items-center justify-between px-5 py-3 border-b border-muted bg-background text-foreground flex-shrink-0 min-h-[52px]">
+    <header className="sticky top-0 z-50 flex min-h-[52px] shrink-0 items-center justify-between border-b border-border bg-background/85 px-5 py-3 text-foreground backdrop-blur-md supports-[backdrop-filter]:bg-background/70">
       <Link
         href="/"
-        className="text-sm font-semibold text-foreground tracking-wide hover:text-muted-foreground transition-colors"
+        className="flex items-center gap-2.5 rounded-md outline-none ring-offset-background transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        aria-label="tokenflow home"
       >
-        tokenflow
+        <Image
+          src="/tokenflow-light.svg"
+          alt=""
+          width={36}
+          height={36}
+          className="h-9 w-9 shrink-0"
+          priority
+          unoptimized
+        />
+        <span className="text-sm font-semibold tracking-wide text-foreground">tokenflow</span>
       </Link>
       {showBack ? (
         <Button type="button" variant="ghost" size="sm" onClick={handleBack} className="gap-1.5 text-muted-foreground">

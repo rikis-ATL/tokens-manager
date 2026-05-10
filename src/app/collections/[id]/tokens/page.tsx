@@ -909,6 +909,15 @@ export default function CollectionTokensPage({ params }: TokensPageProps) {
     activeDensityThemeIdRef.current = activeDensityThemeId;
   }, [activeDensityThemeId]);
 
+  // App shell bridge: token edits already trigger tryRefreshAppShell / preview; theme selector
+  // changes must also re-fetch CSS for the newly active editor theme (refs are synced above).
+  useEffect(() => {
+    if (loading) return;
+    const at = appThemeRef.current;
+    if (!at?.configured || at.collectionId !== id) return;
+    void tryRefreshAppShell();
+  }, [activeColorThemeId, activeDensityThemeId, id, loading, tryRefreshAppShell]);
+
   // ── Sync graphStateMap when active themes change (per theme > group) ─────
   // Each theme has its own graph state per group; never mix themes (like tokens table).
   useEffect(() => {

@@ -17,10 +17,18 @@ function SettingsHeader() {
     collectionId,
     canManageVersions,
     canPublishNpm,
+    hidePersonalIntegrationSecrets,
   } = useCollectionSettings();
 
   return (
-    <div className="flex flex-wrap items-center gap-3 mb-8">
+    <div className="mb-8 space-y-4">
+      {hidePersonalIntegrationSecrets && (
+        <p className="text-sm text-warning border border-warning/30 bg-warning/10 rounded-md px-3 py-2">
+          Demo mode: Figma, GitHub, and NPM personal tokens are hidden for your account. Only
+          organization admins can view or change them.
+        </p>
+      )}
+      <div className="flex flex-wrap items-center gap-3">
       <h1 className="text-xl font-semibold text-foreground">Settings: {collectionName}</h1>
       {(canManageVersions || canPublishNpm) && (
         <Link
@@ -48,6 +56,7 @@ function SettingsHeader() {
           Error saving
         </span>
       )}
+      </div>
     </div>
   );
 }

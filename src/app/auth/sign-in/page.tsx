@@ -8,6 +8,7 @@ import { InProgress } from '@carbon/icons-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { TextAnimNavigators } from '@/components/ui/motion/text-anim-navigators';
+import { AuthMarketingSplitLayout } from '@/components/auth/AuthMarketingSplitLayout';
 
 export default function SignInPage() {
   const router = useRouter();
@@ -46,31 +47,19 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="flex overflow-hidden relative justify-center items-center min-h-screen bg-background">
-      {/* Dot matrix background pattern */}
-      <div 
-        className="absolute inset-0 opacity-[0.15] dark:opacity-[0.08]"
-        style={{
-          backgroundImage: 'radial-gradient(circle, currentColor 1px, transparent 1px)',
-          backgroundSize: '24px 24px',
-        }}
-      />
-      
-
-   
-      <div className="relative z-10 mx-4 w-full max-w-md">
-        <div className="p-10 rounded-2xl border shadow-2xl bg-card border-border">
+    <AuthMarketingSplitLayout>
+      <div className="p-10 rounded-2xl border shadow-2xl bg-card border-border">
           <div className="mb-8">
-
-            <div className="mb-2 text-2xl font-bold text-center text-foreground">
-              <TextAnimNavigators content="Sign in to your account" delay={0} highlight="background" />
-            </div>
-            <h1 className="mb-2 text-2xl font-bold text-center text-foreground">
+            <h1 className="mb-1 text-2xl font-bold text-center text-foreground">
               tokenflow
             </h1>
-            <p className="text-sm text-center text-muted-foreground">
-              Sign in to your account
-            </p>
+            <h1 className="text-5xl font-bold tracking-tight text-foreground">
+            <TextAnimNavigators
+              content="Welcome back"
+              delay={0}
+              highlight="background"
+            />
+          </h1>
           </div>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
@@ -138,8 +127,7 @@ export default function SignInPage() {
               </Link>
             </p>
           </div>
-        </div>
       </div>
-    </div>
+    </AuthMarketingSplitLayout>
   );
 }

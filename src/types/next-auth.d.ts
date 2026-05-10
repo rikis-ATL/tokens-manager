@@ -5,6 +5,8 @@ declare module 'next-auth' {
   interface Session {
     /** True when on a demo deploy and the user is the shared demo admin (DEMO_ADMIN_EMAIL). */
     demoMode?: boolean;
+    /** True when this deployment runs with DEMO_MODE (any signed-in user). */
+    demoDeployment?: boolean;
     user: {
       id: string;
       role: string;

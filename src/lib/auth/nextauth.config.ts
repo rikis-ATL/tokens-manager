@@ -115,6 +115,7 @@ export const authOptions: NextAuthOptions = {
         session.user.isSuperAdmin = (token.isSuperAdmin as boolean | undefined) ?? false;
         session.user.orgName = (token.orgName as string | undefined) ?? '';
         session.demoMode = Boolean(token.demoMode);
+        session.demoDeployment = isDemoMode();
       }
       return session;
     },

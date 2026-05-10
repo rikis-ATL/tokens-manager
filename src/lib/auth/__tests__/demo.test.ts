@@ -1,4 +1,4 @@
-import { isSharedDemoAdminEmail, getDemoAdminEmail } from '../demo';
+import { isSharedDemoAdminEmail, getDemoAdminEmail, isDemoDeploymentNonAdmin } from '../demo';
 
 describe('demo admin helpers', () => {
   const origDemo = process.env.DEMO_MODE;
@@ -26,5 +26,18 @@ describe('demo admin helpers', () => {
     process.env.DEMO_MODE = 'true';
     process.env.DEMO_ADMIN_EMAIL = 'demo@x.com';
     expect(isSharedDemoAdminEmail('other@x.com')).toBe(false);
+  });
+
+  it('isDemoDeploymentNonAdmin is false when DEMO_MODE is off', () => {
+    process.env.DEMO_MODE = 'false';
+    expect(isDemoDeploymentNonAdmin('Editor')).toBe(false);
+    expect(isDemoDeploymentNonAdmin('Admin')).toBe(false);
+  });
+
+  it('isDemoDeploymentNonAdmin is true for non-Admin when DEMO_MODE is on', () => {
+    process.env.DEMO_MODE = 'true';
+    expect(isDemoDeploymentNonAdmin('Editor')).toBe(true);
+    expect(isDemoDeploymentNonAdmin('Demo')).toBe(true);
+    expect(isDemoDeploymentNonAdmin('Admin')).toBe(false);
   });
 });

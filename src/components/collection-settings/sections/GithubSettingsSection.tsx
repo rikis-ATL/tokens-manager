@@ -32,7 +32,36 @@ export function GithubSettingsSection() {
     directoryPickerMode,
     availableBranches,
     handleDirectorySelect,
+    hidePersonalIntegrationSecrets,
   } = useCollectionSettings();
+
+  if (hidePersonalIntegrationSecrets) {
+    return (
+      <section aria-label="GitHub">
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+          GitHub
+        </h2>
+        <p className="text-sm text-muted-foreground mb-4">
+          GitHub personal access tokens are not shown or usable for your account in demo mode. Saved
+          repository settings for this collection:
+        </p>
+        <dl className="text-sm space-y-2 border border-border rounded-md p-4 bg-muted/30">
+          <div>
+            <dt className="text-muted-foreground">Repo</dt>
+            <dd className="font-mono break-all">{githubRepo.trim() || '—'}</dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground">Branch</dt>
+            <dd className="font-mono break-all">{githubBranch.trim() || '—'}</dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground">Path</dt>
+            <dd className="font-mono break-all">{githubPath.trim() || '—'}</dd>
+          </div>
+        </dl>
+      </section>
+    );
+  }
 
   return (
     <>

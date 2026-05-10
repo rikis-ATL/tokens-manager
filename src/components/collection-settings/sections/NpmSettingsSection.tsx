@@ -19,6 +19,7 @@ export function NpmSettingsSection() {
     saveNpmTokenToServer,
     testNpmRegistry,
     canPublishNpm,
+    hidePersonalIntegrationSecrets,
   } = useCollectionSettings();
 
   return (
@@ -59,41 +60,50 @@ export function NpmSettingsSection() {
             disabled={!canPublishNpm}
           />
         </div>
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-1">
-            NPM token
-            {npmTokenConfigured && (
-              <span className="ml-2 text-xs font-normal text-success">(saved)</span>
-            )}
-          </label>
-          <Input
-            type="password"
-            value={npmTokenInput}
-            onChange={(e) => setNpmTokenInput(e.target.value)}
-            placeholder={npmTokenConfigured ? 'Enter new token to replace' : 'npm automation token'}
-            disabled={!canPublishNpm}
-          />
-          <p className="text-xs text-muted-foreground mt-1">
-            Stored encrypted on the server (requires{' '}
-            <code className="bg-muted px-1 rounded">ENCRYPTION_KEY</code>). Leave empty and save to
-            remove.
+        {hidePersonalIntegrationSecrets ? (
+          <p className="text-sm text-muted-foreground border border-border rounded-md p-3 bg-muted/30">
+            NPM automation tokens are not shown or editable for your account in demo mode. Only
+            organization admins can change them.
           </p>
-        </div>
-        {canPublishNpm && (
-          <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="outline" size="sm" onClick={saveNpmTokenToServer}>
-              Save token
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={testNpmRegistry}
-              disabled={npmWhoamiLoading}
-            >
-              {npmWhoamiLoading ? 'Testing…' : 'Test registry'}
-            </Button>
-          </div>
+        ) : (
+          <>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1">
+                NPM token
+                {npmTokenConfigured && (
+                  <span className="ml-2 text-xs font-normal text-success">(saved)</span>
+                )}
+              </label>
+              <Input
+                type="password"
+                value={npmTokenInput}
+                onChange={(e) => setNpmTokenInput(e.target.value)}
+                placeholder={npmTokenConfigured ? 'Enter new token to replace' : 'npm automation token'}
+                disabled={!canPublishNpm}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Stored encrypted on the server (requires{' '}
+                <code className="bg-muted px-1 rounded">ENCRYPTION_KEY</code>). Leave empty and save to
+                remove.
+              </p>
+            </div>
+            {canPublishNpm && (
+              <div className="flex flex-wrap gap-2">
+                <Button type="button" variant="outline" size="sm" onClick={saveNpmTokenToServer}>
+                  Save token
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={testNpmRegistry}
+                  disabled={npmWhoamiLoading}
+                >
+                  {npmWhoamiLoading ? 'Testing…' : 'Test registry'}
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </section>

@@ -28,3 +28,12 @@ export function isSharedDemoAdminEmail(email: string | undefined | null): boolea
   if (!expected) return false;
   return email.trim().toLowerCase() === expected;
 }
+
+/**
+ * On a demo deployment, only org Admins may view or change stored integration secrets
+ * (Figma PAT, NPM token, etc.). Editors and other roles must not read or overwrite them.
+ */
+export function isDemoDeploymentNonAdmin(role: string | undefined | null): boolean {
+  if (!isDemoMode() || role == null || role === '') return false;
+  return role !== 'Admin';
+}

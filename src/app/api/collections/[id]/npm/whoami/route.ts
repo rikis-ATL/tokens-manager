@@ -4,6 +4,7 @@ import { requireRole } from '@/lib/auth/require-auth';
 import { Action } from '@/lib/auth/permissions';
 import { isMongoDbProvider } from '@/lib/versioning/is-mongo-provider';
 import { decrypt } from '@/lib/ai/encryption';
+import { isDemoDeploymentNonAdmin } from '@/lib/auth/demo';
 
 const DEFAULT_REGISTRY = 'https://registry.npmjs.org/';
 
@@ -17,6 +18,13 @@ export async function POST(
 ) {
   const authResult = await requireRole(Action.PublishNpm, params.id);
   if (authResult instanceof NextResponse) return authResult;
+
+  if (isDemoDeploymentNonAdmin(authResult.user.role)) {
+    return NextResponse.json(
+      { error: 'NPM token verification is limited to org admins in demo mode' },
+      { status: 403 }
+    );
+  }
 
   if (!isMongoDbProvider()) {
     return NextResponse.json(

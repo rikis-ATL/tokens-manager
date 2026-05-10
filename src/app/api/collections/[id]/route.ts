@@ -12,6 +12,7 @@ import { isMongoDbProvider } from '@/lib/versioning/is-mongo-provider';
 import TokenCollection from '@/lib/db/models/TokenCollection';
 import { encrypt } from '@/lib/ai/encryption';
 import { checkRateLimit, checkTokenLimit } from '@/lib/billing';
+import { isDemoDeploymentNonAdmin } from '@/lib/auth/demo';
 
 type PutBody = UpdateTokenCollectionInput & { npmToken?: string | null };
 
@@ -53,6 +54,9 @@ export async function GET(
       return NextResponse.json({ error: 'Collection not found' }, { status: 404 });
     }
 
+    const role = session.user.role;
+    const redactIntegrationSecrets = isDemoDeploymentNonAdmin(role);
+
     return NextResponse.json({
       collection: {
         _id: doc._id,
@@ -63,8 +67,8 @@ export async function GET(
         description: doc.description ?? null,
         tags: doc.tags ?? [],
         colorFormat: doc.colorFormat ?? 'hex',
-        figmaToken: doc.figmaToken ?? null,
-        figmaFileId: doc.figmaFileId ?? null,
+        figmaToken: redactIntegrationSecrets ? null : doc.figmaToken ?? null,
+        figmaFileId: redactIntegrationSecrets ? null : doc.figmaFileId ?? null,
         githubRepo: doc.githubRepo ?? null,
         githubBranch: doc.githubBranch ?? null,
         githubPath: doc.githubPath ?? null,
@@ -74,7 +78,7 @@ export async function GET(
         accentColor: doc.accentColor ?? null,
         npmPackageName: doc.npmPackageName ?? null,
         npmRegistryUrl: doc.npmRegistryUrl ?? null,
-        npmTokenConfigured: doc.npmTokenConfigured ?? false,
+        npmTokenConfigured: redactIntegrationSecrets ? false : doc.npmTokenConfigured ?? false,
       },
     });
   } catch (error) {
@@ -108,6 +112,13 @@ export async function PUT(
     const body = (await request.json()) as PutBody;
     const { npmToken, ...rest } = body;
 
+    if (isDemoDeploymentNonAdmin(authResult.user.role)) {
+      delete rest.figmaToken;
+      delete rest.figmaFileId;
+    }
+
+    const effectiveNpmToken = isDemoDeploymentNonAdmin(authResult.user.role) ? undefined : npmToken;
+
     // Token-count limit only applies when tokens are actually being written.
     // Settings-only updates (isPlayground, figmaToken, githubRepo, etc.) must
     // never be blocked by the billing guard — otherwise users cannot disable
@@ -136,12 +147,12 @@ export async function PUT(
       rest.accentColor === undefined &&
       rest.npmPackageName === undefined &&
       rest.npmRegistryUrl === undefined &&
-      npmToken === undefined
+      effectiveNpmToken === undefined
     ) {
       return NextResponse.json({ error: 'Nothing to update' }, { status: 400 });
     }
 
-    if (npmToken !== undefined && !isMongoDbProvider()) {
+    if (effectiveNpmToken !== undefined && !isMongoDbProvider()) {
       return NextResponse.json(
         { error: 'NPM token storage requires MongoDB' },
         { status: 501 }
@@ -158,21 +169,21 @@ export async function PUT(
       return NextResponse.json({ error: 'Collection not found' }, { status: 404 });
     }
 
-    if (npmToken !== undefined && isMongoDbProvider()) {
+    if (effectiveNpmToken !== undefined && isMongoDbProvider()) {
       await dbConnect();
-      if (!npmToken || !String(npmToken).trim()) {
+      if (!effectiveNpmToken || !String(effectiveNpmToken).trim()) {
         await TokenCollection.findByIdAndUpdate(params.id, {
           $unset: { npmTokenEncrypted: 1, npmTokenIv: 1 },
         });
       } else {
-        const { encrypted, iv } = encrypt(String(npmToken).trim());
+        const { encrypted, iv } = encrypt(String(effectiveNpmToken).trim());
         await TokenCollection.findByIdAndUpdate(params.id, {
           $set: { npmTokenEncrypted: encrypted, npmTokenIv: iv },
         });
       }
     }
 
-    const updated = npmToken !== undefined && isMongoDbProvider()
+    const updated = effectiveNpmToken !== undefined && isMongoDbProvider()
       ? await repo.findById(params.id)
       : doc;
 
