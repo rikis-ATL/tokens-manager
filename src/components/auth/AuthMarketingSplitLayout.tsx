@@ -11,32 +11,34 @@ export function AuthMarketingSplitLayout({ children }: AuthMarketingSplitLayoutP
   return (
     <div
       data-marketing="true"
-      className="flex overflow-hidden relative justify-center items-center px-4 py-10 min-h-screen bg-background"
+      className="flex overflow-hidden flex-col min-h-screen bg-gray-600 bg-background lg:flex-row"
     >
-      <div className="absolute inset-0" aria-hidden>
+      {/* Form — left on large screens */}
+      <div className="flex relative flex-col justify-center items-center px-4 py-10 w-full min-h-screen lg:w-1/2 lg:flex-1">
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.12]"
+          aria-hidden
+          style={{
+            backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)',
+            backgroundSize: '24px 24px',
+          }}
+        />
+        <div className="relative z-10 w-full max-w-xl">{children}</div>
+      </div>
+
+      {/* Hero image — right on large screens */}
+      <div className="relative hidden min-h-[min(40vh,320px)] w-full shrink-0 lg:block lg:min-h-screen lg:w-1/2 p-6">
+      <div className="flex overflow-hidden relative flex-1 h-full rounded-xl"> 
         <Image
           src="/tokenflow.png"
           alt=""
           fill
-          className="object-cover object-center"
-          sizes="100vw"
+          className="relative"
+          sizes="50vw"
           priority
         />
+        </div>
       </div>
-
-      {/* Slight wash so the card and inputs stay readable on a busy screenshot */}
-      <div className="absolute inset-0 bg-background/50" aria-hidden />
-
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.12]"
-        aria-hidden
-        style={{
-          backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)',
-          backgroundSize: '24px 24px',
-        }}
-      />
-
-      <div className="relative z-10 w-full max-w-xl">{children}</div>
     </div>
   );
 }

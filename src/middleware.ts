@@ -28,8 +28,15 @@ function isDemoPublicPath(pathname: string): boolean {
   return false;
 }
 
+/** Paths that must bypass auth middleware so `public/` files are served (see matcher below). */
+const PUBLIC_FILE_EXTENSION = /\.(?:ico|png|jpe?g|gif|webp|svg|woff2?|ttf|eot)$/i;
+
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  if (PUBLIC_FILE_EXTENSION.test(pathname)) {
+    return NextResponse.next();
+  }
 
   const sessionToken =
     req.cookies.get('next-auth.session-token') ??
@@ -76,6 +83,8 @@ export function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!api|embed|_next/static|_next/image|favicon\\.ico).*)',
+    // Exclude static assets in public/ (e.g. /tokenflow-light.svg) — otherwise middleware
+    // runs first and can block Next from serving the file.
+    '/((?!api|embed|_next/static|_next/image|favicon\\.ico|.*\\.(?:ico|png|jpg|jpeg|gif|webp|svg|woff2?)).*)',
   ],
 };

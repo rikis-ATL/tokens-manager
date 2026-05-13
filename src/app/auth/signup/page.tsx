@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import Link from 'next/link';
 import { InProgress } from '@carbon/icons-react';
 import { Button } from '@/components/ui/button';
@@ -64,32 +65,42 @@ export default function SignupPage() {
 
   return (
     <AuthMarketingSplitLayout>
-      <div className="flex relative flex-col gap-4 self-end p-8 rounded-md border shadow-xl transition-all duration-300 border-lime-500/30 bg-card/40 hover:bg-card/80">
-      <div className="absolute right-0 top-0 h-3 w-3 translate-x-[50%] translate-y-[-50%] animate-pulse rounded-full bg-lime-500" />
-
-          <div className="mb-8">
-            <h1 className="mb-1 text-2xl font-bold text-center text-foreground">
-              tokenflow
-            </h1>
-
-            <h1 className="text-5xl font-bold tracking-tight text-foreground">
-            <TextAnimNavigators
-              content="One Collection, all features"
-              delay={0}
-              highlight="background"
+      <div className="flex flex-col gap-8 p-10">
+        <div className="flex flex-col gap-4 items-start text-left">
+          <Link
+            href="/"
+            className="inline-flex gap-2 justify-center items-center mb-3 rounded-md transition-opacity outline-none ring-offset-background hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            aria-label="tokenflow home"
+          >
+            <Image
+              src="/tokenflow-light.svg"
+              alt=""
+              width={28}
+              height={28}
+              className="w-7 h-7 shrink-0"
+              priority
+              unoptimized
             />
-          </h1>
-          <p className="text-xl text-muted-foreground">
-            Token generation and management for humans with eyes
-          </p>
+            <span className="text-2xl font-bold text-foreground">tokenflow</span>
+          </Link>
 
-
-            <div className="mb-2 text-sm font-medium text-center text-foreground/70">
-              <TextAnimNavigators content="Create your organization" delay={0} highlight="background" />
-            </div>
+          <div className="flex flex-col col-span-4 gap-4 min-h-48">
+            <h1 className="text-4xl font-bold tracking-tight text-foreground">
+              <TextAnimNavigators
+                content="Fully roided token generation and management workflow."
+                delay={0}
+                highlight="background"
+              />
+            </h1>
+            <p className="text-xl text-muted-foreground">
+              Token generation and management for humans with eyes
+            </p>
           </div>
+        </div>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <TextAnimNavigators content="Create your organization" delay={0} highlight="background" />
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             <div className="flex flex-col gap-2">
               <label htmlFor="orgName" className="text-sm font-medium text-foreground">
                 Organization name
@@ -171,16 +182,16 @@ export default function SignupPage() {
                 'Create account'
               )}
             </Button>
-          </form>
+        </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-muted-foreground">
-              Already have an account?{' '}
-              <Link href="/auth/sign-in" className="font-medium text-foreground hover:underline">
-                Sign in
-              </Link>
-            </p>
-          </div>
+        <div className="mt-6 text-center">
+          <p className="text-sm text-muted-foreground">
+            Already have an account?{' '}
+            <Link href="/auth/sign-in" className="font-medium text-foreground hover:underline">
+              Sign in
+            </Link>
+          </p>
+        </div>
       </div>
     </AuthMarketingSplitLayout>
   );

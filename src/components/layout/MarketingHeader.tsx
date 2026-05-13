@@ -33,16 +33,16 @@ export function MarketingHeader({
         className="flex items-center gap-2.5 rounded-md outline-none ring-offset-background transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         aria-label="tokenflow home"
       >
-        <Image
-          src="/tokenflow-light.svg"
-          alt=""
-          width={36}
-          height={36}
-          className="h-9 w-9 shrink-0"
-          priority
-          unoptimized
-        />
-        <span className="text-sm font-semibold tracking-wide text-foreground">tokenflow</span>
+<Image
+  src="tokenflow-light.svg"
+  alt=""
+  width={36}
+  height={36}
+  className="w-[28px] h-[28px] shrink-0"
+  priority
+  unoptimized
+/>
+        <span className="font-semibold tracking-wide text-md text-foreground">TokenFlow</span>
       </Link>
       {showBack ? (
         <Button type="button" variant="ghost" size="sm" onClick={handleBack} className="gap-1.5 text-muted-foreground">

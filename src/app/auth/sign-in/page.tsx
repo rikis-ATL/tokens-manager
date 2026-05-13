@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Image from 'next/image';
 import Link from 'next/link';
 import { InProgress } from '@carbon/icons-react';
 import { Button } from '@/components/ui/button';
@@ -48,20 +49,38 @@ export default function SignInPage() {
 
   return (
     <AuthMarketingSplitLayout>
-      <div className="p-10 rounded-2xl border shadow-2xl bg-card border-border">
-          <div className="mb-8">
-            <h1 className="mb-1 text-2xl font-bold text-center text-foreground">
-              tokenflow
-            </h1>
-            <h1 className="text-5xl font-bold tracking-tight text-foreground">
-            <TextAnimNavigators
-              content="Welcome back"
-              delay={0}
-              highlight="background"
+  <div className="flex flex-col gap-8 p-10">
+      <div className="flex flex-col gap-4 items-start text-left">
+      <Link
+            href="/"
+            className="inline-flex gap-2 justify-center items-center mb-3 rounded-md transition-opacity outline-none ring-offset-background hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            aria-label="tokenflow home"
+          >
+            <Image
+              src="/tokenflow-light.svg"
+              alt=""
+              width={28}
+              height={28}
+              className="w-7 h-7 shrink-0"
+              priority
+              unoptimized
             />
-          </h1>
-          </div>
+            <span className="text-2xl font-bold text-foreground">tokenflow</span>
+          </Link>
 
+          <div className="flex flex-col col-span-4 gap-4 min-h-48">
+            <h1 className="text-4xl font-bold tracking-tight text-foreground">
+              <TextAnimNavigators
+                content="Fully roided token generation and management workflow."
+                delay={0}
+                highlight="background"
+              />
+            </h1>
+            <p className="text-xl text-muted-foreground">
+              Token generation and management for humans with eyes
+            </p>
+          </div>
+          </div>
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             <div className="flex flex-col gap-2">
               <label
@@ -127,6 +146,7 @@ export default function SignInPage() {
               </Link>
             </p>
           </div>
+
       </div>
     </AuthMarketingSplitLayout>
   );
