@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft } from '@carbon/icons-react';
+import { ArrowLeft, Login } from '@carbon/icons-react';
 import { Button } from '@/components/ui/button';
 
 type MarketingHeaderProps = {
@@ -50,7 +50,12 @@ export function MarketingHeader({
           Back
         </Button>
       ) : (
-        <span className="w-16" aria-hidden />
+        <Button asChild variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
+          <Link href="/auth/sign-in">
+            <Login size={16} aria-hidden />
+            Sign in
+          </Link>
+        </Button>
       )}
     </header>
   );

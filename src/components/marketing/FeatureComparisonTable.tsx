@@ -1,7 +1,26 @@
+import type { ComponentType } from "react";
+import {
+  Meter,
+  ChartNetwork,
+  Connect,
+  Cloud,
+} from "@carbon/icons-react";
 import {
   getPlanTierLimitsForDisplay,
   getPlanFeaturesForDisplay,
 } from "@/lib/billing/pricing-public";
+
+type CarbonIcon = ComponentType<{ size?: number; className?: string }>;
+
+type FeatureRow = {
+  label: string;
+  free: string;
+  pro: string;
+  team: string;
+  selfHosted: string;
+  isHeader?: boolean;
+  Icon?: CarbonIcon;
+};
 
 export function FeatureComparisonTable() {
   const freeLimits = getPlanTierLimitsForDisplay("free");
@@ -12,14 +31,7 @@ export function FeatureComparisonTable() {
   const teamFeatures = getPlanFeaturesForDisplay("team");
   const selfHostedFeatures = getPlanFeaturesForDisplay("selfHosted");
 
-  const rows: Array<{
-    label: string;
-    free: string;
-    pro: string;
-    team: string;
-    selfHosted: string;
-    isHeader?: boolean;
-  }> = [
+  const rows: FeatureRow[] = [
     {
       label: "Limits",
       free: "",
@@ -27,6 +39,7 @@ export function FeatureComparisonTable() {
       team: "",
       selfHosted: "",
       isHeader: true,
+      Icon: Meter,
     },
     {
       label: "Collections",
@@ -63,6 +76,7 @@ export function FeatureComparisonTable() {
       team: "",
       selfHosted: "",
       isHeader: true,
+      Icon: ChartNetwork,
     },
     {
       label: "Graph-based token generation",
@@ -113,6 +127,7 @@ export function FeatureComparisonTable() {
       team: "",
       selfHosted: "",
       isHeader: true,
+      Icon: Connect,
     },
     {
       label: "GitHub import/export",
@@ -142,6 +157,7 @@ export function FeatureComparisonTable() {
       team: "",
       selfHosted: "",
       isHeader: true,
+      Icon: Cloud,
     },
     {
       label: "Version history",
@@ -188,7 +204,9 @@ export function FeatureComparisonTable() {
             if (row.isHeader) {
               return (
                 <tr key={idx} className="border-t border-border">
-                  <td className="px-6 py-3 text-sm font-semibold bg-muted/20">{row.label}</td>
+                  <td className="px-6 py-3 text-sm font-semibold bg-muted/20">
+                    <SectionHeader label={row.label} Icon={row.Icon} />
+                  </td>
                   <td className="px-6 py-3 text-sm font-semibold border-r-2 border-l-2 bg-muted/20 border-primary/20" />
                   <td className="px-6 py-3 text-sm font-semibold bg-muted/20" />
                   <td className="px-6 py-3 text-sm font-semibold bg-muted/20" />
@@ -198,7 +216,7 @@ export function FeatureComparisonTable() {
             }
             return (
               <tr key={idx} className="border-t border-border hover:bg-muted/10">
-                <td className="px-6 py-3 text-sm">{row.label}</td>
+                <td className="py-3 pr-6 pl-10 text-sm">{row.label}</td>
                 <td className="px-6 py-3 text-sm tabular-nums text-center border-r-2 border-l-2 bg-primary/5 border-primary/20">
                   <CellValue value={row.free} />
                 </td>
@@ -217,6 +235,18 @@ export function FeatureComparisonTable() {
         </tbody>
       </table>
     </div>
+  );
+}
+
+function SectionHeader({ label, Icon }: { label: string; Icon?: CarbonIcon }) {
+  if (!Icon) {
+    return <>{label}</>;
+  }
+  return (
+    <span className="flex items-center gap-2">
+      <Icon size={16} className="shrink-0 text-muted-foreground" aria-hidden />
+      {label}
+    </span>
   );
 }
 

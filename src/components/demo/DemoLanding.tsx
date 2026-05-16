@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { ColorPalette, Play } from "@carbon/icons-react";
 import { Button } from "@/components/ui/button";
 import { TextAnimNavigators } from "../ui/motion/text-anim-navigators";
 import { MarketingDotMatrix } from "@/components/marketing/MarketingDotMatrix";
@@ -35,7 +36,7 @@ export function DemoLanding({ demoUrl }: { demoUrl: string }) {
             Your central token store.
              Edit visually and ship to design and code.<br/>
              <span className="text-foreground">
-             Create your organization to get started.
+             Start your own token library to get going.
              </span>
             </p>
           </div>
@@ -51,14 +52,16 @@ export function DemoLanding({ demoUrl }: { demoUrl: string }) {
               className="flex relative flex-col gap-4 self-end h-full"
             >
               {/* <div className="absolute right-0 top-0 h-3 w-3 translate-x-[50%] translate-y-[-50%] animate-pulse rounded-full bg-lime-500" /> */}
-              <h2 className="font-semibold text-md">Create a free org</h2>
+              <h2 className="font-semibold text-md">Your token library</h2>
               <p className="flex-1 text-sm text-muted-foreground">
-                Register for your own workspace. <br/>
-                Free includes 1 collection, 2 themes per
-                collection, GitHub and Figma sync, and up to 100 exports per month. 
-                Upgrade to Pro or self-host for unlimited use.
+                Sign up for a free workspace to host your design tokens.
+                Free includes 1 collection, 2 themes per collection, GitHub and Figma sync,
+                and up to 100 exports per month. Upgrade to Pro or self-host for unlimited use.
               </p>
-              <Button className="mt-2 w-full h-11 text-md">Create a Free Org</Button>
+              <Button className="gap-2 mt-2 w-full h-11 text-md">
+                <ColorPalette size={18} aria-hidden />
+                Get started
+              </Button>
             </Link>
 
 
@@ -73,10 +76,13 @@ export function DemoLanding({ demoUrl }: { demoUrl: string }) {
                 Explore a live playground with sample collections. <br/>
                 Edit the app theme to see live updates in action. <br/>
                 View collections from popular design systems. <br/>
-                Any changes will be saved to local storag.
+                Any changes will be saved to local storage.
 
               </p>
-              <Button variant="secondary" className="mt-2 w-full h-11 text-md">Try the Demo</Button>
+              <Button variant="secondary" className="gap-2 mt-2 w-full h-11 text-md">
+                <Play size={18} aria-hidden />
+                Try the Demo
+              </Button>
 
             </Link>
           </div>
@@ -89,7 +95,7 @@ export function DemoLanding({ demoUrl }: { demoUrl: string }) {
         <div>
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-lg">Feature comparison</h2>
-            <Button type="button" onClick={() => setUpgradeDialogOpen(true)}>
+            <Button type="button" variant="secondary" onClick={() => setUpgradeDialogOpen(true)}>
               Upgrade plan
             </Button>
           </div>
