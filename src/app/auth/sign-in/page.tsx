@@ -68,21 +68,23 @@ export default function SignInPage() {
             <span className="text-2xl font-bold text-foreground">tokenflow</span>
           </Link>
 
-          <div className="flex flex-col col-span-4 gap-4 min-h-48">
+          <div className="flex flex-col col-span-4 gap-8 min-h-48">
             <h1 className="text-4xl font-bold tracking-tight text-foreground">
               <TextAnimNavigators
-                content="Fully roided token generation and management workflow."
+                content="The visual editor and library for design tokens at scale."
                 delay={0}
                 highlight="background"
               />
             </h1>
             <p className="text-xl text-muted-foreground">
-              Token generation and management for humans with eyes
+            Your central token store for all projects.
+            <br />
+             Edit visually and ship to design and code.
             </p>
           </div>
           </div>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-            <div className="flex flex-col gap-2">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5 mt-4">
+            <div className="flex flex-col gap-1">
               <label
                 htmlFor="email"
                 className="text-sm font-medium text-foreground"
@@ -101,7 +103,7 @@ export default function SignInPage() {
               />
             </div>
 
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1">
               <label
                 htmlFor="password"
                 className="text-sm font-medium text-foreground"
@@ -126,7 +128,7 @@ export default function SignInPage() {
               </div>
             )}
 
-            <Button type="submit" disabled={loading} className="mt-2 w-full h-11">
+            <Button type="submit" disabled={loading} className="mt-2 w-full h-11 text-md">
               {loading ? (
                 <>
                   <InProgress size={16} className="mr-2 animate-spin shrink-0" />

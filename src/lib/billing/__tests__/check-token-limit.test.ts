@@ -43,18 +43,25 @@ describe('checkTokenLimit — LIMIT-03 (D-07 live aggregation)', () => {
   it('free tier with total < 500 returns null', async () => {
     mockOrgLean.mockResolvedValue({ planTier: 'free' });
     mockCollLean.mockResolvedValue([
-      { tokens: { token: { c: { $value: '#fff' } } } },
-      { tokens: { token: { d: { $value: '#000' } } } },
+      {
+        namespace: 'token',
+        tokens: { token: { c: { $value: '#fff', $type: 'color' } } },
+      },
+      {
+        namespace: 'token',
+        tokens: { token: { d: { $value: '#000', $type: 'color' } } },
+      },
     ]);
     expect(await checkTokenLimit('org1')).toBeNull();
   });
 
   it('free tier with total >= 500 returns 402 with D-02 payload', async () => {
     mockOrgLean.mockResolvedValue({ planTier: 'free' });
-    // Build 500 tokens across collections
-    const tokens: Record<string, { $value: string }> = {};
-    for (let i = 0; i < 500; i++) tokens[`t${i}`] = { $value: '#fff' };
-    mockCollLean.mockResolvedValue([{ tokens: { token: tokens } }]);
+    const leaves: Record<string, { $value: string; $type: string }> = {};
+    for (let i = 0; i < 500; i++) leaves[`t${i}`] = { $value: '#fff', $type: 'color' };
+    mockCollLean.mockResolvedValue([
+      { namespace: 'token', tokens: { token: { leaves } } },
+    ]);
     const result = await checkTokenLimit('org1');
     expect(result!.status).toBe(402);
     const body = await result!.json();

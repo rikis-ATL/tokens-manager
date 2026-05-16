@@ -4,8 +4,9 @@
 
 
 :root {
-  --text-accent:red;
-  --surface1:blue;
+  /* Motion text highlights (marketing overrides in src/lib/marketing-theme.js) */
+  --text-accent: #7dd3fc;
+  --surface1: #1e293b;
   --background: 0 0% 100%;
   --foreground: 222.2 84% 4.9%;
   --card: 0 0% 100%;
@@ -203,63 +204,7 @@
 }
 
 /* ── Marketing pages (sign-in, landing) ─────────────────────────────────────
-   MUST stay at end of file — wins source-order cascade over .dark and any
-   runtime-injected app-theme styles. Selector specificity (0,1,1) beats
-   .dark (0,1,0) so these vars always apply.
-   Add data-marketing="true" to the page root div to activate.
+   Tokens live in src/lib/marketing-theme.js (Tailwind palette: slate-*, sky-*, …).
+   Injected via tailwind.config.js plugin on [data-marketing="true"].
+   Add data-marketing="true" to the page root to activate.
    ─────────────────────────────────────────────────────────────────────────── */
-body [data-marketing="true"] {
-  /* ── Canvas ── tweak here */
-  --background:             224 71% 4%;
-  --foreground:             213 31% 91%;
-  /* Inherit foreground to all children that don't have an explicit text-* class */
-  color:                    hsl(var(--foreground));
-  /* ── Cards / surfaces ──
-     bg-card consumes --card-background (not --card) per tailwind-theme-extend.js.
-     The injected app-theme CSS resolves --card-background via --token-shadcn-card-background
-     which bypasses our --card override, so we must set --card-background explicitly. */
-  --card:                   222 60% 7%;
-  --card-background:        222 60% 7%;
-  --card-foreground:        213 31% 91%;
-  --card-border:            216 34% 16%;
-  --popover:                222 60% 7%;
-  --popover-foreground:     213 31% 91%;
-  --popover-border:         216 34% 16%;
-  /* ── Borders & inputs ── */
-  --border:                 216 34% 16%;
-  --input:                  216 34% 16%;
-  --input-border:           216 34% 16%;
-  --button-border:          216 34% 16%;
-  --menu-border:            216 34% 16%;
-  --tabs-border:            216 34% 16%;
-  --dialog-border:          216 34% 16%;
-  --badge-border:           216 34% 16%;
-  /* ── Muted ── */
-  --muted:                  223 47% 11%;
-  --muted-foreground:       215 16% 52%;
-  /* ── Accents ── */
-  --accent:                 216 34% 16%;
-  --accent-foreground:      213 31% 91%;
-  /* ── Primary CTA ── */
-  --primary:                210 90% 60%;
-  --primary-foreground:     224 71% 4%;
-  /* ── Secondary ── */
-  --secondary:              223 47% 14%;
-  --secondary-foreground:   213 31% 91%;
-  /* ── Misc ── */
-  --ring:                   210 90% 60%;
-  --destructive:            0 72% 51%;
-  --destructive-foreground: 210 40% 98%;
-  /* ── Text animation accent colours ── */
-  --text-accent:            hsl(210, 90%, 72%);
-  --surface1:               hsl(216, 64%, 18%);
-}
-
-/* Autofill override for marketing dark inputs */
-body [data-marketing="true"] input:-webkit-autofill,
-body [data-marketing="true"] input:-webkit-autofill:hover,
-body [data-marketing="true"] input:-webkit-autofill:focus,
-body [data-marketing="true"] input:-webkit-autofill:active {
-  -webkit-text-fill-color: hsl(213 31% 91%) !important;
-  -webkit-box-shadow: 0 0 0 1000px hsl(222 60% 7%) inset !important;
-}

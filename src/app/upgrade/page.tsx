@@ -1,14 +1,16 @@
-'use client'
+'use client';
 
 import { useState } from 'react';
-import { LIMITS, type PlanTier } from '@/lib/billing/tiers';
+import { type PlanTier } from '@/lib/billing/tiers';
+import { getPlanTierLimitsForDisplay } from '@/lib/billing/pricing-public';
 import { Button } from '@/components/ui/button';
-
-const fmt = (n: number): string => (n === Infinity ? 'Unlimited' : String(n));
+import { TextAnimNavigators } from '@/components/ui/motion/text-anim-navigators';
+import { MarketingDotMatrix } from '@/components/marketing/MarketingDotMatrix';
+import { FeatureComparisonTable } from '@/components/marketing/FeatureComparisonTable';
 
 const UPGRADABLE_TIERS = [
   { tier: 'pro' as PlanTier, label: 'Pro', tagline: 'For growing design systems' },
-  { tier: 'team' as PlanTier, label: 'Team', tagline: 'Unlimited everything' }
+  { tier: 'team' as PlanTier, label: 'Team', tagline: 'Unlimited everything' },
 ];
 
 export default function UpgradePage() {
@@ -20,9 +22,10 @@ export default function UpgradePage() {
     setError(null);
 
     try {
-      const priceId = tier === 'pro'
-        ? process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID
-        : process.env.NEXT_PUBLIC_STRIPE_TEAM_PRICE_ID;
+      const priceId =
+        tier === 'pro'
+          ? process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID
+          : process.env.NEXT_PUBLIC_STRIPE_TEAM_PRICE_ID;
 
       if (!priceId) {
         throw new Error(`Pricing for ${tier} is not configured. Contact support.`);
@@ -31,7 +34,7 @@ export default function UpgradePage() {
       const response = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ priceId })
+        body: JSON.stringify({ priceId }),
       });
 
       if (!response.ok) {
@@ -48,60 +51,79 @@ export default function UpgradePage() {
   };
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-10" data-testid="upgrade-page">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold tracking-tight mb-4">Choose your plan</h1>
-        <p className="text-lg text-muted-foreground">
-          Upgrade to unlock more collections, themes, tokens, and exports
-        </p>
-      </div>
+    <div className="overflow-hidden relative min-h-full bg-background" data-testid="upgrade-page">
+      <MarketingDotMatrix />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {UPGRADABLE_TIERS.map(({ tier, label, tagline }) => {
-          const limits = LIMITS[tier];
-          const isLoading = loadingTier === tier;
+      <header className="flex relative z-10 flex-col gap-4 justify-center items-center px-5 w-full min-h-[calc(100vh-15rem)]">
+        <div className="flex flex-col gap-8 w-full max-w-3xl">
+          <div className="flex flex-col gap-8">
+            <h1 className="text-6xl font-bold tracking-tight text-foreground text-balance">
+              <TextAnimNavigators
+                content="Choose your plan to scale your design tokens."
+                delay={0}
+                highlight="background"
+              />
+            </h1>
+            <p className="text-xl text-muted-foreground">
+              Unlock more collections, themes, tokens, and exports.
+              <br />
+              <span className="text-foreground">Pick Pro or Team to continue to checkout.</span>
+            </p>
+          </div>
 
-          return (
-            <div
-              key={tier}
-              data-tier={tier}
-              className="border rounded-lg p-6 space-y-4"
-            >
-              <div>
-                <h2 className="text-xl font-semibold capitalize">{label}</h2>
-                <p className="text-sm text-muted-foreground">{tagline}</p>
-              </div>
+          <div className="grid grid-cols-1 gap-10 items-stretch pt-4 sm:grid-cols-2">
+            {UPGRADABLE_TIERS.map(({ tier, label, tagline }) => {
+              const limits = getPlanTierLimitsForDisplay(tier);
+              const isLoading = loadingTier === tier;
 
-              <ul className="space-y-2 text-sm">
-                <li>• {fmt(limits.maxCollections)} collections</li>
-                <li>• {fmt(limits.maxThemesPerCollection)} themes per collection</li>
-                <li>• {fmt(limits.maxTokensTotal)} total tokens</li>
-                <li>• {fmt(limits.maxExportsPerMonth)} exports per month</li>
-                <li>• {fmt(limits.rateLimitPerMinute)} requests per minute</li>
-              </ul>
-
-              <Button
-                onClick={() => handleChoose(tier)}
-                disabled={loadingTier !== null}
-                data-testid={`choose-${tier}`}
-                className="w-full"
-              >
-                {isLoading ? 'Redirecting…' : `Choose ${label}`}
-              </Button>
-            </div>
-          );
-        })}
-      </div>
-
-      {error && (
-        <div
-          role="alert"
-          data-testid="upgrade-error"
-          className="mt-6 p-4 border border-destructive bg-destructive/10 text-destructive rounded"
-        >
-          {error}
+              return (
+                <div
+                  key={tier}
+                  data-tier={tier}
+                  className="flex relative flex-col gap-4 self-end h-full"
+                >
+                  <h2 className="font-semibold text-md">{label}: <span className="text-muted-foreground">{tagline}</span></h2>
+                  {/* <p className="flex-1 text-sm text-muted-foreground">{tagline}</p> */}
+                  <ul className="text-sm space-y-1.5 text-muted-foreground">
+                    <li>{limits.collections} collections</li>
+                    <li>{limits.themesPerCollection} themes per collection</li>
+                    <li>{limits.tokens} total tokens</li>
+                    <li>{limits.exportsPerMonth} exports per month</li>
+                  </ul>
+                  <Button
+                    onClick={() => handleChoose(tier)}
+                    disabled={loadingTier !== null}
+                    data-testid={`choose-${tier}`}
+                    className="mt-2 w-full h-11 text-md"
+                    variant={tier === 'pro' ? 'default' : 'secondary'}
+                  >
+                    {isLoading ? 'Redirecting…' : `Choose ${label}`}
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
         </div>
-      )}
+      </header>
+
+      <div className="relative z-10 px-5 py-16 mx-auto space-y-16 max-w-6xl">
+        <div>
+            <h2 className="py-4 text-lg">Feature comparison</h2>
+          <div className="overflow-hidden rounded-2xl border shadow-xl bg-card border-border">
+            <FeatureComparisonTable />
+          </div>
+        </div>
+
+        {error && (
+          <div
+            role="alert"
+            data-testid="upgrade-error"
+            className="p-4 rounded-2xl border border-destructive bg-destructive/10 text-destructive"
+          >
+            {error}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

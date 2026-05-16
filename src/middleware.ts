@@ -31,6 +31,22 @@ function isDemoPublicPath(pathname: string): boolean {
 /** Paths that must bypass auth middleware so `public/` files are served (see matcher below). */
 const PUBLIC_FILE_EXTENSION = /\.(?:ico|png|jpe?g|gif|webp|svg|woff2?|ttf|eot)$/i;
 
+/** App areas that require a session; other paths may 404 for guests. */
+const GUEST_PROTECTED_PREFIXES = [
+  '/collections',
+  '/settings',
+  '/account',
+  '/org',
+  '/upgrade',
+  '/dev-test',
+] as const;
+
+function isGuestProtectedPath(pathname: string): boolean {
+  return GUEST_PROTECTED_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  );
+}
+
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
@@ -73,6 +89,9 @@ export function middleware(req: NextRequest) {
   }
 
   if (!hasSession) {
+    if (!isGuestProtectedPath(pathname)) {
+      return NextResponse.next();
+    }
     const signInUrl = new URL('/auth/sign-in', req.url);
     signInUrl.searchParams.set('callbackUrl', pathname);
     return NextResponse.redirect(signInUrl);

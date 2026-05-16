@@ -31,7 +31,13 @@ function isAuthRoute(pathname: string): boolean {
   return pathname.startsWith('/auth/');
 }
 
-export function LayoutShell({ children }: { children: React.ReactNode }) {
+type LayoutShellProps = {
+  children: React.ReactNode;
+  /** From server session — avoids flashing app chrome before client hydrates. */
+  hasSession?: boolean;
+};
+
+export function LayoutShell({ children, hasSession = true }: LayoutShellProps) {
   const pathname = usePathname();
 
   if (isMarketingPath(pathname)) {
@@ -46,6 +52,10 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
         </div>
       </CollectionProvider>
     );
+  }
+
+  if (!hasSession) {
+    return <CollectionProvider>{children}</CollectionProvider>;
   }
 
   return (

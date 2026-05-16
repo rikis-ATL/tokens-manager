@@ -1,7 +1,9 @@
-'use client'
+'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { TextAnimNavigators } from '@/components/ui/motion/text-anim-navigators';
+import { MarketingDotMatrix } from '@/components/marketing/MarketingDotMatrix';
 
 type PlanTier = 'free' | 'pro' | 'team';
 
@@ -23,10 +25,8 @@ export default function UpgradeSuccessPage() {
           if (!cancelled) {
             setPlan(data.plan);
           }
-        } else {
-          if (!cancelled) {
-            setError(true);
-          }
+        } else if (!cancelled) {
+          setError(true);
         }
       } catch {
         if (!cancelled) {
@@ -48,30 +48,42 @@ export default function UpgradeSuccessPage() {
   }, [router]);
 
   return (
-    <div className="mx-auto max-w-xl px-6 py-16 text-center" data-testid="upgrade-success-page">
-      <h1 className="text-3xl font-bold tracking-tight mb-6">Upgrade successful!</h1>
+    <div
+      className="overflow-hidden relative flex flex-col justify-center items-center px-5 min-h-full bg-background"
+      data-testid="upgrade-success-page"
+    >
+      <MarketingDotMatrix />
 
-      {plan && (
-        <p className="text-lg mb-6">
-          You are now on the <strong className="capitalize">{plan}</strong> plan.
+      <div className="relative z-10 flex flex-col gap-8 max-w-3xl text-center">
+        <h1 className="text-6xl font-bold tracking-tight text-foreground text-balance">
+          <TextAnimNavigators content="Upgrade successful!" delay={0} highlight="background" />
+        </h1>
+
+        {plan && (
+          <p className="text-xl text-muted-foreground">
+            You are now on the{' '}
+            <span className="text-foreground capitalize">{plan}</span> plan.
+          </p>
+        )}
+
+        {error && (
+          <p className="text-xl text-muted-foreground">
+            Your upgrade is processing.
+            <br />
+            <span className="text-foreground">Your new plan will be available shortly.</span>
+          </p>
+        )}
+
+        {!plan && !error && (
+          <p className="text-xl text-muted-foreground">
+            Confirming your new plan…
+          </p>
+        )}
+
+        <p className="text-sm text-muted-foreground">
+          Redirecting to your collections in a few seconds…
         </p>
-      )}
-
-      {error && (
-        <p className="text-lg mb-6">
-          Your upgrade is processing. Your new plan will be available shortly.
-        </p>
-      )}
-
-      {!plan && !error && (
-        <p className="text-lg mb-6">
-          Confirming your new plan…
-        </p>
-      )}
-
-      <p className="text-muted-foreground">
-        Redirecting to your collections in a few seconds…
-      </p>
+      </div>
     </div>
   );
 }

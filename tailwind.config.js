@@ -1,5 +1,10 @@
 /** @type {import('tailwindcss').Config} */
+const plugin = require('tailwindcss/plugin');
 const semantic = require('./src/lib/appTheme/tailwind-theme-extend.js');
+const {
+  getMarketingThemeCssVars,
+  getMarketingAutofillStyles,
+} = require('./src/lib/marketing-theme.js');
 
 module.exports = {
   darkMode: 'class',
@@ -12,5 +17,13 @@ module.exports = {
   theme: {
     extend: semantic,
   },
-  plugins: [],
+  plugins: [
+    plugin(({ addBase }) => {
+      // Marketing theme — palette names in src/lib/marketing-theme.js (slate-*, sky-*, etc.)
+      addBase({
+        '[data-marketing="true"]': getMarketingThemeCssVars(),
+        ...getMarketingAutofillStyles(),
+      });
+    }),
+  ],
 };

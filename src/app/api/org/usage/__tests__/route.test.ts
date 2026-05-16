@@ -76,7 +76,12 @@ describe('GET /api/org/usage', () => {
       planTier: 'free',
       usage: { exportsThisMonth: 3, exportResetAt: new Date() },
     });
-    mockCollLean.mockResolvedValue([{ tokens: { token: { c: { $value: '#fff' } } } }]);
+    mockCollLean.mockResolvedValue([
+      {
+        namespace: 'token',
+        tokens: { token: { color: { primary: { $value: '#fff', $type: 'color' } } } },
+      },
+    ]);
     const result = await GET();
     const body = await result.json();
     expect(body).toEqual({
@@ -85,7 +90,7 @@ describe('GET /api/org/usage', () => {
       tokenCount: 1,
       tokenMax: 500,
       exportsThisMonth: 3,
-      exportsMax: 10,
+      exportsMax: 100,
       collectionCount: 1,
       collectionMax: 1,
     });

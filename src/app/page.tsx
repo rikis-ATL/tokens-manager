@@ -1,12 +1,14 @@
 import { redirect } from 'next/navigation';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth/nextauth.config';
 
-export default function Home() {
+export default async function Home() {
   if (process.env.DEMO_MODE === 'true') {
-    const playgroundId = process.env.PLAYGROUND_COLLECTION_ID;
-    const callbackUrl = playgroundId
-      ? `/collections/${playgroundId}/tokens`
-      : '/collections';
-    redirect(`/auth/auto-demo?callbackUrl=${encodeURIComponent(callbackUrl)}`);
+    const session = await getServerSession(authOptions);
+    if (session) {
+      redirect('/collections');
+    }
+    redirect('/landing');
   }
   redirect('/collections');
 }

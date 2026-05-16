@@ -14,14 +14,19 @@ const DialogPortal = DialogPrimitive.Portal;
 
 const DialogClose = DialogPrimitive.Close;
 
+type DialogOverlayProps = React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay> & {
+  marketing?: boolean;
+};
+
 const DialogOverlay = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Overlay>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
->(({ className, ...props }, ref) => (
+  DialogOverlayProps
+>(({ className, marketing, ...props }, ref) => (
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      'fixed inset-0 z-50 bg-foreground/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
+      'fixed inset-0 z-50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
+      marketing ? 'bg-zinc-950/90' : 'bg-foreground/80',
       className
     )}
     {...props}
@@ -29,14 +34,20 @@ const DialogOverlay = React.forwardRef<
 ));
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
+type DialogContentProps = React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
+  /** Apply dark marketing theme (portaled dialogs sit outside [data-marketing] layout). */
+  marketing?: boolean;
+};
+
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+  DialogContentProps
+>(({ className, children, marketing, ...props }, ref) => (
   <DialogPortal>
-    <DialogOverlay />
+    <DialogOverlay marketing={marketing} {...(marketing ? { 'data-marketing': true } : {})} />
     <DialogPrimitive.Content
       ref={ref}
+      {...(marketing ? { 'data-marketing': true } : {})}
       className={cn(
         'fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border border-dialog-border bg-background p-6 text-foreground shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg',
         className

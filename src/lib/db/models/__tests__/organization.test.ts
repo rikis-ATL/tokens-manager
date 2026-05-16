@@ -23,10 +23,9 @@ describe('Organization model', () => {
     expect(Organization.schema.path('updatedAt')).toBeDefined();
   });
 
-  it('does not include slug, ownerId, or planTier (minimal schema D-01)', () => {
+  it('does not include slug or ownerId (minimal schema D-01)', () => {
     expect(Organization.schema.path('slug')).toBeUndefined();
     expect(Organization.schema.path('ownerId')).toBeUndefined();
-    expect(Organization.schema.path('planTier')).toBeUndefined();
   });
 
   it('guards against double-registration', () => {

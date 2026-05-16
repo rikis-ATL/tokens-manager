@@ -62,11 +62,11 @@ describe('checkAndIncrementExport — LIMIT-04/05 + D-12 lazy UTC reset', () => 
   });
 
   it('at cap returns 402 with D-02 payload and does NOT increment', async () => {
-    mockOrgLean.mockResolvedValue({ planTier: 'free', usage: { exportsThisMonth: 10 } });
+    mockOrgLean.mockResolvedValue({ planTier: 'free', usage: { exportsThisMonth: 100 } });
     const result = await checkAndIncrementExport('org1');
     expect(result!.status).toBe(402);
     const body = await result!.json();
-    expect(body).toEqual({ code: 'LIMIT_EXCEEDED', resource: 'exports', current: 10, max: 10, tier: 'free' });
+    expect(body).toEqual({ code: 'LIMIT_EXCEEDED', resource: 'exports', current: 100, max: 100, tier: 'free' });
     expect(mockUpdateOne).not.toHaveBeenCalled();
   });
 

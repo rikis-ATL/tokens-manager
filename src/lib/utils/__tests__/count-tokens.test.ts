@@ -12,7 +12,7 @@ describe('countTokensInCollection (TokenService + group tree)', () => {
   });
 
   it('counts legacy value key (matches TokenService / UI)', () => {
-    const tokens = { token: { legacy: { value: '#000', type: 'color' } } };
+    const tokens = { token: { legacy: { primary: { value: '#000', type: 'color' } } } };
     expect(countTokensInCollection(tokens, 'token')).toBe(1);
   });
 
@@ -22,9 +22,9 @@ describe('countTokensInCollection (TokenService + group tree)', () => {
   });
 
   it('matches billing stress shape: 500 leaves under one namespace', () => {
-    const inner: Record<string, { $value: string }> = {};
-    for (let i = 0; i < 500; i++) inner[`t${i}`] = { $value: '#fff' };
-    const tokens = { token: inner };
+    const leaves: Record<string, { $value: string; $type: string }> = {};
+    for (let i = 0; i < 500; i++) leaves[`t${i}`] = { $value: '#fff', $type: 'color' };
+    const tokens = { token: { leaves } };
     expect(countTokensInCollection(tokens, 'token')).toBe(500);
   });
 });

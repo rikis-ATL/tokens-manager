@@ -17,14 +17,14 @@ export interface TierLimits {
 export const LIMITS: Record<PlanTier, TierLimits> = {
   free: {
     maxCollections: 1,
-    maxThemesPerCollection: 0,
+    maxThemesPerCollection: 2,
     maxTokensTotal: 500,
-    maxExportsPerMonth: 10,
+    maxExportsPerMonth: 100,
     rateLimitPerMinute: 60,
   },
   pro: {
     maxCollections: 10,
-    maxThemesPerCollection: 2,
+    maxThemesPerCollection: 4,
     maxTokensTotal: 1000,
     maxExportsPerMonth: 200,
     rateLimitPerMinute: 120,
@@ -55,9 +55,9 @@ export interface TierFeatures {
 
 export const FEATURE_FLAGS: Record<PlanTier | 'selfHosted', TierFeatures> = {
   free: {
-    githubExport: false,
-    figmaExport: false,
-    npmPublish: false,
+    githubExport: true,
+    figmaExport: true,
+    npmPublish: true,
     versionHistory: true,
     aiChat: false,
     teamMembers: false,

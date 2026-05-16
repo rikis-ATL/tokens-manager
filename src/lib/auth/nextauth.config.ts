@@ -21,7 +21,14 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
-        await dbConnect();
+        try {
+          await dbConnect();
+        } catch (err) {
+          console.error('[auth] Database connection failed:', err);
+          throw new Error(
+            'Unable to connect to the database. If you use Settings → Database, ensure .db-config.json matches MONGODB_URI in .env.local.',
+          );
+        }
         const user = await User.findOne({ email: credentials.email.toLowerCase() });
         if (!user) throw new Error('No account found with that email');
         if (user.status === 'disabled') throw new Error('Incorrect password'); // generic — same as wrong pw, don't reveal status
