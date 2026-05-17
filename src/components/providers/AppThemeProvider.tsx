@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { useSession } from 'next-auth/react';
 import { io as connectSocket } from 'socket.io-client';
 import type { Socket } from 'socket.io-client';
 
@@ -91,6 +92,7 @@ function applyDocumentColorMode(params: {
 }
 
 export function AppThemeProvider({ children }: { children: React.ReactNode }) {
+  const { status: sessionStatus } = useSession();
   const [ready, setReady] = useState(false);
   const [configured, setConfigured] = useState(false);
   const [collectionId, setCollectionId] = useState<string | null>(null);
@@ -210,7 +212,7 @@ export function AppThemeProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!ready) return;
+    if (!ready || sessionStatus !== 'authenticated') return;
 
     let cancelled = false;
 
@@ -231,7 +233,7 @@ export function AppThemeProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [ready, runFetch]);
+  }, [ready, sessionStatus, runFetch]);
 
   useEffect(() => {
     if (!ready) return;

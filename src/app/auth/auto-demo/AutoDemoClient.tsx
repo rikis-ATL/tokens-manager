@@ -15,18 +15,31 @@ export function AutoDemoClient({ callbackUrl }: AutoDemoClientProps) {
       try {
         const res = await fetch('/api/demo/credentials');
         if (!res.ok) {
-          setError('Demo is not configured. Please contact the site administrator.');
+          const body = await res.json().catch(() => ({})) as { error?: string };
+          setError(
+            body.error ??
+              'Demo is not configured on this deployment (check DEMO_ADMIN_EMAIL and DEMO_ADMIN_PASSWORD).',
+          );
           return;
         }
         const { email, password } = await res.json() as { email: string; password: string };
-        await signIn('credentials', {
+        const result = await signIn('credentials', {
           email,
           password,
-          redirect: true,
+          redirect: false,
           callbackUrl,
         });
+        if (result?.error) {
+          setError(
+            'Demo sign-in failed. Ensure the demo user exists in the database with a password matching DEMO_ADMIN_PASSWORD, then try again.',
+          );
+          return;
+        }
+        window.location.href = callbackUrl;
       } catch {
-        setError('Sign-in failed. Please try refreshing the page.');
+        setError(
+          'Could not reach the server. On first load, wait a moment and refresh — cold starts can interrupt sign-in.',
+        );
       }
     }
     void autoSignIn();

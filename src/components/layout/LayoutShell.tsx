@@ -1,6 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { AppSidebar } from '@/components/layout/AppSidebar';
 import { OrgHeader } from '@/components/layout/OrgHeader';
@@ -37,8 +38,17 @@ type LayoutShellProps = {
   hasSession?: boolean;
 };
 
-export function LayoutShell({ children, hasSession = true }: LayoutShellProps) {
+export function LayoutShell({ children, hasSession: serverHasSession = false }: LayoutShellProps) {
   const pathname = usePathname();
+  const { status } = useSession();
+
+  // Server session in root layout does not update after client sign-in; sync from NextAuth.
+  const hasSession =
+    status === 'authenticated'
+      ? true
+      : status === 'unauthenticated'
+        ? false
+        : serverHasSession;
 
   if (isMarketingPath(pathname)) {
     return (

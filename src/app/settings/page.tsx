@@ -45,7 +45,7 @@ export default function SettingsPage() {
           <AIConfiguration />
         )}
 
-        {session.user.isSuperAdmin && !hideSecrets && (
+        {session.user.isSuperAdmin && (
           <div className="border-t border-border pt-8">
             <h2 className="text-xl font-semibold text-foreground mb-4">App theme (shell)</h2>
             <AppThemeAdminSection />
