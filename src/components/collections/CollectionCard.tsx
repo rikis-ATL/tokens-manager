@@ -187,7 +187,10 @@ export function CollectionCard({
 
         <div className="flex items-center gap-3 justify-between text-xs text-muted-foreground">
           <span>{collection.tokenCount} tokens</span>
-          <span className="flex items-center gap-1"> <EventSchedule size={12} className="mr-1" />{formattedDate}</span>
+          <span className="flex items-center gap-1">
+            <EventSchedule size={12} className="mr-1 shrink-0 text-current" />
+            {formattedDate}
+          </span>
         </div>
       </header>
 
@@ -204,7 +207,7 @@ export function CollectionCard({
         <div className="flex flex-wrap gap-1 mt-2">
           {collection.tags.map((tag) => (
             <Badge key={tag} variant="secondary">
-              <Tag size={12} className="text-info mr-1" />
+              <Tag size={12} className="mr-1 shrink-0 text-current" />
               {tag}
             </Badge>
           ))}
@@ -219,13 +222,20 @@ export function CollectionCard({
       {(collection.figmaConfigured || collection.githubConfigured || collection.isPlayground) && (
         <div className="flex gap-1.5 mt-2">
           {collection.isPlayground && (
-            <Badge variant="default" title="Playground" className="bg-info"><Box size={12} className="mr-1" />Playground</Badge>
+            <Badge variant="default" title="Playground">
+              <Box size={12} className="mr-1 shrink-0 text-current" />
+              Playground
+            </Badge>
           )}
           {collection.figmaConfigured && (
-            <Badge variant="default" title="Figma"><Plug size={12} className="text-success mr-1" /> Figma</Badge>
+            <Badge variant="default" title="Figma">
+              <Plug size={12} className="mr-1 shrink-0 text-current" /> Figma
+            </Badge>
           )}
           {collection.githubConfigured && (
-            <Badge variant="default" title="GitHub"><Plug size={12} className="text-success mr-1" /> GitHub</Badge>
+            <Badge variant="default" title="GitHub">
+              <Plug size={12} className="mr-1 shrink-0 text-current" /> GitHub
+            </Badge>
           )}
         </div>
       )}

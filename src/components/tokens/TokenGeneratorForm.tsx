@@ -133,7 +133,7 @@ function DragScrubberHandle({
   return (
     <button
       type="button"
-      className="flex-shrink-0 flex items-center justify-center w-4 h-4 rounded text-muted-foreground hover:text-foreground cursor-ew-resize"
+      className="flex flex-shrink-0 justify-center items-center w-4 h-4 rounded text-muted-foreground hover:text-foreground cursor-ew-resize"
       onMouseDown={handleMouseDown}
       tabIndex={-1}
       title="Drag left/right to adjust (shift = ×10)"
@@ -290,7 +290,7 @@ function TokenTableRow({
     <>
       <tr
         ref={trRef}
-        className={`transition-colors group/row ${isMultiSelected ? "bg-primary/10 ring-1 ring-inset ring-primary/20" : isSelected ? "bg-primary/10 ring-1 ring-inset ring-primary/20" : "hover:bg-background"}`}
+        className={`transition-colors group/row ${isMultiSelected ? "ring-1 ring-inset bg-primary/10 ring-primary/20" : isSelected ? "ring-1 ring-inset bg-primary/10 ring-primary/20" : "hover:bg-background"}`}
         style={
           isPatternLikeRow && editingField === "value"
             ? { minHeight: 36 }
@@ -302,7 +302,7 @@ function TokenTableRow({
       >
         {/* Multi-select checkbox */}
         {!isReadOnly ? (
-          <td className="w-10 px-2 py-0 border-r border-border" onClick={(e) => e.stopPropagation()}>
+          <td className="px-2 py-0 w-10 border-r border-border" onClick={(e) => e.stopPropagation()}>
             <input
               type="checkbox"
               checked={isMultiSelected ?? false}
@@ -311,7 +311,7 @@ function TokenTableRow({
                 e.stopPropagation();
                 onMultiSelectClick?.(e.shiftKey, tokenIndex ?? 0);
               }}
-              className="accent-blue-500 w-4 h-4 cursor-pointer"
+              className="w-4 h-4 cursor-pointer accent-blue-500"
               aria-label={`Select token ${token.path}`}
             />
           </td>
@@ -330,7 +330,7 @@ function TokenTableRow({
               onBlur={handleBlur}
               onClick={(e) => e.stopPropagation()}
               placeholder="token-name"
-              className="h-9 w-full border-0 rounded-none shadow-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-primary font-mono text-xs bg-card"
+              className="w-full h-9 font-mono text-xs rounded-none border-0 shadow-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-primary bg-card"
             />
           ) : (
             <div
@@ -375,7 +375,7 @@ function TokenTableRow({
               }}
             >
               <SelectTrigger
-                className="h-9 w-full border-0 rounded-none shadow-none focus:ring-0 text-xs"
+                className="w-full h-9 text-xs rounded-none border-0 shadow-none focus:ring-0"
                 onClick={(e) => e.stopPropagation()}
               >
                 <SelectValue />
@@ -425,14 +425,14 @@ function TokenTableRow({
                 <PopoverTrigger asChild>
                   <button
                     type="button"
-                    className="w-5 h-5 rounded border border-border flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-offset-1 hover:ring-primary transition-shadow"
+                    className="flex-shrink-0 w-5 h-5 rounded border transition-shadow cursor-pointer border-border hover:ring-2 hover:ring-offset-1 hover:ring-primary"
                     style={{ backgroundColor: swatchBg }}
                     onClick={(e) => e.stopPropagation()}
                     title="Pick color"
                   />
                 </PopoverTrigger>
                 <PopoverContent
-                  className="w-auto p-3"
+                  className="p-3 w-auto"
                   align="start"
                   onClick={(e) => e.stopPropagation()}
                 >
@@ -470,7 +470,7 @@ function TokenTableRow({
                   };
                   return (
                     <div
-                      className="flex-1 flex flex-col gap-1 min-w-0"
+                      className="flex flex-col flex-1 gap-1 min-w-0"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <Input
@@ -555,12 +555,12 @@ function TokenTableRow({
                     onBlur={handleBlur}
                     onClick={(e) => e.stopPropagation()}
                     placeholder={getValuePlaceholder(token.type)}
-                    className="flex-1 h-7 border border-border rounded px-2 text-sm font-mono text-foreground shadow-none focus-visible:ring-1 focus-visible:ring-primary"
+                    className="flex-1 px-2 h-7 font-mono text-sm rounded border shadow-none border-border text-foreground focus-visible:ring-1 focus-visible:ring-primary"
                   />
                 </>
               )
             ) : (
-              <div className="flex-1 flex items-center gap-1 min-w-0">
+              <div className="flex flex-1 gap-1 items-center min-w-0">
                 {isPatternLikeRow ? (
                   <div
                     className={`flex-1 text-[11px] text-muted-foreground italic truncate ${isReadOnly ? "cursor-default" : "cursor-text"}`}
@@ -621,7 +621,7 @@ function TokenTableRow({
                     e.stopPropagation();
                     onResetToDefault(group.id, token.id, masterValue);
                   }}
-                  className="text-muted-foreground hover:text-info flex-shrink-0 focus:outline-none"
+                  className="flex-shrink-0 text-muted-foreground hover:text-info focus:outline-none"
                 >
                   <RotateCounterclockwise size={12} className="shrink-0" />
                 </button>
@@ -656,7 +656,7 @@ function TokenTableRow({
               onBlur={handleBlur}
               onClick={(e) => e.stopPropagation()}
               placeholder="Optional description"
-              className="h-9 w-full border-0 rounded-none shadow-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-primary text-sm bg-card"
+              className="w-full h-9 text-sm rounded-none border-0 shadow-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-primary bg-card"
             />
           ) : (
             <div
@@ -670,12 +670,12 @@ function TokenTableRow({
 
         {/* Actions */}
         <td className="px-2 py-0 min-w-[96px]">
-          <div className="flex items-center gap-1 opacity-0 group-hover/row:opacity-100 transition-opacity">
+          <div className="flex gap-1 items-center opacity-0 transition-opacity group-hover/row:opacity-100">
             {isPatternLikeRow && (
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-6 w-6 p-0 text-muted-foreground hover:text-primary"
+                className="p-0 w-6 h-6 text-muted-foreground hover:text-primary"
                 onClick={(e) => {
                   e.stopPropagation();
                   setPatternPreviewOpen(true);
@@ -689,7 +689,7 @@ function TokenTableRow({
             <Button
               variant="ghost"
               size="sm"
-              className="h-6 w-6 p-0 text-muted-foreground hover:text-primary"
+              className="p-0 w-6 h-6 text-muted-foreground hover:text-primary"
               onClick={(e) => {
                 e.stopPropagation();
                 onToggleExpansion(token.id);
@@ -701,7 +701,7 @@ function TokenTableRow({
             {isReadOnly ? (
               <span
                 title="Source group — read only"
-                className="h-6 w-6 flex items-center justify-center text-muted-foreground"
+                className="flex justify-center items-center w-6 h-6 text-muted-foreground"
               >
                 <Locked size={12} className="shrink-0" />
               </span>
@@ -709,7 +709,7 @@ function TokenTableRow({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive disabled:opacity-50 disabled:pointer-events-none"
+                className="p-0 w-6 h-6 text-muted-foreground hover:text-destructive disabled:opacity-50 disabled:pointer-events-none"
                 onClick={(e) => {
                   e.stopPropagation();
                   onDeleteToken(group.id, token.id);
@@ -761,7 +761,7 @@ function TokenTableRow({
                       onUpdateAttribute(group.id, token.id, newKey, value as string);
                     }}
                     placeholder="Attribute name"
-                    className="flex-1 px-2 py-1 text-xs rounded border border-border h-auto"
+                    className="flex-1 px-2 py-1 h-auto text-xs rounded border border-border"
                   />
                   <span className="text-muted-foreground">:</span>
                   <Input
@@ -772,14 +772,14 @@ function TokenTableRow({
                       onUpdateAttribute(group.id, token.id, key, e.target.value)
                     }
                     placeholder="Attribute value"
-                    className="flex-1 px-2 py-1 text-xs rounded border border-border h-auto"
+                    className="flex-1 px-2 py-1 h-auto text-xs rounded border border-border"
                   />
                   {!isReadOnly && (
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => onRemoveAttribute(group.id, token.id, key)}
-                      className="text-sm text-destructive hover:text-destructive h-auto p-0"
+                      className="p-0 h-auto text-sm text-destructive hover:text-destructive"
                     >
                       ✕
                     </Button>
@@ -793,7 +793,7 @@ function TokenTableRow({
                   onClick={() =>
                     onUpdateAttribute(group.id, token.id, "newAttribute", "")
                   }
-                  className="text-sm font-medium text-primary hover:text-primary h-auto p-0"
+                  className="p-0 h-auto text-sm font-medium text-primary hover:text-primary"
                 >
                   + Add Attribute
                 </Button>
@@ -1851,27 +1851,33 @@ export function TokenGeneratorForm({
 
     return (
       <div key={group.id} className="mb-4">
-        <div className="bg-card rounded-lg border border-border shadow-sm">
+        <div className="rounded-lg border shadow-sm bg-card border-border">
           {/* Card header */}
           <div className="px-4 py-3 border-b border-border">
-            <div className="flex items-center gap-2">
+            <div className="flex gap-2 items-center">
               <Input
                 type="text"
                 value={group.name}
                 readOnly={isReadOnly}
                 onChange={isReadOnly ? undefined : (e) => updateGroupName(group.id, e.target.value)}
-                className="px-2 py-1 text-base font-semibold bg-transparent rounded border-none outline-none focus:bg-background h-auto flex-1"
+                className="flex-1 px-2 py-1 h-auto text-base font-semibold bg-transparent rounded border-none outline-none focus:bg-background"
                 placeholder="Group name"
               />
               {hasChildren && (
-                <span className="px-2 py-0.5 text-xs text-primary bg-primary/10 border border-primary rounded-full">
+                <Badge
+                  variant="outline"
+                  className="shrink-0 border-primary bg-primary/10 text-primary-foreground"
+                >
                   {group.children!.length} sub
-                </span>
+                </Badge>
               )}
               {hasTokens && (
-                <span className="px-2 py-0.5 text-xs text-success bg-success/10 border border-success/25 rounded-full">
+                <Badge
+                  variant="outline"
+                  className="shrink-0 border-primary bg-primary/10 text-primary-foreground"
+                >
                   {group.tokens.length} tokens
-                </span>
+                </Badge>
               )}
               {(!isReadOnly || (onResetGroupToSource && !isGroupSource?.(group.id))) && (
                 <DropdownMenu>
@@ -1879,7 +1885,7 @@ export function TokenGeneratorForm({
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                      className="p-0 w-7 h-7 text-muted-foreground hover:text-foreground"
                     >
                       ···
                     </Button>
@@ -1916,7 +1922,7 @@ export function TokenGeneratorForm({
               )}
             </div>
             {!isReadOnly && (
-              <div className="flex items-center gap-5 mt-2 pt-2 border-t border-border">
+              <div className="flex gap-5 items-center pt-2 mt-2 border-t border-border">
                 <label className="flex items-center gap-1.5 cursor-pointer select-none">
                   <input
                     type="checkbox"
@@ -1950,7 +1956,7 @@ export function TokenGeneratorForm({
                   <tr>
                     {/* Checkbox column header */}
                     {!isReadOnly ? (
-                      <th className="w-10 px-2 py-2 border-r border-border">
+                      <th className="px-2 py-2 w-10 border-r border-border">
                         <input
                           type="checkbox"
                           checked={activeGroupTokens.length > 0 && activeGroupTokens.every(t => selectedTokenIds.has(t.id))}
@@ -1958,7 +1964,7 @@ export function TokenGeneratorForm({
                             if (e.target.checked) setSelectedTokenIds(new Set(activeGroupTokens.map(t => t.id)));
                             else setSelectedTokenIds(new Set());
                           }}
-                          className="accent-blue-500 w-4 h-4 cursor-pointer"
+                          className="w-4 h-4 cursor-pointer accent-blue-500"
                           aria-label="Select all tokens"
                         />
                       </th>
@@ -2015,13 +2021,13 @@ export function TokenGeneratorForm({
           )}
 
           {/* Add Token */}
-          <div className="border-t border-border px-4 py-2 text-center">
+          <div className="px-4 py-2 text-center border-t border-border">
             <Button
-              variant="ghost"
+              variant="secondary"
               size="sm"
               onClick={() => addToken(group.id)}
               disabled={isReadOnly}
-              className="text-xs font-medium text-primary hover:text-primary h-auto p-0 disabled:opacity-50 disabled:pointer-events-none"
+              className="p-0 h-auto text-xs font-medium disabled:opacity-50 disabled:pointer-events-none"
               title={isReadOnly ? "Source group — read only" : undefined}
             >
               + Add Token
@@ -2061,12 +2067,12 @@ export function TokenGeneratorForm({
       )}
 
         {!hideNamespaceAndActions && (
-          <div className="flex items-center space-x-4 mb-4">
+          <div className="flex items-center mb-4 space-x-4">
             <h3 className="text-lg font-medium text-foreground">
               Export Actions
             </h3>
             {loadedCollection && (
-              <p className="text-xs text-success font-medium">
+              <p className="text-xs font-medium text-success">
                 Editing: {loadedCollection.name}
               </p>
             )}
@@ -2093,7 +2099,7 @@ export function TokenGeneratorForm({
 
 
         {!hideNamespaceAndActions && globalNamespace && (
-          <div className="text-sm text-muted-foreground mt-4">
+          <div className="mt-4 text-sm text-muted-foreground">
             <strong>Preview:</strong> Tokens will be prefixed with "
             {globalNamespace}."
           </div>
@@ -2103,7 +2109,7 @@ export function TokenGeneratorForm({
       {/* Token Groups */}
       {!selectedGroupId || selectedGroupId === '__all_groups__' ? (
         /* Default view: overview table of all top-level groups */
-        <div className="bg-card rounded-lg border border-border shadow-sm overflow-hidden">
+        <div className="overflow-hidden rounded-lg border shadow-sm bg-card border-border">
           <div className="px-4 py-3">
             <h3 className="text-sm font-semibold text-foreground">All Groups</h3>
           </div>
@@ -2111,7 +2117,7 @@ export function TokenGeneratorForm({
             const overviewGroups =
               themeTokens && themeTokens.length > 0 ? themeTokens : tokenGroups;
             return overviewGroups.length === 0 ? (
-              <p className="px-4 py-8 text-sm text-muted-foreground text-center">
+              <p className="px-4 py-8 text-sm text-center text-muted-foreground">
                 No groups yet. Add a group below.
               </p>
             ) : (
@@ -2134,7 +2140,7 @@ export function TokenGeneratorForm({
                   {overviewGroups.map((group) => (
                     <tr
                       key={group.id}
-                      className="hover:bg-background cursor-pointer transition-colors"
+                      className="transition-colors cursor-pointer hover:bg-background"
                       onClick={() => onGroupSelect?.(group.id)}
                     >
                       <td className="px-4 py-2.5">
@@ -2153,7 +2159,7 @@ export function TokenGeneratorForm({
                         </span>
                       </td>
                       <td className="px-4 py-2.5 text-right">
-                        <span className="text-muted-foreground text-sm">→</span>
+                        <span className="text-sm text-muted-foreground">→</span>
                       </td>
                     </tr>
                   ))}
@@ -2168,7 +2174,7 @@ export function TokenGeneratorForm({
           {tokenNameMismatch &&
             (tokenNameMismatch.inThemeNotDefault.length > 0 ||
               tokenNameMismatch.inDefaultNotTheme.length > 0) && (
-              <div className="rounded-lg border border-warning bg-warning/10 px-4 py-3 text-sm text-warning">
+              <div className="px-4 py-3 text-sm rounded-lg border border-warning bg-warning/10 text-warning">
                 <span className="font-medium">
                   Token names differ from default.
                 </span>
@@ -2218,7 +2224,7 @@ export function TokenGeneratorForm({
               tokenGroups.find((g) => g.id === selectedGroupId);
             if (found && found.tokens.length === 0) {
               return (
-                <p className="p-6 text-sm text-muted-foreground text-center">
+                <p className="p-6 text-sm text-center text-muted-foreground">
                   No tokens in this group
                 </p>
               );
@@ -2229,7 +2235,7 @@ export function TokenGeneratorForm({
       )}
       {/* Add Group */}
       {!hideAddGroupButton && !isReadOnly && (
-        <div className="p-6 text-center bg-background rounded-lg border-2 border-border border-dashed">
+        <div className="p-6 text-center rounded-lg border-2 border-dashed bg-background border-border">
           {!isAddingGroup ? (
             <Button
               variant="ghost"
